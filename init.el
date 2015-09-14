@@ -638,6 +638,7 @@ fields which we need."
 
 ;; == C++ Mode ==
 
+(setq vr-project-dir-name ".project")
 (setq vr-c++std "-std=c++11")
 
 (cond
@@ -748,14 +749,39 @@ fields which we need."
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
   (define-key yas-minor-mode-map (kbd "TAB") nil))
 
+(defun vr-c++-get-project-path ()
+  (let ((src-tree-root (locate-dominating-file
+                        (file-truename default-directory)
+                        vr-project-dir-name)))
+    (if src-tree-root
+        (concat src-tree-root vr-project-dir-name "/")
+      nil)))
+
 (defun vr-c++-debug-setup ()
   ;; use gdb-many-windows by default
   (setq gdb-many-windows t)
   ;; Non-nil means display source file containing the main routine at startup
   (setq gdb-show-main t))
 
-;; (defun vr-c++-build-setup ()
-;;   )
+(defun vr-c++-compile-setup ()
+  (interactive)
+  (let ((path (vr-c++-get-project-path)))
+    (if path
+        (progn
+          (set (make-local-variable 'compile-command)
+               (concat path "make -k"))
+          (message (concat "vr-project: " path))))))
+
+;; (defun vr-c++-compile-setup ()
+;;   (let ((src-tree-root (locate-dominating-file
+;;                         (file-truename default-directory)
+;;                         vr-project-dir-name)))
+;;     (if src-tree-root
+;;         (progn
+;;           (set (make-local-variable 'compile-command)
+;;                (concat src-tree-root ".project/" "make -k"))
+;;           (message (concat "vr-project: "
+;;                            src-tree-root vr-project-dir-name))))))
 
 (add-hook 'c++-mode-hook (lambda ()
                            ;; For some reason c++-mode-hook is getting executed twice.
@@ -775,7 +801,9 @@ fields which we need."
                                    (setq compilation-scroll-output t)
                                    (vr-c++-11-partial-patch)
                                    (vr-c++-clang-auto-complete-setup)
-                                   (vr-c++-debug-setup))))))
+                                   (vr-c++-compile-setup)
+                                   (vr-c++-debug-setup)
+                                   (local-set-key (kbd "C-S-b") 'recompile))))))
 
 ;; == Enhanced Java Script Mode ==
 
@@ -910,7 +938,7 @@ fields which we need."
     (add-hook 'LaTeX-mode-hook (lambda ()
                                  (progn
                                    (make-local-variable 'vr-tex-mode)
-                                   (local-set-key (kbd "<f3>")
+                                   (local-set-key(kbd "<f3>")
                                                   'sumatra-jump-to-line)
                                    (reftex-mode t)
                                    (TeX-fold-mode t)
