@@ -33,6 +33,7 @@
  '(whitespace-space ((t (:foreground "lightgray"))))
  '(whitespace-tab ((t (:foreground "lightgray")))))
 
+
 ;; ------------------------------------------------------------------
 ;;; File Location Variables
 ;; ------------------------------------------------------------------
@@ -98,6 +99,7 @@
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
+
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
@@ -115,6 +117,18 @@
       (dolist (regexp regexp-list)
         (when (string-match regexp str)
           (throw 'done t))))))
+
+;; == Outline ellipsis (for org mode, hideshow mode) ==
+
+;; see http://emacs.stackexchange.com/questions/10981/changing-the-appearance-of-org-mode-hidden-contents-ellipsis
+;; see http://emacswiki.org/emacs/OutlineMode
+(set-display-table-slot standard-display-table 
+                        'selective-display (string-to-vector " ◦◦◦ "))
+;; (set-display-table-slot
+;;  standard-display-table
+;;  'selective-display
+;;  (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
+;;    (vconcat (mapcar (lambda (c) (+ face-offset c)) " ◦◦◦ "))))
 
 ;; == Convenience interactive functions ==
 
@@ -236,6 +250,27 @@ when only symbol face names are needed."
 ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
 (ffap-bindings)
 
+;; filter Echo area annoying messages
+;; http://emacswiki.org/emacs/EchoArea
+;; (defvar message-filter-regexp-list
+;;  '("^Mark set$"
+;;    "filter formatted message string to remove noisy messages"))
+;;(defadvice message (around message-filter-by-regexp activate)
+;;  (if (not (ad-get-arg 0))
+;;      ad-do-it
+;;    (let ((formatted-string (apply 'format (ad-get-args 0))))
+;;      (if (and (stringp formatted-string)
+;;               (some (lambda (re)
+;;                       (string-match re formatted-string))
+;;                message-filter-regexp-list))
+;;          (save-excursion
+;;            (set-buffer "*Messages*")
+;;            (goto-char (point-max))
+;;            (insert formatted-string "\n"))
+;;        (progn
+;;          (ad-set-args 0 `("%s" ,formatted-string))
+;;          ad-do-it)))))
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
@@ -331,6 +366,7 @@ selection (e.g. S-arrows), keep mark activated after
   (interactive)
   (scroll-up 1))
 
+;; TODO: Review  these keys for windows resizing
 ;; up/down keys "like in Adobe Reader"
 (global-set-key (kbd "M-<down>") 'vr-scroll-up-one-line)
 (global-set-key (kbd "M-<kp-down>") 'vr-scroll-up-one-line)
@@ -745,7 +781,7 @@ fields which we need."
   (setq ac-sources
         (append '(ac-source-c-headers ac-source-clang ac-source-yasnippet)
                 ac-sources))
-  ;; use ac for for yas-expand
+  ;; use clang-ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
   (define-key yas-minor-mode-map (kbd "TAB") nil))
 
@@ -764,7 +800,6 @@ fields which we need."
   (setq gdb-show-main t))
 
 (defun vr-c++-compile-setup ()
-  (interactive)
   (let ((path (vr-c++-get-project-path)))
     (if path
         (progn
@@ -772,38 +807,57 @@ fields which we need."
                (concat path "make -k"))
           (message (concat "vr-project: " path))))))
 
-;; (defun vr-c++-compile-setup ()
-;;   (let ((src-tree-root (locate-dominating-file
-;;                         (file-truename default-directory)
-;;                         vr-project-dir-name)))
-;;     (if src-tree-root
-;;         (progn
-;;           (set (make-local-variable 'compile-command)
-;;                (concat src-tree-root ".project/" "make -k"))
-;;           (message (concat "vr-project: "
-;;                            src-tree-root vr-project-dir-name))))))
+(defun vr-c++-rtags-setup () 
+  (require 'rtags)
+  (rtags-start-process-unless-running)
+  (setq rtags-autostart-diagnostics t)
+  ;; Using clang-auto-complete instead
+  ;; (setq rtags-completions-enabled t)
+  ;; Does not work with myclang-auto-complete setting
+  ;; (setq rtags-display-current-error-as-tooltip t)
 
-(add-hook 'c++-mode-hook (lambda ()
-                           ;; For some reason c++-mode-hook is getting executed twice.
-                           ;; The following if-condition is preventing the
-                           ;; second execution.
-                           (progn
-                             ;; (message "c++-mode-hook call")
-                             (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
-                                 (progn
-                                   (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
-                                   (require 'google-c-style)
-                                   (google-set-c-style)
-                                   ;; Use yast instead
-                                   (abbrev-mode -1)
-                                   (programming-minor-modes t)
-                                   (yas-minor-mode t)
-                                   (setq compilation-scroll-output t)
-                                   (vr-c++-11-partial-patch)
-                                   (vr-c++-clang-auto-complete-setup)
-                                   (vr-c++-compile-setup)
-                                   (vr-c++-debug-setup)
-                                   (local-set-key (kbd "C-S-b") 'recompile))))))
+  (custom-set-faces
+   '(rtags-errline ((((class color)) (:background "#ef8990"))))
+   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
+   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
+   '(rtags-skippedline ((((class color)) (:background "#34ef85")))))
+  ;; rtags-ac does not seem to be working...
+  ;; (require 'rtags-ac)
+
+  (rtags-enable-standard-keybindings)
+  (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
+  (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
+  (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
+  (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
+  (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
+  (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
+  (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
+  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
+
+(add-hook 'c++-mode-hook
+          (lambda ()
+            ;; For some reason c++-mode-hook is getting executed twice.
+            ;; The following if-condition is preventing the
+            ;; second execution.
+            ;; (message "c++-mode-hook call")
+            (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
+                (progn
+                  (set (make-local-variable
+                        'vr-c++-mode-hook-called-before) t)
+                  (require 'google-c-style)
+                  (google-set-c-style)
+                  ;; Use yast instead
+                  (abbrev-mode -1)
+                  (programming-minor-modes t)
+                  (yas-minor-mode t)
+                  (setq compilation-scroll-output t)
+                  (vr-c++-11-partial-patch)
+                  (vr-c++-clang-auto-complete-setup)
+                  (vr-c++-compile-setup)
+                  (vr-c++-debug-setup)
+                  (vr-c++-rtags-setup)
+                  (local-set-key (kbd "C-S-b") 'recompile)))))
 
 ;; == Enhanced Java Script Mode ==
 
@@ -869,33 +923,50 @@ fields which we need."
   (other-window 1)
   (ielm))
 
-(add-hook 'emacs-lisp-mode-hook (lambda ()
-                                  (programming-minor-modes)
-                                  (set (make-local-variable 'vr-elisp-mode) t)
-                                  (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
-                                  (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
-                                  (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (programming-minor-modes)
+            (eldoc-mode 1)
+            (set (make-local-variable 'vr-elisp-mode) t)
+            (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
+            (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
+            (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
 
 ;; == Visual Basic Mode ==
 
 (autoload 'visual-basic-mode "visual-basic-mode" "Visual Basic mode." t)
 (add-to-list 'auto-mode-alist '("\\.vbs\\'" . visual-basic-mode))
 
-;; == Compilation Mode ==
-;; Changed to popwin mode to manage compilation window.
-;; (setq compilation-window-height 10)
+;; == nXML mode ==
 
-;; (defun vr-compilation-hook ()
-;;   (when (not (get-buffer-window "*compilation*"))
-;;     (save-selected-window
-;;       (save-excursion
-;;         (let* ((w (split-window-vertically))
-;;                (h (window-height w)))
-;;           (select-window w)
-;;           (switch-to-buffer "*compilation*")
-;;           (shrink-window (- h compilation-window-height)))))))
+(autoload 'nxml-mode "nxml-mode" "nXML mode." t)
+(add-to-list 'auto-mode-alist '("\\.xml\\'\\|\\.html\\'\\|\\.htm\\'" . nxml-mode))
 
-;; (add-hook 'compilation-mode-hook 'vr-compilation-hook)
+(defun vr-nxml-code-folding-setup ()
+  (if (not (boundp 'vr-nxml-code-folding-initialised))
+      (progn
+        (require 'hideshow)
+        (require 'sgml-mode)
+        ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
+        ;; see http://www.emacswiki.org/emacs/HideShow
+        (add-to-list 'hs-special-modes-alist
+                     '(nxml-mode
+                       "<!--\\|<[^/>]*[^/]>"
+                       "-->\\|</[^/>]*[^/]>"
+                       "<!--"
+                       sgml-skip-tag-forward
+                       nil))
+        (setq hs-allow-nesting t)
+        (setq hs-isearch-open t)
+        (setq vr-nxml-code-folding-initialised t)))
+  (hs-minor-mode t))
+
+(add-hook 'nxml-mode-hook (lambda ()
+                            (programming-minor-modes)
+                            (vr-nxml-code-folding-setup)
+                            (local-unset-key (kbd "C-S-e"))
+                            (local-set-key (kbd "C-S-e") 'hs-show-all)
+                            (local-set-key (kbd "C-S-j") 'hs-toggle-hiding)))
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -904,14 +975,16 @@ fields which we need."
 ;; == Org mode ==
 
 (setq org-replace-disputed-keys t)
-(add-hook 'org-mode-hook (lambda ()
-                           (local-set-key (kbd "M-<kp-right>") 'org-metaright)
-                           (local-set-key (kbd "M-<kp-left>") 'org-metaleft)
-                           (local-set-key (kbd "M-<kp-up>") 'org-metaup)
-                           (local-set-key (kbd "M-<kp-down>") 'org-metadown)
-                           (local-set-key (kbd "C-<kp-enter>") 'org-insert-heading-respect-content)
-                           (visual-line-mode)
-                           (org-indent-mode)))
+(setq org-completion-use-ido t)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (local-set-key (kbd "M-<kp-right>") 'org-metaright)
+            (local-set-key (kbd "M-<kp-left>") 'org-metaleft)
+            (local-set-key (kbd "M-<kp-up>") 'org-metaup)
+            (local-set-key (kbd "M-<kp-down>") 'org-metadown)
+            (local-set-key (kbd "C-<kp-enter>") 'org-insert-heading-respect-content)
+            (visual-line-mode)
+            (org-indent-mode)))
 
 ;; == LaTeX mode ==
 
@@ -1504,12 +1577,12 @@ with very limited support for special characters."
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; -------------------------------------------------------------------
-;;; Filtered Buffer Switching, ido, smex and popwin modes
+;;; Filtered Buffer Switching, ido, smex, and popwin modes
 ;; -------------------------------------------------------------------
 
 (setq vr-ignore-buffers '("\\` " "^\\*Completions\\*$"
                           "^\\*Quail Completions\\*$"
-                          "^\\*Messages\\*$" ; "(Sunrise)$"
+                          "^\\*Messages\\*$" ;
                           "^\\*clang-output\\*$" "^\\*clang error\\*$"
                           "^\\*Semantic SymRef\\*$"
                           "^\\*Recent Files\\*$" "^\\*Directory\\*$"
@@ -1526,7 +1599,7 @@ with very limited support for special characters."
 
 ;; == ido mode ==
 
-(ido-mode 't)
+(ido-mode 1)
 (setq ido-enable-flex-matching t)
 (setq ido-case-fold t)
 (setq ido-use-filename-at-point nil)
@@ -1535,6 +1608,7 @@ with very limited support for special characters."
 ;; (setq ido-auto-merge-work-directories-length -1)
 
 (setq ido-ignore-buffers vr-ignore-buffers)
+(ido-everywhere 1)
 
 ;; (setq ido-work-directory-list '("~/" "~/Desktop" "~/Documents" "~src"))
 ;; (setq ido-enable-last-directory-history t)
@@ -1558,6 +1632,12 @@ with very limited support for special characters."
 ;;   (define-key ido-completion-map (kbd "C-<kp-next>") 'ido-prev-match)
 ;;   (define-key ido-completion-map (kbd "C-<prior>") 'ido-next-match)
 ;;   (define-key ido-completion-map (kbd "C-<kp-prior>") 'ido-prev-match))
+
+;; == ido-ubiquitous mode ==
+
+(defvar ido-ubiquitous-debug-mode nil)
+(require 'ido-ubiquitous)
+(ido-ubiquitous-mode t)
 
 ;; == smex mode ==
 
@@ -1647,6 +1727,8 @@ with very limited support for special characters."
 
 (require 'popwin)
 (popwin-mode 1)
+
+(delete 'help-mode popwin:special-display-config)
 
 (defun vr-popwin:popup-smart ()
   (interactive)
@@ -1754,3 +1836,9 @@ with very limited support for special characters."
   (lookup-key (current-global-map) (kbd "C-<left>")))
 (define-key (current-global-map) (kbd "C-<kp-right>")
   (lookup-key (current-global-map) (kbd "C-<right>")))
+
+;; -------------------------------------------------------------------
+;;; Post intit - to ensure correct settings if they were changed.
+;; -------------------------------------------------------------------
+
+(transient-mark-mode -1)
