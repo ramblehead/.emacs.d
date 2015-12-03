@@ -33,7 +33,6 @@
  '(whitespace-space ((t (:foreground "lightgray"))))
  '(whitespace-tab ((t (:foreground "lightgray")))))
 
-
 ;; ------------------------------------------------------------------
 ;;; File Location Variables
 ;; ------------------------------------------------------------------
@@ -122,13 +121,15 @@
 
 ;; see http://emacs.stackexchange.com/questions/10981/changing-the-appearance-of-org-mode-hidden-contents-ellipsis
 ;; see http://emacswiki.org/emacs/OutlineMode
-(set-display-table-slot standard-display-table 
-                        'selective-display (string-to-vector " ◦◦◦ "))
-;; (set-display-table-slot
-;;  standard-display-table
-;;  'selective-display
-;;  (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
-;;    (vconcat (mapcar (lambda (c) (+ face-offset c)) " ◦◦◦ "))))
+
+;; (set-display-table-slot standard-display-table 
+;;                         'selective-display (string-to-vector " ◦◦◦ "))
+
+(set-display-table-slot
+ standard-display-table
+ 'selective-display
+ (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
+   (vconcat (mapcar (lambda (c) (+ face-offset c)) " [...] "))))
 
 ;; == Convenience interactive functions ==
 
@@ -215,17 +216,6 @@ when only symbol face names are needed."
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-;; Workaround for problems with menu update in gnome.
-(defun vr-menu-update ()
-  (interactive)
-  (menu-bar-mode -1)
-  (menu-bar-mode 1))
-
-;; This hook causes recursive call, so it is disabled.
-;; So far the best solution I found is to use native menus
-;; instead of detached gnome-style menu.
-;;(add-hook 'window-configuration-change-hook 'vr-menu-update)
-
 ;; better frame titles
 (setq frame-title-format
       (concat "%b - emacs@" system-name))
@@ -270,6 +260,11 @@ when only symbol face names are needed."
 ;;        (progn
 ;;          (ad-set-args 0 `("%s" ,formatted-string))
 ;;          ad-do-it)))))
+
+;; Do not copy font and font faces on yank
+;; http://stackoverflow.com/questions/22024765/how-to-copy-paste-without-source-font-lock-in-emacs
+(setq yank-excluded-properties (append '(font face font-lock-face)
+                                       yank-excluded-properties))
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -626,6 +621,18 @@ fields which we need."
 ;;; Programming Languages
 ;; -------------------------------------------------------------------
 
+;; Better line numbering
+(require 'nlinum)
+(setq nlinum-format "%4d ")
+
+;; Code folding
+(require 'hideshow)
+(setq hs-allow-nesting t)
+(setq hs-isearch-open t)
+
+(define-key hs-minor-mode-map (kbd "C-S-e") 'hs-show-all)
+(define-key hs-minor-mode-map (kbd "C-S-j") 'hs-toggle-hiding)
+
 ;; Activate the needed timer.
 (show-paren-mode)
 
@@ -653,55 +660,99 @@ fields which we need."
             (progn
               ;; (message "*** killing vr-prog-mode")
               (kill-local-variable 'vr-prog-mode)
-              (linum-mode -1)
-              (show-paren-local-mode nil))
+              (nlinum-mode -1)
+              (show-paren-local-mode -1)
+              (hs-minor-mode -1))
           (progn
             ;; (message "*** setting vr-prog-mode")
             (set (make-local-variable 'vr-prog-mode) t)
-            (linum-mode 1)
-            (show-paren-local-mode t))))
+            (nlinum-mode 1)
+            (show-paren-local-mode 1)
+            (hs-minor-mode 1)
+            ;; ;; Use case-sensitive search (buffer-local)
+            ;; (setq case-fold-search nil)
+            )))
     (progn
       (if value
           (progn
             (set (make-local-variable 'vr-prog-mode) t)
-            (linum-mode 1)
-            (show-paren-local-mode t))
+            (nlinum-mode 1)
+            (show-paren-local-mode 1)
+            (hs-minor-mode 1)
+            ;; ;; Use case-sensitive search (buffer-local)
+            ;; (setq case-fold-search nil)
+            )
         (progn
           (if (local-variable-p 'vr-prog-mode)
               (kill-local-variable 'vr-prog-mode))
-          (linum-mode -1)
-          (show-paren-local-mode nil))))))
+          (nlinum-mode -1)
+          (show-paren-local-mode nil)
+          (hs-minor-mode -1))))))
 
 ;; == C++ Mode ==
+
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/irony/")
 
 (setq vr-project-dir-name ".project")
 (setq vr-c++std "-std=c++11")
 
-(cond
- ;; i.e. 'echo "" | g++ -v -x c++ -E -'
- ((equal system-type 'windows-nt)
-  (progn
-    (setq vr-c++-include-path (split-string
-                               "
- c:/tools/mingw/mingw64/current/include
- c:/tools/mingw/mingw64/current/include/c++
- c:/tools/mingw/mingw64/current/include/c++/x86_64-w64-mingw32
- c:/tools/mingw/mingw64/current/include/c++/backward"
-                               ))))
- ((equal system-type 'gnu/linux)
-  (progn
-    (setq vr-c++-include-path (split-string
-                               "
- /usr/include/c++/4.8
- /usr/include/x86_64-linux-gnu/c++/4.8
- /usr/include/c++/4.8/backward
- /usr/lib/gcc/x86_64-linux-gnu/4.8/include
- /usr/local/include
- /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed
- /usr/include/x86_64-linux-gnu
- /usr/include"
-                               )))))
+;; TODO: Use rtags or .project to get current compiler
+;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
+(defun vr-get-g++-isystem-path ()
+  (let* ((command-result (shell-command-to-string
+                          "echo \"\" | g++ -v -x c++ -E -"))
+         (start-string "#include <...> search starts here:\n")
+         (end-string "End of search list.\n")
+         (start-pos (string-match start-string command-result))
+         (end-pos (string-match end-string command-result))
+         (include-string (substring command-result
+                                    (+ start-pos
+                                       (length start-string)) end-pos)))
+    (split-string include-string)))
 
+;; TODO: Find how to extract the following includes from 
+(setq vr-c++-include-path (split-string
+                           "
+/home/rh/s600/s600-host/build/root/include
+/home/rh/s600/s600-host/server"))
+
+;; The following code is replaced by the script above
+;; (cond
+;;  ;; i.e. 'echo "" | g++ -v -x c++ -E -'
+;;  ((equal system-type 'windows-nt)
+;;   (progn
+;;     (setq vr-c++-include-path (split-string
+;;                                "
+;;  c:/tools/mingw/mingw64/current/include
+;;  c:/tools/mingw/mingw64/current/include/c++
+;;  c:/tools/mingw/mingw64/current/include/c++/x86_64-w64-mingw32
+;;  c:/tools/mingw/mingw64/current/include/c++/backward"
+;;                                ))))
+;;  ((equal system-type 'gnu/linux)
+;;   (progn
+;;     (setq vr-c++-isystem-path (split-string
+;;                                ;;                               "
+;;                                ;; /usr/include/c++/4.8
+;;                                ;; /usr/include/x86_64-linux-gnu/c++/4.8
+;;                                ;; /usr/include/c++/4.8/backward
+;;                                ;; /usr/lib/gcc/x86_64-linux-gnu/4.8/include
+;;                                ;; /usr/local/include
+;;                                ;; /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed
+;;                                ;; /usr/include/x86_64-linux-gnu
+;;                                ;; /usr/include
+;;                                ;; /home/rh/s600/s600-host/server"
+;;                                "
+;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0
+;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0/x86_64-linux-gnu
+;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0/backward
+;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/include
+;; /usr/local/include
+;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/include-fixed
+;; /usr/include/x86_64-linux-gnu
+;; /usr/include")))))
+
+;; This patch if far from perfect. It is although better than nothing.
 ;; see http://stackoverflow.com/questions/8549351/c11-mode-or-settings-for-emacs
 (defun vr-c++-11-partial-patch ()
   (require 'font-lock)
@@ -764,26 +815,42 @@ fields which we need."
          ;; ("\\<\\(xstring\\|xchar\\)\\>" . font-lock-type-face)
          ) t))
 
+;; TODO: make all auto-complete settings buffer local
 (defun vr-c++-clang-auto-complete-setup ()
   ;; see https://github.com/mooz/auto-complete-c-headers
   (require 'auto-complete-c-headers)
   ;; #include auto-completion search paths
   (setq achead:include-directories
         (append vr-c++-include-path
+                ;; vr-c++-isystem-path
+                (vr-get-g++-isystem-path)
                 achead:include-directories))
   ;; see https://github.com/brianjcj/auto-complete-clang
   (require 'auto-complete-clang)
   ;; i.e. 'echo "" | g++ -v -x c++ -E -'
   ;; (setq clang-completion-suppress-error 't)
   (setq ac-clang-flags (append `(,vr-c++std)
-                               (mapcar (lambda (item)(concat "-I" item))
-                                       vr-c++-include-path)))
+                               (mapcar (lambda (item) (concat "-I" item))
+                                       vr-c++-include-path)
+                               (mapcar (lambda (item) (concat "-isystem" item))
+                                       ;; vr-c++-isystem-path)))
+                                       (vr-get-g++-isystem-path))))
   (setq ac-sources
         (append '(ac-source-c-headers ac-source-clang ac-source-yasnippet)
                 ac-sources))
   ;; use clang-ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
   (define-key yas-minor-mode-map (kbd "TAB") nil))
+
+;; (defun vr-c++-clang-auto-complete-setup ()
+;;   (require 'ac-irony)
+;;   (require 'irony-cdb)
+;;   ;; (setq ac-sources
+;;   ;;       (append '(ac-source-irony ac-source-yasnippet)
+;;   ;;               ac-sources))
+;;   (add-to-list 'ac-sources 'ac-source-irony)
+;;   (irony-cdb-autosetup-compile-options)
+;;   (irony-mode 1))
 
 (defun vr-c++-get-project-path ()
   (let ((src-tree-root (locate-dominating-file
@@ -813,8 +880,18 @@ fields which we need."
   (setq rtags-autostart-diagnostics t)
   ;; Using clang-auto-complete instead
   ;; (setq rtags-completions-enabled t)
-  ;; Does not work with myclang-auto-complete setting
+  ;; Does not work with my clang-auto-complete setting
   ;; (setq rtags-display-current-error-as-tooltip t)
+
+  ;; Display current function name at the top of the window (header-line).
+  ;; https://github.com/Andersbakken/rtags/issues/435
+  (setq rtags-track-container t)
+  (add-hook 'find-file-hook
+            (lambda ()
+              (setq header-line-format
+                    (and (rtags-is-indexed)
+                         '(:eval rtags-cached-current-container))))
+            nil t)
 
   (custom-set-faces
    '(rtags-errline ((((class color)) (:background "#ef8990"))))
@@ -835,6 +912,11 @@ fields which we need."
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
 
+(defun vr-c++-code-folding-setup ()
+  (hs-minor-mode 1))
+
+(add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'" . c++-mode))
+
 (add-hook 'c++-mode-hook
           (lambda ()
             ;; For some reason c++-mode-hook is getting executed twice.
@@ -847,7 +929,7 @@ fields which we need."
                         'vr-c++-mode-hook-called-before) t)
                   (require 'google-c-style)
                   (google-set-c-style)
-                  ;; Use yast instead
+                  ;; Use yast instead of abbrev-mode
                   (abbrev-mode -1)
                   (programming-minor-modes t)
                   (yas-minor-mode t)
@@ -857,6 +939,8 @@ fields which we need."
                   (vr-c++-compile-setup)
                   (vr-c++-debug-setup)
                   (vr-c++-rtags-setup)
+                  (vr-c++-code-folding-setup)
+                  ;; Build Solution ;)
                   (local-set-key (kbd "C-S-b") 'recompile)))))
 
 ;; == Enhanced Java Script Mode ==
@@ -909,6 +993,9 @@ fields which we need."
 
 ;; == Emacs Lisp Mode ==
 
+(setq eval-expression-print-length nil)
+(setq eval-expression-print-level nil)
+
 (defun el-eval-region-or-last-sexp ()
   (interactive)
   (if (use-region-p)
@@ -945,7 +1032,6 @@ fields which we need."
 (defun vr-nxml-code-folding-setup ()
   (if (not (boundp 'vr-nxml-code-folding-initialised))
       (progn
-        (require 'hideshow)
         (require 'sgml-mode)
         ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
         ;; see http://www.emacswiki.org/emacs/HideShow
@@ -956,17 +1042,13 @@ fields which we need."
                        "<!--"
                        sgml-skip-tag-forward
                        nil))
-        (setq hs-allow-nesting t)
-        (setq hs-isearch-open t)
         (setq vr-nxml-code-folding-initialised t)))
-  (hs-minor-mode t))
+  (hs-minor-mode 1))
 
-(add-hook 'nxml-mode-hook (lambda ()
-                            (programming-minor-modes)
-                            (vr-nxml-code-folding-setup)
-                            (local-unset-key (kbd "C-S-e"))
-                            (local-set-key (kbd "C-S-e") 'hs-show-all)
-                            (local-set-key (kbd "C-S-j") 'hs-toggle-hiding)))
+(add-hook 'nxml-mode-hook
+          (lambda ()
+            (programming-minor-modes)
+            (vr-nxml-code-folding-setup)))
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -1587,6 +1669,12 @@ with very limited support for special characters."
                           "^\\*Semantic SymRef\\*$"
                           "^\\*Recent Files\\*$" "^\\*Directory\\*$"
                           "^\\*Ido Completions\\*$" "^\\*buffer-selection\\*$"
+                          ;; compile
+                          "^\\*compilation\\*$"
+                          ;; rtags buffers
+                          "^\\*rdm\\*$"
+                          "^\\*RTags\\*$"
+                          "^\\*RTags Diagnostics\\*$"
                           ;; AUCTeX output files
                           " output\\*$"))
 
@@ -1635,9 +1723,9 @@ with very limited support for special characters."
 
 ;; == ido-ubiquitous mode ==
 
-(defvar ido-ubiquitous-debug-mode nil)
+;; (defvar ido-ubiquitous-debug-mode nil)
 (require 'ido-ubiquitous)
-(ido-ubiquitous-mode t)
+(ido-ubiquitous-mode 1)
 
 ;; == smex mode ==
 
@@ -1728,7 +1816,13 @@ with very limited support for special characters."
 (require 'popwin)
 (popwin-mode 1)
 
+;; Find how to search and replace within lists in elisp and
+;; generalise the following functions
 (delete 'help-mode popwin:special-display-config)
+(delete '(compilation-mode :noselect t) popwin:special-display-config)
+(push '(help-mode :stick t) popwin:special-display-config)
+(push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
+(push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
 
 (defun vr-popwin:popup-smart ()
   (interactive)
