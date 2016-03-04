@@ -874,7 +874,23 @@ fields which we need."
                (concat path "make -k"))
           (message (concat "vr-project: " path))))))
 
-(defun vr-c++-rtags-setup () 
+(cl-defun vr-c++-header-line (&optional
+                              (header-line-trim-indicator "\x203a")
+                              (header-line-beginning-indicator " "))
+  (propertize
+   (let* ((header-string (concat header-line-beginning-indicator
+                                 rtags-cached-current-container))
+          (header-string-width (string-width header-string))
+          (header-filler-width (- (window-total-width) header-string-width)))
+     (if (< header-filler-width 0)
+         (concat (substring header-string
+                            0 (- (window-total-width)
+                                 (string-width header-line-trim-indicator)))
+                 header-line-trim-indicator)
+       (concat header-string (make-string header-filler-width ?\ ))))
+   'face 'mode-line-inactive))
+
+(defun vr-c++-rtags-setup ()
   (require 'rtags)
   (rtags-start-process-unless-running)
   (setq rtags-autostart-diagnostics t)
@@ -885,12 +901,15 @@ fields which we need."
 
   ;; Display current function name at the top of the window (header-line).
   ;; https://github.com/Andersbakken/rtags/issues/435
+  (set (make-local-variable 'rtags-cached-current-container) "")
   (setq rtags-track-container t)
   (add-hook 'find-file-hook
             (lambda ()
-              (setq header-line-format
-                    (and (rtags-is-indexed)
-                         '(:eval rtags-cached-current-container))))
+              ;; (when (rtags-is-indexed)
+              ;;   (set (make-local-variable 'header-line-format)
+              ;;        '(:eval (vr-c++-header-line)))))
+              (set (make-local-variable 'header-line-format)
+                   '(:eval (vr-c++-header-line))))
             nil t)
 
   (custom-set-faces
@@ -906,7 +925,8 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
-  (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
@@ -915,7 +935,7 @@ fields which we need."
 (defun vr-c++-code-folding-setup ()
   (hs-minor-mode 1))
 
-(add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
 (add-hook 'c++-mode-hook
           (lambda ()
@@ -940,7 +960,7 @@ fields which we need."
                   (vr-c++-debug-setup)
                   (vr-c++-rtags-setup)
                   (vr-c++-code-folding-setup)
-                  ;; Build Solution ;)
+                  ;; Build Solution - just like MSVS ;)
                   (local-set-key (kbd "C-S-b") 'recompile)))))
 
 ;; == Enhanced Java Script Mode ==
@@ -1010,10 +1030,17 @@ fields which we need."
   (other-window 1)
   (ielm))
 
+(defun vr-elisp-slime-nav-setup ()
+  (require 'elisp-slime-nav)
+  (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
+    (add-hook hook 'elisp-slime-nav-mode))
+  (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark))
+
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (programming-minor-modes)
             (eldoc-mode 1)
+            (vr-elisp-slime-nav-setup)
             (set (make-local-variable 'vr-elisp-mode) t)
             (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
             (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
@@ -1659,7 +1686,7 @@ with very limited support for special characters."
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; -------------------------------------------------------------------
-;;; Filtered Buffer Switching, ido, smex, and popwin modes
+;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
 (setq vr-ignore-buffers '("\\` " "^\\*Completions\\*$"
@@ -1684,6 +1711,9 @@ with very limited support for special characters."
 ;; http://emacs-fu.blogspot.co.uk/2009/11/making-buffer-names-unique.html
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'post-forward)
+
+;; Provides additional help functions such as describe-keymap bound to C-h M-k
+(require 'help-fns+)
 
 ;; == ido mode ==
 
@@ -1744,8 +1774,6 @@ with very limited support for special characters."
 (setq iflipb-ignore-buffers vr-ignore-buffers)
 (setq iflipb-wrap-around t)
 
-;; (global-set-key (kbd "C-<tab>") 'iflipb-next-buffer)
-;; (global-set-key (kbd "C-S-<tab>") 'iflipb-previous-buffer)
 (global-set-key (kbd "C-<next>") 'iflipb-next-buffer)
 (global-set-key (kbd "C-<kp-next>") 'iflipb-next-buffer)
 (global-set-key (kbd "C-<prior>") 'iflipb-previous-buffer)
@@ -1848,13 +1876,13 @@ with very limited support for special characters."
 (require 'bm)
 
 ;; Shortcuts as in MS Visual Studio
-(global-set-key (kbd "<M-f2>") 'bm-toggle)
+(global-set-key (kbd "M-<f2>") 'bm-toggle)
 (global-set-key (kbd "<f2>")   'bm-next)
-(global-set-key (kbd "<S-f2>") 'bm-previous)
+(global-set-key (kbd "S-<f2>") 'bm-previous)
 
 ;; On Ubuntu unity <S-f2> is busy, so
 ;; using alternative shortcut
-(global-set-key (kbd "<C-f2>") 'bm-toggle)
+(global-set-key (kbd "C-<f2>") 'bm-toggle)
 
 ;; Only highlight the fringe of the line
 (setq bm-highlight-style 'bm-highlight-only-fringe)
@@ -1930,6 +1958,12 @@ with very limited support for special characters."
   (lookup-key (current-global-map) (kbd "C-<left>")))
 (define-key (current-global-map) (kbd "C-<kp-right>")
   (lookup-key (current-global-map) (kbd "C-<right>")))
+
+;; -------------------------------------------------------------------
+;;; Load unscoped (e.g. without vr-) useful functions
+;; -------------------------------------------------------------------
+
+(load-file (concat user-emacs-directory "useful-functions.el"))
 
 ;; -------------------------------------------------------------------
 ;;; Post intit - to ensure correct settings if they were changed.

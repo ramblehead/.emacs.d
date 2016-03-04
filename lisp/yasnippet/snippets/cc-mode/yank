@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: yank
+# key: yank
+# --
+`(current-kill 0)`
