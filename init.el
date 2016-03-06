@@ -200,6 +200,8 @@ when only symbol face names are needed."
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
+;; for emacs 25+
 (setq save-place-file vr-saved-places-file-path)
 (setq-default save-place t)
 (require 'saveplace)
@@ -867,6 +869,7 @@ fields which we need."
   (setq gdb-show-main t))
 
 (defun vr-c++-compile-setup ()
+  (setq compilation-scroll-output t)
   (let ((path (vr-c++-get-project-path)))
     (if path
         (progn
@@ -925,8 +928,8 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
-  (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
+  (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
@@ -934,6 +937,17 @@ fields which we need."
 
 (defun vr-c++-code-folding-setup ()
   (hs-minor-mode 1))
+
+(defun vr-c++-yas-setup ()
+  ;; Use yast instead of abbrev-mode
+  (abbrev-mode -1)
+  (let* ((project-path (vr-c++-get-project-path))
+         (snippets-path (concat project-path "snippets")))
+    (if (and project-path (file-exists-p snippets-path))
+        (if (not (equal yas-snippet-dirs
+                        (add-to-list 'yas-snippet-dirs snippets-path)))
+            (yas-reload-all))))
+  (yas-minor-mode 1))
 
 (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
@@ -947,13 +961,10 @@ fields which we need."
                 (progn
                   (set (make-local-variable
                         'vr-c++-mode-hook-called-before) t)
+                  (programming-minor-modes t)
                   (require 'google-c-style)
                   (google-set-c-style)
-                  ;; Use yast instead of abbrev-mode
-                  (abbrev-mode -1)
-                  (programming-minor-modes t)
-                  (yas-minor-mode t)
-                  (setq compilation-scroll-output t)
+                  (vr-c++-yas-setup)
                   (vr-c++-11-partial-patch)
                   (vr-c++-clang-auto-complete-setup)
                   (vr-c++-compile-setup)
@@ -1515,10 +1526,9 @@ with very limited support for special characters."
 ;; == yasnippet ==
 
 ;; see https://github.com/capitaomorte/yasnippet
-(add-to-list 'load-path "~/.emacs.d/lisp/yasnippet/")
 (setq yas-snippet-dirs
-      '("~/.emacs.d/snippets"                 ;; personal snippets
-        "~/.emacs.d/lisp/yasnippet/snippets"  ;; the default collection
+      '("~/.emacs.d/local-snippets" ;; local snippets
+        "~/.emacs.d/snippets"       ;; default collection
         ))
 (require 'yasnippet)
 (yas-reload-all)
@@ -1863,6 +1873,9 @@ with very limited support for special characters."
 (global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
 (global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
 (global-set-key (kbd "C-x p") popwin:keymap)
+
+;; see https://www.emacswiki.org/emacs/OneWindow
+(add-to-list 'same-window-buffer-names "*Help*")
 
 ;; -------------------------------------------------------------------
 ;;; Bookmarks
