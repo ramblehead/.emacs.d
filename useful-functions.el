@@ -54,3 +54,6 @@
 (defun insert-file-name-at-point ()
   (interactive)
   (insert (file-name-nondirectory (buffer-file-name))))
+
+(defun downcase-first-letter (obj)
+  (concat (downcase (substring obj 0 1)) (substring obj 1)))

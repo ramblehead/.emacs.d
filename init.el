@@ -842,7 +842,10 @@ fields which we need."
                 ac-sources))
   ;; use clang-ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil))
+  (define-key yas-minor-mode-map (kbd "TAB") nil)
+  ;; or another shortcut:
+  (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
+  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field))
 
 ;; (defun vr-c++-clang-auto-complete-setup ()
 ;;   (require 'ac-irony)
