@@ -13,7 +13,7 @@
  '(make-backup-files nil)
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
- '(split-width-threshold nil)
+ ;; '(split-width-threshold nil)
  '(tab-stop-list (quote (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
@@ -34,13 +34,25 @@
  '(whitespace-tab ((t (:foreground "lightgray")))))
 
 ;; ------------------------------------------------------------------
-;;; File Location Variables
+;;; Emacs Version Variables
 ;; ------------------------------------------------------------------
 
-(setq vr-emacs-version
+(setq vr-emacs-version-string
       (replace-regexp-in-string
        "GNU Emacs \\([0-9]+.[0-9]+.[0-9]+\\).*" "\\1"
        (replace-regexp-in-string "\n" "" (emacs-version))))
+
+(setq vr-emacs-version
+      (mapcar 'string-to-number (split-string vr-emacs-version-string "\\.")))
+
+;; (setq vr-emacs-version ())
+;; (dolist (num (split-string vr-emacs-version-string "\\.") vr-emacs-version)
+;;   (setq vr-emacs-version (cons (string-to-number num) vr-emacs-version)))
+;; (setq vr-emacs-version (reverse vr-emacs-version))
+
+;; ------------------------------------------------------------------
+;;; File Location Variables
+;; ------------------------------------------------------------------
 
 (setq vr-site-start-file-paths ())
 
@@ -81,7 +93,7 @@
     ;; which can be maintained by users who are members of group "staff"
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
           (ver-file-path (concat "/usr/local/share/emacs/"
-                                 vr-emacs-version
+                                 vr-emacs-version-string
                                  "/site-lisp/site-start.el")))
       (progn
        (if (file-exists-p file-path)
@@ -200,11 +212,18 @@ when only symbol face names are needed."
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+(setq split-width-threshold nil)
+(setq split-height-threshold 0)
+
 ;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
-;; for emacs 25+
 (setq save-place-file vr-saved-places-file-path)
-(setq-default save-place t)
-(require 'saveplace)
+(if (<= 25 (car vr-emacs-version))
+    (progn
+      (require 'saveplace)
+      (save-place-mode))
+  (progn
+    (setq-default save-place t)
+    (require 'saveplace)))
 
 (setq default-input-method "russian-computer")
 
@@ -652,12 +671,12 @@ fields which we need."
       (setq show value))
     (setq show-paren-mode show)))
 
-(defun* programming-minor-modes (&optional (value nil value-supplied-p))
+(defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
   (if (null value-supplied-p)
       (progn
-        ;; (message "*** in programming-minor-modes")
+        ;; (message "*** in vr-programming-minor-modes")
         (if (local-variable-p 'vr-prog-mode)
             (progn
               ;; (message "*** killing vr-prog-mode")
@@ -756,66 +775,66 @@ fields which we need."
 
 ;; This patch if far from perfect. It is although better than nothing.
 ;; see http://stackoverflow.com/questions/8549351/c11-mode-or-settings-for-emacs
-(defun vr-c++-11-partial-patch ()
-  (require 'font-lock)
-  (defun --copy-face (new-face face)
-    "Define NEW-FACE from existing FACE."
-    (copy-face face new-face)
-    (eval `(defvar ,new-face nil))
-    (set new-face new-face))
-  ;; labels, case, public, private, proteced, namespace-tags
-  (--copy-face 'font-lock-label-face
-               'font-lock-keyword-face)
-  ;; comment markups such as Javadoc-tags
-  (--copy-face 'font-lock-doc-markup-face
-               'font-lock-doc-face)
-  ;; comment markups
-  (--copy-face 'font-lock-doc-string-face
-               'font-lock-comment-face)
-  (global-font-lock-mode t)
-  (setq font-lock-maximum-decoration t)
-  ;; We could place some regexes into `c-mode-common-hook', but note that their evaluation order
-  ;; matters.
-  (font-lock-add-keywords
-   nil '(;; complete some fundamental keywords
-         ("\\<\\(void\\|unsigned\\|signed\\|char\\|short\\|bool\\|int\\|long\\|float\\|double\\)\\>" . font-lock-keyword-face)
-         ;; namespace names and tags - these are rendered as constants by cc-mode
-         ("\\<\\(\\w+::\\)" . font-lock-function-name-face)
-         ;;  new C++11 keywords
-         ("\\<\\(alignof\\|alignas\\|constexpr\\|decltype\\|noexcept\\|nullptr\\|static_assert\\|thread_local\\|override\\|final\\)\\>" 1 font-lock-keyword-face)
-         ("\\<\\(char16_t\\|char32_t\\)\\>" . font-lock-keyword-face)
-         ;; PREPROCESSOR_CONSTANT, PREPROCESSORCONSTANT
-         ("\\<[A-Z]*_[A-Z_]+\\>" . font-lock-constant-face)
-         ("\\<[A-Z]\\{3,\\}\\>"  . font-lock-constant-face)
-         ;; hexadecimal numbers
-         ("\\<0[xX][0-9A-Fa-f]+\\>" . font-lock-constant-face)
-         ;; integer/float/scientific numbers
-         ;; ("\\<[\\-+]*[0-9]*\\.?[0-9]+\\([ulUL]+\\|[eE][\\-+]?[0-9]+\\)?\\>" . font-lock-constant-face)
-         ;; integer/float/scientific literals (improved)
-         ("\\<[-+]?[0-9]*\\.?[0-9]+\\([uUlL]+\\|[eE][-+]?[0-9]+\\)?[fFlL]?\\>" . font-lock-constant-face)
-         ;; c++11 string literals
-         ;;       L"wide string"
-         ;;       L"wide string with UNICODE codepoint: \u2018"
-         ;;       u8"UTF-8 string", u"UTF-16 string", U"UTF-32 string"
-         ("\\<\\([LuU8]+\\)\".*?\"" 1 font-lock-keyword-face)
-         ;;       R"(user-defined literal)"
-         ;;       R"( a "quot'd" string )"
-         ;;       R"delimiter(The String Data" )delimiter"
-         ;;       R"delimiter((a-z))delimiter" is equivalent to "(a-z)"
+;; (defun vr-c++-11-partial-patch ()
+;;   (require 'font-lock)
+;;   (defun --copy-face (new-face face)
+;;     "Define NEW-FACE from existing FACE."
+;;     (copy-face face new-face)
+;;     (eval `(defvar ,new-face nil))
+;;     (set new-face new-face))
+;;   ;; labels, case, public, private, proteced, namespace-tags
+;;   (--copy-face 'font-lock-label-face
+;;                'font-lock-keyword-face)
+;;   ;; comment markups such as Javadoc-tags
+;;   (--copy-face 'font-lock-doc-markup-face
+;;                'font-lock-doc-face)
+;;   ;; comment markups
+;;   (--copy-face 'font-lock-doc-string-face
+;;                'font-lock-comment-face)
+;;   (global-font-lock-mode t)
+;;   (setq font-lock-maximum-decoration t)
+;;   ;; We could place some regexes into `c-mode-common-hook', but note that their evaluation order
+;;   ;; matters.
+;;   (font-lock-add-keywords
+;;    nil '(;; complete some fundamental keywords
+;;          ("\\<\\(void\\|unsigned\\|signed\\|char\\|short\\|bool\\|int\\|long\\|float\\|double\\)\\>" . font-lock-keyword-face)
+;;          ;; namespace names and tags - these are rendered as constants by cc-mode
+;;          ("\\<\\(\\w+::\\)" . font-lock-function-name-face)
+;;          ;;  new C++11 keywords
+;;          ("\\<\\(alignof\\|alignas\\|constexpr\\|decltype\\|noexcept\\|nullptr\\|static_assert\\|thread_local\\|override\\|final\\)\\>" 1 font-lock-keyword-face)
+;;          ("\\<\\(char16_t\\|char32_t\\)\\>" . font-lock-keyword-face)
+;;          ;; PREPROCESSOR_CONSTANT, PREPROCESSORCONSTANT
+;;          ("\\<[A-Z]*_[A-Z_]+\\>" . font-lock-constant-face)
+;;          ("\\<[A-Z]\\{3,\\}\\>"  . font-lock-constant-face)
+;;          ;; hexadecimal numbers
+;;          ("\\<0[xX][0-9A-Fa-f]+\\>" . font-lock-constant-face)
+;;          ;; integer/float/scientific numbers
+;;          ;; ("\\<[\\-+]*[0-9]*\\.?[0-9]+\\([ulUL]+\\|[eE][\\-+]?[0-9]+\\)?\\>" . font-lock-constant-face)
+;;          ;; integer/float/scientific literals (improved)
+;;          ("\\<[-+]?[0-9]*\\.?[0-9]+\\([uUlL]+\\|[eE][-+]?[0-9]+\\)?[fFlL]?\\>" . font-lock-constant-face)
+;;          ;; c++11 string literals
+;;          ;;       L"wide string"
+;;          ;;       L"wide string with UNICODE codepoint: \u2018"
+;;          ;;       u8"UTF-8 string", u"UTF-16 string", U"UTF-32 string"
+;;          ("\\<\\([LuU8]+\\)\".*?\"" 1 font-lock-keyword-face)
+;;          ;;       R"(user-defined literal)"
+;;          ;;       R"( a "quot'd" string )"
+;;          ;;       R"delimiter(The String Data" )delimiter"
+;;          ;;       R"delimiter((a-z))delimiter" is equivalent to "(a-z)"
 
-         ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)[[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 0 font-lock-keyword-face t) ; start/end delimiter
-         ;; (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face t)  ; actual string
+;;          ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)[[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 0 font-lock-keyword-face t) ; start/end delimiter
+;;          ;; (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face t)  ; actual string
 
-         ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)" 1 font-lock-keyword-face t) ; start delimiter
-         (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face prepend)  ; actual string
-         (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-keyword-face t) ; end delimiter
+;;          ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)" 1 font-lock-keyword-face t) ; start delimiter
+;;          (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face prepend)  ; actual string
+;;          (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-keyword-face t) ; end delimiter
 
-         ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?)[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-string-face t)
+;;          ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?)[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-string-face t)
 
-         ;; user-defined types (rather project-specific)
-         ;; ("\\<[A-Za-z_]+[A-Za-z_0-9]*_\\(type\\|ptr\\)\\>" . font-lock-type-face)
-         ;; ("\\<\\(xstring\\|xchar\\)\\>" . font-lock-type-face)
-         ) t))
+;;          ;; user-defined types (rather project-specific)
+;;          ;; ("\\<[A-Za-z_]+[A-Za-z_0-9]*_\\(type\\|ptr\\)\\>" . font-lock-type-face)
+;;          ;; ("\\<\\(xstring\\|xchar\\)\\>" . font-lock-type-face)
+;;          ) t))
 
 ;; TODO: make all auto-complete settings buffer local
 (defun vr-c++-clang-auto-complete-setup ()
@@ -824,21 +843,23 @@ fields which we need."
   ;; #include auto-completion search paths
   (setq achead:include-directories
         (append vr-c++-include-path
-                ;; vr-c++-isystem-path
                 (vr-get-g++-isystem-path)
                 achead:include-directories))
+
   ;; see https://github.com/brianjcj/auto-complete-clang
   (require 'auto-complete-clang)
+
   ;; i.e. 'echo "" | g++ -v -x c++ -E -'
   ;; (setq clang-completion-suppress-error 't)
   (setq ac-clang-flags (append `(,vr-c++std)
                                (mapcar (lambda (item) (concat "-I" item))
                                        vr-c++-include-path)
                                (mapcar (lambda (item) (concat "-isystem" item))
-                                       ;; vr-c++-isystem-path)))
                                        (vr-get-g++-isystem-path))))
   (setq ac-sources
-        (append '(ac-source-c-headers ac-source-clang ac-source-yasnippet)
+        (append '(ac-source-c-headers
+                  ac-source-clang
+                  ac-source-yasnippet)
                 ac-sources))
   ;; use clang-ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
@@ -896,12 +917,88 @@ fields which we need."
        (concat header-string (make-string header-filler-width ?\ ))))
    'face 'mode-line-inactive))
 
+;; (defun vr-c++-header-line-inactive ()
+;;   (propertize
+;;    (let* ((header-string (concat header-line-beginning-indicator
+;;                                  rtags-cached-current-container))
+;;           (header-string-width (string-width header-string))
+;;           (header-filler-width (- (window-total-width) header-string-width)))
+;;      (if (< header-filler-width 0)
+;;          (concat (substring header-string
+;;                             0 (- (window-total-width)
+;;                                  (string-width header-line-trim-indicator)))
+;;                  header-line-trim-indicator)
+;;        (concat header-string (make-string header-filler-width ?\ ))))
+;;    'face 'mode-line-inactive))
+
+;; (defun my-update-header ()
+;;   (mapc
+;;    (lambda (window)
+;;      (with-current-buffer (window-buffer window)
+;;        (if (eq window (selected-window))
+;;            (message "active")
+;;            ;; (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
+;;            ;;   (setq header-line-format '(:eval (vr-c++-header-line))))
+;;          ;; (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
+;;          ;;     (setq header-line-format '(:eval (vr-c++-header-line-inactive)))))))
+;;          (message "inactive"))))
+;;    (window-list)))
+
+;; (defun my-update-header ()
+;;   (mapc
+;;    (lambda (window)
+;;      (with-current-buffer (window-buffer window)
+;;        (if (eq window (selected-window))
+;;            (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
+;;              (setq header-line-format '(:eval (vr-c++-header-line))))
+;;          (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
+;;            (setq header-line-format "xxx-xxx-xxx")))))
+;;    (window-list)))
+
+;; (setq buffer-list-update-hook nil)
+;; (add-hook 'buffer-list-update-hook 'my-update-header)
+
+
+;; see http://stackoverflow.com/questions/33195122/highlight-current-active-window
+
+;; (defun highlight-selected-window ()
+;;   "Highlight selected window with a different background color."
+;;   (walk-windows (lambda (w)
+;;                   (unless (eq w (selected-window)) 
+;;                     (with-current-buffer (window-buffer w)
+;;                       (buffer-face-set '(:background "#111"))))))
+;;   (buffer-face-set 'default))
+
+;; (add-hook 'buffer-list-update-hook 'highlight-selected-window)
+
+;; (add-hook 'buffer-list-update-hook 'my-update-header)
+
+;; (cl-defun vr-c++-header-line (&optional
+;;                               (header-line-trim-indicator "\x203a")
+;;                               (header-line-beginning-indicator " "))
+;;   (propertize
+;;    (let* ((header-string (concat header-line-beginning-indicator
+;;                                  rtags-cached-current-container))
+;;           (header-string-width (string-width header-string))
+;;           (header-filler-width (- (window-total-width) header-string-width)))
+;;      (if (< header-filler-width 0)
+;;          (concat (substring header-string
+;;                             0 (- (window-total-width)
+;;                                  (string-width header-line-trim-indicator)))
+;;                  header-line-trim-indicator)
+;;        (concat header-string (make-string header-filler-width ?\ ))))
+;;    'face (if (eq (window-buffer (selected-window)) (current-buffer))
+;;              'mode-line-inactive
+;;            'mode-line)))
+
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
   (rtags-start-process-unless-running)
   (setq rtags-autostart-diagnostics t)
+
   ;; Using clang-auto-complete instead
   ;; (setq rtags-completions-enabled t)
+
   ;; Does not work with my clang-auto-complete setting
   ;; (setq rtags-display-current-error-as-tooltip t)
 
@@ -914,8 +1011,11 @@ fields which we need."
               ;; (when (rtags-is-indexed)
               ;;   (set (make-local-variable 'header-line-format)
               ;;        '(:eval (vr-c++-header-line)))))
+
               (set (make-local-variable 'header-line-format)
                    '(:eval (vr-c++-header-line))))
+
+              ;; (setq header-line-format '(:eval (vr-c++-header-line))))
             nil t)
 
   (custom-set-faces
@@ -923,6 +1023,7 @@ fields which we need."
    '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
    '(rtags-skippedline ((((class color)) (:background "#34ef85")))))
+
   ;; rtags-ac does not seem to be working...
   ;; (require 'rtags-ac)
 
@@ -952,6 +1053,26 @@ fields which we need."
             (yas-reload-all))))
   (yas-minor-mode 1))
 
+(defun vr-c++-indentation-setup ()
+  (require 'google-c-style)
+  (google-set-c-style)
+  ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
+  ;; see https://gist.github.com/nschum/2626303
+  (defadvice c-lineup-arglist (around vr-c-lineup-arglist activate)
+    "Improve indentation of continued C++11 lambda function opened as argument."
+    (setq ad-return-value
+          (if (and (equal major-mode 'c++-mode)
+                   (ignore-errors
+                     (save-excursion
+                       (goto-char (c-langelem-pos langelem))
+                       ;; Detect "[...](" or "[...]{". preceded by "," or "(",
+                       ;;   and with unclosed brace.
+                       (looking-at ".*[(,][ \t]*\\[[^]]*\\][ \t]*[({][^}]*$"))))
+              ;; no additional indent
+              0
+            ;; default behavior
+            ad-do-it))))
+
 (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
 (add-hook 'c++-mode-hook
@@ -964,11 +1085,12 @@ fields which we need."
                 (progn
                   (set (make-local-variable
                         'vr-c++-mode-hook-called-before) t)
-                  (programming-minor-modes t)
-                  (require 'google-c-style)
-                  (google-set-c-style)
+                  (vr-programming-minor-modes t)
+                  ;; (require 'google-c-style)
+                  ;; (google-set-c-style)
+                  (vr-c++-indentation-setup)
                   (vr-c++-yas-setup)
-                  (vr-c++-11-partial-patch)
+                  ;; (vr-c++-11-partial-patch)
                   (vr-c++-clang-auto-complete-setup)
                   (vr-c++-compile-setup)
                   (vr-c++-debug-setup)
@@ -1019,7 +1141,7 @@ fields which we need."
     (moz-send-defun)))
 
 (add-hook 'js2-mode-hook (lambda ()
-                           (programming-minor-modes)
+                           (vr-programming-minor-modes)
                            (js2-highlight-vars-mode)
                            (moz-minor-mode t)
                            (local-set-key (kbd "<f5>") 'js2-moz-send-region-or-defun)
@@ -1052,7 +1174,7 @@ fields which we need."
 
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
-            (programming-minor-modes)
+            (vr-programming-minor-modes)
             (eldoc-mode 1)
             (vr-elisp-slime-nav-setup)
             (set (make-local-variable 'vr-elisp-mode) t)
@@ -1088,7 +1210,7 @@ fields which we need."
 
 (add-hook 'nxml-mode-hook
           (lambda ()
-            (programming-minor-modes)
+            (vr-programming-minor-modes)
             (vr-nxml-code-folding-setup)))
 
 ;; -------------------------------------------------------------------
