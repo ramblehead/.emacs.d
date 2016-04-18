@@ -213,7 +213,7 @@ when only symbol face names are needed."
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (setq split-width-threshold nil)
-(setq split-height-threshold 0)
+;; (setq split-height-threshold 0)
 
 ;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
 (setq save-place-file vr-saved-places-file-path)
@@ -2054,9 +2054,11 @@ with very limited support for special characters."
 ;;; My key bindings
 ;; -------------------------------------------------------------------
 
+;; Disable annoying key binding for (suspend-frame) function
+(global-unset-key (kbd "C-x C-z"))
+
 ;; Prevent translation from <kp-bebin> to <begin>
 (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
-;; (global-unset-key (kbd "C-z"))
 
 (global-set-key (kbd "C-<insert>") 'kill-ring-save)
 (global-set-key (kbd "C-<kp-insert>") 'kill-ring-save)
@@ -2111,4 +2113,4 @@ with very limited support for special characters."
 ;;; Post intit - to ensure correct settings if they were changed.
 ;; -------------------------------------------------------------------
 
-(transient-mark-mode -1)
+;; (transient-mark-mode -1)
