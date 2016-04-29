@@ -1,4 +1,5 @@
- (custom-set-variables
+ 
+(custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
@@ -7,14 +8,18 @@
  '(LaTeX-item-indent 2)
  '(font-latex-fontify-script nil)
  '(font-latex-fontify-sectioning (quote color))
- '(font-latex-math-environments (quote ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
+ '(font-latex-math-environments
+   (quote
+    ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
+ '(package-selected-packages (quote (use-package)))
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
- ;; '(split-width-threshold nil)
- '(tab-stop-list (quote (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
+ '(tab-stop-list
+   (quote
+    (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
@@ -114,6 +119,20 @@
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
+
+;; == Package initialisation and 'use-package' bootstrap ==
+;; see http://www.lunaryorn.com/2015/01/06/my-emacs-configuration-with-use-package.html
+
+(require 'package)
+(setq package-enable-at-startup nil)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+
+(package-initialize)
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 ;; == Modules ==
 
@@ -642,9 +661,10 @@ fields which we need."
 ;;; Programming Languages
 ;; -------------------------------------------------------------------
 
-;; Better line numbering
-(require 'nlinum)
-(setq nlinum-format "%4d ")
+;; ;; Better line numbering
+;; (require 'nlinum)
+;; (setq nlinum-format "%4d ")
+(setq linum-format "%4d ")
 
 ;; Code folding
 (require 'hideshow)
@@ -671,6 +691,54 @@ fields which we need."
       (setq show value))
     (setq show-paren-mode show)))
 
+;; (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
+;;   "Enables some minor modes, useful for programming."
+;;   (interactive)
+;;   (if (null value-supplied-p)
+;;       (progn
+;;         ;; (message "*** in vr-programming-minor-modes")
+;;         (if (local-variable-p 'vr-prog-mode)
+;;             (progn
+;;               ;; (message "*** killing vr-prog-mode")
+;;               (kill-local-variable 'vr-prog-mode)
+;;               ;; (nlinum-mode -1)
+;;               (linum-mode -1)
+;;               (show-paren-local-mode -1)
+;;               (hs-minor-mode -1)
+;;               ;; (subword-mode -1))
+;;           (progn
+;;             ;; (message "*** setting vr-prog-mode")
+;;             (set (make-local-variable 'vr-prog-mode) t)
+;;             ;; (nlinum-mode 1)
+;;             (linum-mode 1)
+;;             (show-paren-local-mode 1)
+;;             (hs-minor-mode 1)
+;;             ;; (subword-mode 1)
+;;             ;; ;; Use case-sensitive search (buffer-local)
+;;             ;; (setq case-fold-search nil)
+;;             )))
+;;     (progn
+;;       (if value
+;;           (progn
+;;             (set (make-local-variable 'vr-prog-mode) t)
+;;             ;; (nlinum-mode 1)
+;;             (linum-mode 1)
+;;             (show-paren-local-mode 1)
+;;             (hs-minor-mode 1)
+;;             ;; (subword-mode 1)
+;;             ;; ;; Use case-sensitive search (buffer-local)
+;;             ;; (setq case-fold-search nil)
+;;             )
+;;         (progn
+;;           (if (local-variable-p 'vr-prog-mode)
+;;               (kill-local-variable 'vr-prog-mode))
+;;           ;; (nlinum-mode -1)
+;;           (linum-mode -1)
+;;           (show-paren-local-mode nil)
+;;           (hs-minor-mode -1)
+;;           ;; (subword-mode -1)
+;;           )))))
+
 (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
@@ -681,13 +749,13 @@ fields which we need."
             (progn
               ;; (message "*** killing vr-prog-mode")
               (kill-local-variable 'vr-prog-mode)
-              (nlinum-mode -1)
+              (linum-mode -1)
               (show-paren-local-mode -1)
               (hs-minor-mode -1))
           (progn
             ;; (message "*** setting vr-prog-mode")
             (set (make-local-variable 'vr-prog-mode) t)
-            (nlinum-mode 1)
+            (linum-mode 1)
             (show-paren-local-mode 1)
             (hs-minor-mode 1)
             ;; ;; Use case-sensitive search (buffer-local)
@@ -697,7 +765,7 @@ fields which we need."
       (if value
           (progn
             (set (make-local-variable 'vr-prog-mode) t)
-            (nlinum-mode 1)
+            (linum-mode 1)
             (show-paren-local-mode 1)
             (hs-minor-mode 1)
             ;; ;; Use case-sensitive search (buffer-local)
@@ -706,7 +774,7 @@ fields which we need."
         (progn
           (if (local-variable-p 'vr-prog-mode)
               (kill-local-variable 'vr-prog-mode))
-          (nlinum-mode -1)
+          (linum-mode -1)
           (show-paren-local-mode nil)
           (hs-minor-mode -1))))))
 
@@ -728,50 +796,15 @@ fields which we need."
          (start-pos (string-match start-string command-result))
          (end-pos (string-match end-string command-result))
          (include-string (substring command-result
-                                    (+ start-pos
-                                       (length start-string)) end-pos)))
+                                    (+ start-pos (length start-string))
+                                    end-pos)))
     (split-string include-string)))
 
-;; TODO: Find how to extract the following includes from 
+;; TODO: Find how to extract the following includes from rtags
 (setq vr-c++-include-path (split-string
                            "
 /home/rh/s600/s600-host/build/root/include
 /home/rh/s600/s600-host/server"))
-
-;; The following code is replaced by the script above
-;; (cond
-;;  ;; i.e. 'echo "" | g++ -v -x c++ -E -'
-;;  ((equal system-type 'windows-nt)
-;;   (progn
-;;     (setq vr-c++-include-path (split-string
-;;                                "
-;;  c:/tools/mingw/mingw64/current/include
-;;  c:/tools/mingw/mingw64/current/include/c++
-;;  c:/tools/mingw/mingw64/current/include/c++/x86_64-w64-mingw32
-;;  c:/tools/mingw/mingw64/current/include/c++/backward"
-;;                                ))))
-;;  ((equal system-type 'gnu/linux)
-;;   (progn
-;;     (setq vr-c++-isystem-path (split-string
-;;                                ;;                               "
-;;                                ;; /usr/include/c++/4.8
-;;                                ;; /usr/include/x86_64-linux-gnu/c++/4.8
-;;                                ;; /usr/include/c++/4.8/backward
-;;                                ;; /usr/lib/gcc/x86_64-linux-gnu/4.8/include
-;;                                ;; /usr/local/include
-;;                                ;; /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed
-;;                                ;; /usr/include/x86_64-linux-gnu
-;;                                ;; /usr/include
-;;                                ;; /home/rh/s600/s600-host/server"
-;;                                "
-;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0
-;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0/x86_64-linux-gnu
-;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/../../../../include/c++/5.2.0/backward
-;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/include
-;; /usr/local/include
-;; /usr/local/lib/gcc/x86_64-linux-gnu/5.2.0/include-fixed
-;; /usr/include/x86_64-linux-gnu
-;; /usr/include")))))
 
 ;; The following patch is only required for emacs < 25.
 ;; Once transition to emacs 25 is completed, this patch should be removed.
@@ -837,7 +870,8 @@ fields which we need."
          ;; user-defined types (rather project-specific)
          ;; ("\\<[A-Za-z_]+[A-Za-z_0-9]*_\\(type\\|ptr\\)\\>" . font-lock-type-face)
          ;; ("\\<\\(xstring\\|xchar\\)\\>" . font-lock-type-face)
-         ) t))
+         )
+   t))
 
 ;; TODO: make all auto-complete settings buffer local
 (defun vr-c++-clang-auto-complete-setup ()
@@ -1086,8 +1120,7 @@ fields which we need."
             ;; (message "c++-mode-hook call")
             (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
                 (progn
-                  (set (make-local-variable
-                        'vr-c++-mode-hook-called-before) t)
+                  (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
                   (vr-programming-minor-modes t)
                   ;; (require 'google-c-style)
                   ;; (google-set-c-style)
@@ -2079,18 +2112,18 @@ with very limited support for special characters."
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "M-v") 'yank-pop)
 
-(global-set-key (kbd "M-<up>") 'shrink-window)
-(global-set-key (kbd "M-<kp-up>") 'shrink-window)
-(global-set-key (kbd "M-<down>") 'enlarge-window)
-(global-set-key (kbd "M-<kp-down>") 'enlarge-window)
-(global-set-key (kbd "M-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "M-<kp-left>") 'shrink-window-horizontally)
-(global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "M-<kp-right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "C-<kp-begin>") 'vr-balance-windows-horizontally)
-(global-set-key (kbd "C-M-<kp-begin>") 'vr-balance-windows-vertically)
-(global-set-key (kbd "C-'") 'vr-balance-windows-horizontally)
-(global-set-key (kbd "C-M-'") 'vr-balance-windows-vertically)
+;; (global-set-key (kbd "M-<up>") 'shrink-window)
+;; (global-set-key (kbd "M-<kp-up>") 'shrink-window)
+;; (global-set-key (kbd "M-<down>") 'enlarge-window)
+;; (global-set-key (kbd "M-<kp-down>") 'enlarge-window)
+;; (global-set-key (kbd "M-<left>") 'shrink-window-horizontally)
+;; (global-set-key (kbd "M-<kp-left>") 'shrink-window-horizontally)
+;; (global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
+;; (global-set-key (kbd "M-<kp-right>") 'enlarge-window-horizontally)
+;; (global-set-key (kbd "C-<kp-begin>") 'vr-balance-windows-horizontally)
+;; (global-set-key (kbd "C-M-<kp-begin>") 'vr-balance-windows-vertically)
+;; (global-set-key (kbd "C-'") 'vr-balance-windows-horizontally)
+;; (global-set-key (kbd "C-M-'") 'vr-balance-windows-vertically)
 
 ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
 ;; for keybindings aliases. Can also be used with (current-local-map)
