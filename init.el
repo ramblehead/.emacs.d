@@ -14,7 +14,7 @@
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
- '(package-selected-packages (quote (use-package)))
+ '(package-selected-packages (quote (paradox flx-ido use-package)))
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
  '(tab-stop-list
@@ -33,6 +33,10 @@
  '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
  '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
+ '(rtags-errline ((((class color)) (:background "#ef8990"))))
+ '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
+ '(rtags-skippedline ((((class color)) (:background "#34ef85"))))
+ '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
  '(speck-mode-line-specked ((((class color)) (:foreground "midnight blue"))))
  '(speck-mode-line-specking ((((class color)) (:foreground "maroon"))))
  '(whitespace-space ((t (:foreground "lightgray"))))
@@ -115,7 +119,6 @@
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
-
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
@@ -133,6 +136,11 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+(use-package paradox
+  :init
+  (setq paradox-github-token "75ba7430f095a91fddb501c146c76d2aeaee1ae6")
+  :ensure t)
 
 ;; == Modules ==
 
@@ -329,6 +337,8 @@ when only symbol face names are needed."
 (setq column-number-mode t)
 (setq visible-bell t)
 (size-indication-mode t)
+;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
+(setq isearch-allow-scroll t)
 (require 'fill-column-indicator)
 
 ;; Override text selection on typing
@@ -348,6 +358,11 @@ selection (e.g. S-arrows), keep mark activated after
         (setq deactivate-mark nil))))
 
 (global-set-key [remap kill-ring-save] 'kill-ring-save-keep-mark)
+
+;; see https://www.emacswiki.org/emacs/KillingAndYanking
+(defun yank-pop-forwards (arg)
+  (interactive "p")
+  (yank-pop (- arg)))
 
 ;; == smooth scrolling ==
 
@@ -661,6 +676,9 @@ fields which we need."
 ;;; Programming Languages
 ;; -------------------------------------------------------------------
 
+;; TODO: Investigate mixed language modes, e.g. js or css in html, python macro in xml etc.
+;; e.g. https://vxlabs.com/2014/04/08/syntax-highlighting-markdown-fenced-code-blocks-in-emacs/
+
 ;; ;; Better line numbering
 ;; (require 'nlinum)
 ;; (setq nlinum-format "%4d ")
@@ -784,7 +802,7 @@ fields which we need."
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/irony/")
 
 (setq vr-project-dir-name ".project")
-(setq vr-c++std "-std=c++11")
+(setq vr-c++std "-std=c++1y")
 
 ;; TODO: Use rtags or .project to get current compiler
 ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
@@ -923,6 +941,16 @@ fields which we need."
         (concat src-tree-root vr-project-dir-name "/")
       nil)))
 
+;; TODO: move the following function into a separate section for gud-mode
+;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
+;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
+;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
+(defadvice gud-display-line (before one-source-window activate)
+  "Always use the same window to show source code."
+  (let ((buf (get-file-buffer true-file)))
+    (when (and buf gdb-source-window)
+      (set-window-buffer gdb-source-window buf))))
+
 (defun vr-c++-debug-setup ()
   ;; use gdb-many-windows by default
   (setq gdb-many-windows t)
@@ -1028,6 +1056,10 @@ fields which we need."
 ;;              'mode-line-inactive
 ;;            'mode-line)))
 
+
+;; TODO: investigave rtags settings refactoring to use flycheck, company-mode,
+;; and use-package using the following guide
+;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
   (rtags-start-process-unless-running)
@@ -1093,9 +1125,35 @@ fields which we need."
 (defun vr-c++-indentation-setup ()
   (require 'google-c-style)
   (google-set-c-style)
+
+  (c-set-offset
+   'block-close
+   (lambda (langelem)
+     (if (and (equal major-mode 'c++-mode)
+              (ignore-errors
+                (save-excursion
+                  (goto-char (c-langelem-pos langelem))
+                  ;; Detect "{[...](" or "{[...]{" with unclosed brace
+                  (looking-at
+                   ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))))
+         '-
+       0)))
+
+  (c-set-offset
+   'statement-block-intro
+   (lambda (langelem)
+     (if (and (equal major-mode 'c++-mode)
+              (ignore-errors
+                (save-excursion
+                  (goto-char (c-langelem-pos langelem))
+                  ;; Detect "{[...](" or "{[...]{" with unclosed brace
+                  (looking-at
+                   ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))))
+         0
+       '+)))
+
   ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
-  ;; see https://gist.github.com/nschum/2626303
-  (defadvice c-lineup-arglist (around vr-c-lineup-arglist activate)
+  (defadvice c-lineup-arglist (around my activate)
     "Improve indentation of continued C++11 lambda function opened as argument."
     (setq ad-return-value
           (if (and (equal major-mode 'c++-mode)
@@ -1107,7 +1165,6 @@ fields which we need."
                        (looking-at ".*[(,][ \t]*\\[[^]]*\\][ \t]*[({][^}]*$"))))
               ;; no additional indent
               0
-            ;; default behavior
             ad-do-it))))
 
 (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
@@ -1940,6 +1997,23 @@ with very limited support for special characters."
 ;; Default M-x command
 (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
 
+;; == ido-vertical mode ==
+
+;; (use-package ido-vertical-mode
+;;   :config
+;;   (ido-vertical-mode 1)
+;;   :ensure t)
+
+;; == flx-ido mode ==
+
+(use-package flx-ido
+  :init
+  (setq ido-enable-flex-matching t)
+  (setq ido-use-faces nil)
+  :config
+  (flx-ido-mode 1)
+  :ensure t)
+
 ;; == ifilipb mode ==
 
 (require 'iflipb)
@@ -2004,10 +2078,10 @@ with very limited support for special characters."
         ("" 2 2 left "  ")
         ("File" 1 255 left bs--get-file-name)))
 
-(defun vr-bs-mode-keys ()
-  (define-key bs-mode-map (kbd "<escape>") 'bs-kill))
-
-(add-hook 'bs-mode-hook 'vr-bs-mode-keys)
+(add-hook 'bs-mode-hook
+          (lambda ()
+            (hl-line-mode 1)
+            (define-key bs-mode-map (kbd "<escape>") 'bs-kill)))
 
 (global-set-key (kbd "C-x C-b") 'bs-show)
 
@@ -2020,6 +2094,7 @@ with very limited support for special characters."
 ;; generalise the following functions
 (delete 'help-mode popwin:special-display-config)
 (delete '(compilation-mode :noselect t) popwin:special-display-config)
+;; (push '(help-mode :stick t) popwin:special-display-config)
 (push '(help-mode :stick t) popwin:special-display-config)
 (push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
 (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
@@ -2098,7 +2173,10 @@ with very limited support for special characters."
 (global-set-key (kbd "S-<insert>") 'yank)
 (global-set-key (kbd "S-<kp-insert>") 'yank)
 (global-set-key (kbd "M-<insert>") 'yank-pop)
-(global-set-key (kbd "M-<kp-insert>") 'yank-pop)
+(global-set-key (kbd "M-Y") 'yank-pop-forwards)
+(global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
+(global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
+(global-set-key (kbd "M-S-<kp-insert>") 'yank-pop-forwards)
 (global-set-key (kbd "C-<delete>") 'kill-word)
 (global-set-key (kbd "C-<kp-delete>") 'kill-word)
 (global-set-key (kbd "S-<delete>") 'kill-region)
@@ -2125,6 +2203,16 @@ with very limited support for special characters."
 ;; (global-set-key (kbd "C-'") 'vr-balance-windows-horizontally)
 ;; (global-set-key (kbd "C-M-'") 'vr-balance-windows-vertically)
 
+;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
+(global-set-key (kbd "C-x <up>") 'windmove-up)
+(global-set-key (kbd "C-x <kp-up>") 'windmove-up)
+(global-set-key (kbd "C-x <down>") 'windmove-down)
+(global-set-key (kbd "C-x <kp-down>") 'windmove-down)
+(global-set-key (kbd "C-x <right>") 'windmove-right)
+(global-set-key (kbd "C-x <kp-right>") 'windmove-right)
+(global-set-key (kbd "C-x <left>") 'windmove-left)
+(global-set-key (kbd "C-x <kp-left>") 'windmove-left)
+
 ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
 ;; for keybindings aliases. Can also be used with (current-local-map)
 (define-key (current-global-map) (kbd "C-<kp-up>")
@@ -2147,3 +2235,4 @@ with very limited support for special characters."
 ;; -------------------------------------------------------------------
 
 ;; (transient-mark-mode -1)
+(put 'narrow-to-region 'disabled nil)
