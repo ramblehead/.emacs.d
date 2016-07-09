@@ -1,4 +1,3 @@
- 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -799,7 +798,7 @@ fields which we need."
 ;; == C++ Mode ==
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/irony/")
+;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/irony/")
 
 (setq vr-project-dir-name ".project")
 (setq vr-c++std "-std=c++1y")
@@ -892,7 +891,7 @@ fields which we need."
    t))
 
 ;; TODO: make all auto-complete settings buffer local
-(defun vr-c++-clang-auto-complete-setup ()
+(defun vr-c++-ac-setup ()
   ;; see https://github.com/mooz/auto-complete-c-headers
   (require 'auto-complete-c-headers)
   ;; #include auto-completion search paths
@@ -901,20 +900,26 @@ fields which we need."
                 (vr-get-g++-isystem-path)
                 achead:include-directories))
 
-  ;; see https://github.com/brianjcj/auto-complete-clang
+  ;; ;; see https://github.com/brianjcj/auto-complete-clang
   (require 'auto-complete-clang)
 
   ;; i.e. 'echo "" | g++ -v -x c++ -E -'
   ;; (setq clang-completion-suppress-error 't)
+  (setq ac-clang-executable (executable-find "clang-3.6"))
   (setq ac-clang-flags (append `(,vr-c++std)
                                (mapcar (lambda (item) (concat "-I" item))
                                        vr-c++-include-path)
                                (mapcar (lambda (item) (concat "-isystem" item))
                                        (vr-get-g++-isystem-path))))
+
+  ;; (require 'rtags-ac)
+  ;; (setq rtags-completions-enabled t)
+
   (setq ac-sources
         (append '(ac-source-c-headers
                   ac-source-clang
-                  ac-source-yasnippet)
+                  ;; ac-source-rtags
+                  )
                 ac-sources))
   ;; use clang-ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
@@ -923,7 +928,7 @@ fields which we need."
   (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
   (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field))
 
-;; (defun vr-c++-clang-auto-complete-setup ()
+;; (defun vr-c++-ac-setup ()
 ;;   (require 'ac-irony)
 ;;   (require 'irony-cdb)
 ;;   ;; (setq ac-sources
@@ -1062,11 +1067,8 @@ fields which we need."
 ;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
-  (rtags-start-process-unless-running)
   (setq rtags-autostart-diagnostics t)
-
-  ;; Using clang-auto-complete instead
-  ;; (setq rtags-completions-enabled t)
+  (rtags-start-process-unless-running)
 
   ;; Does not work with my clang-auto-complete setting
   ;; (setq rtags-display-current-error-as-tooltip t)
@@ -1122,6 +1124,21 @@ fields which we need."
             (yas-reload-all))))
   (yas-minor-mode 1))
 
+(defun vr-c++-looking-at-lambda_as_param ()
+  "Return t if text after point matches '[...](' or '[...]{'"
+  (looking-at ".*[,(][ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
+
+(defun vr-c++-looking-at-lambda_in_uniform_init ()
+  "Return t if text after point matches '{[...](' or '{[...]{'"
+  (looking-at ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
+
+(defun vr-c++-indentation-examine (langelem looking-at-p)
+  (and (equal major-mode 'c++-mode)
+       (ignore-errors
+         (save-excursion
+           (goto-char (c-langelem-pos langelem))
+           (funcall looking-at-p)))))
+
 (defun vr-c++-indentation-setup ()
   (require 'google-c-style)
   (google-set-c-style)
@@ -1129,26 +1146,19 @@ fields which we need."
   (c-set-offset
    'block-close
    (lambda (langelem)
-     (if (and (equal major-mode 'c++-mode)
-              (ignore-errors
-                (save-excursion
-                  (goto-char (c-langelem-pos langelem))
-                  ;; Detect "{[...](" or "{[...]{" with unclosed brace
-                  (looking-at
-                   ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))))
+     (if (vr-c++-indentation-examine
+          langelem
+          ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
+          #'vr-c++-looking-at-lambda_in_uniform_init)
          '-
        0)))
 
   (c-set-offset
    'statement-block-intro
    (lambda (langelem)
-     (if (and (equal major-mode 'c++-mode)
-              (ignore-errors
-                (save-excursion
-                  (goto-char (c-langelem-pos langelem))
-                  ;; Detect "{[...](" or "{[...]{" with unclosed brace
-                  (looking-at
-                   ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))))
+     (if (vr-c++-indentation-examine
+          langelem
+          #'vr-c++-looking-at-lambda_in_uniform_init)
          0
        '+)))
 
@@ -1156,14 +1166,9 @@ fields which we need."
   (defadvice c-lineup-arglist (around my activate)
     "Improve indentation of continued C++11 lambda function opened as argument."
     (setq ad-return-value
-          (if (and (equal major-mode 'c++-mode)
-                   (ignore-errors
-                     (save-excursion
-                       (goto-char (c-langelem-pos langelem))
-                       ;; Detect "[...](" or "[...]{". preceded by "," or "(",
-                       ;;   and with unclosed brace.
-                       (looking-at ".*[(,][ \t]*\\[[^]]*\\][ \t]*[({][^}]*$"))))
-              ;; no additional indent
+          (if (vr-c++-indentation-examine
+               langelem
+               #'vr-c++-looking-at-lambda_as_param)
               0
             ad-do-it))))
 
@@ -1185,11 +1190,22 @@ fields which we need."
                   (vr-c++-yas-setup)
                   (if (< (car vr-emacs-version) 25)
                       (vr-c++-11-partial-patch))
-                  (vr-c++-clang-auto-complete-setup)
                   (vr-c++-compile-setup)
                   (vr-c++-debug-setup)
+                  (vr-c++-ac-setup)
                   (vr-c++-rtags-setup)
                   (vr-c++-code-folding-setup)
+
+                  ;; (setq hs-special-modes-alist
+                  ;;       (delete '(c-mode "{" "}" "/[*/]" nil nil)
+                  ;;               hs-special-modes-alist))
+                  ;; (setq hs-special-modes-alist
+                  ;;       (delete '(c++-mode "{" "}" "/[*/]" nil nil)
+                  ;;               hs-special-modes-alist))
+                  ;; (add-to-list 'hs-special-modes-alist
+                  ;;              '(c++-mode
+                  ;;                "///@{\\|{" "///@}\\|}" "##" nil nil))
+                  
                   ;; Build Solution - just like MSVS ;)
                   (local-set-key (kbd "C-S-b") 'recompile)))))
 
