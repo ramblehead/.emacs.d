@@ -139,6 +139,8 @@
 (use-package paradox
   :init
   (setq paradox-github-token "75ba7430f095a91fddb501c146c76d2aeaee1ae6")
+  :config
+  (paradox-enable)
   :ensure t)
 
 ;; == Modules ==
@@ -708,54 +710,6 @@ fields which we need."
       (setq show value))
     (setq show-paren-mode show)))
 
-;; (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
-;;   "Enables some minor modes, useful for programming."
-;;   (interactive)
-;;   (if (null value-supplied-p)
-;;       (progn
-;;         ;; (message "*** in vr-programming-minor-modes")
-;;         (if (local-variable-p 'vr-prog-mode)
-;;             (progn
-;;               ;; (message "*** killing vr-prog-mode")
-;;               (kill-local-variable 'vr-prog-mode)
-;;               ;; (nlinum-mode -1)
-;;               (linum-mode -1)
-;;               (show-paren-local-mode -1)
-;;               (hs-minor-mode -1)
-;;               ;; (subword-mode -1))
-;;           (progn
-;;             ;; (message "*** setting vr-prog-mode")
-;;             (set (make-local-variable 'vr-prog-mode) t)
-;;             ;; (nlinum-mode 1)
-;;             (linum-mode 1)
-;;             (show-paren-local-mode 1)
-;;             (hs-minor-mode 1)
-;;             ;; (subword-mode 1)
-;;             ;; ;; Use case-sensitive search (buffer-local)
-;;             ;; (setq case-fold-search nil)
-;;             )))
-;;     (progn
-;;       (if value
-;;           (progn
-;;             (set (make-local-variable 'vr-prog-mode) t)
-;;             ;; (nlinum-mode 1)
-;;             (linum-mode 1)
-;;             (show-paren-local-mode 1)
-;;             (hs-minor-mode 1)
-;;             ;; (subword-mode 1)
-;;             ;; ;; Use case-sensitive search (buffer-local)
-;;             ;; (setq case-fold-search nil)
-;;             )
-;;         (progn
-;;           (if (local-variable-p 'vr-prog-mode)
-;;               (kill-local-variable 'vr-prog-mode))
-;;           ;; (nlinum-mode -1)
-;;           (linum-mode -1)
-;;           (show-paren-local-mode nil)
-;;           (hs-minor-mode -1)
-;;           ;; (subword-mode -1)
-;;           )))))
-
 (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
@@ -797,11 +751,10 @@ fields which we need."
 
 ;; == C++ Mode ==
 
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
-;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/irony/")
+;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
 (setq vr-project-dir-name ".project")
-(setq vr-c++std "-std=c++1y")
+(setq vr-c++std "-std=c++14")
 
 ;; TODO: Use rtags or .project to get current compiler
 ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
@@ -823,121 +776,6 @@ fields which we need."
 /home/rh/s600/s600-host/build/root/include
 /home/rh/s600/s600-host/server"))
 
-;; The following patch is only required for emacs < 25.
-;; Once transition to emacs 25 is completed, this patch should be removed.
-;; This patch if far from perfect. It is although better than nothing.
-;; see http://stackoverflow.com/questions/8549351/c11-mode-or-settings-for-emacs
-(defun vr-c++-11-partial-patch ()
-  (message "vr-c++-11-partial-patch")
-  (require 'font-lock)
-  (defun --copy-face (new-face face)
-    "Define NEW-FACE from existing FACE."
-    (copy-face face new-face)
-    (eval `(defvar ,new-face nil))
-    (set new-face new-face))
-  ;; labels, case, public, private, proteced, namespace-tags
-  (--copy-face 'font-lock-label-face
-               'font-lock-keyword-face)
-  ;; comment markups such as Javadoc-tags
-  (--copy-face 'font-lock-doc-markup-face
-               'font-lock-doc-face)
-  ;; comment markups
-  (--copy-face 'font-lock-doc-string-face
-               'font-lock-comment-face)
-  (global-font-lock-mode t)
-  (setq font-lock-maximum-decoration t)
-  ;; We could place some regexes into `c-mode-common-hook', but note that their evaluation order
-  ;; matters.
-  (font-lock-add-keywords
-   nil '(;; complete some fundamental keywords
-         ("\\<\\(void\\|unsigned\\|signed\\|char\\|short\\|bool\\|int\\|long\\|float\\|double\\)\\>" . font-lock-keyword-face)
-         ;; namespace names and tags - these are rendered as constants by cc-mode
-         ("\\<\\(\\w+::\\)" . font-lock-function-name-face)
-         ;;  new C++11 keywords
-         ("\\<\\(alignof\\|alignas\\|constexpr\\|decltype\\|noexcept\\|nullptr\\|static_assert\\|thread_local\\|override\\|final\\)\\>" 1 font-lock-keyword-face)
-         ("\\<\\(char16_t\\|char32_t\\)\\>" . font-lock-keyword-face)
-         ;; PREPROCESSOR_CONSTANT, PREPROCESSORCONSTANT
-         ("\\<[A-Z]*_[A-Z_]+\\>" . font-lock-constant-face)
-         ("\\<[A-Z]\\{3,\\}\\>"  . font-lock-constant-face)
-         ;; hexadecimal numbers
-         ("\\<0[xX][0-9A-Fa-f]+\\>" . font-lock-constant-face)
-         ;; integer/float/scientific numbers
-         ;; ("\\<[\\-+]*[0-9]*\\.?[0-9]+\\([ulUL]+\\|[eE][\\-+]?[0-9]+\\)?\\>" . font-lock-constant-face)
-         ;; integer/float/scientific literals (improved)
-         ("\\<[-+]?[0-9]*\\.?[0-9]+\\([uUlL]+\\|[eE][-+]?[0-9]+\\)?[fFlL]?\\>" . font-lock-constant-face)
-         ;; c++11 string literals
-         ;;       L"wide string"
-         ;;       L"wide string with UNICODE codepoint: \u2018"
-         ;;       u8"UTF-8 string", u"UTF-16 string", U"UTF-32 string"
-         ("\\<\\([LuU8]+\\)\".*?\"" 1 font-lock-keyword-face)
-         ;;       R"(user-defined literal)"
-         ;;       R"( a "quot'd" string )"
-         ;;       R"delimiter(The String Data" )delimiter"
-         ;;       R"delimiter((a-z))delimiter" is equivalent to "(a-z)"
-
-         ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)[[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 0 font-lock-keyword-face t) ; start/end delimiter
-         ;; (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face t)  ; actual string
-
-         ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\)" 1 font-lock-keyword-face t) ; start delimiter
-         (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}(\\([[:ascii:][:nonascii:]]*?\\))[^\\s-\\\\()]\\{0,16\\}\"" 1 font-lock-string-face prepend)  ; actual string
-         (   "\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?\\()[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-keyword-face t) ; end delimiter
-
-         ;; ("\\(\\<[uU8]*R\"[^\\s-\\\\()]\\{0,16\\}([[:ascii:][:nonascii:]]*?)[^\\s-\\\\()]\\{0,16\\}\"\\)" 1 font-lock-string-face t)
-
-         ;; user-defined types (rather project-specific)
-         ;; ("\\<[A-Za-z_]+[A-Za-z_0-9]*_\\(type\\|ptr\\)\\>" . font-lock-type-face)
-         ;; ("\\<\\(xstring\\|xchar\\)\\>" . font-lock-type-face)
-         )
-   t))
-
-;; TODO: make all auto-complete settings buffer local
-(defun vr-c++-ac-setup ()
-  ;; see https://github.com/mooz/auto-complete-c-headers
-  (require 'auto-complete-c-headers)
-  ;; #include auto-completion search paths
-  (setq achead:include-directories
-        (append vr-c++-include-path
-                (vr-get-g++-isystem-path)
-                achead:include-directories))
-
-  ;; ;; see https://github.com/brianjcj/auto-complete-clang
-  (require 'auto-complete-clang)
-
-  ;; i.e. 'echo "" | g++ -v -x c++ -E -'
-  ;; (setq clang-completion-suppress-error 't)
-  (setq ac-clang-executable (executable-find "clang-3.6"))
-  (setq ac-clang-flags (append `(,vr-c++std)
-                               (mapcar (lambda (item) (concat "-I" item))
-                                       vr-c++-include-path)
-                               (mapcar (lambda (item) (concat "-isystem" item))
-                                       (vr-get-g++-isystem-path))))
-
-  ;; (require 'rtags-ac)
-  ;; (setq rtags-completions-enabled t)
-
-  (setq ac-sources
-        (append '(ac-source-c-headers
-                  ac-source-clang
-                  ;; ac-source-rtags
-                  )
-                ac-sources))
-  ;; use clang-ac for for yas-expand
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil)
-  ;; or another shortcut:
-  (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
-  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field))
-
-;; (defun vr-c++-ac-setup ()
-;;   (require 'ac-irony)
-;;   (require 'irony-cdb)
-;;   ;; (setq ac-sources
-;;   ;;       (append '(ac-source-irony ac-source-yasnippet)
-;;   ;;               ac-sources))
-;;   (add-to-list 'ac-sources 'ac-source-irony)
-;;   (irony-cdb-autosetup-compile-options)
-;;   (irony-mode 1))
-
 (defun vr-c++-get-project-path ()
   (let ((src-tree-root (locate-dominating-file
                         (file-truename default-directory)
@@ -946,15 +784,15 @@ fields which we need."
         (concat src-tree-root vr-project-dir-name "/")
       nil)))
 
-;; TODO: move the following function into a separate section for gud-mode
-;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
-;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
-;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
-(defadvice gud-display-line (before one-source-window activate)
-  "Always use the same window to show source code."
-  (let ((buf (get-file-buffer true-file)))
-    (when (and buf gdb-source-window)
-      (set-window-buffer gdb-source-window buf))))
+;; ;; TODO: move the following function into a separate section for gud-mode
+;; ;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
+;; ;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
+;; ;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
+;; (defadvice gud-display-line (before one-source-window activate)
+;;   "Always use the same window to show source code."
+;;   (let ((buf (get-file-buffer true-file)))
+;;     (when (and buf gdb-source-window)
+;;       (set-window-buffer gdb-source-window buf))))
 
 (defun vr-c++-debug-setup ()
   ;; use gdb-many-windows by default
@@ -987,82 +825,7 @@ fields which we need."
        (concat header-string (make-string header-filler-width ?\ ))))
    'face 'mode-line-inactive))
 
-;; (defun vr-c++-header-line-inactive ()
-;;   (propertize
-;;    (let* ((header-string (concat header-line-beginning-indicator
-;;                                  rtags-cached-current-container))
-;;           (header-string-width (string-width header-string))
-;;           (header-filler-width (- (window-total-width) header-string-width)))
-;;      (if (< header-filler-width 0)
-;;          (concat (substring header-string
-;;                             0 (- (window-total-width)
-;;                                  (string-width header-line-trim-indicator)))
-;;                  header-line-trim-indicator)
-;;        (concat header-string (make-string header-filler-width ?\ ))))
-;;    'face 'mode-line-inactive))
-
-;; (defun my-update-header ()
-;;   (mapc
-;;    (lambda (window)
-;;      (with-current-buffer (window-buffer window)
-;;        (if (eq window (selected-window))
-;;            (message "active")
-;;            ;; (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
-;;            ;;   (setq header-line-format '(:eval (vr-c++-header-line))))
-;;          ;; (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
-;;          ;;     (setq header-line-format '(:eval (vr-c++-header-line-inactive)))))))
-;;          (message "inactive"))))
-;;    (window-list)))
-
-;; (defun my-update-header ()
-;;   (mapc
-;;    (lambda (window)
-;;      (with-current-buffer (window-buffer window)
-;;        (if (eq window (selected-window))
-;;            (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
-;;              (setq header-line-format '(:eval (vr-c++-header-line))))
-;;          (when (and (boundp 'rtags-is-indexed) (rtags-is-indexed))
-;;            (setq header-line-format "xxx-xxx-xxx")))))
-;;    (window-list)))
-
-;; (setq buffer-list-update-hook nil)
-;; (add-hook 'buffer-list-update-hook 'my-update-header)
-
-
-;; see http://stackoverflow.com/questions/33195122/highlight-current-active-window
-
-;; (defun highlight-selected-window ()
-;;   "Highlight selected window with a different background color."
-;;   (walk-windows (lambda (w)
-;;                   (unless (eq w (selected-window)) 
-;;                     (with-current-buffer (window-buffer w)
-;;                       (buffer-face-set '(:background "#111"))))))
-;;   (buffer-face-set 'default))
-
-;; (add-hook 'buffer-list-update-hook 'highlight-selected-window)
-
-;; (add-hook 'buffer-list-update-hook 'my-update-header)
-
-;; (cl-defun vr-c++-header-line (&optional
-;;                               (header-line-trim-indicator "\x203a")
-;;                               (header-line-beginning-indicator " "))
-;;   (propertize
-;;    (let* ((header-string (concat header-line-beginning-indicator
-;;                                  rtags-cached-current-container))
-;;           (header-string-width (string-width header-string))
-;;           (header-filler-width (- (window-total-width) header-string-width)))
-;;      (if (< header-filler-width 0)
-;;          (concat (substring header-string
-;;                             0 (- (window-total-width)
-;;                                  (string-width header-line-trim-indicator)))
-;;                  header-line-trim-indicator)
-;;        (concat header-string (make-string header-filler-width ?\ ))))
-;;    'face (if (eq (window-buffer (selected-window)) (current-buffer))
-;;              'mode-line-inactive
-;;            'mode-line)))
-
-
-;; TODO: investigave rtags settings refactoring to use flycheck, company-mode,
+;; TODO: investigave rtags settings refactoring to use flycheck,
 ;; and use-package using the following guide
 ;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
@@ -1085,8 +848,6 @@ fields which we need."
 
               (set (make-local-variable 'header-line-format)
                    '(:eval (vr-c++-header-line))))
-
-              ;; (setq header-line-format '(:eval (vr-c++-header-line))))
             nil t)
 
   (custom-set-faces
@@ -1109,6 +870,44 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
+
+;; TODO: make all auto-complete settings buffer local
+(defun vr-c++-ac-setup ()
+  ;; see https://github.com/mooz/auto-complete-c-headers
+  (require 'auto-complete-c-headers)
+  ;; #include auto-completion search paths
+  (setq achead:include-directories
+        (append vr-c++-include-path
+                (vr-get-g++-isystem-path)
+                achead:include-directories))
+
+  ;; (require 'rtags-ac)
+  ;; (setq rtags-completions-enabled t)
+
+  ;; ;; see https://github.com/brianjcj/auto-complete-clang
+  (require 'auto-complete-clang)
+
+  ;; i.e. 'echo "" | g++ -v -x c++ -E -'
+  ;; (setq clang-completion-suppress-error 't)
+  ;; (setq ac-clang-executable (executable-find "clang-3.6"))
+  (setq ac-clang-flags (append `(,vr-c++std)
+                               (mapcar (lambda (item) (concat "-I" item))
+                                       vr-c++-include-path)
+                               (mapcar (lambda (item) (concat "-isystem" item))
+                                       (vr-get-g++-isystem-path))))
+
+  (setq ac-sources
+        (append '(ac-source-c-headers
+                  ac-source-clang
+                  ;; ac-source-rtags
+                  )
+                ac-sources))
+  ;; use ac for for yas-expand
+  (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  (define-key yas-minor-mode-map (kbd "TAB") nil)
+  ;; or another shortcut:
+  (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
+  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field))
 
 (defun vr-c++-code-folding-setup ()
   (hs-minor-mode 1))
@@ -1184,16 +983,12 @@ fields which we need."
                 (progn
                   (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
                   (vr-programming-minor-modes t)
-                  ;; (require 'google-c-style)
-                  ;; (google-set-c-style)
                   (vr-c++-indentation-setup)
                   (vr-c++-yas-setup)
-                  (if (< (car vr-emacs-version) 25)
-                      (vr-c++-11-partial-patch))
                   (vr-c++-compile-setup)
                   (vr-c++-debug-setup)
-                  (vr-c++-ac-setup)
                   (vr-c++-rtags-setup)
+                  (vr-c++-ac-setup)
                   (vr-c++-code-folding-setup)
 
                   ;; (setq hs-special-modes-alist
@@ -1947,6 +1742,7 @@ with very limited support for special characters."
                           "^\\*rdm\\*$"
                           "^\\*RTags\\*$"
                           "^\\*RTags Diagnostics\\*$"
+                          "^\\*RTags Log\\*$"
                           ;; AUCTeX output files
                           " output\\*$"))
 
