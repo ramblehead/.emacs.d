@@ -13,7 +13,9 @@
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
- '(package-selected-packages (quote (paradox flx-ido use-package)))
+ '(package-selected-packages
+   (quote
+    (pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
  '(tab-stop-list
@@ -113,8 +115,8 @@
       (concat user-emacs-directory "smex-items"))
 (setq vr-user-lisp-directory-path
       (concat user-emacs-directory "lisp/"))
-(setq vr-predictive-dict-directory-path
-      (concat vr-user-lisp-directory-path "predictive-dict/"))
+;; (setq vr-predictive-dict-directory-path
+;;       (concat vr-user-lisp-directory-path "predictive-dict/"))
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
@@ -1563,156 +1565,136 @@ with very limited support for special characters."
 (require 'yasnippet)
 (yas-reload-all)
 
-;; == predictive mode ==
+;; ;; == predictive mode ==
 
-;; predictive install location
-(add-to-list 'load-path "~/.emacs.d/lisp/predictive/")
-;; predictive dictionaries install location
-(add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/")
-;; predictive dictionary locations
-(add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/latex/")
-(add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/texinfo/")
-(add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/html/")
-;; predictive configuration
-(setq completion-overwrite nil)
-(setq completion-ui-use-echo nil)
-(setq predictive-auto-learn t)
-(setq completion-accept-or-reject-by-default '(global . reject))
-(setq completion-how-to-resolve-old-completions 'reject)
-(setq predictive-auxiliary-file-location "~/.emacs.d/.predictive/")
-;; load predictive package
-(autoload 'predictive-mode "predictive"
-  "Turn on Predictive Completion Mode." t)
-;; (require 'predictive)
+;; ;; predictive install location
+;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive/")
+;; ;; predictive dictionaries install location
+;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/")
+;; ;; predictive dictionary locations
+;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/latex/")
+;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/texinfo/")
+;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/html/")
+;; ;; predictive configuration
+;; (setq completion-overwrite nil)
+;; (setq completion-ui-use-echo nil)
+;; (setq predictive-auto-learn t)
+;; (setq completion-accept-or-reject-by-default '(global . reject))
+;; (setq completion-how-to-resolve-old-completions 'reject)
+;; (setq predictive-auxiliary-file-location "~/.emacs.d/.predictive/")
+;; ;; load predictive package
+;; (autoload 'predictive-mode "predictive"
+;;   "Turn on Predictive Completion Mode." t)
+;; ;; (require 'predictive)
 
-;; (defadvice completion-show-tooltip (around vr-completion-show-tooltip ())
-;;   (progn
-;;     ;; (message "completion-show-tooltip overload works")
-;;     (if (not (local-variable-p 'vr-completion-tooltip-active))
-;;         (progn
-;;           (make-local-variable 'vr-completion-tooltip-active)
-;;           (message "make-local-variable 'vr-completion-tooltip-active")))
-;;     ad-do-it))
-;; (ad-activate 'completion-show-tooltip)
+;; ;; (defadvice completion-show-tooltip (around vr-completion-show-tooltip ())
+;; ;;   (progn
+;; ;;     ;; (message "completion-show-tooltip overload works")
+;; ;;     (if (not (local-variable-p 'vr-completion-tooltip-active))
+;; ;;         (progn
+;; ;;           (make-local-variable 'vr-completion-tooltip-active)
+;; ;;           (message "make-local-variable 'vr-completion-tooltip-active")))
+;; ;;     ad-do-it))
+;; ;; (ad-activate 'completion-show-tooltip)
 
-;; (defadvice completion-cancel-tooltip (around vr-completion-cancel-tooltip ())
-;;   (progn
-;;     ;; (message "completion-cancel-tooltip overload works")
-;;     (if (local-variable-p 'vr-completion-tooltip-active)
-;;         (progn
-;;           (kill-local-variable 'vr-completion-tooltip-active)
-;;           (message "kill-local-variable 'vr-completion-tooltip-active")))
-;;     ad-do-it))
-;; (ad-activate 'completion-cancel-tooltip)
+;; ;; (defadvice completion-cancel-tooltip (around vr-completion-cancel-tooltip ())
+;; ;;   (progn
+;; ;;     ;; (message "completion-cancel-tooltip overload works")
+;; ;;     (if (local-variable-p 'vr-completion-tooltip-active)
+;; ;;         (progn
+;; ;;           (kill-local-variable 'vr-completion-tooltip-active)
+;; ;;           (message "kill-local-variable 'vr-completion-tooltip-active")))
+;; ;;     ad-do-it))
+;; ;; (ad-activate 'completion-cancel-tooltip)
 
-;; (defun vr-completion-accept ()
-;;   (interactive)
-;;   (if (local-variable-p 'vr-completion-tooltip-active)
-;;       (progn
-;;         ;; (message "completion-tooltip-active is t")
-;;         (completion-accept))
-;;     (progn
-;;       ;; (message "completion-tooltip-active is nil")
-;;       (completion-reject)
-;;       (newline))))
+;; ;; (defun vr-completion-accept ()
+;; ;;   (interactive)
+;; ;;   (if (local-variable-p 'vr-completion-tooltip-active)
+;; ;;       (progn
+;; ;;         ;; (message "completion-tooltip-active is t")
+;; ;;         (completion-accept))
+;; ;;     (progn
+;; ;;       ;; (message "completion-tooltip-active is nil")
+;; ;;       (completion-reject)
+;; ;;       (newline))))
 
-(defun vr-auto-completion-keys ()
-  (setq completion-auto-show nil)       ; If this variable is set outside the
-                                        ; auto-completion-mode-enable-hook,
-                                        ; for some reason it is not initialized.
-  (define-key completion-overlay-map (kbd "<tab>") 'completion-accept)
-  (define-key completion-overlay-map (kbd "<escape>") 'completion-reject)
-  (define-key completion-overlay-map (kbd "<delete>") 'completion-reject)
-  (define-key completion-overlay-map (kbd "<kp-delete>") 'completion-reject)
+;; (defun vr-auto-completion-keys ()
+;;   (setq completion-auto-show nil)       ; If this variable is set outside the
+;;                                         ; auto-completion-mode-enable-hook,
+;;                                         ; for some reason it is not initialized.
+;;   (define-key completion-overlay-map (kbd "<tab>") 'completion-accept)
+;;   (define-key completion-overlay-map (kbd "<escape>") 'completion-reject)
+;;   (define-key completion-overlay-map (kbd "<delete>") 'completion-reject)
+;;   (define-key completion-overlay-map (kbd "<kp-delete>") 'completion-reject)
 
-  (define-key completion-overlay-map (kbd "C-<tab>") 'completion-show-tooltip)
+;;   (define-key completion-overlay-map (kbd "C-<tab>") 'completion-show-tooltip)
 
-  (define-key completion-tooltip-map (kbd "C-n") 'completion-tooltip-cycle)
-  (define-key completion-tooltip-map (kbd "C-p") 'completion-tooltip-cycle-backwards)
-  (define-key completion-tooltip-map (kbd "C-<tab>") 'completion-tooltip-cycle)
-  (define-key completion-tooltip-map (kbd "C-S-<tab>") 'completion-tooltip-cycle-backwards))
-  ;; (define-key completion-tooltip-map (kbd "<return>") 'completion-accept)
-  ;; (define-key completion-tooltip-map (kbd "<kp-enter>") 'completion-accept))
+;;   (define-key completion-tooltip-map (kbd "C-n") 'completion-tooltip-cycle)
+;;   (define-key completion-tooltip-map (kbd "C-p") 'completion-tooltip-cycle-backwards)
+;;   (define-key completion-tooltip-map (kbd "C-<tab>") 'completion-tooltip-cycle)
+;;   (define-key completion-tooltip-map (kbd "C-S-<tab>") 'completion-tooltip-cycle-backwards))
+;;   ;; (define-key completion-tooltip-map (kbd "<return>") 'completion-accept)
+;;   ;; (define-key completion-tooltip-map (kbd "<kp-enter>") 'completion-accept))
 
-(add-hook 'auto-completion-mode-enable-hook 'vr-auto-completion-keys)
-(global-set-key (kbd "<S-f7>") 'predictive-mode)
+;; (add-hook 'auto-completion-mode-enable-hook 'vr-auto-completion-keys)
+;; (global-set-key (kbd "<S-f7>") 'predictive-mode)
 
 ;; == auto-complete mode ==
 
-;; used by auto-complete to display help tips
-(require 'pos-tip)
-;; (pos-tip-w32-max-width-height)   ; Maximize frame temporarily
+(use-package fuzzy
+  :ensure t)
 
-;; auto-complete install location
-(add-to-list 'load-path (concat vr-user-lisp-directory-path "ac/"))
+(use-package pos-tip
+  :ensure t)
 
-;; (require 'popup-pos-tip)
+(use-package auto-complete
+  :config
+  (ac-config-default)
+  (setq ac-fuzzy-enable t)
+  (setq ac-use-quick-help nil)
+  (setq ac-auto-show-menu nil)
+  (setq ac-use-menu-map t)
 
-(defadvice popup-tip
-  (around popup-pos-tip-wrapper (string &rest args) activate)
-  (if (or (eq window-system 'x) (eq window-system 'w32))
-      (apply 'popup-pos-tip string args)
-    ad-do-it))
+  (setq ac-user-dictionary-files
+        (delete "~/.dict" ac-user-dictionary-files))
 
-(require 'auto-complete-config)
-(ac-config-default)
-;; requires yasnippet
-;; (require 'auto-complete-auctex)
+  (define-key ac-completing-map (kbd "<tab>") 'ac-complete)
+  (define-key ac-completing-map (kbd "<escape>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<delete>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<kp-delete>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<return>") 'newline)
+  (define-key ac-completing-map (kbd "<kp-enter>") 'newline)
 
-;; personal dictionary
-;;(add-to-list 'ac-user-dictionary-files vr-ispell-en-dictionary)
-;; no need for a default "~/.dict" file
-(setq ac-user-dictionary-files
-      (delete "~/.dict" ac-user-dictionary-files))
-(setq ac-use-quick-help nil)
-(setq ac-auto-show-menu nil)
-(setq ac-use-menu-map t)
+  (define-key ac-completing-map (kbd "<up>") nil)
+  (define-key ac-completing-map (kbd "<down>") nil)
+  (define-key ac-completing-map (kbd "<kp-up>") nil)
+  (define-key ac-completing-map (kbd "<kp-down>") nil)
 
-;; ac dictionaries location
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict/")
+  ;; quick help scrolling only works in text mode tooltips (i.e. no pos-tip)
+  (define-key ac-completing-map (kbd "C-<up>") 'ac-quick-help-scroll-up)
+  (define-key ac-completing-map (kbd "C-<down>") 'ac-quick-help-scroll-down)
 
-(define-key ac-completing-map (kbd "<tab>") 'ac-complete)
-(define-key ac-completing-map (kbd "<escape>") 'ac-stop)
-(define-key ac-completing-map (kbd "<delete>") 'ac-stop)
-(define-key ac-completing-map (kbd "<kp-delete>") 'ac-stop)
-(define-key ac-completing-map (kbd "<return>") 'newline)
-(define-key ac-completing-map (kbd "<kp-enter>") 'newline)
+  (define-key ac-completing-map (kbd "C-<tab>") 'auto-complete)
 
-(define-key ac-completing-map (kbd "<up>") nil)
-(define-key ac-completing-map (kbd "<down>") nil)
-(define-key ac-completing-map (kbd "<kp-up>") nil)
-(define-key ac-completing-map (kbd "<kp-down>") nil)
+  (define-key ac-menu-map (kbd "C-<tab>") 'ac-next)
+  (define-key ac-menu-map (kbd "C-S-<tab>") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-S-<iso-lefttab>") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-p") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-n") 'ac-next)
+  (define-key ac-menu-map (kbd "<kp-up>") 'ac-previous)
+  (define-key ac-menu-map (kbd "<kp-down>") 'ac-next)
+  (define-key ac-menu-map (kbd "<up>") 'ac-previous)
+  (define-key ac-menu-map (kbd "<down>") 'ac-next)
+  (define-key ac-menu-map (kbd "<return>") 'ac-complete)
+  (define-key ac-menu-map (kbd "<kp-enter>") 'ac-complete)
 
-;; quick help scrolling only works in text mode tooltips (i.e. no pos-tip)
-(define-key ac-completing-map (kbd "C-<up>") 'ac-quick-help-scroll-up)
-(define-key ac-completing-map (kbd "C-<down>") 'ac-quick-help-scroll-down)
+  (define-key ac-completing-map (kbd "M-h") 'ac-quick-help)
+  (define-key ac-completing-map (kbd "M-H") 'ac-persist-help)
 
-(define-key ac-completing-map (kbd "C-<tab>") 'auto-complete)
+  (define-key ac-mode-map (kbd "M-h") 'ac-last-quick-help)
+  (define-key ac-mode-map (kbd "M-H") 'ac-last-persist-help)
 
-(define-key ac-menu-map (kbd "C-<tab>") 'ac-next)
-(define-key ac-menu-map (kbd "C-S-<tab>") 'ac-previous)
-(define-key ac-menu-map (kbd "C-p") 'ac-previous)
-(define-key ac-menu-map (kbd "C-n") 'ac-next)
-(define-key ac-menu-map (kbd "<kp-up>") 'ac-previous)
-(define-key ac-menu-map (kbd "<kp-down>") 'ac-next)
-(define-key ac-menu-map (kbd "<up>") 'ac-previous)
-(define-key ac-menu-map (kbd "<down>") 'ac-next)
-(define-key ac-menu-map (kbd "<return>") 'ac-complete)
-(define-key ac-menu-map (kbd "<kp-enter>") 'ac-complete)
-
-(define-key ac-completing-map (kbd "M-h") 'ac-quick-help)
-(define-key ac-completing-map (kbd "M-H") 'ac-persist-help)
-
-(define-key ac-mode-map (kbd "M-h") 'ac-last-quick-help)
-(define-key ac-mode-map (kbd "M-H") 'ac-last-persist-help)
-
-;; (defun vr-auto-complete-mode-keys ()
-;;   (if auto-complete-mode
-;;       (message "auto-complete-mode-hook works")))
-
-;; ;; Move auto-complete-mode settings into hook, so it can be used
-;; ;; with autoload.
-;; (add-hook 'auto-complete-mode-hook 'vr-auto-complete-mode-keys)
+  :ensure t)
 
 (defun vr-ac-start-if-ac-mode ()
   (interactive)
