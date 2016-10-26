@@ -15,7 +15,8 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+ '(paradox-automatically-star t)
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
  '(tab-stop-list
@@ -36,7 +37,7 @@
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
  '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
- '(rtags-skippedline ((((class color)) (:background "#34ef85"))))
+ '(rtags-skippedline ((((class color)) (:background "#c2fada"))))
  '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
  '(speck-mode-line-specked ((((class color)) (:foreground "midnight blue"))))
  '(speck-mode-line-specking ((((class color)) (:foreground "maroon"))))
@@ -832,6 +833,9 @@ fields which we need."
 ;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
+  ;; see https://github.com/Andersbakken/rtags/issues/304
+  ;; for flag '-M'
+  ;; (setq rtags-process-flags "-M")
   (setq rtags-autostart-diagnostics t)
   (rtags-start-process-unless-running)
 
@@ -856,12 +860,13 @@ fields which we need."
    '(rtags-errline ((((class color)) (:background "#ef8990"))))
    '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
-   '(rtags-skippedline ((((class color)) (:background "#34ef85")))))
+   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
   ;; rtags-ac does not seem to be working...
   ;; (require 'rtags-ac)
 
   (rtags-enable-standard-keybindings)
+  (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
@@ -1008,51 +1013,154 @@ fields which we need."
 
 ;; == Enhanced Java Script Mode ==
 
-(autoload 'js2-mode "js2-mode" "JavaScript mode." t)
-(autoload 'moz-minor-mode "moz" "Mozilla Minor and Inferior Mozilla Modes" t)
-(add-to-list 'auto-mode-alist '("\\.jse?\\'" . js2-mode))
-(require 'js2-highlight-vars)
+(defun vr-js2-configure-scratch ()
+  (interactive)
+  (set (make-local-variable
+        'js2-highlight-external-variables)
+       nil)
+  (ac-js2-mode 1))
 
 (defadvice js2-enter-key (around vr-js2-enter-key ())
- (progn
-   (if (use-region-p)
-       (delete-region (region-beginning) (region-end)))
-   ad-do-it))
-
+  (progn
+    (if (use-region-p)
+        (delete-region (region-beginning) (region-end)))
+    ad-do-it))
 (ad-activate 'js2-enter-key)
 
-;; see http://emacswiki.org/emacs/Js2Mode
-;; After js2 has parsed a js file, we look for jslint globals decl comment ("/* global Fred, _, Harry */") and
-;; add any symbols to a buffer-local var of acceptable global vars
-;; Note that we also support the "symbol: true" way of specifying names via a hack (remove any ":true"
-;; to make it look like a plain decl, and any ':false' are left behind so they'll effectively be ignored as
-;; you can;t have a symbol called "someName:false"
-(add-hook 'js2-post-parse-callbacks
-          (lambda ()
-            (when (> (buffer-size) 0)
-              (let ((btext (replace-regexp-in-string
-                            ": *true" " "
-                            (replace-regexp-in-string "[\n\t ]+" " " (buffer-substring-no-properties 1 (buffer-size)) t t))))
-                (mapc (apply-partially 'add-to-list 'js2-additional-externs)
-                      (split-string
-                       (if (string-match "/\\* *global *\\(.*?\\) *\\*/" btext) (match-string-no-properties 1 btext) "")
-                       " *, *" t))
-                ))))
+(use-package js2-mode
+  :commands js2-mode
+  :mode "\\.jse?\\'"
+  :config
+  (setq js-indent-level 2)
 
-(defun js2-moz-send-region-or-defun ()
+  ;; see http://emacswiki.org/emacs/Js2Mode After js2 has parsed a js file, we
+  ;; look for jslint globals decl comment ("/* global Fred, _, Harry */") and
+  ;; add any symbols to a buffer-local var of acceptable global vars Note that
+  ;; we also support the "symbol: true" way of specifying names via a hack
+  ;; (remove any ":true" to make it look like a plain decl, and any ':false' are
+  ;; left behind so they'll effectively be ignored as you can;t have a symbol
+  ;; called "someName:false"
+  (add-hook 'js2-post-parse-callbacks
+            (lambda ()
+              (when (> (buffer-size) 0)
+                (let ((btext (replace-regexp-in-string
+                              ": *true" " "
+                              (replace-regexp-in-string
+                               "[\n\t ]+"
+                               " "
+                               (buffer-substring-no-properties 1 (buffer-size))
+                               t t))))
+                  (mapc (apply-partially 'add-to-list 'js2-additional-externs)
+                        (split-string
+                         (if (string-match
+                              "/\\* *global *\\(.*?\\) *\\*/" btext)
+                             (match-string-no-properties 1 btext) "")
+                         " *, *" t))
+                  ))))
+
+  ;; (defun js2-moz-send-region-or-defun ()
+  ;;   (interactive)
+  ;;   (if (use-region-p)
+  ;;       (progn
+  ;;         (message "moz-send-region")
+  ;;         (moz-send-region (region-beginning) (region-end)))
+  ;;     (moz-send-defun)))
+
+  (add-hook 'js2-mode-hook
+            (lambda ()
+              (vr-programming-minor-modes)
+              (skewer-mode 1)
+              ;; (moz-minor-mode -1)
+              (abbrev-mode -1)
+              (yas-minor-mode 1)
+              ;; (ac-js2-mode 1)
+              (js2-refactor-mode 1)
+              (if (or (string-suffix-p ".scratch.js" (buffer-name))
+                      (string-equal "scratch.js" (buffer-name)))
+                  (vr-js2-configure-scratch))
+              (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
+              (local-set-key (kbd "M-[") 'pop-tag-mark)
+              (local-set-key (kbd "<f5>") 'skewer-eval-last-expression)
+              (local-set-key (kbd "M-<f5>") 'skewer-eval-print-last-expression)
+              ;; (local-set-key (kbd "<f5>") 'moz-send-region)
+              (local-set-key (kbd "S-<f5>") 'skewer-repl)
+              ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
+              ))
+  :pin melpa
+  :ensure t)
+
+(defun vr-js2r-rename-var-start/stop ()
   (interactive)
-  (if (use-region-p)
+  (if multiple-cursors-mode
       (progn
-        (message "moz-send-region")
-        (moz-send-region (region-beginning) (region-end)))
-    (moz-send-defun)))
+        (mc/keyboard-quit)
+        (mc/keyboard-quit))
+    (js2r-rename-var)))
 
-(add-hook 'js2-mode-hook (lambda ()
-                           (vr-programming-minor-modes)
-                           (js2-highlight-vars-mode)
-                           (moz-minor-mode t)
-                           (local-set-key (kbd "<f5>") 'js2-moz-send-region-or-defun)
-                           (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)))
+(use-package js2-refactor
+  :commands js2-refactor-mode
+  :config
+  ;; "C-'" to toggle mc-hide-unmatched-lines-mode
+  (mc-hide-unmatched-lines-mode -1)
+  (js2r-add-keybindings-with-prefix "C-c r")
+
+  :ensure t)
+
+(use-package skewer-mode
+  :commands (skewer-mode skewer-css-mode skewer-html-mode)
+  :config (httpd-start)
+  :ensure t)
+
+(use-package ac-js2
+  :commands ac-js2-mode
+  :init
+  (setq ac-js2-evaluate-calls t)
+  :ensure t)
+
+;; (use-package moz
+;;   :commands moz-minor-mode
+;;   :interpreter ("moz" . moz-minor-mode)
+;;   :ensure t)
+
+;; == CSS Mode ==
+
+(defun vr-skewer-css-clear-all ()
+  (interactive)
+  (skewer-css-clear-all)
+  (message "All skewer CSS modifications are cleared"))
+
+(defun vr-skewer-css-eval-current-declaration ()
+  (interactive)
+  (if (not (looking-back "}[\n\r\t\s]*"))
+      (skewer-css-eval-current-declaration)
+    (skewer-css-eval-current-rule)))
+
+;; (defun vr-skewer-css-eval-current-declaration ()
+;;   (interactive)
+;;   (if (not (looking-back "}[\n\r\t\s]*"))
+;;       (message "looking at declaration")
+;;     (message "looking at rule")))
+
+(use-package css-mode
+  :commands css-mode
+  :mode "\\.css\\'"
+  :config
+  (setq css-indent-offset 2)
+  (add-hook 'css-mode-hook
+            (lambda ()
+              (vr-programming-minor-modes)
+              (skewer-css-mode 1)
+              (abbrev-mode -1)
+              (yas-minor-mode 1)
+              (local-set-key (kbd "<f8>") 'vr-skewer-css-clear-all)
+              (local-set-key (kbd "<f5>")
+                             'vr-skewer-css-eval-current-declaration)
+              )))
+
+;; == js, html and css common
+
+(use-package web-beautify
+  :ensure t)
 
 ;; == Emacs Lisp Mode ==
 
@@ -1552,8 +1660,18 @@ with very limited support for special characters."
 (add-hook 'post-command-hook 'set-cursor-according-to-mode)
 
 ;; -------------------------------------------------------------------
-;;; Smart Autocompletion and IntelliSense Tools
+;;; Smart Autocompletion, Advanced Editing and IntelliSense Tools
 ;; -------------------------------------------------------------------
+
+;; == multiple-cursors mode ==
+
+;; This mode is only used in js2-refactor mode at the moment.
+
+;; (use-package multiple-cursors
+;;   :commands multiple-cursors-mode
+;;   :config
+;;   (mc-hide-unmatched-lines-mode 1)
+;;   :ensure t)
 
 ;; == yasnippet ==
 
@@ -1564,80 +1682,6 @@ with very limited support for special characters."
         ))
 (require 'yasnippet)
 (yas-reload-all)
-
-;; ;; == predictive mode ==
-
-;; ;; predictive install location
-;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive/")
-;; ;; predictive dictionaries install location
-;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/")
-;; ;; predictive dictionary locations
-;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/latex/")
-;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/texinfo/")
-;; (add-to-list 'load-path "~/.emacs.d/lisp/predictive-dict/html/")
-;; ;; predictive configuration
-;; (setq completion-overwrite nil)
-;; (setq completion-ui-use-echo nil)
-;; (setq predictive-auto-learn t)
-;; (setq completion-accept-or-reject-by-default '(global . reject))
-;; (setq completion-how-to-resolve-old-completions 'reject)
-;; (setq predictive-auxiliary-file-location "~/.emacs.d/.predictive/")
-;; ;; load predictive package
-;; (autoload 'predictive-mode "predictive"
-;;   "Turn on Predictive Completion Mode." t)
-;; ;; (require 'predictive)
-
-;; ;; (defadvice completion-show-tooltip (around vr-completion-show-tooltip ())
-;; ;;   (progn
-;; ;;     ;; (message "completion-show-tooltip overload works")
-;; ;;     (if (not (local-variable-p 'vr-completion-tooltip-active))
-;; ;;         (progn
-;; ;;           (make-local-variable 'vr-completion-tooltip-active)
-;; ;;           (message "make-local-variable 'vr-completion-tooltip-active")))
-;; ;;     ad-do-it))
-;; ;; (ad-activate 'completion-show-tooltip)
-
-;; ;; (defadvice completion-cancel-tooltip (around vr-completion-cancel-tooltip ())
-;; ;;   (progn
-;; ;;     ;; (message "completion-cancel-tooltip overload works")
-;; ;;     (if (local-variable-p 'vr-completion-tooltip-active)
-;; ;;         (progn
-;; ;;           (kill-local-variable 'vr-completion-tooltip-active)
-;; ;;           (message "kill-local-variable 'vr-completion-tooltip-active")))
-;; ;;     ad-do-it))
-;; ;; (ad-activate 'completion-cancel-tooltip)
-
-;; ;; (defun vr-completion-accept ()
-;; ;;   (interactive)
-;; ;;   (if (local-variable-p 'vr-completion-tooltip-active)
-;; ;;       (progn
-;; ;;         ;; (message "completion-tooltip-active is t")
-;; ;;         (completion-accept))
-;; ;;     (progn
-;; ;;       ;; (message "completion-tooltip-active is nil")
-;; ;;       (completion-reject)
-;; ;;       (newline))))
-
-;; (defun vr-auto-completion-keys ()
-;;   (setq completion-auto-show nil)       ; If this variable is set outside the
-;;                                         ; auto-completion-mode-enable-hook,
-;;                                         ; for some reason it is not initialized.
-;;   (define-key completion-overlay-map (kbd "<tab>") 'completion-accept)
-;;   (define-key completion-overlay-map (kbd "<escape>") 'completion-reject)
-;;   (define-key completion-overlay-map (kbd "<delete>") 'completion-reject)
-;;   (define-key completion-overlay-map (kbd "<kp-delete>") 'completion-reject)
-
-;;   (define-key completion-overlay-map (kbd "C-<tab>") 'completion-show-tooltip)
-
-;;   (define-key completion-tooltip-map (kbd "C-n") 'completion-tooltip-cycle)
-;;   (define-key completion-tooltip-map (kbd "C-p") 'completion-tooltip-cycle-backwards)
-;;   (define-key completion-tooltip-map (kbd "C-<tab>") 'completion-tooltip-cycle)
-;;   (define-key completion-tooltip-map (kbd "C-S-<tab>") 'completion-tooltip-cycle-backwards))
-;;   ;; (define-key completion-tooltip-map (kbd "<return>") 'completion-accept)
-;;   ;; (define-key completion-tooltip-map (kbd "<kp-enter>") 'completion-accept))
-
-;; (add-hook 'auto-completion-mode-enable-hook 'vr-auto-completion-keys)
-;; (global-set-key (kbd "<S-f7>") 'predictive-mode)
 
 ;; == auto-complete mode ==
 
@@ -1711,14 +1755,20 @@ with very limited support for special characters."
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
-(setq vr-ignore-buffers '("\\` " "^\\*Completions\\*$"
+(setq vr-ignore-buffers '("\\` "
+                          "^\\*Completions\\*$"
                           "^\\*Quail Completions\\*$"
-                          "^\\*Messages\\*$" ;
-                          "^\\*clang-output\\*$" "^\\*clang error\\*$"
+                          "^\\*Messages\\*$"
+                          "^\\*clang-output\\*$"
+                          "^\\*clang error\\*$"
                           "^\\*Semantic SymRef\\*$"
-                          "^\\*Recent Files\\*$" "^\\*Directory\\*$"
-                          "^\\*Ido Completions\\*$" "^\\*buffer-selection\\*$"
-                          ;; compile
+                          "^\\*Recent Files\\*$"
+                          "^\\*Directory\\*$"
+                          "^\\*Ido Completions\\*$"
+                          "^\\*buffer-selection\\*$"
+                          "^\\*httpd\\*$"
+                          ;; compile/script outputs
+                          "^\\*skewer-error\\*$"
                           "^\\*compilation\\*$"
                           ;; rtags buffers
                           "^\\*rdm\\*$"
@@ -1891,6 +1941,7 @@ with very limited support for special characters."
 ;; (push '(help-mode :stick t) popwin:special-display-config)
 (push '(help-mode :stick t) popwin:special-display-config)
 (push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
+(push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
 (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
 
 (defun vr-popwin:popup-smart ()
@@ -1984,18 +2035,18 @@ with very limited support for special characters."
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "M-v") 'yank-pop)
 
-;; (global-set-key (kbd "M-<up>") 'shrink-window)
-;; (global-set-key (kbd "M-<kp-up>") 'shrink-window)
-;; (global-set-key (kbd "M-<down>") 'enlarge-window)
-;; (global-set-key (kbd "M-<kp-down>") 'enlarge-window)
-;; (global-set-key (kbd "M-<left>") 'shrink-window-horizontally)
-;; (global-set-key (kbd "M-<kp-left>") 'shrink-window-horizontally)
-;; (global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
-;; (global-set-key (kbd "M-<kp-right>") 'enlarge-window-horizontally)
-;; (global-set-key (kbd "C-<kp-begin>") 'vr-balance-windows-horizontally)
-;; (global-set-key (kbd "C-M-<kp-begin>") 'vr-balance-windows-vertically)
-;; (global-set-key (kbd "C-'") 'vr-balance-windows-horizontally)
-;; (global-set-key (kbd "C-M-'") 'vr-balance-windows-vertically)
+(global-set-key (kbd "M-s-<up>") 'enlarge-window)
+(global-set-key (kbd "M-s-<kp-up>") 'enlarge-window)
+(global-set-key (kbd "M-s-<down>") 'shrink-window)
+(global-set-key (kbd "M-s-<kp-down>") 'shrink-window)
+(global-set-key (kbd "M-s-<left>") 'shrink-window-horizontally)
+(global-set-key (kbd "M-s-<kp-left>") 'shrink-window-horizontally)
+(global-set-key (kbd "M-s-<right>") 'enlarge-window-horizontally)
+(global-set-key (kbd "M-s-<kp-right>") 'enlarge-window-horizontally)
+(global-set-key (kbd "M-s-<kp-begin>") 'vr-balance-windows-horizontally)
+(global-set-key (kbd "S-M-s-<kp-begin>") 'vr-balance-windows-vertically)
+(global-set-key (kbd "M-s-'") 'vr-balance-windows-horizontally)
+(global-set-key (kbd "M-s-\"") 'vr-balance-windows-vertically)
 
 ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
 (global-set-key (kbd "C-x <up>") 'windmove-up)

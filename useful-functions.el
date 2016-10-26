@@ -57,3 +57,17 @@
 
 (defun downcase-first-letter (obj)
   (concat (downcase (substring obj 0 1)) (substring obj 1)))
+
+(defun wrap-in-quotes-region (start end)
+  "Print and returns number of words in the region."
+  (interactive "r")
+  (save-excursion
+    (replace-regexp "^\\(.*\\)$" "\"\\1\"" nil start end)))
+
+(defun unwrap-from-quotes-region (start end)
+  "Print and returns number of words in the region."
+  (interactive "r")
+  (save-excursion
+    (replace-regexp
+     "^\\([ \t]*\\)\"\\(.*\\)\"\\([ \t]*\\)$" "\\1\\2\\3"
+     nil start end)))
