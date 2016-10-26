@@ -131,7 +131,14 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
+             '("gnu" . "http://elpa.gnu.org/packages/"))
+(add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
+
+;; Temporary Emacs bug patch.
+;; Should be removed after Emacs update (>25.1.50.1)
+;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
+(setq package-check-signature nil)
 
 (package-initialize)
 
@@ -677,6 +684,98 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; -------------------------------------------------------------------
+;;; Smart Autocompletion, Advanced Editing and IntelliSense Tools
+;; -------------------------------------------------------------------
+
+;; == multiple-cursors mode ==
+
+;; This mode is only used in js2-refactor mode at the moment.
+
+;; (use-package multiple-cursors
+;;   :commands multiple-cursors-mode
+;;   :config
+;;   (mc-hide-unmatched-lines-mode 1)
+;;   :ensure t)
+
+;; == yasnippet ==
+
+;; see https://github.com/capitaomorte/yasnippet
+(setq yas-snippet-dirs
+      '("~/.emacs.d/local-snippets" ;; local snippets
+        "~/.emacs.d/snippets"       ;; default collection
+        ))
+(require 'yasnippet)
+(yas-reload-all)
+
+;; == auto-complete mode ==
+
+(use-package fuzzy
+  :ensure t)
+
+(use-package pos-tip
+  :ensure t)
+
+(use-package auto-complete
+  :config
+  (ac-config-default)
+  (setq ac-fuzzy-enable t)
+  (setq ac-use-quick-help nil)
+  (setq ac-auto-show-menu nil)
+  (setq ac-use-menu-map t)
+
+  (setq ac-user-dictionary-files
+        (delete "~/.dict" ac-user-dictionary-files))
+
+  (define-key ac-completing-map (kbd "<tab>") 'ac-complete)
+  (define-key ac-completing-map (kbd "<escape>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<delete>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<kp-delete>") 'ac-stop)
+  (define-key ac-completing-map (kbd "<return>") 'newline)
+  (define-key ac-completing-map (kbd "<kp-enter>") 'newline)
+
+  (define-key ac-completing-map (kbd "<up>") nil)
+  (define-key ac-completing-map (kbd "<down>") nil)
+  (define-key ac-completing-map (kbd "<kp-up>") nil)
+  (define-key ac-completing-map (kbd "<kp-down>") nil)
+
+  ;; quick help scrolling only works in text mode tooltips (i.e. no pos-tip)
+  (define-key ac-completing-map (kbd "C-<up>") 'ac-quick-help-scroll-up)
+  (define-key ac-completing-map (kbd "C-<down>") 'ac-quick-help-scroll-down)
+
+  (define-key ac-completing-map (kbd "C-<tab>") 'auto-complete)
+
+  (define-key ac-menu-map (kbd "C-<tab>") 'ac-next)
+  (define-key ac-menu-map (kbd "C-S-<tab>") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-S-<iso-lefttab>") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-p") 'ac-previous)
+  (define-key ac-menu-map (kbd "C-n") 'ac-next)
+  (define-key ac-menu-map (kbd "<kp-up>") 'ac-previous)
+  (define-key ac-menu-map (kbd "<kp-down>") 'ac-next)
+  (define-key ac-menu-map (kbd "<up>") 'ac-previous)
+  (define-key ac-menu-map (kbd "<down>") 'ac-next)
+  (define-key ac-menu-map (kbd "<return>") 'ac-complete)
+  (define-key ac-menu-map (kbd "<kp-enter>") 'ac-complete)
+
+  (define-key ac-completing-map (kbd "M-h") 'ac-quick-help)
+  (define-key ac-completing-map (kbd "M-H") 'ac-persist-help)
+
+  (define-key ac-mode-map (kbd "M-h") 'ac-last-quick-help)
+  (define-key ac-mode-map (kbd "M-H") 'ac-last-persist-help)
+
+  :ensure t)
+
+(defun vr-ac-start-if-ac-mode ()
+  (interactive)
+  (if auto-complete-mode
+      (auto-complete)
+    ;; Should change the following code to
+    ;; fall back to default "C-<tab>" behaviour.
+    (message "No auto-completion mode running or nothing to complete.")))
+
+(global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
+(global-set-key (kbd "<f7>") 'auto-complete-mode)
+
+;; -------------------------------------------------------------------
 ;;; Programming Languages
 ;; -------------------------------------------------------------------
 
@@ -1011,14 +1110,16 @@ fields which we need."
                   ;; Build Solution - just like MSVS ;)
                   (local-set-key (kbd "C-S-b") 'recompile)))))
 
-;; == Enhanced Java Script Mode ==
+;; == Enhanced JavaScript Mode ==
 
 (defun vr-js2-configure-scratch ()
   (interactive)
   (set (make-local-variable
         'js2-highlight-external-variables)
        nil)
-  (ac-js2-mode 1))
+  ;; (ac-js2-setup-auto-complete-mode)
+  (ac-js2-mode 1)
+  )
 
 (defadvice js2-enter-key (around vr-js2-enter-key ())
   (progn
@@ -1112,9 +1213,9 @@ fields which we need."
   :ensure t)
 
 (use-package ac-js2
-  :commands ac-js2-mode
+  :commands (ac-js2-mode ac-js2-setup-auto-complete-mode)
   :init
-  (setq ac-js2-evaluate-calls t)
+  ;; (setq ac-js2-evaluate-calls t)
   :ensure t)
 
 ;; (use-package moz
@@ -1658,98 +1759,6 @@ with very limited support for special characters."
     (setq cursor-type normal-cursor-type))))
 
 (add-hook 'post-command-hook 'set-cursor-according-to-mode)
-
-;; -------------------------------------------------------------------
-;;; Smart Autocompletion, Advanced Editing and IntelliSense Tools
-;; -------------------------------------------------------------------
-
-;; == multiple-cursors mode ==
-
-;; This mode is only used in js2-refactor mode at the moment.
-
-;; (use-package multiple-cursors
-;;   :commands multiple-cursors-mode
-;;   :config
-;;   (mc-hide-unmatched-lines-mode 1)
-;;   :ensure t)
-
-;; == yasnippet ==
-
-;; see https://github.com/capitaomorte/yasnippet
-(setq yas-snippet-dirs
-      '("~/.emacs.d/local-snippets" ;; local snippets
-        "~/.emacs.d/snippets"       ;; default collection
-        ))
-(require 'yasnippet)
-(yas-reload-all)
-
-;; == auto-complete mode ==
-
-(use-package fuzzy
-  :ensure t)
-
-(use-package pos-tip
-  :ensure t)
-
-(use-package auto-complete
-  :config
-  (ac-config-default)
-  (setq ac-fuzzy-enable t)
-  (setq ac-use-quick-help nil)
-  (setq ac-auto-show-menu nil)
-  (setq ac-use-menu-map t)
-
-  (setq ac-user-dictionary-files
-        (delete "~/.dict" ac-user-dictionary-files))
-
-  (define-key ac-completing-map (kbd "<tab>") 'ac-complete)
-  (define-key ac-completing-map (kbd "<escape>") 'ac-stop)
-  (define-key ac-completing-map (kbd "<delete>") 'ac-stop)
-  (define-key ac-completing-map (kbd "<kp-delete>") 'ac-stop)
-  (define-key ac-completing-map (kbd "<return>") 'newline)
-  (define-key ac-completing-map (kbd "<kp-enter>") 'newline)
-
-  (define-key ac-completing-map (kbd "<up>") nil)
-  (define-key ac-completing-map (kbd "<down>") nil)
-  (define-key ac-completing-map (kbd "<kp-up>") nil)
-  (define-key ac-completing-map (kbd "<kp-down>") nil)
-
-  ;; quick help scrolling only works in text mode tooltips (i.e. no pos-tip)
-  (define-key ac-completing-map (kbd "C-<up>") 'ac-quick-help-scroll-up)
-  (define-key ac-completing-map (kbd "C-<down>") 'ac-quick-help-scroll-down)
-
-  (define-key ac-completing-map (kbd "C-<tab>") 'auto-complete)
-
-  (define-key ac-menu-map (kbd "C-<tab>") 'ac-next)
-  (define-key ac-menu-map (kbd "C-S-<tab>") 'ac-previous)
-  (define-key ac-menu-map (kbd "C-S-<iso-lefttab>") 'ac-previous)
-  (define-key ac-menu-map (kbd "C-p") 'ac-previous)
-  (define-key ac-menu-map (kbd "C-n") 'ac-next)
-  (define-key ac-menu-map (kbd "<kp-up>") 'ac-previous)
-  (define-key ac-menu-map (kbd "<kp-down>") 'ac-next)
-  (define-key ac-menu-map (kbd "<up>") 'ac-previous)
-  (define-key ac-menu-map (kbd "<down>") 'ac-next)
-  (define-key ac-menu-map (kbd "<return>") 'ac-complete)
-  (define-key ac-menu-map (kbd "<kp-enter>") 'ac-complete)
-
-  (define-key ac-completing-map (kbd "M-h") 'ac-quick-help)
-  (define-key ac-completing-map (kbd "M-H") 'ac-persist-help)
-
-  (define-key ac-mode-map (kbd "M-h") 'ac-last-quick-help)
-  (define-key ac-mode-map (kbd "M-H") 'ac-last-persist-help)
-
-  :ensure t)
-
-(defun vr-ac-start-if-ac-mode ()
-  (interactive)
-  (if auto-complete-mode
-      (auto-complete)
-    ;; Should change the following code to
-    ;; fall back to default "C-<tab>" behaviour.
-    (message "No auto-completion mode running or nothing to complete.")))
-
-(global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
-(global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; -------------------------------------------------------------------
 ;;; General Emacs enhancement modes
