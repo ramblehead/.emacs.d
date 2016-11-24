@@ -932,6 +932,7 @@ fields which we need."
 ;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
+
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'
   ;; (setq rtags-process-flags "-M")
@@ -961,9 +962,6 @@ fields which we need."
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
    '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
-  ;; rtags-ac does not seem to be working...
-  ;; (require 'rtags-ac)
-
   (rtags-enable-standard-keybindings)
   (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
@@ -977,6 +975,11 @@ fields which we need."
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
 
+(defun vr-c++-auto-complete ()
+  (interactive)
+  (message "auto-completing with clang...")
+  (auto-complete (append '(ac-source-clang) ac-sources)))
+
 ;; TODO: make all auto-complete settings buffer local
 (defun vr-c++-ac-setup ()
   ;; see https://github.com/mooz/auto-complete-c-headers
@@ -987,6 +990,8 @@ fields which we need."
                 (vr-get-g++-isystem-path)
                 achead:include-directories))
 
+  ;; 'rtags-ac' is not as polished as 'auto-complete-clang',
+  ;; so using 'auto-complete-clang'
   ;; (require 'rtags-ac)
   ;; (setq rtags-completions-enabled t)
 
@@ -1001,19 +1006,35 @@ fields which we need."
                                        vr-c++-include-path)
                                (mapcar (lambda (item) (concat "-isystem" item))
                                        (vr-get-g++-isystem-path))))
-
   (setq ac-sources
         (append '(ac-source-c-headers
-                  ac-source-clang
+                  ;; Dynamic auto-completion is slow and interferes with typing,
+                  ;; whether it is 'c-source-clang' or 'ac-source-rtags',
+                  ;; therefore it is only activated on 'C-x C-<tab>' (see key
+                  ;; definitions below in this function) in
+                  ;; 'vr-c++-auto-complete' function.
+                  ;; ac-source-clang
                   ;; ac-source-rtags
                   )
                 ac-sources))
+
+  (let ((local-yas-minor-mode-map (copy-keymap yas-minor-mode-map)))
+    (set (make-local-variable 'yas-minor-mode-map) local-yas-minor-mode-map))
+
   ;; use ac for for yas-expand
   (define-key yas-minor-mode-map (kbd "<tab>") nil)
   (define-key yas-minor-mode-map (kbd "TAB") nil)
   ;; or another shortcut:
   (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
-  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field))
+  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field)
+
+  
+  (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
+    (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
+
+  ;; <C-iso-lefttab> is C-S-<tab>
+  (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete)
+  (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete))
 
 (defun vr-c++-code-folding-setup ()
   (hs-minor-mode 1))
@@ -1112,26 +1133,25 @@ fields which we need."
 
 ;; == Enhanced JavaScript Mode ==
 
-(defun vr-js2-configure-scratch ()
-  (interactive)
-  (set (make-local-variable
-        'js2-highlight-external-variables)
-       nil)
-  ;; (ac-js2-setup-auto-complete-mode)
-  (ac-js2-mode 1)
-  )
-
-(defadvice js2-enter-key (around vr-js2-enter-key ())
-  (progn
-    (if (use-region-p)
-        (delete-region (region-beginning) (region-end)))
-    ad-do-it))
-(ad-activate 'js2-enter-key)
-
 (use-package js2-mode
   :commands js2-mode
   :mode "\\.jse?\\'"
   :config
+  (defun vr-js2-configure-scratch ()
+    (interactive)
+    (set (make-local-variable
+          'js2-highlight-external-variables)
+         nil)
+    ;; (ac-js2-setup-auto-complete-mode)
+    (ac-js2-mode 1))
+
+  (defadvice js2-enter-key (around vr-js2-enter-key ())
+    (progn
+      (if (use-region-p)
+          (delete-region (region-beginning) (region-end)))
+      ad-do-it))
+  (ad-activate 'js2-enter-key)
+
   (setq js-indent-level 2)
 
   ;; see http://emacswiki.org/emacs/Js2Mode After js2 has parsed a js file, we
