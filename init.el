@@ -15,8 +15,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
- '(paradox-automatically-star t)
+    (bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows t)
  '(preview-scale-function 1.8)
  '(tab-stop-list
@@ -138,7 +137,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-(setq package-check-signature nil)
+;; (setq package-check-signature nil)
 
 (package-initialize)
 
@@ -148,9 +147,12 @@
 
 (use-package paradox
   :init
-  (setq paradox-github-token "75ba7430f095a91fddb501c146c76d2aeaee1ae6")
+  (setq paradox-github-token "bcf7336d121859df17513827f4b4e78eefbe44b4")
+
   :config
+  (setq paradox-automatically-star nil)
   (paradox-enable)
+
   :ensure t)
 
 ;; == Modules ==
@@ -1036,8 +1038,60 @@ fields which we need."
   (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete)
   (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete))
 
+(defun vr-c++-looking-at-doxygen-group-head ()
+    (string-match "^[[:space:]]*///@{[:space:]*$" (thing-at-point 'line t)))
+
+(defun vr-c++-looking-at-doxygen-group-tail ()
+    (string-match "^[[:space:]]*///@}[:space:]*$" (thing-at-point 'line t)))
+
+(defun vr-c++-hs-hide-doxygen-group ()
+  (interactive)
+  (if (vr-c++-looking-at-doxygen-group-tail)
+      (re-search-backward "///@{"))
+  (if (vr-c++-looking-at-doxygen-group-head)
+      (progn
+        (move-beginning-of-line nil)
+        (let* ((beg (re-search-forward "///@{"))
+               (end (- (re-search-forward "///@}") (length "///@}"))))
+          (hs-make-overlay beg end 'comment beg end)
+          (goto-char beg)))))
+
+(defun vr-c++-hs-toggle-hiding ()
+  (interactive)
+  (if (or (vr-c++-looking-at-doxygen-group-head)
+          (vr-c++-looking-at-doxygen-group-tail))
+      (let ((hidden nil)
+            (at-tail (vr-c++-looking-at-doxygen-group-tail)))
+        (save-excursion
+          (move-beginning-of-line nil)
+          (if (vr-c++-looking-at-doxygen-group-head)
+              (progn
+                (move-end-of-line nil)
+                (if (vr-c++-looking-at-doxygen-group-tail)
+                    (setq hidden t)))))
+        (if hidden
+            (progn
+              (move-beginning-of-line nil)
+              (re-search-forward "///@{")
+              (if (not at-tail)
+                  (hs-show-block)))
+          (vr-c++-hs-hide-doxygen-group)))
+    (hs-toggle-hiding)))
+
 (defun vr-c++-code-folding-setup ()
-  (hs-minor-mode 1))
+  (hs-minor-mode 1)
+  ;; TODO: Ugly fix
+  ;; see https://www.emacswiki.org/emacs/BufferLocalKeys
+  ;;     http://emacs.stackexchange.com/questions/519/key-bindings-specific-to-a-buffer
+  ;;     http://stackoverflow.com/questions/27321407/how-to-make-a-buffer-local-key-binding-in-emacs
+  ;;     
+  (set (make-local-variable 'vr-c++-code-folding) t)
+  (define-key hs-minor-mode-map (kbd "C-S-j")
+    (lambda ()
+      (interactive)
+      (if (boundp 'vr-c++-code-folding)
+          (vr-c++-hs-toggle-hiding)
+        (hs-toggle-hiding)))))
 
 (defun vr-c++-yas-setup ()
   ;; Use yast instead of abbrev-mode
@@ -1992,45 +2046,64 @@ with very limited support for special characters."
 ;;; Bookmarks
 ;; -------------------------------------------------------------------
 
-;; bm mode
-;; see http://emacsblog.org/2007/03/22/bookmark-mania/
+(use-package bm
+  :init
+  ;; restore on load (even before you require bm)
+  (setq bm-restore-repository-on-load t)
 
-(setq bm-repository-file vr-bm-repository-file-path)
-(setq bm-restore-repository-on-load t)
-(require 'bm)
+  :config
+  ;; Allow cross-buffer 'next'
+  ;; (setq bm-cycle-all-buffers t)
 
-;; Shortcuts as in MS Visual Studio
-(global-set-key (kbd "M-<f2>") 'bm-toggle)
-(global-set-key (kbd "<f2>")   'bm-next)
-(global-set-key (kbd "S-<f2>") 'bm-previous)
+  ;; Only highlight the fringe of the line
+  (setq bm-highlight-style 'bm-highlight-only-fringe)
 
-;; On Ubuntu unity <S-f2> is busy, so
-;; using alternative shortcut
-(global-set-key (kbd "C-<f2>") 'bm-toggle)
+  ;; where to store persistant files
+  (setq bm-repository-file vr-bm-repository-file-path)
 
-;; Only highlight the fringe of the line
-(setq bm-highlight-style 'bm-highlight-only-fringe)
+  ;; save bookmarks
+  (setq-default bm-buffer-persistence t)
 
-;; make bookmarks persistent as default
-(setq-default bm-buffer-persistence t)
+  ;; Loading the repository from file when on start up.
+  (add-hook' after-init-hook 'bm-repository-load)
 
-;; Loading the repository from file when on start up.
-(add-hook' after-init-hook 'bm-repository-load)
+  ;; Restoring bookmarks when on file find.
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
 
-;; Restoring bookmarks when on file find.
-(add-hook 'find-file-hooks 'bm-buffer-restore)
+  ;; Saving bookmarks
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
 
-;; Saving bookmark data on killing a buffer
-(add-hook 'kill-buffer-hook 'bm-buffer-save)
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when Emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook #'(lambda nil
+                                 (bm-buffer-save-all)
+                                 (bm-repository-save)))
 
-;; Saving the repository to file when on exit.
-;; kill-buffer-hook is not called when emacs is killed, so we
-;; must save all bookmarks first.
-(add-hook 'kill-emacs-hook '(lambda nil
-                              (bm-buffer-save-all)
-                              (bm-repository-save)))
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
+  ;; The `after-save-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state.
+  (add-hook 'after-save-hook #'bm-buffer-save)
+
+  ;; Restoring bookmarks
+  (add-hook 'find-file-hooks #'bm-buffer-restore)
+  (add-hook 'after-revert-hook #'bm-buffer-restore)
+
+  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state. This hook might cause trouble when using packages
+  ;; that automatically reverts the buffer (like vc after a check-in).
+  ;; This can easily be avoided if the package provides a hook that is
+  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
+  ;; Then new bookmarks can be saved before the buffer is reverted.
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
+
+  :bind (("<f2>" . bm-next)
+         ("S-<f2>" . bm-previous)
+         ("C-<f2>" . bm-toggle))
+  :demand t
+  :ensure t)
 
 ;; -------------------------------------------------------------------
 ;;; My key bindings
@@ -2110,3 +2183,5 @@ with very limited support for special characters."
 
 ;; (transient-mark-mode -1)
 (put 'narrow-to-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
