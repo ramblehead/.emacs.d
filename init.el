@@ -15,13 +15,14 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
- '(pop-up-windows t)
+    (ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+ '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(tab-stop-list
    (quote
     (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
+ '(vr/match-separator-string " -> ")
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
@@ -155,6 +156,10 @@
 
   :ensure t)
 
+(use-package async
+  :pin melpa
+  :ensure t)
+
 ;; == Modules ==
 
 (require 'cl)                           ; defines defun* etc.
@@ -168,6 +173,22 @@
       (dolist (regexp regexp-list)
         (when (string-match regexp str)
           (throw 'done t))))))
+
+(defun vr-toggle-display (buffer-name &optional min-height)
+  (let* ((buffer (get-buffer buffer-name))
+         (buffer-window (get-buffer-window buffer-name)))
+    (if buffer
+        (if buffer-window
+            (delete-window buffer-window)
+          (progn
+            (when min-height
+              (set (make-local-variable 'window-min-height) min-height)
+              ;; (window-preserve-size buffer-window nil t)
+              )
+            (set-window-dedicated-p
+             (display-buffer buffer-name) t)))
+      (message (concat "\"" buffer-name "\""
+                       " buffer does not exist.")))))
 
 ;; == Outline ellipsis (for org mode, hideshow mode) ==
 
@@ -344,7 +365,9 @@ when only symbol face names are needed."
 ;; Allow cursor to be at a scrolled edge.
 (setq hscroll-margin 0)
 
-(setq default-tab-width 2)
+;; (setq default-tab-width 2)
+(setq tab-width 8)
+(setq standard-indent 2)
 (setq-default fill-column 80)
 
 (setq column-number-mode t)
@@ -482,6 +505,31 @@ selection (e.g. S-arrows), keep mark activated after
     ;; (tab-mark 9 [9654 9] [92 9])        ; tab, ▶
     ;; (tab-mark 9 [9655 9] [92 9])        ; tab, ▷
 ))
+
+;; == SrSpeedbar Mode ==
+
+(use-package sr-speedbar
+  :pin melpa
+  :ensure t)
+
+;; visual-regexp
+
+(use-package visual-regexp
+  :pin melpa
+  :config
+  (setq vr/match-separator-use-custom-face t)
+  ;; TODO: The following does not work for some reason - investigate
+  (custom-set-variables '(vr/match-separator-string " -> "))
+
+  (define-key vr/minibuffer-keymap (kbd "C-j") 'newline)
+  (define-key vr/minibuffer-keymap (kbd "C-<return>") 'newline)
+
+  (define-key global-map (kbd "C-c v") 'vr/replace)
+  (define-key global-map (kbd "C-c q") 'vr/query-replace)
+  ;; (define-key global-map (kbd "M-%") 'vr/replace)
+  ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
+
+  :ensure t)
 
 ;; -------------------------------------------------------------------
 ;;; File Management
@@ -711,10 +759,34 @@ fields which we need."
 
 ;; == auto-complete mode ==
 
+(defun vr-ac-add-buffer-dict (dict)
+  (when (not (local-variable-p 'ac-dictionary-files))
+    (let ((ac-dictionary-files-global (append ac-dictionary-files)))
+      (make-local-variable 'ac-dictionary-files)
+      (setq ac-dictionary-files ac-dictionary-files-global)))
+  (if (file-exists-p dict)
+      (add-to-list 'ac-dictionary-files dict t)
+    (setq ac-dictionary-files
+          (append ac-dictionary-files
+                  (mapcar (lambda (dir)
+                            (let ((file (concat dir "/" dict)))
+                              (if (file-exists-p file) file nil)))
+                          ac-dictionary-directories)))))
+
+(defun vr-ac-remove-buffer-dict (dict)
+  (when (local-variable-p 'ac-dictionary-files)
+    (setq ac-dictionary-files
+          (remove-if (lambda (elem)
+                       (string-match-p dict elem))
+                     ac-dictionary-files))))
+
 (use-package fuzzy
   :ensure t)
 
 (use-package pos-tip
+  :ensure t)
+
+(use-package ac-html
   :ensure t)
 
 (use-package auto-complete
@@ -778,7 +850,7 @@ fields which we need."
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; -------------------------------------------------------------------
-;;; Programming Languages
+;;; Programming Languages, Debuggers, Profilers etc.
 ;; -------------------------------------------------------------------
 
 ;; TODO: Investigate mixed language modes, e.g. js or css in html, python macro in xml etc.
@@ -794,8 +866,10 @@ fields which we need."
 (setq hs-allow-nesting t)
 (setq hs-isearch-open t)
 
-(define-key hs-minor-mode-map (kbd "C-S-e") 'hs-show-all)
-(define-key hs-minor-mode-map (kbd "C-S-j") 'hs-toggle-hiding)
+(global-set-key (kbd "C-S-j") 'hs-toggle-hiding)
+(global-set-key (kbd "C-S-e") 'hs-show-all)
+;; (define-key hs-minor-mode-map (kbd "C-S-e") 'hs-show-all)
+;; (define-key hs-minor-mode-map (kbd "C-S-j") 'hs-toggle-hiding)
 
 ;; Activate the needed timer.
 (show-paren-mode)
@@ -853,6 +927,184 @@ fields which we need."
           (show-paren-local-mode nil)
           (hs-minor-mode -1))))))
 
+;; == GUD Mode ==
+
+;; TODO: move the following function into a separate section for gud-mode
+;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
+;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
+;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
+
+;; (defadvice gud-display-line (before one-source-window activate)
+;;   "Always use the same window to show source code."
+;;   (let ((buf (get-file-buffer true-file)))
+;;     (when (and buf gdb-source-window)
+;;       (set-window-buffer gdb-source-window buf))))
+
+;; (defadvice gud-display-line (around vr-gud-display-line activate)
+;;   (let* ((last-nonmenu-event t)         ; Prevent use of dialog box for questions.
+;;          (buffer
+;;           (with-current-buffer gud-comint-buffer
+;;             (gud-find-file true-file)))
+;;          (window (and buffer
+;;                       (or (get-buffer-window buffer)
+;;                           (display-buffer buffer '(nil (inhibit-same-window . t))))))
+;;          ;; (window (and buffer
+;;          ;;              (or (if (eq gud-minor-mode 'gdbmi)
+;;          ;;                      (unless (gdb-display-source-buffer buffer)
+;;          ;;                        (gdb-display-buffer buffer)))
+;;          ;;                  (get-buffer-window buffer)
+;;          ;;                  (display-buffer buffer))))
+;;          (pos))
+;;     (when buffer
+;;       (with-current-buffer buffer
+;;         (unless (or (verify-visited-file-modtime buffer) gud-keep-buffer)
+;;           (if (yes-or-no-p
+;;                (format "File %s changed on disk.  Reread from disk? "
+;;                        (buffer-name)))
+;;               (revert-buffer t t)
+;;             (setq gud-keep-buffer t)))
+;;         (save-restriction
+;;           (widen)
+;;           (goto-char (point-min))
+;;           (forward-line (1- line))
+;;           (setq pos (point))
+;;           (or gud-overlay-arrow-position
+;;               (setq gud-overlay-arrow-position (make-marker)))
+;;           (set-marker gud-overlay-arrow-position (point) (current-buffer))
+;;           ;; If they turned on hl-line, move the hl-line highlight to
+;;           ;; the arrow's line.
+;;           (when (featurep 'hl-line)
+;;             (cond
+;;              (global-hl-line-mode
+;;               (global-hl-line-highlight))
+;;              ((and hl-line-mode hl-line-sticky-flag)
+;;               (hl-line-highlight)))))
+;;         (cond ((or (< pos (point-min)) (> pos (point-max)))
+;;                (widen)
+;;                (goto-char pos))))
+;;       (when window
+;;         (set-window-point window gud-overlay-arrow-position)
+;;         (if (eq gud-minor-mode 'gdbmi)
+;;             (setq gdb-source-window window))))))
+
+(use-package gud
+  :init
+  :config
+  (defun vr-gud-call-func (begin end func)
+    (let ((pos (point)))
+      (funcall func '(begin end))
+      ;; Allow debugger to run and return to the source buffer.
+      ;; TODO: find how to wait on debugger instead of guessing the time.
+      (sleep-for 0.1)
+      (goto-char pos)))
+
+  (defun vr-point-or-region ()
+    (if (use-region-p)
+        (list (region-beginning) (region-end))
+      (list (point) (point))))
+  
+  (defun vr-gud-print (begin end)
+    (interactive (vr-point-or-region))
+    (vr-gud-call-func begin end 'gud-print))
+
+  (defun vr-gud-break (begin end)
+    (interactive (vr-point-or-region))
+    (vr-gud-call-func begin end 'gud-break))
+
+  (defun vr-gud-tbreak (begin end)
+    (interactive (vr-point-or-region))
+    (vr-gud-call-func begin end 'gud-tbreak))
+
+  (defun vr-gud-remove (begin end)
+    (interactive (vr-point-or-region))
+    (vr-gud-call-func begin end 'gud-remove))
+
+  (define-key gud-minor-mode-map (kbd "<f5>") 'vr-gud-print)
+  (define-key gud-minor-mode-map (kbd "S-<f5>") 'gud-watch)
+  (define-key gud-minor-mode-map (kbd "<f9>") 'vr-gud-break)
+  (define-key gud-minor-mode-map (kbd "S-<f9>") 'vr-gud-tbreak)
+  (define-key gud-minor-mode-map (kbd "C-<f9>") 'vr-gud-remove)
+  (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
+  (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step)
+
+  :ensure t)
+
+;; (gdb-registers-buffer      gdb-registers-buffer-name   gdb-registers-mode   gdb-invalidate-registers  )
+;; (gdb-locals-buffer         gdb-locals-buffer-name      gdb-locals-mode      gdb-invalidate-locals     )
+;; (gdb-stack-buffer          gdb-stack-buffer-name       gdb-frames-mode      gdb-invalidate-frames     )
+;; (gdb-disassembly-buffer    gdb-disassembly-buffer-name gdb-disassembly-mode gdb-invalidate-disassembly)
+;; (gdb-memory-buffer         gdb-memory-buffer-name      gdb-memory-mode      gdb-invalidate-memory     )
+;; (gdb-threads-buffer        gdb-threads-buffer-name     gdb-threads-mode     gdb-invalidate-threads    )
+;; (gdb-breakpoints-buffer    gdb-breakpoints-buffer-name gdb-breakpoints-mode gdb-invalidate-breakpoints)
+;; (gdb-inferior-io           gdb-inferior-io-name        gdb-inferior-io-mode                           )
+;; (gdb-partial-output-buffer gdb-partial-output-name                                                    )
+
+(use-package gdb-mi
+  :init
+  (defvar vr-gdb-original-buffer nil)
+
+  :config
+  (defadvice gdb-setup-windows (around vr-gdb-setup-windows ())
+    "Layout the window pattern for option `gdb-many-windows'."
+    (gdb-get-buffer-create 'gdb-locals-buffer)
+    (gdb-get-buffer-create 'gdb-stack-buffer)
+    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
+    (set-window-dedicated-p (selected-window) t)
+    (switch-to-buffer gud-comint-buffer)
+    (delete-other-windows)
+    (let ((win0 (selected-window))
+          (win1 (split-window nil ( / ( * (window-height) 4) 5)))
+          (win2 (split-window nil ( / (window-height) 4)))
+          ;; (win3 (split-window-right))
+          )
+      ;; (gdb-set-window-buffer (gdb-locals-buffer-name) nil win3)
+      (select-window win2)
+      (set-window-buffer
+       win2
+       (if gud-last-last-frame
+           (gud-find-file (car gud-last-last-frame))
+         (if gdb-main-file
+             (gud-find-file gdb-main-file)
+           ;; Put buffer list in window if we
+           ;; can't find a source file.
+           (list-buffers-noselect))))
+      ;; (set-window-dedicated-p (selected-window) nil)
+      (setq gdb-source-window (selected-window))
+      (select-window (split-window-below))
+      (switch-to-buffer vr-gdb-original-buffer)
+      ;; (let ((win4 (split-window-right)))
+      ;;   (gdb-set-window-buffer
+      ;;    (gdb-get-buffer-create 'gdb-inferior-io) nil win4))
+      (select-window win1)
+      (gdb-set-window-buffer (gdb-stack-buffer-name))
+      (let ((win5 (split-window-right)))
+        (gdb-set-window-buffer (if gdb-show-threads-by-default
+                                   (gdb-threads-buffer-name)
+                                 (gdb-breakpoints-buffer-name))
+                               nil win5))
+      (select-window win0)))
+
+  (defadvice gdb (before vr-gdb (command-line))
+    (setq vr-gdb-original-buffer (window-buffer)))
+
+  ;; use gdb-many-windows by default
+  (setq gdb-many-windows t)
+  ;; Non-nil means display source file containing the main routine at startup
+  ;; (setq gdb-show-main t)
+  (setq gdb-delete-out-of-scope nil)
+  (gdb-speedbar-auto-raise)
+
+  :ensure t)
+
+;; == RealGUD Mode ==
+
+(use-package realgud
+  ;; :commands
+  :config
+  :demand t
+  :pin melpa
+  :ensure t)
+
 ;; == C++ Mode ==
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
@@ -888,30 +1140,20 @@ fields which we need."
         (concat src-tree-root vr-project-dir-name "/")
       nil)))
 
-;; ;; TODO: move the following function into a separate section for gud-mode
-;; ;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
-;; ;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
-;; ;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
-;; (defadvice gud-display-line (before one-source-window activate)
-;;   "Always use the same window to show source code."
-;;   (let ((buf (get-file-buffer true-file)))
-;;     (when (and buf gdb-source-window)
-;;       (set-window-buffer gdb-source-window buf))))
+(defun vr-c++-compilation-toggle-display ()
+  (interactive)
+  (vr-toggle-display "*compilation*"))
 
-(defun vr-c++-debug-setup ()
-  ;; use gdb-many-windows by default
-  (setq gdb-many-windows t)
-  ;; Non-nil means display source file containing the main routine at startup
-  (setq gdb-show-main t))
-
-(defun vr-c++-compile-setup ()
+(defun vr-c++-compilation-setup ()
   (setq compilation-scroll-output t)
   (let ((path (vr-c++-get-project-path)))
     (if path
         (progn
           (set (make-local-variable 'compile-command)
                (concat path "make -k"))
-          (message (concat "vr-project: " path))))))
+          (message (concat "vr-project: " path))))
+    (define-key c-mode-base-map (kbd "C-c b")
+      'vr-c++-compilation-toggle-display)))
 
 (cl-defun vr-c++-header-line (&optional
                               (header-line-trim-indicator "\x203a")
@@ -928,6 +1170,10 @@ fields which we need."
                  header-line-trim-indicator)
        (concat header-string (make-string header-filler-width ?\ ))))
    'face 'mode-line-inactive))
+
+(defun vr-c++-rtags-toggle-rdm-display ()
+  (interactive)
+  (vr-toggle-display "*rdm*" 6))
 
 ;; TODO: investigave rtags settings refactoring to use flycheck,
 ;; and use-package using the following guide
@@ -948,15 +1194,16 @@ fields which we need."
   ;; https://github.com/Andersbakken/rtags/issues/435
   (set (make-local-variable 'rtags-cached-current-container) "")
   (setq rtags-track-container t)
-  (add-hook 'find-file-hook
-            (lambda ()
-              ;; (when (rtags-is-indexed)
-              ;;   (set (make-local-variable 'header-line-format)
-              ;;        '(:eval (vr-c++-header-line)))))
+  (add-hook
+   'find-file-hook
+   (lambda ()
+     ;; (when (rtags-is-indexed)
+     ;;   (set (make-local-variable 'header-line-format)
+     ;;        '(:eval (vr-c++-header-line)))))
 
-              (set (make-local-variable 'header-line-format)
-                   '(:eval (vr-c++-header-line))))
-            nil t)
+     (set (make-local-variable 'header-line-format)
+          '(:eval (vr-c++-header-line))))
+   nil t)
 
   (custom-set-faces
    '(rtags-errline ((((class color)) (:background "#ef8990"))))
@@ -965,7 +1212,8 @@ fields which we need."
    '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
   (rtags-enable-standard-keybindings)
-  (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
+  ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
+  (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
@@ -1044,15 +1292,52 @@ fields which we need."
 (defun vr-c++-looking-at-doxygen-group-tail ()
     (string-match "^[[:space:]]*///@}[:space:]*$" (thing-at-point 'line t)))
 
+(defun vr-c++-search-backward-doxygen-balanced-head ()
+  (if (vr-c++-looking-at-doxygen-group-tail)
+      (progn
+        (move-beginning-of-line nil)
+        (if (vr-c++-looking-at-doxygen-group-head)
+            (forward-char (length "///@{")))))
+  (let ((pos nil)
+        (found nil)
+        (skip-tail 0))
+    (while (and (not found)
+                (setq pos (re-search-backward "///@{\\|///@}")))
+      (if (vr-c++-looking-at-doxygen-group-tail)
+          (incf skip-tail)
+        (if (<= skip-tail 0)
+            (setq found t)
+          (decf skip-tail))))
+    pos))
+
+(defun vr-c++-search-backward-doxygen-balanced-tail ()
+  (if (vr-c++-looking-at-doxygen-group-head)
+      (progn
+        (move-end-of-line nil)
+        (if (vr-c++-looking-at-doxygen-group-tail)
+            (backward-char (length "///@}")))))
+  (let ((pos nil)
+        (found nil)
+        (skip-tail 0))
+    (while (and (not found)
+                (setq pos (re-search-forward "///@{\\|///@}")))
+      (if (vr-c++-looking-at-doxygen-group-head)
+          (incf skip-tail)
+        (if (<= skip-tail 0)
+            (setq found t)
+          (decf skip-tail))))
+    pos))
+
 (defun vr-c++-hs-hide-doxygen-group ()
   (interactive)
   (if (vr-c++-looking-at-doxygen-group-tail)
-      (re-search-backward "///@{"))
+      (vr-c++-search-backward-doxygen-balanced-head))
   (if (vr-c++-looking-at-doxygen-group-head)
       (progn
         (move-beginning-of-line nil)
         (let* ((beg (re-search-forward "///@{"))
-               (end (- (re-search-forward "///@}") (length "///@}"))))
+               (end (- (vr-c++-search-backward-doxygen-balanced-tail)
+                       (length "///@}"))))
           (hs-make-overlay beg end 'comment beg end)
           (goto-char beg)))))
 
@@ -1078,20 +1363,23 @@ fields which we need."
           (vr-c++-hs-hide-doxygen-group)))
     (hs-toggle-hiding)))
 
+(defun vr-c++-forward-list ()
+  (interactive)
+  (if (vr-c++-looking-at-doxygen-group-head)
+      (vr-c++-search-backward-doxygen-balanced-tail)
+    (forward-list)))
+
+(defun vr-c++-backward-list ()
+  (interactive)
+  (if (vr-c++-looking-at-doxygen-group-tail)
+      (vr-c++-search-backward-doxygen-balanced-head)
+    (backward-list)))
+
 (defun vr-c++-code-folding-setup ()
   (hs-minor-mode 1)
-  ;; TODO: Ugly fix
-  ;; see https://www.emacswiki.org/emacs/BufferLocalKeys
-  ;;     http://emacs.stackexchange.com/questions/519/key-bindings-specific-to-a-buffer
-  ;;     http://stackoverflow.com/questions/27321407/how-to-make-a-buffer-local-key-binding-in-emacs
-  ;;     
-  (set (make-local-variable 'vr-c++-code-folding) t)
-  (define-key hs-minor-mode-map (kbd "C-S-j")
-    (lambda ()
-      (interactive)
-      (if (boundp 'vr-c++-code-folding)
-          (vr-c++-hs-toggle-hiding)
-        (hs-toggle-hiding)))))
+  (local-set-key (kbd "C-S-j") 'vr-c++-hs-toggle-hiding)
+  (local-set-key (kbd "C-M-n") 'vr-c++-forward-list)
+  (local-set-key (kbd "C-M-p") 'vr-c++-backward-list))
 
 (defun vr-c++-yas-setup ()
   ;; Use yast instead of abbrev-mode
@@ -1112,23 +1400,94 @@ fields which we need."
   "Return t if text after point matches '{[...](' or '{[...]{'"
   (looking-at ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
 
+(defun vr-c++-looking-at-uniform_init_block_closing_brace_line ()
+  "Return t if cursor if looking at C++11 uniform init block T v {xxx}
+closing brace"
+  (back-to-indentation)
+  (looking-at "}"))
+
+(defun vr-c++-looking-at-uniform_init_block_cont_item ()
+  "Return t if cursor if looking at C++11 uniform init block
+continuing (not first) item"
+  (back-to-indentation)
+  (c-backward-syntactic-ws)
+  (looking-back ","))
+
+(defun vr-c++-looking-at-class_in_namespace ()
+  "Return t if cursor if looking topmost-intro class in namespace"
+  (back-to-indentation)
+  (let* ((c-parsing-error nil)
+         (syntax (c-save-buffer-state nil
+                   (c-guess-basic-syntax))))
+    (and (equal (car (nth 0 syntax)) 'innamespace)
+         (equal (car (nth 1 syntax)) 'topmost-intro)
+         (looking-at "class"))))
+
 (defun vr-c++-indentation-examine (langelem looking-at-p)
   (and (equal major-mode 'c++-mode)
        (ignore-errors
          (save-excursion
-           (goto-char (c-langelem-pos langelem))
+           (when langelem
+             (goto-char (c-langelem-pos langelem)))
            (funcall looking-at-p)))))
+
+;; Adapted from google-c-lineup-expression-plus-4
+(defun vr-c++-lineup-expression-plus-tab-width (langelem)
+  (save-excursion
+    (back-to-indentation)
+    ;; Go to beginning of *previous* line:
+    (c-backward-syntactic-ws)
+    (back-to-indentation)
+    (cond
+     ;; We are making a reasonable assumption that if there is a control
+     ;; structure to indent past, it has to be at the beginning of the line.
+     ((looking-at "\\(\\(if\\|for\\|while\\)\\s *(\\)")
+      (goto-char (match-end 1)))
+     ;; For constructor initializer lists, the reference point for line-up is
+     ;; the token after the initial colon.
+     ((looking-at ":\\s *")
+      (goto-char (match-end 0))))
+    (vector (+ tab-width (current-column)))))
 
 (defun vr-c++-indentation-setup ()
   (require 'google-c-style)
   (google-set-c-style)
+
+  ;; (c-set-offset 'statement-cont '(nil c-lineup-assignments +))
+  (c-set-offset 'arglist-intro 'vr-c++-lineup-expression-plus-tab-width)
+  ;; (c-set-offset 'inher-intro '+)
+  (c-set-offset 'member-init-intro '+)
+  (c-set-offset 'func-decl-cont '+)
+
+  (c-set-offset
+   'inher-intro
+   (lambda (langelem)
+     (if (vr-c++-indentation-examine
+          langelem
+          #'vr-c++-looking-at-class_in_namespace)
+         0
+       '+)))
+
+  (c-set-offset
+   'statement-cont
+   (lambda (langelem)
+     (cond
+      ((vr-c++-indentation-examine
+        nil
+        ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
+        #'vr-c++-looking-at-uniform_init_block_closing_brace_line)
+       '-)
+      ((vr-c++-indentation-examine
+        nil
+        #'vr-c++-looking-at-uniform_init_block_cont_item)
+       0)
+      (t '(nil c-lineup-assignments +)))))
 
   (c-set-offset
    'block-close
    (lambda (langelem)
      (if (vr-c++-indentation-examine
           langelem
-          ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
           #'vr-c++-looking-at-lambda_in_uniform_init)
          '-
        0)))
@@ -1154,59 +1513,62 @@ fields which we need."
 
 (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
-(add-hook 'c++-mode-hook
-          (lambda ()
-            ;; For some reason c++-mode-hook is getting executed twice.
-            ;; The following if-condition is preventing the
-            ;; second execution.
-            ;; (message "c++-mode-hook call")
-            (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
-                (progn
-                  (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
-                  (vr-programming-minor-modes t)
-                  (vr-c++-indentation-setup)
-                  (vr-c++-yas-setup)
-                  (vr-c++-compile-setup)
-                  (vr-c++-debug-setup)
-                  (vr-c++-rtags-setup)
-                  (vr-c++-ac-setup)
-                  (vr-c++-code-folding-setup)
+(add-hook
+ 'c++-mode-hook
+ (lambda ()
+   ;; For some reason c++-mode-hook is getting executed twice.
+   ;; The following if-condition is preventing the
+   ;; second execution.
+   ;; (message "c++-mode-hook call")
+   (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
+       (progn
+         (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
+         (vr-programming-minor-modes t)
+         (vr-c++-indentation-setup)
+         (vr-c++-yas-setup)
+         (vr-c++-compilation-setup)
+         (vr-c++-rtags-setup)
+         (vr-c++-ac-setup)
+         (vr-c++-code-folding-setup)
+         ;; (vr-c++-debug-setup)
 
-                  ;; (setq hs-special-modes-alist
-                  ;;       (delete '(c-mode "{" "}" "/[*/]" nil nil)
-                  ;;               hs-special-modes-alist))
-                  ;; (setq hs-special-modes-alist
-                  ;;       (delete '(c++-mode "{" "}" "/[*/]" nil nil)
-                  ;;               hs-special-modes-alist))
-                  ;; (add-to-list 'hs-special-modes-alist
-                  ;;              '(c++-mode
-                  ;;                "///@{\\|{" "///@}\\|}" "##" nil nil))
-                  
-                  ;; Build Solution - just like MSVS ;)
-                  (local-set-key (kbd "C-S-b") 'recompile)))))
+         ;; (setq hs-special-modes-alist
+         ;;       (delete '(c-mode "{" "}" "/[*/]" nil nil)
+         ;;               hs-special-modes-alist))
+         ;; (setq hs-special-modes-alist
+         ;;       (delete '(c++-mode "{" "}" "/[*/]" nil nil)
+         ;;               hs-special-modes-alist))
+         ;; (add-to-list 'hs-special-modes-alist
+         ;;              '(c++-mode
+         ;;                "///@{\\|{" "///@}\\|}" "##" nil nil))
+         
+         ;; Build Solution - just like MSVS ;)
+         (local-set-key (kbd "C-S-b") 'recompile)))))
 
 ;; == Enhanced JavaScript Mode ==
+
+(defun vr-js2-configure-scratch ()
+  (interactive)
+  (set (make-local-variable
+        'js2-highlight-external-variables)
+       nil)
+  ;; (ac-js2-setup-auto-complete-mode)
+  (ac-js2-mode 1))
+
+(defadvice js2-enter-key (around vr-js2-enter-key ())
+  (progn
+    (if (use-region-p)
+        (delete-region (region-beginning) (region-end)))
+    ad-do-it))
+(ad-activate 'js2-enter-key)
 
 (use-package js2-mode
   :commands js2-mode
   :mode "\\.jse?\\'"
   :config
-  (defun vr-js2-configure-scratch ()
-    (interactive)
-    (set (make-local-variable
-          'js2-highlight-external-variables)
-         nil)
-    ;; (ac-js2-setup-auto-complete-mode)
-    (ac-js2-mode 1))
-
-  (defadvice js2-enter-key (around vr-js2-enter-key ())
-    (progn
-      (if (use-region-p)
-          (delete-region (region-beginning) (region-end)))
-      ad-do-it))
-  (ad-activate 'js2-enter-key)
-
+  ;; Indentation style ajustments
   (setq js-indent-level 2)
+  (setq js-switch-indent-offset 2)
 
   ;; see http://emacswiki.org/emacs/Js2Mode After js2 has parsed a js file, we
   ;; look for jslint globals decl comment ("/* global Fred, _, Harry */") and
@@ -1215,23 +1577,23 @@ fields which we need."
   ;; (remove any ":true" to make it look like a plain decl, and any ':false' are
   ;; left behind so they'll effectively be ignored as you can;t have a symbol
   ;; called "someName:false"
-  (add-hook 'js2-post-parse-callbacks
-            (lambda ()
-              (when (> (buffer-size) 0)
-                (let ((btext (replace-regexp-in-string
-                              ": *true" " "
-                              (replace-regexp-in-string
-                               "[\n\t ]+"
-                               " "
-                               (buffer-substring-no-properties 1 (buffer-size))
-                               t t))))
-                  (mapc (apply-partially 'add-to-list 'js2-additional-externs)
-                        (split-string
-                         (if (string-match
-                              "/\\* *global *\\(.*?\\) *\\*/" btext)
-                             (match-string-no-properties 1 btext) "")
-                         " *, *" t))
-                  ))))
+  (add-hook
+   'js2-post-parse-callbacks
+   (lambda ()
+     (when (> (buffer-size) 0)
+       (let ((btext (replace-regexp-in-string
+                     ": *true" " "
+                     (replace-regexp-in-string
+                      "[\n\t ]+"
+                      " "
+                      (buffer-substring-no-properties 1 (buffer-size))
+                      t t))))
+         (mapc (apply-partially 'add-to-list 'js2-additional-externs)
+               (split-string
+                (if (string-match
+                     "/\\* *global *\\(.*?\\) *\\*/" btext)
+                    (match-string-no-properties 1 btext) "")
+                " *, *" t))))))
 
   ;; (defun js2-moz-send-region-or-defun ()
   ;;   (interactive)
@@ -1241,36 +1603,41 @@ fields which we need."
   ;;         (moz-send-region (region-beginning) (region-end)))
   ;;     (moz-send-defun)))
 
-  (add-hook 'js2-mode-hook
-            (lambda ()
-              (vr-programming-minor-modes)
-              (skewer-mode 1)
-              ;; (moz-minor-mode -1)
-              (abbrev-mode -1)
-              (yas-minor-mode 1)
-              ;; (ac-js2-mode 1)
-              (js2-refactor-mode 1)
-              (if (or (string-suffix-p ".scratch.js" (buffer-name))
-                      (string-equal "scratch.js" (buffer-name)))
-                  (vr-js2-configure-scratch))
-              (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
-              (local-set-key (kbd "M-[") 'pop-tag-mark)
-              (local-set-key (kbd "<f5>") 'skewer-eval-last-expression)
-              (local-set-key (kbd "M-<f5>") 'skewer-eval-print-last-expression)
-              ;; (local-set-key (kbd "<f5>") 'moz-send-region)
-              (local-set-key (kbd "S-<f5>") 'skewer-repl)
-              ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
-              ))
+  (add-hook
+   'js2-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes)
+     (skewer-mode 1)
+     ;; (moz-minor-mode -1)
+     (abbrev-mode -1)
+     (yas-minor-mode 1)
+     ;; (ac-js2-mode 1)
+     (js2-refactor-mode 1)
+
+     (if (or (string-suffix-p ".scratch.js" (buffer-name))
+             (string-equal "scratch.js" (buffer-name)))
+         (vr-js2-configure-scratch))
+
+     (vr-ac-add-buffer-dict "js-mode")
+
+     ;; (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
+     (local-set-key (kbd "M-[") 'pop-tag-mark)
+     (local-set-key (kbd "<f5>") 'skewer-eval-last-expression)
+     (local-set-key (kbd "M-<f5>") 'skewer-eval-print-last-expression)
+     ;; (local-set-key (kbd "<f5>") 'moz-send-region)
+     (local-set-key (kbd "S-<f5>") 'skewer-repl)
+     ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
+     ))
   :pin melpa
   :ensure t)
 
-(defun vr-js2r-rename-var-start/stop ()
-  (interactive)
-  (if multiple-cursors-mode
-      (progn
-        (mc/keyboard-quit)
-        (mc/keyboard-quit))
-    (js2r-rename-var)))
+;; (defun vr-js2r-rename-var-start/stop ()
+;;   (interactive)
+;;   (if multiple-cursors-mode
+;;       (progn
+;;         (mc/keyboard-quit)
+;;         (mc/keyboard-quit))
+;;     (js2r-rename-var)))
 
 (use-package js2-refactor
   :commands js2-refactor-mode
@@ -1329,8 +1696,7 @@ fields which we need."
               (yas-minor-mode 1)
               (local-set-key (kbd "<f8>") 'vr-skewer-css-clear-all)
               (local-set-key (kbd "<f5>")
-                             'vr-skewer-css-eval-current-declaration)
-              )))
+                             'vr-skewer-css-eval-current-declaration))))
 
 ;; == js, html and css common
 
@@ -1379,9 +1745,6 @@ fields which we need."
 
 ;; == nXML mode ==
 
-(autoload 'nxml-mode "nxml-mode" "nXML mode." t)
-(add-to-list 'auto-mode-alist '("\\.xml\\'\\|\\.html\\'\\|\\.htm\\'" . nxml-mode))
-
 (defun vr-nxml-code-folding-setup ()
   (if (not (boundp 'vr-nxml-code-folding-initialised))
       (progn
@@ -1390,7 +1753,8 @@ fields which we need."
         ;; see http://www.emacswiki.org/emacs/HideShow
         (add-to-list 'hs-special-modes-alist
                      '(nxml-mode
-                       "<!--\\|<[^/>]*[^/]>"
+                       ;; "<!--\\|<[^/>]*[^/]>"
+                       "<!--\\|<[^/][^>]*[^/]>"
                        "-->\\|</[^/>]*[^/]>"
                        "<!--"
                        sgml-skip-tag-forward
@@ -1398,10 +1762,176 @@ fields which we need."
         (setq vr-nxml-code-folding-initialised t)))
   (hs-minor-mode 1))
 
-(add-hook 'nxml-mode-hook
-          (lambda ()
-            (vr-programming-minor-modes)
-            (vr-nxml-code-folding-setup)))
+(use-package nxml-mode
+  ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
+  :mode "\\.xml\\'"
+  :config
+  (add-hook
+   'nxml-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes)
+     (vr-nxml-code-folding-setup))))
+
+;; == web-mode mode ==
+
+;; (defun vr-web-code-folding-setup ()
+;;   (if (not (boundp 'vr-web-code-folding-initialised))
+;;       (progn
+;;         ;; (require 'sgml-mode)
+;;         ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
+;;         ;; see http://www.emacswiki.org/emacs/HideShow
+;;         (add-to-list 'hs-special-modes-alist
+;;                      '(web-mode
+;;                        "<!--\\|<[^/][^>]*[^/]>"
+;;                        "-->\\|</[^/>]*[^/]>"
+;;                        "<!--"
+;;                        web-mode-forward-sexp
+;;                        nil))
+;;         (setq vr-web-code-folding-initialised t))))
+
+;; (defun enable-html-folding ()
+;;   (when (not (local-variable-p 'hs-special-modes-alist))
+;;     (let ((hs-special-modes-alist-global (append hs-special-modes-alist)))
+;;       (make-local-variable 'hs-special-modes-alist)
+;;       (setq hs-special-modes-alist hs-special-modes-alist-global)))
+;;   (add-to-list 'hs-special-modes-alist
+;;                '(web-mode
+;;                  "<!--\\|<[^/][^>]*[^/]>"
+;;                  "-->\\|</[^/>]*[^/]>"
+;;                  "<!--"
+;;                  web-mode-forward-sexp
+;;                  nil)))
+
+;; (defun disable-html-folding ()
+;;   (when (local-variable-p 'hs-special-modes-alist)
+;;     (setq hs-special-modes-alist
+;;           (remove-if (lambda (elem)
+;;                        (eq (car elem) 'web-mode))
+;;                      hs-special-modes-alist))))
+
+(defun vr-web-hs-html ()
+  ;; hs-forward-sexp-func is equal to web-mode-forward-sexp
+  ;; hs-adjust-block-beginning is nil
+  (setq hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
+  (setq hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
+  (setq hs-c-start-regexp "<!--"))
+
+(defun vr-web-hs-default ()
+  ;; hs-forward-sexp-func is equal to web-mode-forward-sexp
+  ;; hs-adjust-block-beginning is nil
+  (setq hs-block-start-regexp "{")
+  (setq hs-block-end-regexp "}")
+  (setq hs-c-start-regexp "/[*/]"))
+
+(defun vr-web-hs-html-toggle-hiding ()
+  (interactive)
+  (vr-web-hs-html)
+  (hs-toggle-hiding))
+
+;; (defun vr-web-hs-default-toggle-hiding ()
+;;   (interactive)
+;;   (vr-web-hs-default)
+;;   (hs-toggle-hiding))
+
+(defun vr-web-hs-toggle-hiding ()
+  (interactive)
+  (let ((web-mode-cur-language (web-mode-language-at-pos)))
+    (if (string= web-mode-cur-language "html")
+        (progn
+          (vr-web-hs-html)
+          (hs-toggle-hiding))
+      (progn
+        (if (string-match
+             (concat "^[[:space:]]*<[^/][^>]*[^/]>[[:space:]]*$"
+                     "\\|"
+                     "^[[:space:]]*</[^/>]*[^/]>[[:space:]]*$")
+             (thing-at-point 'line t))
+            (vr-web-hs-html)
+          (vr-web-hs-default))
+        (hs-toggle-hiding)))))
+
+;; (defun vr-web-toggle-code-folding ()
+;;   (interactive)
+;;   (let ((web-mode-cur-language (web-mode-language-at-pos)))
+;;     (if (string= web-mode-cur-language "html")
+;;         (web-mode-fold-or-unfold)
+;;       (hs-toggle-hiding))))
+
+(defun vr-web-ac-setup ()
+  (require 'ac-html)
+  (require 'ac-html-default-data-provider)
+  (ac-html-enable-data-provider 'ac-html-default-data-provider)
+  (ac-html-setup)
+  (setq ac-sources
+        (append '(ac-source-html-tag
+                  ac-source-html-attr
+                  ac-source-html-attrv)
+                ac-sources)))
+
+(use-package web-mode
+  :mode "\\.html\\'"
+  :config
+  (add-to-list
+   'web-mode-ac-sources-alist
+   '("html" . (ac-source-html-tag
+               ac-source-html-attr
+               ac-source-html-attrv
+               ac-source-words-in-same-mode-buffers)))
+
+  (add-to-list
+   'web-mode-ac-sources-alist
+   '("javascript" . (ac-source-yasnippet
+                     ac-source-dictionary
+                     ac-source-words-in-same-mode-buffers)))
+
+  (add-to-list
+   'web-mode-ac-sources-alist
+   '("css" . (ac-source-css-property
+              ac-source-words-in-same-mode-buffers)))
+ 
+  (add-hook
+   'web-mode-before-auto-complete-hooks
+   '(lambda ()
+      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+        (if (string= web-mode-cur-language "javascript")
+            (progn
+              (vr-ac-add-buffer-dict "js-mode")
+              (yas-activate-extra-mode 'js2-mode))
+          (progn
+            (vr-ac-remove-buffer-dict "js-mode")
+            (yas-deactivate-extra-mode 'js2-mode))))))
+
+  (setq web-mode-script-padding 2)
+  (setq web-mode-style-padding 2)
+  (setq web-mode-block-padding 2)
+  (setq web-mode-enable-current-element-highlight t)
+
+  (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
+
+  (add-hook
+   'web-mode-hook
+   (lambda ()
+     (vr-web-ac-setup)
+     (linum-mode 1)
+     (show-paren-local-mode 1)
+     ;; (vr-web-code-folding-setup)
+     (hs-minor-mode 1)
+     ;; (abbrev-mode -1)
+     (yas-minor-mode 1)
+
+     (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
+     (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
+     (local-set-key (kbd "C-M-p") 'vr-web-hs-html-toggle-hiding)
+     (local-set-key (kbd "C-M-n") 'vr-web-hs-html-toggle-hiding)))
+
+  :pin melpa
+  :ensure t)
+
+;; (use-package vimish-fold
+;;   :pin melpa
+;;   :ensure t)
+
+;; (vimish-fold-global-mode 1)
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -1954,93 +2484,202 @@ with very limited support for special characters."
 
 ;; == bs mode ==
 
-;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
-(setq bs-configurations
-      '(("all" nil nil nil nil nil)
-        ("files" nil nil nil
-         (lambda (buf)
-           (vr-string-match-regexp-list
-            vr-ignore-buffers
-            (buffer-name buf)))
-         nil)))
+;; ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
+;; (setq bs-configurations
+;;       '(("all" nil nil nil nil nil)
+;;         ("files" nil nil nil
+;;          (lambda (buf)
+;;            (vr-string-match-regexp-list
+;;             vr-ignore-buffers
+;;             (buffer-name buf)))
+;;          nil)))
 
-(setq bs-cycle-configuration-name "files")
+;; (setq bs-cycle-configuration-name "files")
 
-(setq bs-mode-font-lock-keywords
-      '(;; Headers
-        ("^[ ]+\\([-M].*\\)$" 1 font-lock-keyword-face)
-        ;; Boring buffers
-        ("^\\(.*\\*.*\\*.*\\)$" 1 font-lock-comment-face)
-        ;; Dired buffers
-        ("^[ .*%]+\\(Dired.*\\)$" 1 font-lock-type-face)
-        ;; Modified buffers
-        ("^[ .]+\\(\\*\\)" 1 font-lock-warning-face)
-        ;; Read-only buffers
-        ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
+;; (setq bs-mode-font-lock-keywords
+;;       '(;; Headers
+;;         ("^[ ]+\\([-M].*\\)$" 1 font-lock-keyword-face)
+;;         ;; Boring buffers
+;;         ("^\\(.*\\*.*\\*.*\\)$" 1 font-lock-comment-face)
+;;         ;; Dired buffers
+;;         ("^[ .*%]+\\(Dired.*\\)$" 1 font-lock-type-face)
+;;         ;; Modified buffers
+;;         ("^[ .]+\\(\\*\\)" 1 font-lock-warning-face)
+;;         ;; Read-only buffers
+;;         ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
 
-;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
-(defun vr-bs--get-size-string (&rest ignored)
-  (let* ((size (buffer-size))
-         (str (number-to-string size)))
-    (when (> (length str) 3)
-      (setq size (/ size 1024.0)
-            str (format "%.1fk" size)))
-    (when (> (length str) 6)
-      (setq size (/ size 1024.0)
-            str (format "%.1fM" size)))
-    (when (> (length str) 6)
-      (setq size (/ size 1024.0)
-            str (format "%.1fG" size)))
-    str))
+;; ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
+;; (defun vr-bs--get-size-string (&rest ignored)
+;;   (let* ((size (buffer-size))
+;;          (str (number-to-string size)))
+;;     (when (> (length str) 3)
+;;       (setq size (/ size 1024.0)
+;;             str (format "%.1fk" size)))
+;;     (when (> (length str) 6)
+;;       (setq size (/ size 1024.0)
+;;             str (format "%.1fM" size)))
+;;     (when (> (length str) 6)
+;;       (setq size (/ size 1024.0)
+;;             str (format "%.1fG" size)))
+;;     str))
 
-(setq bs-attributes-list
-      '(("" 2 2 left bs--get-marked-string)
-        ("M" 1 1 left bs--get-modified-string)
-        ("R" 2 2 left bs--get-readonly-string)
-        ("Size" 6 6 right vr-bs--get-size-string)
-        ("" 2 2 left "  ")
-        ("Mode" 16 16 left bs--get-mode-name)
-        ("" 2 2 left "  ")
-        ("Buffer" bs--get-name-length 100 left bs--get-name)
-        ("" 2 2 left "  ")
-        ("File" 1 255 left bs--get-file-name)))
+;; (setq bs-attributes-list
+;;       '(("" 2 2 left bs--get-marked-string)
+;;         ("M" 1 1 left bs--get-modified-string)
+;;         ("R" 2 2 left bs--get-readonly-string)
+;;         ("Size" 6 6 right vr-bs--get-size-string)
+;;         ("" 2 2 left "  ")
+;;         ("Mode" 16 16 left bs--get-mode-name)
+;;         ("" 2 2 left "  ")
+;;         ("Buffer" bs--get-name-length 100 left bs--get-name)
+;;         ("" 2 2 left "  ")
+;;         ("File" 1 255 left bs--get-file-name)))
 
-(add-hook 'bs-mode-hook
-          (lambda ()
-            (hl-line-mode 1)
-            (define-key bs-mode-map (kbd "<escape>") 'bs-kill)))
+;; (add-hook 'bs-mode-hook
+;;           (lambda ()
+;;             (hl-line-mode 1)
+;;             (define-key bs-mode-map (kbd "<escape>") 'bs-kill)))
 
-(global-set-key (kbd "C-x C-b") 'bs-show)
+;; (global-set-key (kbd "C-x C-b") 'bs-show)
+
+(use-package bs
+  :config
+  ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
+  (setq
+   bs-configurations
+   '(("all" nil nil nil nil nil)
+     ("files" nil nil nil
+      (lambda (buf)
+        (vr-string-match-regexp-list
+         vr-ignore-buffers
+         (buffer-name buf)))
+      nil)))
+
+  (setq bs-cycle-configuration-name "files")
+
+  (setq
+   bs-mode-font-lock-keywords
+   '(;; Headers
+     ("^[ ]+\\([-M].*\\)$" 1 font-lock-keyword-face)
+     ;; Boring buffers
+     ("^\\(.*\\*.*\\*.*\\)$" 1 font-lock-comment-face)
+     ;; Dired buffers
+     ("^[ .*%]+\\(Dired.*\\)$" 1 font-lock-type-face)
+     ;; Modified buffers
+     ("^[ .]+\\(\\*\\)" 1 font-lock-warning-face)
+     ;; Read-only buffers
+     ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
+
+  ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
+  (defun vr-bs--get-size-string (&rest ignored)
+    (let* ((size (buffer-size))
+           (str (number-to-string size)))
+      (when (> (length str) 3)
+        (setq size (/ size 1024.0)
+              str (format "%.1fk" size)))
+      (when (> (length str) 6)
+        (setq size (/ size 1024.0)
+              str (format "%.1fM" size)))
+      (when (> (length str) 6)
+        (setq size (/ size 1024.0)
+              str (format "%.1fG" size)))
+      str))
+
+  (setq
+   bs-attributes-list
+   '(("" 2 2 left bs--get-marked-string)
+     ("M" 1 1 left bs--get-modified-string)
+     ("R" 2 2 left bs--get-readonly-string)
+     ("Size" 6 6 right vr-bs--get-size-string)
+     ("" 2 2 left "  ")
+     ("Mode" 16 16 left bs--get-mode-name)
+     ("" 2 2 left "  ")
+     ("Buffer" bs--get-name-length 100 left bs--get-name)
+     ("" 2 2 left "  ")
+     ("File" 1 255 left bs--get-file-name)))
+
+  (defun vr-bs-show (arg)
+    (interactive "P")
+    (let* ((up-window (selected-window))
+           (up-window-parent (window-parent up-window))
+           (down-height-orig -1)
+           (down-height-new -1)
+           (down-window (window-in-direction 'below))
+           (down-windows-preserved '())
+           (bs-show-result nil)
+           ;; (bs-window nil)
+           )
+      (when down-window
+        (setq down-height-orig (window-height down-window))
+        (select-window down-window)
+        (while (and (window-in-direction 'below)
+                    (eq up-window-parent
+                        (window-parent (window-in-direction 'below))))
+          (select-window (window-in-direction 'below))
+          (push (cons (selected-window) (window-preserved-size nil nil))
+                down-windows-preserved)
+          (window-preserve-size nil nil t))
+        (select-window up-window))
+      (setq bs-show-result (bs-show arg))
+      ;; (setq bs-window (selected-window))
+      (when down-window
+        (setq down-height-new (window-height down-window))
+        (if (> down-height-new down-height-orig)
+            (adjust-window-trailing-edge
+             up-window
+             (- down-height-new down-height-orig)))
+        (dolist (pair down-windows-preserved)
+          (window-preserve-size (car pair) nil (cdr pair))))))
+
+  (add-hook
+   'bs-mode-hook
+   (lambda ()
+     (hl-line-mode 1)))
+
+  (define-key bs-mode-map (kbd "<escape>") 'bs-kill)
+  (global-set-key (kbd "C-x C-b") 'vr-bs-show)
+
+  :demand t
+  :ensure t)
+
+(use-package bs-ext
+  :demand t
+  :ensure t)
 
 ;; == popwin mode ==
 
-(require 'popwin)
-(popwin-mode 1)
+(use-package popwin
+  :config
+  ;; Find how to search and replace within lists in elisp and
+  ;; generalise the following functions
+  (delete 'help-mode popwin:special-display-config)
+  (delete '(compilation-mode :noselect t) popwin:special-display-config)
+  ;; (push '(help-mode :stick t) popwin:special-display-config)
+  (push '(help-mode :stick t) popwin:special-display-config)
+  (push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
+  (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
+  (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
+  (push '("*rdm*" :noselect t :stick t :height 6 :position top)
+        popwin:special-display-config)
 
-;; Find how to search and replace within lists in elisp and
-;; generalise the following functions
-(delete 'help-mode popwin:special-display-config)
-(delete '(compilation-mode :noselect t) popwin:special-display-config)
-;; (push '(help-mode :stick t) popwin:special-display-config)
-(push '(help-mode :stick t) popwin:special-display-config)
-(push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
-(push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
-(push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
+  ;; see https://www.emacswiki.org/emacs/OneWindow
+  ;; (add-to-list 'same-window-buffer-names "*Help*")
 
-(defun vr-popwin:popup-smart ()
-  (interactive)
-  (if popwin:popup-window
-      (popwin:select-popup-window)
-    (if popwin:popup-last-config
-        (popwin:popup-last-buffer)
-      (popwin:messages))))
+  ;; (defun vr-popwin:popup-smart ()
+  ;;   (interactive)
+  ;;   (if popwin:popup-window
+  ;;       (popwin:select-popup-window)
+  ;;     (if popwin:popup-last-config
+  ;;         (popwin:popup-last-buffer)
+  ;;       (popwin:messages))))
 
-(global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
-(global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
-(global-set-key (kbd "C-x p") popwin:keymap)
+  ;; (global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
+  ;; (global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
+  (global-set-key (kbd "C-x p") popwin:keymap)
 
-;; see https://www.emacswiki.org/emacs/OneWindow
-(add-to-list 'same-window-buffer-names "*Help*")
+  (popwin-mode 1)
+  :demand t
+  :ensure t)
 
 ;; -------------------------------------------------------------------
 ;;; Bookmarks
