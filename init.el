@@ -1766,11 +1766,10 @@ continuing (not first) item"
   ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
   :mode "\\.xml\\'"
   :config
-  (add-hook
-   'nxml-mode-hook
-   (lambda ()
-     (vr-programming-minor-modes)
-     (vr-nxml-code-folding-setup))))
+  (add-hook 'nxml-mode-hook
+            (lambda ()
+              (vr-programming-minor-modes)
+              (vr-nxml-code-folding-setup))))
 
 ;; == web-mode mode ==
 
@@ -1810,18 +1809,18 @@ continuing (not first) item"
 ;;                      hs-special-modes-alist))))
 
 (defun vr-web-hs-html ()
-  ;; hs-forward-sexp-func is equal to web-mode-forward-sexp
-  ;; hs-adjust-block-beginning is nil
+  ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
+  ;; hs-adjust-block-beginning is nil by default
   (setq hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
   (setq hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
-  (setq hs-c-start-regexp "<!--"))
+  (setq hs-c-start-regexp "<!--")
+  (setq hs-forward-sexp-func sgml-skip-tag-forward))
 
 (defun vr-web-hs-default ()
-  ;; hs-forward-sexp-func is equal to web-mode-forward-sexp
-  ;; hs-adjust-block-beginning is nil
   (setq hs-block-start-regexp "{")
   (setq hs-block-end-regexp "}")
-  (setq hs-c-start-regexp "/[*/]"))
+  (setq hs-c-start-regexp "/[*/]")
+  (setq hs-forward-sexp-func web-mode-forward-sexp))
 
 (defun vr-web-hs-html-toggle-hiding ()
   (interactive)
@@ -1908,6 +1907,9 @@ continuing (not first) item"
 
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
 
+  ;; sgml-skip-tag-forward is used in html code folding
+  (require 'sgml-mode)
+
   (add-hook
    'web-mode-hook
    (lambda ()
@@ -1921,8 +1923,8 @@ continuing (not first) item"
 
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
-     (local-set-key (kbd "C-M-p") 'vr-web-hs-html-toggle-hiding)
-     (local-set-key (kbd "C-M-n") 'vr-web-hs-html-toggle-hiding)))
+     (local-set-key (kbd "C-M-n") 'forward-sexp)
+     (local-set-key (kbd "C-M-p") 'backward-sexp)))
 
   :pin melpa
   :ensure t)
@@ -1947,7 +1949,8 @@ continuing (not first) item"
             (local-set-key (kbd "M-<kp-left>") 'org-metaleft)
             (local-set-key (kbd "M-<kp-up>") 'org-metaup)
             (local-set-key (kbd "M-<kp-down>") 'org-metadown)
-            (local-set-key (kbd "C-<kp-enter>") 'org-insert-heading-respect-content)
+            (local-set-key (kbd "C-<kp-enter>")
+                           'org-insert-heading-respect-content)
             (visual-line-mode)
             (org-indent-mode)))
 
@@ -2750,6 +2753,10 @@ with very limited support for special characters."
 
 ;; Disable annoying key binding for (suspend-frame) function
 (global-unset-key (kbd "C-x C-z"))
+
+;; Re-map obsolete emacs exit key to "Really Quit"
+(global-unset-key (kbd "C-x C-c"))
+(global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
 
 ;; Prevent translation from <kp-bebin> to <begin>
 (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
