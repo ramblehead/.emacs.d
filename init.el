@@ -1225,7 +1225,7 @@ fields which we need."
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
 
-(defun vr-c++-auto-complete ()
+(defun vr-c++-auto-complete-clang ()
   (interactive)
   (message "auto-completing with clang...")
   (auto-complete (append '(ac-source-clang) ac-sources)))
@@ -1262,7 +1262,7 @@ fields which we need."
                   ;; whether it is 'c-source-clang' or 'ac-source-rtags',
                   ;; therefore it is only activated on 'C-x C-<tab>' (see key
                   ;; definitions below in this function) in
-                  ;; 'vr-c++-auto-complete' function.
+                  ;; 'vr-c++-auto-complete-clang' function.
                   ;; ac-source-clang
                   ;; ac-source-rtags
                   )
@@ -1283,8 +1283,8 @@ fields which we need."
     (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
 
   ;; <C-iso-lefttab> is C-S-<tab>
-  (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete)
-  (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete))
+  (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang)
+  (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang))
 
 (defun vr-c++-looking-at-doxygen-group-head ()
     (string-match "^[[:space:]]*///@{[:space:]*$" (thing-at-point 'line t)))
@@ -1547,12 +1547,11 @@ continuing (not first) item"
 
 ;; == Enhanced JavaScript Mode ==
 
-(defun vr-js2-configure-scratch ()
+(defun vr-js2-scratch-config ()
   (interactive)
   (set (make-local-variable
         'js2-highlight-external-variables)
        nil)
-  ;; (ac-js2-setup-auto-complete-mode)
   (ac-js2-mode 1))
 
 (defadvice js2-enter-key (around vr-js2-enter-key ())
@@ -1614,11 +1613,16 @@ continuing (not first) item"
      ;; (ac-js2-mode 1)
      (js2-refactor-mode 1)
 
+     (setq ac-sources
+           (remove 'ac-source-abbrev ac-sources))
+     (add-to-list 'ac-sources 'ac-source-yasnippet)
+     (vr-ac-add-buffer-dict "js-mode")
+
      (if (or (string-suffix-p ".scratch.js" (buffer-name))
              (string-equal "scratch.js" (buffer-name)))
-         (vr-js2-configure-scratch))
+         (vr-js2-scratch-config))
 
-     (vr-ac-add-buffer-dict "js-mode")
+     ;; (vr-ac-add-buffer-dict "js-mode")
 
      ;; (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
      (local-set-key (kbd "M-[") 'pop-tag-mark)
@@ -1654,7 +1658,7 @@ continuing (not first) item"
   :ensure t)
 
 (use-package ac-js2
-  :commands (ac-js2-mode ac-js2-setup-auto-complete-mode)
+  :commands (ac-js2-mode)
   :init
   ;; (setq ac-js2-evaluate-calls t)
   :ensure t)
@@ -1773,54 +1777,19 @@ continuing (not first) item"
 
 ;; == web-mode mode ==
 
-;; (defun vr-web-code-folding-setup ()
-;;   (if (not (boundp 'vr-web-code-folding-initialised))
-;;       (progn
-;;         ;; (require 'sgml-mode)
-;;         ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
-;;         ;; see http://www.emacswiki.org/emacs/HideShow
-;;         (add-to-list 'hs-special-modes-alist
-;;                      '(web-mode
-;;                        "<!--\\|<[^/][^>]*[^/]>"
-;;                        "-->\\|</[^/>]*[^/]>"
-;;                        "<!--"
-;;                        web-mode-forward-sexp
-;;                        nil))
-;;         (setq vr-web-code-folding-initialised t))))
-
-;; (defun enable-html-folding ()
-;;   (when (not (local-variable-p 'hs-special-modes-alist))
-;;     (let ((hs-special-modes-alist-global (append hs-special-modes-alist)))
-;;       (make-local-variable 'hs-special-modes-alist)
-;;       (setq hs-special-modes-alist hs-special-modes-alist-global)))
-;;   (add-to-list 'hs-special-modes-alist
-;;                '(web-mode
-;;                  "<!--\\|<[^/][^>]*[^/]>"
-;;                  "-->\\|</[^/>]*[^/]>"
-;;                  "<!--"
-;;                  web-mode-forward-sexp
-;;                  nil)))
-
-;; (defun disable-html-folding ()
-;;   (when (local-variable-p 'hs-special-modes-alist)
-;;     (setq hs-special-modes-alist
-;;           (remove-if (lambda (elem)
-;;                        (eq (car elem) 'web-mode))
-;;                      hs-special-modes-alist))))
-
 (defun vr-web-hs-html ()
   ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
   ;; hs-adjust-block-beginning is nil by default
   (setq hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
   (setq hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
   (setq hs-c-start-regexp "<!--")
-  (setq hs-forward-sexp-func sgml-skip-tag-forward))
+  (setq hs-forward-sexp-func 'sgml-skip-tag-forward))
 
 (defun vr-web-hs-default ()
   (setq hs-block-start-regexp "{")
   (setq hs-block-end-regexp "}")
   (setq hs-c-start-regexp "/[*/]")
-  (setq hs-forward-sexp-func web-mode-forward-sexp))
+  (setq hs-forward-sexp-func 'web-mode-forward-sexp))
 
 (defun vr-web-hs-html-toggle-hiding ()
   (interactive)
@@ -1835,7 +1804,7 @@ continuing (not first) item"
 (defun vr-web-hs-toggle-hiding ()
   (interactive)
   (let ((web-mode-cur-language (web-mode-language-at-pos)))
-    (if (string= web-mode-cur-language "html")
+    (if (string-equal web-mode-cur-language "html")
         (progn
           (vr-web-hs-html)
           (hs-toggle-hiding))
@@ -1849,12 +1818,34 @@ continuing (not first) item"
           (vr-web-hs-default))
         (hs-toggle-hiding)))))
 
-;; (defun vr-web-toggle-code-folding ()
-;;   (interactive)
-;;   (let ((web-mode-cur-language (web-mode-language-at-pos)))
-;;     (if (string= web-mode-cur-language "html")
-;;         (web-mode-fold-or-unfold)
-;;       (hs-toggle-hiding))))
+(defun vr-web-skewer-eval-region (begin end)
+  (interactive "r")
+  (if (use-region-p)
+      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+        (cond
+         ((string-equal web-mode-cur-language "javascript")
+          (skewer-eval (buffer-substring-no-properties begin end)
+                       #'skewer-post-minibuffer))
+         (t (message "Can't evaluate region in browser"))))
+    (message "Can only evaluate regions")))
+
+(defun vr-web-skewer-eval-print-region (begin end)
+  (interactive "r")
+  (if (use-region-p)
+      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+        (cond
+         ((string-equal web-mode-cur-language "javascript")
+          (deactivate-mark)
+          (goto-char end)
+          (insert "\n")
+          (let* ((request (skewer-eval
+                           (buffer-substring-no-properties begin end)
+                           #'skewer-post-print :verbose t))
+                 (id (cdr (assoc 'id request)))
+                 (pos (cons (current-buffer) (point))))
+            (setf (cache-table-get id skewer-eval-print-map) pos)))
+         (t (message "Can't evaluate region in browser"))))
+    (message "Can only evaluate regions")))
 
 (defun vr-web-ac-setup ()
   (require 'ac-html)
@@ -1892,7 +1883,7 @@ continuing (not first) item"
    'web-mode-before-auto-complete-hooks
    '(lambda ()
       (let ((web-mode-cur-language (web-mode-language-at-pos)))
-        (if (string= web-mode-cur-language "javascript")
+        (if (string-equal web-mode-cur-language "javascript")
             (progn
               (vr-ac-add-buffer-dict "js-mode")
               (yas-activate-extra-mode 'js2-mode))
@@ -1903,7 +1894,14 @@ continuing (not first) item"
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
   (setq web-mode-block-padding 2)
+
   (setq web-mode-enable-current-element-highlight t)
+
+  (setq web-mode-comment-formats
+        (remove-if (lambda (comment-format)
+                     (string-equal (car comment-format) "javascript"))
+                   web-mode-comment-formats))
+  (add-to-list 'web-mode-comment-formats '("javascript" . "//"))
 
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
 
@@ -1920,7 +1918,11 @@ continuing (not first) item"
      (hs-minor-mode 1)
      ;; (abbrev-mode -1)
      (yas-minor-mode 1)
+     (skewer-mode 1)
 
+     (local-set-key (kbd "<f5>") 'vr-web-skewer-eval-region)
+     (local-set-key (kbd "M-<f5>") 'vr-web-skewer-eval-print-region)
+     (local-set-key (kbd "S-<f5>") 'skewer-repl)
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
      (local-set-key (kbd "C-M-n") 'forward-sexp)
@@ -1990,7 +1992,7 @@ continuing (not first) item"
     (defun un-urlify (fname-or-url)
       "Transform file:///absolute/path from Gnome into /absolute/path
 with very limited support for special characters."
-      (if (string= (substring fname-or-url 0 8) "file:///")
+      (if (string-equal (substring fname-or-url 0 8) "file:///")
           (url-unhex-string (substring fname-or-url 7))
         fname-or-url))
 
@@ -2001,7 +2003,7 @@ with very limited support for special characters."
     (defun urlify (absolute-path)
       "Transform /absolute/path to file:///absolute/path for Gnome
 with very limited support for special characters."
-      (if (string= (substring absolute-path 0 1) "/")
+      (if (string-equal (substring absolute-path 0 1) "/")
           (concat "file://" (urlify-escape-only absolute-path))
         absolute-path))
 
@@ -2661,6 +2663,7 @@ with very limited support for special characters."
   (push '(help-mode :stick t) popwin:special-display-config)
   (push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
+  (push '("*skewer-repl*" :stick t) popwin:special-display-config)
   (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
   (push '("*rdm*" :noselect t :stick t :height 6 :position top)
         popwin:special-display-config)
