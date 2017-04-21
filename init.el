@@ -10,14 +10,18 @@
  '(font-latex-math-environments
    (quote
     ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
+ '(hfy-default-face-def
+   (quote
+    ((t :background "black" :foreground "white" :family "misc-fixed"))))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
+ '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
  '(tab-stop-list
    (quote
     (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
@@ -166,6 +170,11 @@
 
 ;; == Auxiliary functions ==
 
+(defun vr-point-or-region ()
+  (if (use-region-p)
+      (list (region-beginning) (region-end))
+    (list (point) (point))))
+
 (defun vr-string-match-regexp-list (regexp-list str)
   "Return non-nil if str matches anything in regexp-list."
   (let ((case-fold-search nil))
@@ -195,7 +204,7 @@
 ;; see http://emacs.stackexchange.com/questions/10981/changing-the-appearance-of-org-mode-hidden-contents-ellipsis
 ;; see http://emacswiki.org/emacs/OutlineMode
 
-;; (set-display-table-slot standard-display-table 
+;; (set-display-table-slot standard-display-table
 ;;                         'selective-display (string-to-vector " ◦◦◦ "))
 
 (set-display-table-slot
@@ -853,15 +862,29 @@ fields which we need."
 ;;; Programming Languages, Debuggers, Profilers etc.
 ;; -------------------------------------------------------------------
 
-;; TODO: Investigate mixed language modes, e.g. js or css in html, python macro in xml etc.
-;; e.g. https://vxlabs.com/2014/04/08/syntax-highlighting-markdown-fenced-code-blocks-in-emacs/
+;; == Line numbering ==
 
-;; ;; Better line numbering
-;; (require 'nlinum)
-;; (setq nlinum-format "%4d ")
-(setq linum-format "%4d ")
+(use-package linum
+  :init
+  (setq linum-format "%4d ")
+  :ensure t)
 
-;; Code folding
+(use-package hlinum
+  :init
+  (hlinum-activate)
+  :ensure t)
+
+(use-package nlinum
+  :init
+  (setq nlinum-format "%4d ")
+  :ensure t)
+
+;; == Indentation highlighting ==
+
+(use-package highlight-indent-guides
+  :ensure t)
+
+;; == Code folding ==
 (require 'hideshow)
 (setq hs-allow-nesting t)
 (setq hs-isearch-open t)
@@ -888,44 +911,73 @@ fields which we need."
       (setq show value))
     (setq show-paren-mode show)))
 
-(defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
+;; (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
+;;   "Enables some minor modes, useful for programming."
+;;   (interactive)
+;;   (if (null value-supplied-p)
+;;       (progn
+;;         ;; (message "*** in vr-programming-minor-modes")
+;;         (if (local-variable-p 'vr-prog-mode)
+;;             (progn
+;;               ;; (message "*** killing vr-prog-mode")
+;;               (kill-local-variable 'vr-prog-mode)
+;;               (linum-mode -1)
+;;               (show-paren-local-mode -1)
+;;               (hs-minor-mode -1))
+;;           (progn
+;;             ;; (message "*** setting vr-prog-mode")
+;;             (set (make-local-variable 'vr-prog-mode) t)
+;;             (linum-mode 1)
+;;             (show-paren-local-mode 1)
+;;             (hs-minor-mode 1)
+;;             ;; ;; Use case-sensitive search (buffer-local)
+;;             ;; (setq case-fold-search nil)
+;;             )))
+;;     (progn
+;;       (if value
+;;           (progn
+;;             (set (make-local-variable 'vr-prog-mode) t)
+;;             (linum-mode 1)
+;;             (show-paren-local-mode 1)
+;;             (hs-minor-mode 1)
+;;             ;; ;; Use case-sensitive search (buffer-local)
+;;             ;; (setq case-fold-search nil)
+;;             )
+;;         (progn
+;;           (if (local-variable-p 'vr-prog-mode)
+;;               (kill-local-variable 'vr-prog-mode))
+;;           (linum-mode -1)
+;;           (show-paren-local-mode nil)
+;;           (hs-minor-mode -1))))))
+
+(defun* vr-programming-minor-modes (&optional (enable nil enable-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
-  (if (null value-supplied-p)
-      (progn
-        ;; (message "*** in vr-programming-minor-modes")
-        (if (local-variable-p 'vr-prog-mode)
-            (progn
-              ;; (message "*** killing vr-prog-mode")
-              (kill-local-variable 'vr-prog-mode)
-              (linum-mode -1)
-              (show-paren-local-mode -1)
-              (hs-minor-mode -1))
-          (progn
-            ;; (message "*** setting vr-prog-mode")
-            (set (make-local-variable 'vr-prog-mode) t)
-            (linum-mode 1)
-            (show-paren-local-mode 1)
-            (hs-minor-mode 1)
-            ;; ;; Use case-sensitive search (buffer-local)
-            ;; (setq case-fold-search nil)
-            )))
-    (progn
-      (if value
-          (progn
-            (set (make-local-variable 'vr-prog-mode) t)
-            (linum-mode 1)
-            (show-paren-local-mode 1)
-            (hs-minor-mode 1)
-            ;; ;; Use case-sensitive search (buffer-local)
-            ;; (setq case-fold-search nil)
-            )
+  (let* ((toggle (not enable-supplied-p))
+         (enabled (local-variable-p 'vr-prog-modes))
+         (enabling (if toggle (if enabled nil t) enable))
+         (disabling (not enabling)))
+    (if (and (not enabled) enabling)
         (progn
-          (if (local-variable-p 'vr-prog-mode)
-              (kill-local-variable 'vr-prog-mode))
-          (linum-mode -1)
-          (show-paren-local-mode nil)
-          (hs-minor-mode -1))))))
+          (set (make-local-variable 'vr-prog-modes) t)
+          (linum-mode 1)
+          (show-paren-local-mode 1)
+          (hs-minor-mode 1)
+          (setq show-trailing-whitespace t)
+          ;; (highlight-indent-guides-mode 1)
+          ;; ;; Use case-sensitive search (buffer-local)
+          ;; (setq case-fold-search nil)
+          ;; (message "Enablibling programming modes")
+          )
+      (when (and enabled disabling)
+        (kill-local-variable 'vr-prog-modes)
+        (linum-mode -1)
+        (show-paren-local-mode -1)
+        (hs-minor-mode -1)
+        (setq show-trailing-whitespace nil)
+        ;; (highlight-indent-guides-mode -1)
+        ;; (message "Disabling programming modes")
+        ))))
 
 ;; == GUD Mode ==
 
@@ -998,11 +1050,6 @@ fields which we need."
       (sleep-for 0.1)
       (goto-char pos)))
 
-  (defun vr-point-or-region ()
-    (if (use-region-p)
-        (list (region-beginning) (region-end))
-      (list (point) (point))))
-  
   (defun vr-gud-print (begin end)
     (interactive (vr-point-or-region))
     (vr-gud-call-func begin end 'gud-print))
@@ -1286,41 +1333,60 @@ fields which we need."
   (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang)
   (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang))
 
+(setq vr-c++-doxygen-group-open-token "///@{")
+
+(setq vr-c++-doxygen-group-close-token "///@}")
+
+(setq vr-c++-doxygen-group-head-regexp
+      (concat "^[[:space:]]*" vr-c++-doxygen-group-open-token "[:space:]*$"))
+
+(setq vr-c++-doxygen-group-tail-regexp
+      (concat "^[[:space:]]*" vr-c++-doxygen-group-close-token "[:space:]*$"))
+
 (defun vr-c++-looking-at-doxygen-group-head ()
-    (string-match "^[[:space:]]*///@{[:space:]*$" (thing-at-point 'line t)))
+  (string-match vr-c++-doxygen-group-head-regexp (thing-at-point 'line t)))
 
 (defun vr-c++-looking-at-doxygen-group-tail ()
-    (string-match "^[[:space:]]*///@}[:space:]*$" (thing-at-point 'line t)))
+  (string-match vr-c++-doxygen-group-tail-regexp (thing-at-point 'line t)))
 
 (defun vr-c++-search-backward-doxygen-balanced-head ()
   (if (vr-c++-looking-at-doxygen-group-tail)
       (progn
         (move-beginning-of-line nil)
         (if (vr-c++-looking-at-doxygen-group-head)
-            (forward-char (length "///@{")))))
+            (forward-char (length vr-c++-doxygen-group-open-token)))))
   (let ((pos nil)
         (found nil)
         (skip-tail 0))
     (while (and (not found)
-                (setq pos (re-search-backward "///@{\\|///@}")))
+                (setq pos (re-search-backward
+                           (concat vr-c++-doxygen-group-head-regexp
+                                   "\\|"
+                                   vr-c++-doxygen-group-tail-regexp))))
       (if (vr-c++-looking-at-doxygen-group-tail)
           (incf skip-tail)
         (if (<= skip-tail 0)
             (setq found t)
           (decf skip-tail))))
-    pos))
+    (when (vr-c++-looking-at-doxygen-group-head)
+      (move-end-of-line nil)
+      (backward-char (length vr-c++-doxygen-group-open-token)))
+    (point)))
 
-(defun vr-c++-search-backward-doxygen-balanced-tail ()
+(defun vr-c++-search-forward-doxygen-balanced-tail ()
   (if (vr-c++-looking-at-doxygen-group-head)
       (progn
         (move-end-of-line nil)
         (if (vr-c++-looking-at-doxygen-group-tail)
-            (backward-char (length "///@}")))))
+            (backward-char (length vr-c++-doxygen-group-close-token)))))
   (let ((pos nil)
         (found nil)
         (skip-tail 0))
     (while (and (not found)
-                (setq pos (re-search-forward "///@{\\|///@}")))
+                (setq pos (re-search-forward
+                           (concat vr-c++-doxygen-group-head-regexp
+                                   "\\|"
+                                   vr-c++-doxygen-group-tail-regexp))))
       (if (vr-c++-looking-at-doxygen-group-head)
           (incf skip-tail)
         (if (<= skip-tail 0)
@@ -1335,9 +1401,9 @@ fields which we need."
   (if (vr-c++-looking-at-doxygen-group-head)
       (progn
         (move-beginning-of-line nil)
-        (let* ((beg (re-search-forward "///@{"))
-               (end (- (vr-c++-search-backward-doxygen-balanced-tail)
-                       (length "///@}"))))
+        (let* ((beg (re-search-forward vr-c++-doxygen-group-open-token))
+               (end (- (vr-c++-search-forward-doxygen-balanced-tail)
+                       (length vr-c++-doxygen-group-close-token))))
           (hs-make-overlay beg end 'comment beg end)
           (goto-char beg)))))
 
@@ -1357,7 +1423,7 @@ fields which we need."
         (if hidden
             (progn
               (move-beginning-of-line nil)
-              (re-search-forward "///@{")
+              (re-search-forward vr-c++-doxygen-group-open-token)
               (if (not at-tail)
                   (hs-show-block)))
           (vr-c++-hs-hide-doxygen-group)))
@@ -1366,7 +1432,14 @@ fields which we need."
 (defun vr-c++-forward-list ()
   (interactive)
   (if (vr-c++-looking-at-doxygen-group-head)
-      (vr-c++-search-backward-doxygen-balanced-tail)
+      ;; (unwind-protect
+      ;;     (let (result)
+      ;;       (condition-case ex
+      ;;           (setq result (vr-c++-search-forward-doxygen-balanced-tail))
+      ;;         ('error (message (format "Caught exception: [%s]" ex))))
+      ;;       result)
+      ;;   (message "Cleaning up..."))
+      (vr-c++-search-forward-doxygen-balanced-tail)
     (forward-list)))
 
 (defun vr-c++-backward-list ()
@@ -1450,6 +1523,7 @@ continuing (not first) item"
     (vector (+ tab-width (current-column)))))
 
 (defun vr-c++-indentation-setup ()
+  (setq tab-width 2)
   (require 'google-c-style)
   (google-set-c-style)
 
@@ -1626,8 +1700,9 @@ continuing (not first) item"
 
      ;; (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
      (local-set-key (kbd "M-[") 'pop-tag-mark)
-     (local-set-key (kbd "<f5>") 'skewer-eval-last-expression)
-     (local-set-key (kbd "M-<f5>") 'skewer-eval-print-last-expression)
+     (local-set-key (kbd "<f5>") #'vr-skewer-eval-last-expression-or-region)
+     (local-set-key (kbd "M-<f5>")
+                    #'vr-skewer-eval-print-last-expression-or-region)
      ;; (local-set-key (kbd "<f5>") 'moz-send-region)
      (local-set-key (kbd "S-<f5>") 'skewer-repl)
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
@@ -1651,6 +1726,54 @@ continuing (not first) item"
   (js2r-add-keybindings-with-prefix "C-c r")
 
   :ensure t)
+
+(defun vr-skewer-eval-last-expression-or-region (start end)
+  (interactive (vr-point-or-region))
+  (if (/= start end)
+      (progn
+        (deactivate-mark)
+        (skewer-flash-region start end)
+        (skewer-eval (buffer-substring-no-properties start end)
+                     #'skewer-post-minibuffer))
+    (if js2-mode-buffer-dirty-p
+        (js2-mode-wait-for-parse
+         ;; (skewer--save-point #'skewer-eval-last-expression))
+         (skewer--save-point #'vr-skewer-eval-last-expression-or-region))
+      (cl-destructuring-bind (string start end) (skewer-get-last-expression)
+        (skewer-flash-region start end)
+        (skewer-eval string #'skewer-post-minibuffer)))))
+
+;; The following (vr-skewer-eval-print-last-expression-or-region) requires
+;; cache-table from skewer package before evaluatio
+(require 'cache-table)
+
+(defun vr-skewer-eval-print-last-expression-or-region (start end)
+  (interactive (vr-point-or-region))
+  (if (/= start end)
+      (progn
+        (deactivate-mark)
+        (skewer-flash-region start end)
+        (goto-char end)
+        (move-end-of-line nil)
+        (insert "\n")
+        (let* ((request (skewer-eval
+                         (buffer-substring-no-properties start end)
+                         #'skewer-post-print :verbose t))
+               (id (cdr (assoc 'id request)))
+               (pos (cons (current-buffer) (point))))
+          (setf (cache-table-get id skewer-eval-print-map) pos)))
+    (if js2-mode-buffer-dirty-p
+        (js2-mode-wait-for-parse
+         ;; (skewer--save-point #'skewer-eval-print-last-expression))
+         (skewer--save-point #'vr-skewer-eval-print-last-expression-or-region))
+      (cl-destructuring-bind (string start end) (skewer-get-defun)
+        (skewer-flash-region start end)
+        (move-end-of-line nil)
+        (insert "\n")
+        (let* ((request (skewer-eval string #'skewer-post-print :verbose t))
+               (id (cdr (assoc 'id request)))
+               (pos (cons (current-buffer) (point))))
+          (setf (cache-table-get id skewer-eval-print-map) pos))))))
 
 (use-package skewer-mode
   :commands (skewer-mode skewer-css-mode skewer-html-mode)
@@ -1783,18 +1906,40 @@ continuing (not first) item"
   (setq hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
   (setq hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
   (setq hs-c-start-regexp "<!--")
-  (setq hs-forward-sexp-func 'sgml-skip-tag-forward))
+  ;; (setq hs-forward-sexp-func 'sgml-skip-tag-forward)
+  )
 
 (defun vr-web-hs-default ()
   (setq hs-block-start-regexp "{")
   (setq hs-block-end-regexp "}")
   (setq hs-c-start-regexp "/[*/]")
-  (setq hs-forward-sexp-func 'web-mode-forward-sexp))
+  ;; (setq hs-forward-sexp-func 'web-mode-forward-sexp)
+  )
 
 (defun vr-web-hs-html-toggle-hiding ()
   (interactive)
   (vr-web-hs-html)
   (hs-toggle-hiding))
+
+(defun vr-web-skewer-eval-region (start end)
+  (interactive "r")
+  (if (use-region-p)
+      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+        (cond
+         ((string-equal web-mode-cur-language "javascript")
+          (vr-skewer-eval-last-expression-or-region start end))
+         (t (message "Can't evaluate region in browser"))))
+    (message "Can only evaluate active regions")))
+
+(defun vr-web-skewer-eval-print-region (start end)
+  (interactive "r")
+  (if (use-region-p)
+      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+        (cond
+         ((string-equal web-mode-cur-language "javascript")
+          (vr-skewer-eval-print-last-expression-or-region start end))
+         (t (message "Can't evaluate region in browser"))))
+    (message "Can only evaluate active regions")))
 
 ;; (defun vr-web-hs-default-toggle-hiding ()
 ;;   (interactive)
@@ -1817,35 +1962,6 @@ continuing (not first) item"
             (vr-web-hs-html)
           (vr-web-hs-default))
         (hs-toggle-hiding)))))
-
-(defun vr-web-skewer-eval-region (begin end)
-  (interactive "r")
-  (if (use-region-p)
-      (let ((web-mode-cur-language (web-mode-language-at-pos)))
-        (cond
-         ((string-equal web-mode-cur-language "javascript")
-          (skewer-eval (buffer-substring-no-properties begin end)
-                       #'skewer-post-minibuffer))
-         (t (message "Can't evaluate region in browser"))))
-    (message "Can only evaluate regions")))
-
-(defun vr-web-skewer-eval-print-region (begin end)
-  (interactive "r")
-  (if (use-region-p)
-      (let ((web-mode-cur-language (web-mode-language-at-pos)))
-        (cond
-         ((string-equal web-mode-cur-language "javascript")
-          (deactivate-mark)
-          (goto-char end)
-          (insert "\n")
-          (let* ((request (skewer-eval
-                           (buffer-substring-no-properties begin end)
-                           #'skewer-post-print :verbose t))
-                 (id (cdr (assoc 'id request)))
-                 (pos (cons (current-buffer) (point))))
-            (setf (cache-table-get id skewer-eval-print-map) pos)))
-         (t (message "Can't evaluate region in browser"))))
-    (message "Can only evaluate regions")))
 
 (defun vr-web-ac-setup ()
   (require 'ac-html)
@@ -1906,7 +2022,7 @@ continuing (not first) item"
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
 
   ;; sgml-skip-tag-forward is used in html code folding
-  (require 'sgml-mode)
+  ;; (require 'sgml-mode)
 
   (add-hook
    'web-mode-hook
@@ -1945,6 +2061,7 @@ continuing (not first) item"
 
 (setq org-replace-disputed-keys t)
 (setq org-completion-use-ido t)
+(setq org-support-shift-select t)
 (add-hook 'org-mode-hook
           (lambda ()
             (local-set-key (kbd "M-<kp-right>") 'org-metaright)
