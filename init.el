@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -871,7 +871,7 @@ fields which we need."
 
 (use-package hlinum
   :init
-  (hlinum-activate)
+  ;; (hlinum-activate)
   :ensure t)
 
 (use-package nlinum
@@ -960,9 +960,11 @@ fields which we need."
     (if (and (not enabled) enabling)
         (progn
           (set (make-local-variable 'vr-prog-modes) t)
-          (linum-mode 1)
+          ;; (linum-mode 1)
+          (nlinum-mode 1)
           (show-paren-local-mode 1)
           (hs-minor-mode 1)
+          ;; (fci-mode 1)
           (setq show-trailing-whitespace t)
           ;; (highlight-indent-guides-mode 1)
           ;; ;; Use case-sensitive search (buffer-local)
@@ -971,13 +973,22 @@ fields which we need."
           )
       (when (and enabled disabling)
         (kill-local-variable 'vr-prog-modes)
-        (linum-mode -1)
+        ;; (linum-mode -1)
+        (nlinum-mode -1)
         (show-paren-local-mode -1)
         (hs-minor-mode -1)
+        ;; (fci-mode -1)
         (setq show-trailing-whitespace nil)
         ;; (highlight-indent-guides-mode -1)
         ;; (message "Disabling programming modes")
         ))))
+
+;; == Magin Mode ==
+
+(use-package magit
+  :config
+  ;; (magit-auto-revert-mode -1)
+  :ensure t)
 
 ;; == GUD Mode ==
 
@@ -1325,7 +1336,7 @@ fields which we need."
   (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
   (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field)
 
-  
+
   (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
     (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
 
@@ -1401,7 +1412,7 @@ fields which we need."
   (if (vr-c++-looking-at-doxygen-group-head)
       (progn
         (move-beginning-of-line nil)
-        (let* ((beg (re-search-forward vr-c++-doxygen-group-open-token))
+        (let* ((beg (search-forward vr-c++-doxygen-group-open-token))
                (end (- (vr-c++-search-forward-doxygen-balanced-tail)
                        (length vr-c++-doxygen-group-close-token))))
           (hs-make-overlay beg end 'comment beg end)
@@ -1423,7 +1434,7 @@ fields which we need."
         (if hidden
             (progn
               (move-beginning-of-line nil)
-              (re-search-forward vr-c++-doxygen-group-open-token)
+              (search-forward vr-c++-doxygen-group-open-token)
               (if (not at-tail)
                   (hs-show-block)))
           (vr-c++-hs-hide-doxygen-group)))
@@ -1615,7 +1626,7 @@ continuing (not first) item"
          ;; (add-to-list 'hs-special-modes-alist
          ;;              '(c++-mode
          ;;                "///@{\\|{" "///@}\\|}" "##" nil nil))
-         
+
          ;; Build Solution - just like MSVS ;)
          (local-set-key (kbd "C-S-b") 'recompile)))))
 
@@ -1727,6 +1738,11 @@ continuing (not first) item"
 
   :ensure t)
 
+(use-package skewer-mode
+  :commands (skewer-mode skewer-css-mode skewer-html-mode)
+  :config (httpd-start)
+  :ensure t)
+
 (defun vr-skewer-eval-last-expression-or-region (start end)
   (interactive (vr-point-or-region))
   (if (/= start end)
@@ -1744,8 +1760,8 @@ continuing (not first) item"
         (skewer-eval string #'skewer-post-minibuffer)))))
 
 ;; The following (vr-skewer-eval-print-last-expression-or-region) requires
-;; cache-table from skewer package before evaluatio
-(require 'cache-table)
+;; cache-table from skewer package before evaluatiot
+;; (require 'cache-table)
 
 (defun vr-skewer-eval-print-last-expression-or-region (start end)
   (interactive (vr-point-or-region))
@@ -1774,11 +1790,6 @@ continuing (not first) item"
                (id (cdr (assoc 'id request)))
                (pos (cons (current-buffer) (point))))
           (setf (cache-table-get id skewer-eval-print-map) pos))))))
-
-(use-package skewer-mode
-  :commands (skewer-mode skewer-css-mode skewer-html-mode)
-  :config (httpd-start)
-  :ensure t)
 
 (use-package ac-js2
   :commands (ac-js2-mode)
@@ -1994,7 +2005,7 @@ continuing (not first) item"
    'web-mode-ac-sources-alist
    '("css" . (ac-source-css-property
               ac-source-words-in-same-mode-buffers)))
- 
+
   (add-hook
    'web-mode-before-auto-complete-hooks
    '(lambda ()
