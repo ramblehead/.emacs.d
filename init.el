@@ -1157,9 +1157,7 @@ fields which we need."
 ;; == RealGUD Mode ==
 
 (use-package realgud
-  ;; :commands
-  :config
-  :demand t
+  :disabled
   :pin melpa
   :ensure t)
 
