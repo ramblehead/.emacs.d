@@ -52,6 +52,8 @@
 ;;; Emacs Version Variables
 ;; ------------------------------------------------------------------
 
+;; (setq source-directory "~/rhpm/dotfiles/ubuntu-16.04-desktop/scripts/emacs-snapshot-94060-b7dfd39-emacs")
+
 (setq vr-emacs-version-string
       (replace-regexp-in-string
        "GNU Emacs \\([0-9]+.[0-9]+.[0-9]+\\).*" "\\1"
@@ -114,6 +116,7 @@
        (if (file-exists-p file-path)
            (add-to-list 'vr-site-start-file-paths file-path))
        (if (file-exists-p ver-file-path)
+
            (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
 
 (setq vr-smex-save-file
