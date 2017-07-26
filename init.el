@@ -125,6 +125,10 @@
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
+;; (let ((EMACSSRC (getenv "EMACSSRC")))
+;;   (when EMACSSRC
+;;     (setq source-directory EMACSSRC)))
+
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
@@ -275,7 +279,6 @@ when only symbol face names are needed."
 
 (add-to-list 'load-path vr-user-lisp-directory-path)
 (load vr-user-site-start-file-path nil t t)
-;; (load vr-usr-local-ver-site-start-file-path nil t t)
 
 (dolist (file-path vr-site-start-file-paths)
   (load file-path nil t t))
@@ -1163,6 +1166,8 @@ fields which we need."
 
 ;; == C++ Mode ==
 
+; https://github.com/ludwigpacifici/modern-cpp-font-lock
+
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
 (setq vr-project-dir-name ".project")
@@ -1830,7 +1835,7 @@ continuing (not first) item"
               (skewer-css-mode 1)
               (abbrev-mode -1)
               (yas-minor-mode 1)
-              (local-set-key (kbd "<f8>") 'vr-skewer-css-clear-all)
+              (local-set-key (kbd "<f6>") 'vr-skewer-css-clear-all)
               (local-set-key (kbd "<f5>")
                              'vr-skewer-css-eval-current-declaration))))
 
@@ -1932,13 +1937,17 @@ continuing (not first) item"
 
 (defun vr-web-skewer-eval-region (start end)
   (interactive "r")
-  (if (use-region-p)
-      (let ((web-mode-cur-language (web-mode-language-at-pos)))
+  (let ((web-mode-cur-language (web-mode-language-at-pos)))
+    (if (use-region-p)
         (cond
          ((string-equal web-mode-cur-language "javascript")
           (vr-skewer-eval-last-expression-or-region start end))
-         (t (message "Can't evaluate region in browser"))))
-    (message "Can only evaluate active regions")))
+         (t (message "Can't evaluate region in browser")))
+      (progn
+        (cond
+         ((string-equal web-mode-cur-language "css")
+          (vr-skewer-css-eval-current-declaration))
+         (t (message "Can't last expression in browser")))))))
 
 (defun vr-web-skewer-eval-print-region (start end)
   (interactive "r")
@@ -1949,6 +1958,12 @@ continuing (not first) item"
           (vr-skewer-eval-print-last-expression-or-region start end))
          (t (message "Can't evaluate region in browser"))))
     (message "Can only evaluate active regions")))
+
+(defun vr-web-skewer-css-clear-all ()
+  (interactive)
+  (let ((web-mode-cur-language (web-mode-language-at-pos)))
+    (when (string-equal web-mode-cur-language "css")
+      (skewer-css-clear-all))))
 
 ;; (defun vr-web-hs-default-toggle-hiding ()
 ;;   (interactive)
@@ -2036,6 +2051,7 @@ continuing (not first) item"
   (add-hook
    'web-mode-hook
    (lambda ()
+     (vr-programming-minor-modes t)
      (vr-web-ac-setup)
      (linum-mode 1)
      (show-paren-local-mode 1)
@@ -2044,10 +2060,12 @@ continuing (not first) item"
      ;; (abbrev-mode -1)
      (yas-minor-mode 1)
      (skewer-mode 1)
+     (skewer-css-mode 1)
 
      (local-set-key (kbd "<f5>") 'vr-web-skewer-eval-region)
      (local-set-key (kbd "M-<f5>") 'vr-web-skewer-eval-print-region)
      (local-set-key (kbd "S-<f5>") 'skewer-repl)
+     (local-set-key (kbd "<f6>") 'vr-web-skewer-css-clear-all)
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
      (local-set-key (kbd "C-M-n") 'forward-sexp)
