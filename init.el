@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -883,6 +883,10 @@ fields which we need."
 (use-package nlinum
   :init
   (setq nlinum-format "%4d ")
+  (setq nlinum-highlight-current-line t)
+  :ensure t)
+
+(use-package nlinum-hl
   :ensure t)
 
 ;; == Indentation highlighting ==
@@ -1170,6 +1174,10 @@ fields which we need."
 ;; == C++ Mode ==
 
 ; https://github.com/ludwigpacifici/modern-cpp-font-lock
+
+(use-package modern-cpp-font-lock
+  :pin melpa
+  :ensure t)
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
@@ -1602,6 +1610,9 @@ continuing (not first) item"
               0
             ad-do-it))))
 
+(defun vr-c++-font-lock-setup ()
+  (modern-c++-font-lock-mode 1))
+
 (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
 (add-hook
@@ -1615,6 +1626,7 @@ continuing (not first) item"
        (progn
          (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
          (vr-programming-minor-modes t)
+         (vr-c++-font-lock-setup)
          (vr-c++-indentation-setup)
          (vr-c++-yas-setup)
          (vr-c++-compilation-setup)
