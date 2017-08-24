@@ -1201,8 +1201,8 @@ fields which we need."
 ;; TODO: Find how to extract the following includes from rtags
 (setq vr-c++-include-path (split-string
                            "
-/home/rh/s600/s600-host/build/root/include
-/home/rh/s600/s600-host/server"))
+/home/ramblehead/s600-host/build/root/include
+/home/ramblehead/s600-host/server"))
 
 (defun vr-c++-get-project-path ()
   (let ((src-tree-root (locate-dominating-file
@@ -1256,6 +1256,11 @@ fields which we need."
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'
   ;; (setq rtags-process-flags "-M")
+  ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
+  ;; for gcc-toolchain explanations
+  (setq rtags-process-flags
+        (concat "--default-argument"
+                " \"--gcc-toolchain=/home/ramblehead/clang-gcc-toolchain\""))
   (setq rtags-autostart-diagnostics t)
   (rtags-start-process-unless-running)
 
