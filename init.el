@@ -396,19 +396,10 @@ when only symbol face names are needed."
 ;; (i.e. non-persistent selection)
 (delete-selection-mode t)
 
-;; Selection behaviour as in MS Windows Notepad etc.
-(defun kill-ring-save-keep-mark (BEG END)
-  "For emacs-style selection (e.g. \\[set-mark-command]),
-deactivate mark after `kill-ring-save' (i.e. copy). This is
-standard emacs behaviour. For 'MS Windows Notepad'-style
-selection (e.g. S-arrows), keep mark activated after
-`kill-ring-save' (i.e. copy)."
-  (interactive "r")
-  (prog1 (kill-ring-save BEG END)
-    (if (eq (car-safe transient-mark-mode) 'only)
-        (setq deactivate-mark nil))))
+(defun vr-kill-ring-save-after-keep-mark (&rest _)
+  (setq deactivate-mark nil))
 
-(global-set-key [remap kill-ring-save] 'kill-ring-save-keep-mark)
+(advice-add 'kill-ring-save :after #'vr-kill-ring-save-after-keep-mark)
 
 ;; see https://www.emacswiki.org/emacs/KillingAndYanking
 (defun yank-pop-forwards (arg)
@@ -883,7 +874,7 @@ fields which we need."
 (use-package nlinum
   :init
   (setq nlinum-format "%4d ")
-  (setq nlinum-highlight-current-line t)
+  ;; (setq nlinum-highlight-current-line t)
   :ensure t)
 
 (use-package nlinum-hl
@@ -1198,11 +1189,24 @@ fields which we need."
                                     end-pos)))
     (split-string include-string)))
 
-;; TODO: Find how to extract the following includes from rtags
-(setq vr-c++-include-path (split-string
-                           "
-/home/ramblehead/s600-host/build/root/include
-/home/ramblehead/s600-host/server"))
+;; ;; TODO: Find how to extract the following includes from rtags
+;; (setq vr-c++-include-path (split-string
+;;                            "
+;; /home/ramblehead/s600/s600-host/build/root/include
+;; /home/ramblehead/s600/s600-host/server"))
+
+(defun vr-c++-get-project-include-path ()
+  (let* ((project-path (vr-c++-get-project-path))
+         (src-tree-root (concat project-path "../"))
+         (c++-include-path (concat project-path "c++-include-path")))
+    (when (and project-path (file-exists-p c++-include-path))
+      (setq src-tree-root (file-truename src-tree-root))
+      (with-temp-buffer
+        (insert-file-contents c++-include-path)
+        (mapcar (lambda (item)
+                  (replace-regexp-in-string
+                   (regexp-quote "../") src-tree-root item nil 'literal))
+                (split-string (buffer-string)))))))
 
 (defun vr-c++-get-project-path ()
   (let ((src-tree-root (locate-dominating-file
@@ -1276,10 +1280,11 @@ fields which we need."
    (lambda ()
      ;; (when (rtags-is-indexed)
      ;;   (set (make-local-variable 'header-line-format)
-     ;;        '(:eval (vr-c++-header-line)))))
+     ;;        '(:eval (vr-c++-header-line))))
 
      (set (make-local-variable 'header-line-format)
-          '(:eval (vr-c++-header-line))))
+          '(:eval (vr-c++-header-line)))
+     )
    nil t)
 
   (custom-set-faces
@@ -1312,10 +1317,10 @@ fields which we need."
   ;; see https://github.com/mooz/auto-complete-c-headers
   (require 'auto-complete-c-headers)
   ;; #include auto-completion search paths
-  (setq achead:include-directories
-        (append vr-c++-include-path
-                (vr-get-g++-isystem-path)
-                achead:include-directories))
+  (set (make-local-variable 'achead:include-directories)
+       (append (vr-c++-get-project-include-path)
+               (vr-get-g++-isystem-path)
+               achead:include-directories))
 
   ;; 'rtags-ac' is not as polished as 'auto-complete-clang',
   ;; so using 'auto-complete-clang'
@@ -1328,22 +1333,24 @@ fields which we need."
   ;; i.e. 'echo "" | g++ -v -x c++ -E -'
   ;; (setq clang-completion-suppress-error 't)
   ;; (setq ac-clang-executable (executable-find "clang-3.6"))
-  (setq ac-clang-flags (append `(,vr-c++std)
-                               (mapcar (lambda (item) (concat "-I" item))
-                                       vr-c++-include-path)
-                               (mapcar (lambda (item) (concat "-isystem" item))
-                                       (vr-get-g++-isystem-path))))
-  (setq ac-sources
-        (append '(ac-source-c-headers
-                  ;; Dynamic auto-completion is slow and interferes with typing,
-                  ;; whether it is 'c-source-clang' or 'ac-source-rtags',
-                  ;; therefore it is only activated on 'C-x C-<tab>' (see key
-                  ;; definitions below in this function) in
-                  ;; 'vr-c++-auto-complete-clang' function.
-                  ;; ac-source-clang
-                  ;; ac-source-rtags
-                  )
-                ac-sources))
+  (set (make-local-variable 'ac-clang-flags)
+       (append `(,vr-c++std)
+               (mapcar (lambda (item) (concat "-I" item))
+                       (vr-c++-get-project-include-path))
+               (mapcar (lambda (item) (concat "-isystem" item))
+                       (vr-get-g++-isystem-path))))
+
+  (set (make-local-variable 'ac-sources)
+       (append '(ac-source-c-headers
+                 ;; Dynamic auto-completion is slow and interferes with typing,
+                 ;; whether it is 'c-source-clang' or 'ac-source-rtags',
+                 ;; therefore it is only activated on 'C-x C-<tab>' (see key
+                 ;; definitions below in this function) in
+                 ;; 'vr-c++-auto-complete-clang' function.
+                 ;; ac-source-clang
+                 ;; ac-source-rtags
+                 )
+               ac-sources))
 
   (let ((local-yas-minor-mode-map (copy-keymap yas-minor-mode-map)))
     (set (make-local-variable 'yas-minor-mode-map) local-yas-minor-mode-map))
@@ -2019,7 +2026,7 @@ continuing (not first) item"
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'"
+  :mode "\\.html\\'\\|\\.mako\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
