@@ -2063,6 +2063,7 @@ continuing (not first) item"
   (setq web-mode-block-padding 2)
 
   (setq web-mode-enable-current-element-highlight t)
+  (setq web-mode-enable-auto-indentation nil)
 
   (setq web-mode-comment-formats
         (remove-if (lambda (comment-format)
