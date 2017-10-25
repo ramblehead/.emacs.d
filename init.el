@@ -846,11 +846,28 @@ fields which we need."
 
 (defun vr-ac-start-if-ac-mode ()
   (interactive)
-  (if auto-complete-mode
-      (auto-complete)
-    ;; Should change the following code to
-    ;; fall back to default "C-<tab>" behaviour.
-    (message "No auto-completion mode running or nothing to complete.")))
+  (cond
+   ((vr-c++-looking-at-auto-code-group-head-or-tail)
+    (vr-c++-generate-auto-code-group))
+   ((bound-and-true-p auto-complete-mode)
+    (auto-complete))
+
+    ;; (ignore-errors
+    ;;   (auto-complete))
+    ;; nil)
+
+    ;; (unwind-protect
+    ;;     (auto-complete)
+    ;;   (message "Cleaning up...")))
+
+    ;; (message "Cleaning up..."))
+   (t
+    (message "No auto-completion is running or nothing to complete.")))
+
+  ;; (if (bound-and-true-p auto-complete-mode)
+  ;;     (auto-complete)
+  ;;   (message "No auto-completion running or nothing to complete."))
+  )
 
 (global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
@@ -858,6 +875,17 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Programming Languages, Debuggers, Profilers etc.
 ;; -------------------------------------------------------------------
+
+;; == code-groups ==
+
+(setq vr-c++-doxygen-group-open-token "///@{")
+(setq vr-c++-doxygen-group-close-token "///@}")
+
+(setq vr-c++-auto-code-group-open-token "/a/{")
+(setq vr-c++-auto-code-group-close-token "/a/}")
+
+(setq vr-c++-custom-code-group-open-token "/c/{")
+(setq vr-c++-custom-code-group-close-token "/c/}")
 
 ;; == Line numbering ==
 
@@ -886,6 +914,7 @@ fields which we need."
   :ensure t)
 
 ;; == Code folding ==
+
 (require 'hideshow)
 (setq hs-allow-nesting t)
 (setq hs-isearch-open t)
@@ -901,7 +930,7 @@ fields which we need."
 ;; The timer will do nothing if this is nil.
 (setq show-paren-mode nil)
 
-(defun* show-paren-local-mode (&optional (value nil value-supplied-p))
+(cl-defun show-paren-local-mode (&optional (value nil value-supplied-p))
   (interactive)
   ;; The value of show-paren-mode will be local to this buffer.
   (if (not (local-variable-p 'show-paren-mode))
@@ -912,7 +941,7 @@ fields which we need."
       (setq show value))
     (setq show-paren-mode show)))
 
-;; (defun* vr-programming-minor-modes (&optional (value nil value-supplied-p))
+;; (cl-defun vr-programming-minor-modes (&optional (value nil value-supplied-p))
 ;;   "Enables some minor modes, useful for programming."
 ;;   (interactive)
 ;;   (if (null value-supplied-p)
@@ -951,7 +980,7 @@ fields which we need."
 ;;           (show-paren-local-mode nil)
 ;;           (hs-minor-mode -1))))))
 
-(defun* vr-programming-minor-modes (&optional (enable nil enable-supplied-p))
+(cl-defun vr-programming-minor-modes (&optional (enable nil enable-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
   (let* ((toggle (not enable-supplied-p))
@@ -984,7 +1013,7 @@ fields which we need."
         ;; (message "Disabling programming modes")
         ))))
 
-;; == Magin Mode ==
+;; == Magit Mode ==
 
 (use-package magit
   :config
@@ -1195,12 +1224,61 @@ fields which we need."
 ;; /home/ramblehead/s600/s600-host/build/root/include
 ;; /home/ramblehead/s600/s600-host/server"))
 
+(defun vr-c++-get-project-generators-path ()
+  (let ((generators-path (concat
+                          (vr-c++-get-project-path)
+                          "../generators/")))
+    (when (file-directory-p generators-path)
+      (expand-file-name generators-path))))
+
+(defun vr-c++-generate-auto-code (data template)
+  (let* ((generators-path (vr-c++-get-project-generators-path))
+         (code-gen (concat generators-path "auto-code")))
+    (when (and generators-path
+               (file-exists-p code-gen))
+      (setq code-gen (concat code-gen " " data " " template))
+      (message (insert (shell-command-to-string code-gen))))))
+
+(defun vr-c++-generate-auto-code-group ()
+  (interactive)
+  (let* ((current-line (thing-at-point 'line t))
+         (open-token vr-c++-auto-code-group-open-token)
+         (close-token vr-c++-auto-code-group-close-token)
+         (desc-regex (concat
+                      "[[:blank:]]*auto-code[[:blank:]]+"
+                      "\\([^[:blank:]]+\\)[[:blank:]]+\\([^[:blank:]]+\\)"
+                      ".*[\r\n]?$"))
+         (open-regex (concat "^.*" open-token desc-regex))
+         (close-regex (concat "^.*" close-token desc-regex))
+         (data)
+         (template))
+    (when (string-match close-regex current-line)
+      (vr-c++-search-backward-group-balanced-head)
+      (setq current-line (thing-at-point 'line t)))
+    (when (string-match open-regex current-line)
+      (setq data (replace-regexp-in-string open-regex "\\1" current-line))
+      (setq template
+            (concat
+             (replace-regexp-in-string open-regex "\\2" current-line)
+             ".mako"))
+      (let ((start) (end))
+        (move-beginning-of-line 2)
+        (setq start (point))
+        (previous-line)
+        (vr-c++-search-forward-group-balanced-tail)
+        (move-beginning-of-line nil)
+        (setq end (point))
+        (goto-char start)
+        (delete-region start end))
+      (vr-c++-generate-auto-code data template))))
+
 (defun vr-c++-get-project-include-path ()
   (let* ((project-path (vr-c++-get-project-path))
          (src-tree-root (concat project-path "../"))
          (c++-include-path (concat project-path "c++-include-path")))
     (when (and project-path (file-exists-p c++-include-path))
-      (setq src-tree-root (file-truename src-tree-root))
+      ;; (setq src-tree-root (file-truename src-tree-root))
+      (setq src-tree-root (expand-file-name src-tree-root))
       (with-temp-buffer
         (insert-file-contents c++-include-path)
         (mapcar (lambda (item)
@@ -1370,119 +1448,205 @@ fields which we need."
   (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang)
   (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang))
 
-(setq vr-c++-doxygen-group-open-token "///@{")
+(defun vr-c++-group-head-regexp (open-token)
+  (concat "^.*" open-token ".*$"))
 
-(setq vr-c++-doxygen-group-close-token "///@}")
+(defun vr-c++-group-tail-regexp (close-token)
+  (concat "^.*" close-token ".*$"))
 
-(setq vr-c++-doxygen-group-head-regexp
-      (concat "^[[:space:]]*" vr-c++-doxygen-group-open-token "[:space:]*$"))
+(defun vr-c++-looking-at-group-head (open-token)
+  (if (string-match
+       (concat "^.*" open-token ".*$")
+       (thing-at-point 'line t))
+      open-token))
 
-(setq vr-c++-doxygen-group-tail-regexp
-      (concat "^[[:space:]]*" vr-c++-doxygen-group-close-token "[:space:]*$"))
+(defun vr-c++-looking-at-group-tail (close-token)
+  (if (string-match
+       (concat "^.*" close-token ".*$")
+       (thing-at-point 'line t))
+      close-token))
 
-(defun vr-c++-looking-at-doxygen-group-head ()
-  (string-match vr-c++-doxygen-group-head-regexp (thing-at-point 'line t)))
+(defun vr-c++-group-head-or-tail-length (token line)
+  (length
+   (replace-regexp-in-string
+    (concat "^.*\\(" token ".*\\)[\r\n]?$")
+    "\\1"
+    line)))
 
-(defun vr-c++-looking-at-doxygen-group-tail ()
-  (string-match vr-c++-doxygen-group-tail-regexp (thing-at-point 'line t)))
+(defun vr-c++-group-reverse-token (token)
+  (cond
+   ((string= vr-c++-doxygen-group-open-token token)
+    vr-c++-doxygen-group-close-token)
+   ((string= vr-c++-doxygen-group-close-token token)
+    vr-c++-doxygen-group-open-token)
+   ((string= vr-c++-auto-code-group-open-token token)
+    vr-c++-auto-code-group-close-token)
+   ((string= vr-c++-auto-code-group-close-token token)
+    vr-c++-auto-code-group-open-token)
+   ((string= vr-c++-custom-code-group-open-token token)
+    vr-c++-custom-code-group-close-token)
+   ((string= vr-c++-custom-code-group-close-token token)
+    vr-c++-custom-code-group-open-token)))
 
-(defun vr-c++-search-backward-doxygen-balanced-head ()
-  (if (vr-c++-looking-at-doxygen-group-tail)
-      (progn
-        (move-beginning-of-line nil)
-        (if (vr-c++-looking-at-doxygen-group-head)
-            (forward-char (length vr-c++-doxygen-group-open-token)))))
-  (let ((pos nil)
-        (found nil)
-        (skip-tail 0))
-    (while (and (not found)
-                (setq pos (re-search-backward
-                           (concat vr-c++-doxygen-group-head-regexp
-                                   "\\|"
-                                   vr-c++-doxygen-group-tail-regexp))))
-      (if (vr-c++-looking-at-doxygen-group-tail)
-          (incf skip-tail)
-        (if (<= skip-tail 0)
-            (setq found t)
-          (decf skip-tail))))
-    (when (vr-c++-looking-at-doxygen-group-head)
+(defun vr-c++-looking-at-auto-code-group-head-or-tail ()
+  (cond ((vr-c++-looking-at-group-head
+          vr-c++-auto-code-group-open-token)
+         vr-c++-auto-code-group-open-token)
+        ((vr-c++-looking-at-group-head
+          vr-c++-auto-code-group-close-token)
+         vr-c++-auto-code-group-close-token)))
+
+(defun vr-c++-looking-at-any-group-head ()
+  (cond ((vr-c++-looking-at-group-head
+          vr-c++-doxygen-group-open-token)
+         vr-c++-doxygen-group-open-token)
+        ((vr-c++-looking-at-group-head
+          vr-c++-auto-code-group-open-token)
+         vr-c++-auto-code-group-open-token)
+        ((vr-c++-looking-at-group-head
+          vr-c++-custom-code-group-open-token)
+         vr-c++-custom-code-group-open-token)))
+
+(defun vr-c++-looking-at-any-group-head ()
+  (cond ((vr-c++-looking-at-group-head
+          vr-c++-doxygen-group-open-token)
+         vr-c++-doxygen-group-open-token)
+        ((vr-c++-looking-at-group-head
+          vr-c++-auto-code-group-open-token)
+         vr-c++-auto-code-group-open-token)
+        ((vr-c++-looking-at-group-head
+          vr-c++-custom-code-group-open-token)
+         vr-c++-custom-code-group-open-token)))
+
+(defun vr-c++-looking-at-any-group-tail ()
+  (cond ((vr-c++-looking-at-group-tail
+          vr-c++-doxygen-group-close-token)
+         vr-c++-doxygen-group-close-token)
+        ((vr-c++-looking-at-group-tail
+          vr-c++-auto-code-group-close-token)
+         vr-c++-auto-code-group-close-token)
+        ((vr-c++-looking-at-group-tail
+          vr-c++-custom-code-group-close-token)
+         vr-c++-custom-code-group-close-token)))
+
+(defun vr-c++-search-backward-group-balanced-head ()
+  (let ((open-token)
+        (close-token))
+    (setq close-token (vr-c++-looking-at-any-group-tail))
+    (when close-token
+      (setq open-token (vr-c++-group-reverse-token close-token))
+      (move-beginning-of-line nil)
+      (if (vr-c++-looking-at-group-head open-token)
+          (forward-char (vr-c++-group-head-or-tail-length
+                         open-token (thing-at-point 'line t)))
+        (let ((pos nil)
+              (found nil)
+              (skip-tail 0))
+          (while (and (not found)
+                      (setq pos (re-search-backward
+                                 (concat (vr-c++-group-head-regexp open-token)
+                                         "\\|"
+                                         (vr-c++-group-tail-regexp close-token)))))
+            (if (vr-c++-looking-at-group-tail close-token)
+                (incf skip-tail)
+              (if (<= skip-tail 0)
+                  (setq found t)
+                (decf skip-tail))))
+          (when (vr-c++-looking-at-group-head open-token)
+            (move-end-of-line nil)
+            (backward-char (vr-c++-group-head-or-tail-length
+                            open-token (thing-at-point 'line t))))
+          (point))))))
+
+(defun vr-c++-search-forward-group-balanced-tail ()
+  (let ((open-token)
+        (close-token))
+    (setq open-token (vr-c++-looking-at-any-group-head))
+    (when open-token
+      (setq close-token (vr-c++-group-reverse-token open-token))
       (move-end-of-line nil)
-      (backward-char (length vr-c++-doxygen-group-open-token)))
-    (point)))
+      (if (vr-c++-looking-at-group-tail close-token)
+          (forward-char (vr-c++-group-head-or-tail-length
+                         close-token (thing-at-point 'line t)))
+        (let ((pos nil)
+              (found nil)
+              (skip-tail 0))
+          (while (and (not found)
+                      (setq pos (re-search-forward
+                                 (concat (vr-c++-group-head-regexp open-token)
+                                         "\\|"
+                                         (vr-c++-group-tail-regexp close-token)))))
+            (if (vr-c++-looking-at-group-head open-token)
+                (incf skip-tail)
+              (if (<= skip-tail 0)
+                  (setq found t)
+                (decf skip-tail))))
+          pos)))))
 
-(defun vr-c++-search-forward-doxygen-balanced-tail ()
-  (if (vr-c++-looking-at-doxygen-group-head)
-      (progn
-        (move-end-of-line nil)
-        (if (vr-c++-looking-at-doxygen-group-tail)
-            (backward-char (length vr-c++-doxygen-group-close-token)))))
-  (let ((pos nil)
-        (found nil)
-        (skip-tail 0))
-    (while (and (not found)
-                (setq pos (re-search-forward
-                           (concat vr-c++-doxygen-group-head-regexp
-                                   "\\|"
-                                   vr-c++-doxygen-group-tail-regexp))))
-      (if (vr-c++-looking-at-doxygen-group-head)
-          (incf skip-tail)
-        (if (<= skip-tail 0)
-            (setq found t)
-          (decf skip-tail))))
-    pos))
-
-(defun vr-c++-hs-hide-doxygen-group ()
+(defun vr-c++-hs-hide-group ()
   (interactive)
-  (if (vr-c++-looking-at-doxygen-group-tail)
-      (vr-c++-search-backward-doxygen-balanced-head))
-  (if (vr-c++-looking-at-doxygen-group-head)
-      (progn
-        (move-beginning-of-line nil)
-        (let* ((beg (search-forward vr-c++-doxygen-group-open-token))
-               (end (- (vr-c++-search-forward-doxygen-balanced-tail)
-                       (length vr-c++-doxygen-group-close-token))))
-          (hs-make-overlay beg end 'comment beg end)
-          (goto-char beg)))))
+  (let ((open-token)
+        (close-token))
+    (when (vr-c++-looking-at-any-group-tail)
+      (vr-c++-search-backward-group-balanced-head))
+    (setq open-token (vr-c++-looking-at-any-group-head))
+    (when open-token
+      (setq close-token (vr-c++-group-reverse-token open-token))
+      (move-beginning-of-line nil)
+      (let* ((beg (search-forward open-token))
+             (end (- (vr-c++-search-forward-group-balanced-tail)
+                     (vr-c++-group-head-or-tail-length
+                      close-token (thing-at-point 'line t)))))
+        (hs-make-overlay beg end 'comment beg end)
+        (goto-char beg)))))
 
 (defun vr-c++-hs-toggle-hiding ()
   (interactive)
-  (if (or (vr-c++-looking-at-doxygen-group-head)
-          (vr-c++-looking-at-doxygen-group-tail))
-      (let ((hidden nil)
-            (at-tail (vr-c++-looking-at-doxygen-group-tail)))
-        (save-excursion
-          (move-beginning-of-line nil)
-          (if (vr-c++-looking-at-doxygen-group-head)
+  (let ((open-token)
+        (close-token))
+    (setq open-token (vr-c++-looking-at-any-group-head))
+    (if open-token
+        (setq close-token (vr-c++-group-reverse-token open-token))
+      (progn
+        (setq close-token (vr-c++-looking-at-any-group-tail))
+        (when close-token
+          (setq open-token (vr-c++-group-reverse-token close-token)))))
+    (if open-token
+        (let ((hidden nil)
+              (at-tail (vr-c++-looking-at-group-tail close-token)))
+          (save-excursion
+            (move-beginning-of-line nil)
+            (if (vr-c++-looking-at-group-head open-token)
+                (progn
+                  (move-end-of-line nil)
+                  (if (vr-c++-looking-at-group-tail close-token)
+                      (setq hidden t)))))
+          (if hidden
               (progn
-                (move-end-of-line nil)
-                (if (vr-c++-looking-at-doxygen-group-tail)
-                    (setq hidden t)))))
-        (if hidden
-            (progn
-              (move-beginning-of-line nil)
-              (search-forward vr-c++-doxygen-group-open-token)
-              (if (not at-tail)
-                  (hs-show-block)))
-          (vr-c++-hs-hide-doxygen-group)))
-    (hs-toggle-hiding)))
+                (move-beginning-of-line nil)
+                (search-forward open-token)
+                (if (not at-tail)
+                    (hs-show-block)))
+            (vr-c++-hs-hide-group)))
+      (hs-toggle-hiding))))
 
 (defun vr-c++-forward-list ()
   (interactive)
-  (if (vr-c++-looking-at-doxygen-group-head)
+  (if (vr-c++-looking-at-any-group-head)
       ;; (unwind-protect
       ;;     (let (result)
       ;;       (condition-case ex
-      ;;           (setq result (vr-c++-search-forward-doxygen-balanced-tail))
+      ;;           (setq result (vr-c++-search-forward-group-balanced-tail))
       ;;         ('error (message (format "Caught exception: [%s]" ex))))
       ;;       result)
       ;;   (message "Cleaning up..."))
-      (vr-c++-search-forward-doxygen-balanced-tail)
+      (vr-c++-search-forward-group-balanced-tail)
     (forward-list)))
 
 (defun vr-c++-backward-list ()
   (interactive)
-  (if (vr-c++-looking-at-doxygen-group-tail)
-      (vr-c++-search-backward-doxygen-balanced-head)
+  (if (vr-c++-looking-at-any-group-tail)
+      (vr-c++-search-backward-group-balanced-head)
     (backward-list)))
 
 (defun vr-c++-code-folding-setup ()
@@ -2391,7 +2555,7 @@ with very limited support for special characters."
 ;; ;; "flyspell-mode nil" is recognized as no parameters and toggles the
 ;; ;; mode instead of deactivating it.  Thus "flyspell-mode 0" and
 ;; ;; "flyspell-mode 1" are used instead.
-;; (defun* smart-flyspell-mode (&optional (value nil value-supplied-p))
+;; (cl-defun smart-flyspell-mode (&optional (value nil value-supplied-p))
 ;;   (interactive)
 ;;   (let ((prog-mode (if (local-variable-p 'vr-prog-mode) t nil))
 ;;         (flyspell-on (if (and (boundp 'flyspell-mode) flyspell-mode) t nil)))
