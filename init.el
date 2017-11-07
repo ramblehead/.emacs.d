@@ -1449,7 +1449,7 @@ fields which we need."
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
-(setq vr-c++std "-std=c++14")
+(setq vr-c++std "-std=c++1z")
 
 ;; TODO: Use rtags or .project to get current compiler
 ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
