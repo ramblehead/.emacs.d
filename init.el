@@ -1534,7 +1534,8 @@ fields which we need."
          (down-window (window-in-direction 'below))
          (down-windows-preserved '())
          (rtags-references-tree-result nil))
-    (when down-window
+    (when (and down-window
+               (not (rtags-is-rtags-buffer (window-buffer down-window))))
       (setq down-height-orig (window-height down-window))
       (select-window down-window)
       (while (and (window-in-direction 'below)
@@ -1546,7 +1547,9 @@ fields which we need."
         (window-preserve-size nil nil t))
       (select-window up-window))
     (setq rtags-references-tree-result (rtags-references-tree))
-    (when down-window
+    (setq down-window (window-in-direction 'below))
+    (when (and down-window
+               (not (rtags-is-rtags-buffer (window-buffer down-window))))
       (setq down-height-new (window-height down-window))
       (if (> down-height-new down-height-orig)
           (adjust-window-trailing-edge
