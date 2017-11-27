@@ -201,8 +201,10 @@
               (set (make-local-variable 'window-min-height) min-height)
               ;; (window-preserve-size buffer-window nil t)
               )
-            (set-window-dedicated-p
-             (display-buffer buffer-name) t)))
+            ;; (set-window-dedicated-p
+            ;;  (display-buffer buffer-name) t)
+            (display-buffer buffer-name)
+            ))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
@@ -1610,6 +1612,13 @@ fields which we need."
                  (display-buffer-below-selected)
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
+
+  (add-to-list 'display-buffer-alist
+               '("*rdm*"
+                 (display-buffer-in-side-window)
+                 (side . top)
+                 (inhibit-same-window . t)
+                 (window-height . 4)))
 
   (defun rtags-select (&optional other-window remove show)
     (interactive "P")
@@ -3218,8 +3227,8 @@ with very limited support for special characters."
   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
   (push '("*skewer-repl*" :stick t) popwin:special-display-config)
   ;; (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
-  (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
-        popwin:special-display-config)
+  ;; (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
+  ;;       popwin:special-display-config)
 
   ;; see https://www.emacswiki.org/emacs/OneWindow
   ;; (add-to-list 'same-window-buffer-names "*Help*")
