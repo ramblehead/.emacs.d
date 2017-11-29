@@ -1526,11 +1526,13 @@ fields which we need."
   ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
   ;; for gcc-toolchain explanations
   (setq rtags-process-flags
-        (concat "--default-argument"
-                " \"--gcc-toolchain=/home/ramblehead/clang-gcc-toolchain\""))
+        ;; (concat "--default-argument"
+        ;;         " \"--gcc-toolchain=/home/ramblehead/clang-gcc-toolchain\""))
+        (concat "--default-argument \"--gcc-toolchain="
+                (expand-file-name "clang-gcc-toolchain" "~")
+                "/\""))
   (setq rtags-autostart-diagnostics t)
   (rtags-start-process-unless-running)
-
   ;; Does not work with my clang-auto-complete setting
   ;; (setq rtags-display-current-error-as-tooltip t)
 
