@@ -190,21 +190,15 @@
         (when (string-match regexp str)
           (throw 'done t))))))
 
-(defun vr-toggle-display (buffer-name &optional min-height)
+(cl-defun vr-toggle-display (buffer-name &optional (dedicated nil))
   (let* ((buffer (get-buffer buffer-name))
          (buffer-window (get-buffer-window buffer-name)))
     (if buffer
         (if buffer-window
             (delete-window buffer-window)
-          (progn
-            (when min-height
-              (set (make-local-variable 'window-min-height) min-height)
-              ;; (window-preserve-size buffer-window nil t)
-              )
-            ;; (set-window-dedicated-p
-            ;;  (display-buffer buffer-name) t)
-            (display-buffer buffer-name)
-            ))
+          (if dedicated
+              (set-window-dedicated-p (display-buffer buffer-name) t)
+            (display-buffer buffer-name)))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
@@ -539,6 +533,21 @@ when only symbol face names are needed."
   ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
 
   :ensure t)
+
+;; picture-mode
+
+(use-package picture-mode
+  :init
+
+  (add-hook
+   'picture-mode-hook
+   (lambda ()
+     (set (make-local-variable 'vr-picture-show-trailing-whitespace)
+          show-trailing-whitespace)
+     (setq show-trailing-whitespace nil))
+
+   (defadvice picture-mode-exit (after vr-picture-mode-exit (&optional nostrip))
+     (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
 
 ;; -------------------------------------------------------------------
 ;;; File Management
@@ -1366,7 +1375,8 @@ fields which we need."
   (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
   (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step)
 
-  :ensure t)
+  ;; :ensure t
+  )
 
 ;; (gdb-registers-buffer      gdb-registers-buffer-name   gdb-registers-mode   gdb-invalidate-registers  )
 ;; (gdb-locals-buffer         gdb-locals-buffer-name      gdb-locals-mode      gdb-invalidate-locals     )
@@ -1433,7 +1443,8 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise)
 
-  :ensure t)
+  ;; :ensure t
+  )
 
 ;; == RealGUD Mode ==
 
@@ -1524,42 +1535,41 @@ fields which we need."
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
-  (vr-toggle-display "*rdm*" 6))
+  (vr-toggle-display "*rdm*"))
 
-
-(defun vr-c++rtags-references-tree ()
-  (interactive)
-  (let* ((up-window (selected-window))
-         (up-window-parent (window-parent up-window))
-         (down-height-orig -1)
-         (down-height-new -1)
-         (down-window (window-in-direction 'below))
-         (down-windows-preserved '())
-         (rtags-references-tree-result nil))
-    (when (and down-window
-               (not (rtags-is-rtags-buffer (window-buffer down-window))))
-      (setq down-height-orig (window-height down-window))
-      (select-window down-window)
-      (while (and (window-in-direction 'below)
-                  (eq up-window-parent
-                      (window-parent (window-in-direction 'below))))
-        (select-window (window-in-direction 'below))
-        (push (cons (selected-window) (window-preserved-size nil nil))
-              down-windows-preserved)
-        (window-preserve-size nil nil t))
-      (select-window up-window))
-    (setq rtags-references-tree-result (rtags-references-tree))
-    (setq down-window (window-in-direction 'below))
-    (when (and down-window
-               (not (rtags-is-rtags-buffer (window-buffer down-window))))
-      (setq down-height-new (window-height down-window))
-      (if (> down-height-new down-height-orig)
-          (adjust-window-trailing-edge
-           up-window
-           (- down-height-new down-height-orig)))
-      (dolist (pair down-windows-preserved)
-        (window-preserve-size (car pair) nil (cdr pair))))
-    rtags-references-tree-result))
+;; (defun vr-c++rtags-references-tree ()
+;;   (interactive)
+;;   (let* ((up-window (selected-window))
+;;          (up-window-parent (window-parent up-window))
+;;          (down-height-orig -1)
+;;          (down-height-new -1)
+;;          (down-window (window-in-direction 'below))
+;;          (down-windows-preserved '())
+;;          (rtags-references-tree-result nil))
+;;     (when (and down-window
+;;                (not (rtags-is-rtags-buffer (window-buffer down-window))))
+;;       (setq down-height-orig (window-height down-window))
+;;       (select-window down-window)
+;;       (while (and (window-in-direction 'below)
+;;                   (eq up-window-parent
+;;                       (window-parent (window-in-direction 'below))))
+;;         (select-window (window-in-direction 'below))
+;;         (push (cons (selected-window) (window-preserved-size nil nil))
+;;               down-windows-preserved)
+;;         (window-preserve-size nil nil t))
+;;       (select-window up-window))
+;;     (setq rtags-references-tree-result (rtags-references-tree))
+;;     (setq down-window (window-in-direction 'below))
+;;     (when (and down-window
+;;                (not (rtags-is-rtags-buffer (window-buffer down-window))))
+;;       (setq down-height-new (window-height down-window))
+;;       (if (> down-height-new down-height-orig)
+;;           (adjust-window-trailing-edge
+;;            up-window
+;;            (- down-height-new down-height-orig)))
+;;       (dolist (pair down-windows-preserved)
+;;         (window-preserve-size (car pair) nil (cdr pair))))
+;;     rtags-references-tree-result))
 
 ;; TODO: investigave rtags settings refactoring to use flycheck,
 ;; and use-package using the following guide
@@ -1578,13 +1588,14 @@ fields which we need."
   (setq rtags-autostart-diagnostics t)
   (rtags-start-process-unless-running)
 
-  ;; Does not work with my clang-auto-complete setting
+  ;; Does not work with my clang-auto-complete settings
   ;; (setq rtags-display-current-error-as-tooltip t)
 
   ;; Display current function name at the top of the window (header-line).
   ;; https://github.com/Andersbakken/rtags/issues/435
   (set (make-local-variable 'rtags-cached-current-container) "")
   (setq rtags-track-container t)
+
   (add-hook
    'find-file-hook
    (lambda ()
@@ -1605,7 +1616,7 @@ fields which we need."
 
   ;; (setq rtags-display-result-backend 'helm)
 
-  ;; Idea is taken from:
+  ;; The idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
                '("*RTags*"
@@ -1731,12 +1742,6 @@ fields which we need."
                    (shrink-window-if-larger-than-buffer)
                    t)))))))
 
-  ;; (defun vr-c++-rtags-references-tree ()
-  ;;   (interactive)
-  ;;   (split-window-below)
-  ;;   (select-window (next-window))
-  ;;   (rtags-references-tree))
-
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
@@ -1745,7 +1750,8 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
-  (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
+  (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
   (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
   ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
   ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
@@ -2246,15 +2252,28 @@ continuing (not first) item"
     (add-hook hook 'elisp-slime-nav-mode))
   (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark))
 
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (vr-programming-minor-modes)
-            (eldoc-mode 1)
-            (vr-elisp-slime-nav-setup)
-            (set (make-local-variable 'vr-elisp-mode) t)
-            (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
-            (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
-            (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+(add-hook
+ 'emacs-lisp-mode-hook
+ (lambda ()
+   (vr-programming-minor-modes)
+   (eldoc-mode 1)
+   (vr-elisp-slime-nav-setup)
+   (set (make-local-variable 'vr-elisp-mode) t)
+   (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
+   (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
+   (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+
+;; == Python Mode ==
+
+(use-package python-mode
+  :mode "\\.py\\'"
+  :init
+  (setq python-indent-offset 2)
+
+  (add-hook
+   'python-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes))))
 
 ;; == Visual Basic Mode ==
 
