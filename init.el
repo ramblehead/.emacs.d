@@ -1527,86 +1527,42 @@ fields which we need."
   (vr-toggle-display "*rdm*" 6))
 
 
-(defun vr-c++rtags-references-tree ()
-  (interactive)
-  (let* ((up-window (selected-window))
-         (up-window-parent (window-parent up-window))
-         (down-height-orig -1)
-         (down-height-new -1)
-         (down-window (window-in-direction 'below))
-         (down-windows-preserved '())
-         (rtags-references-tree-result nil))
-    (when (and down-window
-               (not (rtags-is-rtags-buffer (window-buffer down-window))))
-      (setq down-height-orig (window-height down-window))
-      (select-window down-window)
-      (while (and (window-in-direction 'below)
-                  (eq up-window-parent
-                      (window-parent (window-in-direction 'below))))
-        (select-window (window-in-direction 'below))
-        (push (cons (selected-window) (window-preserved-size nil nil))
-              down-windows-preserved)
-        (window-preserve-size nil nil t))
-      (select-window up-window))
-    (setq rtags-references-tree-result (rtags-references-tree))
-    (setq down-window (window-in-direction 'below))
-    (when (and down-window
-               (not (rtags-is-rtags-buffer (window-buffer down-window))))
-      (setq down-height-new (window-height down-window))
-      (if (> down-height-new down-height-orig)
-          (adjust-window-trailing-edge
-           up-window
-           (- down-height-new down-height-orig)))
-      (dolist (pair down-windows-preserved)
-        (window-preserve-size (car pair) nil (cdr pair))))
-    rtags-references-tree-result))
+;; (defun vr-c++rtags-references-tree ()
+;;   (interactive)
+;;   (let* ((up-window (selected-window))
+;;          (up-window-parent (window-parent up-window))
+;;          (down-height-orig -1)
+;;          (down-height-new -1)
+;;          (down-window (window-in-direction 'below))
+;;          (down-windows-preserved '())
+;;          (rtags-references-tree-result nil))
+;;     (when (and down-window
+;;                (not (rtags-is-rtags-buffer (window-buffer down-window))))
+;;       (setq down-height-orig (window-height down-window))
+;;       (select-window down-window)
+;;       (while (and (window-in-direction 'below)
+;;                   (eq up-window-parent
+;;                       (window-parent (window-in-direction 'below))))
+;;         (select-window (window-in-direction 'below))
+;;         (push (cons (selected-window) (window-preserved-size nil nil))
+;;               down-windows-preserved)
+;;         (window-preserve-size nil nil t))
+;;       (select-window up-window))
+;;     (setq rtags-references-tree-result (rtags-references-tree))
+;;     (setq down-window (window-in-direction 'below))
+;;     (when (and down-window
+;;                (not (rtags-is-rtags-buffer (window-buffer down-window))))
+;;       (setq down-height-new (window-height down-window))
+;;       (if (> down-height-new down-height-orig)
+;;           (adjust-window-trailing-edge
+;;            up-window
+;;            (- down-height-new down-height-orig)))
+;;       (dolist (pair down-windows-preserved)
+;;         (window-preserve-size (car pair) nil (cdr pair))))
+;;     rtags-references-tree-result))
 
-;; TODO: investigave rtags settings refactoring to use flycheck,
-;; and use-package using the following guide
-;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
-(defun vr-c++-rtags-setup ()
-  (require 'rtags)
-
-  ;; see https://github.com/Andersbakken/rtags/issues/304
-  ;; for flag '-M'
-  ;; (setq rtags-process-flags "-M")
-  ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
-  ;; for gcc-toolchain explanations
-  (setq rtags-process-flags
-        ;; (concat "--default-argument"
-        ;;         " \"--gcc-toolchain=/home/ramblehead/clang-gcc-toolchain\""))
-        (concat "--default-argument \"--gcc-toolchain="
-                (expand-file-name "clang-gcc-toolchain" "~")
-                "/\""))
-  (setq rtags-autostart-diagnostics t)
-  (rtags-start-process-unless-running)
-  ;; Does not work with my clang-auto-complete setting
-  ;; (setq rtags-display-current-error-as-tooltip t)
-
-  ;; Display current function name at the top of the window (header-line).
-  ;; https://github.com/Andersbakken/rtags/issues/435
-  (set (make-local-variable 'rtags-cached-current-container) "")
-  (setq rtags-track-container t)
-  (add-hook
-   'find-file-hook
-   (lambda ()
-     ;; (when (rtags-is-indexed)
-     ;;   (set (make-local-variable 'header-line-format)
-     ;;        '(:eval (vr-c++-header-line))))
-
-     (set (make-local-variable 'header-line-format)
-          '(:eval (vr-c++-header-line)))
-     )
-   nil t)
-
-  (custom-set-faces
-   '(rtags-errline ((((class color)) (:background "#ef8990"))))
-   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
-   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
-   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
-
-  ;; (setq rtags-display-result-backend 'helm)
-
+(use-package rtags
+  :init
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
@@ -1622,7 +1578,29 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 4)))
 
-  (defun rtags-select (&optional other-window remove show)
+  :config
+  ;; see https://github.com/Andersbakken/rtags/issues/304
+  ;; for flag '-M'
+  ;; (setq rtags-process-flags "-M")
+  ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
+  ;; for gcc-toolchain explanations
+  (setq rtags-process-flags
+        (concat "--default-argument \"--gcc-toolchain="
+                (expand-file-name "clang-gcc-toolchain" "~")
+                "/\""))
+
+  (setq rtags-autostart-diagnostics t)
+
+  (custom-set-faces
+   '(rtags-errline ((((class color)) (:background "#ef8990"))))
+   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
+   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
+   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
+
+  (defadvice rtags-select (around
+                           vr-c++-rtags-select
+                           (&optional other-window remove show)
+                           activate)
     (interactive "P")
     (push-mark nil t)
     (let* ((idx (get-text-property (point) 'rtags-bookmark-index))
@@ -1654,7 +1632,9 @@ fields which we need."
              (when other-window
                (when (= (length (window-list)) 1)
                  (funcall rtags-split-window-function))
+               ;; ---------------
                ;; Changed 1 to -1
+               ;; ---------------
                (other-window -1))
              (let ((switch-to-buffer-preserve-window-point nil)) ;; this can mess up bookmarks
                (bookmark-jump bookmark))
@@ -1677,7 +1657,9 @@ fields which we need."
         (when show
           (select-window window)))))
 
-  (defun rtags-references-tree ()
+  (defadvice rtags-references-tree (around
+                                    vr-c++-rtags-references-tree ()
+                                    activate)
     (interactive)
     (when (or (not (rtags-called-interactively-p)) (rtags-sandbox-id-matches))
       (rtags-reset-bookmarks)
@@ -1709,7 +1691,9 @@ fields which we need."
                 (setq project (buffer-substring-no-properties (point-min) (1- (point-max))))))
             (rtags-delete-rtags-windows)
             (rtags-location-stack-push)
-            ;; Added t to the call
+            ;; ---------------------
+            ;; Added 't' to the call
+            ;; ---------------------
             (rtags-switch-to-buffer ref-buffer t)
             (setq rtags-results-buffer-type 'references-tree)
             (rtags-references-tree-mode)
@@ -1733,12 +1717,6 @@ fields which we need."
                    (shrink-window-if-larger-than-buffer)
                    t)))))))
 
-  ;; (defun vr-c++-rtags-references-tree ()
-  ;;   (interactive)
-  ;;   (split-window-below)
-  ;;   (select-window (next-window))
-  ;;   (rtags-references-tree))
-
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
@@ -1747,14 +1725,41 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
-  (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
-  (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
   ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
-  ;; (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
+  (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
+  (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
-  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
+  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
+
+  :pin manual)
+
+;; TODO: investigave rtags settings refactoring to use flycheck,
+;; and use-package using the following guide
+;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
+(defun vr-c++-rtags-setup ()
+  (require 'rtags)
+
+  (rtags-start-process-unless-running)
+  ;; Does not work with my clang-auto-complete setting
+  ;; (setq rtags-display-current-error-as-tooltip t)
+
+  ;; Display current function name at the top of the window (header-line).
+  ;; https://github.com/Andersbakken/rtags/issues/435
+  (set (make-local-variable 'rtags-cached-current-container) "")
+  ;; (setq rtags-track-container t)
+  (set (make-local-variable 'rtags-track-container) t)
+
+  (add-hook
+   'find-file-hook
+   (lambda ()
+     ;; (when (rtags-is-indexed)
+     ;;   (set (make-local-variable 'header-line-format)
+     ;;        '(:eval (vr-c++-header-line))))
+     (set (make-local-variable 'header-line-format)
+          '(:eval (vr-c++-header-line))))
+   nil t))
 
 (defun vr-c++-auto-complete-clang ()
   (interactive)
