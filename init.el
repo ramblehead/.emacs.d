@@ -201,8 +201,10 @@
               (set (make-local-variable 'window-min-height) min-height)
               ;; (window-preserve-size buffer-window nil t)
               )
-            (set-window-dedicated-p
-             (display-buffer buffer-name) t)))
+            ;; (set-window-dedicated-p
+            ;;  (display-buffer buffer-name) t)
+            (display-buffer buffer-name)
+            ))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
@@ -288,8 +290,10 @@ when only symbol face names are needed."
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-(setq split-width-threshold nil)
-;; (setq split-height-threshold 0)
+;; (setq split-height-threshold nil)
+;; (setq split-width-threshold nil)
+(setq split-height-threshold 0)
+(setq split-width-threshold 160)
 
 ;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
 (setq save-place-file vr-saved-places-file-path)
@@ -524,7 +528,6 @@ when only symbol face names are needed."
   :pin melpa
   :config
   (setq vr/match-separator-use-custom-face t)
-  ;; TODO: The following does not work for some reason - investigate
   (custom-set-variables '(vr/match-separator-string " -> "))
 
   (define-key vr/minibuffer-keymap (kbd "C-j") 'newline)
@@ -1435,7 +1438,7 @@ fields which we need."
 ;; == RealGUD Mode ==
 
 (use-package realgud
-  :disabled
+  ;; :disabled
   :pin melpa
   :ensure t)
 
@@ -1449,7 +1452,7 @@ fields which we need."
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
-(setq vr-c++std "-std=c++14")
+(setq vr-c++std "-std=c++1z")
 
 ;; TODO: Use rtags or .project to get current compiler
 ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
@@ -1492,7 +1495,16 @@ fields which we need."
                (concat path "make -k"))
           (message (concat "vr-project: " path))))
     (define-key c-mode-base-map (kbd "C-c b")
-      'vr-c++-compilation-toggle-display)))
+      'vr-c++-compilation-toggle-display))
+
+  ;; Idea is taken from:
+  ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
+  (add-to-list 'display-buffer-alist
+               '("*compilation*"
+                 (display-buffer-in-side-window)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+  )
 
 (cl-defun vr-c++-header-line (&optional
                               (header-line-trim-indicator "\x203a")
@@ -1513,6 +1525,41 @@ fields which we need."
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
   (vr-toggle-display "*rdm*" 6))
+
+
+(defun vr-c++rtags-references-tree ()
+  (interactive)
+  (let* ((up-window (selected-window))
+         (up-window-parent (window-parent up-window))
+         (down-height-orig -1)
+         (down-height-new -1)
+         (down-window (window-in-direction 'below))
+         (down-windows-preserved '())
+         (rtags-references-tree-result nil))
+    (when (and down-window
+               (not (rtags-is-rtags-buffer (window-buffer down-window))))
+      (setq down-height-orig (window-height down-window))
+      (select-window down-window)
+      (while (and (window-in-direction 'below)
+                  (eq up-window-parent
+                      (window-parent (window-in-direction 'below))))
+        (select-window (window-in-direction 'below))
+        (push (cons (selected-window) (window-preserved-size nil nil))
+              down-windows-preserved)
+        (window-preserve-size nil nil t))
+      (select-window up-window))
+    (setq rtags-references-tree-result (rtags-references-tree))
+    (setq down-window (window-in-direction 'below))
+    (when (and down-window
+               (not (rtags-is-rtags-buffer (window-buffer down-window))))
+      (setq down-height-new (window-height down-window))
+      (if (> down-height-new down-height-orig)
+          (adjust-window-trailing-edge
+           up-window
+           (- down-height-new down-height-orig)))
+      (dolist (pair down-windows-preserved)
+        (window-preserve-size (car pair) nil (cdr pair))))
+    rtags-references-tree-result))
 
 ;; TODO: investigave rtags settings refactoring to use flycheck,
 ;; and use-package using the following guide
@@ -1558,6 +1605,140 @@ fields which we need."
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
    '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
+  ;; (setq rtags-display-result-backend 'helm)
+
+  ;; Idea is taken from:
+  ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
+  (add-to-list 'display-buffer-alist
+               '("*RTags*"
+                 (display-buffer-below-selected)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
+
+  (add-to-list 'display-buffer-alist
+               '("*rdm*"
+                 (display-buffer-in-side-window)
+                 (side . top)
+                 (inhibit-same-window . t)
+                 (window-height . 4)))
+
+  (defun rtags-select (&optional other-window remove show)
+    (interactive "P")
+    (push-mark nil t)
+    (let* ((idx (get-text-property (point) 'rtags-bookmark-index))
+           (line (line-number-at-pos))
+           (bookmark (and (car idx) (format "RTags_%d" (car idx))))
+           (window (selected-window)))
+      (cond ((eq major-mode 'rtags-taglist-mode)
+             (rtags-goto-location (cdr (assoc line rtags-taglist-locations)) nil other-window)
+             (when rtags-close-taglist-on-selection
+               (rtags-close-taglist)))
+            ((rtags-is-class-hierarchy-buffer)
+             (save-excursion
+               (goto-char (point-at-bol))
+               (let ((loc (and (looking-at "^[^\t]*\t\\(.*:[0-9]+:[0-9]+:\\)\t") (match-string 1))))
+                 (when loc
+                   (rtags-goto-location loc nil other-window)))))
+            ((string= (buffer-name) "*RTags Dependencies*")
+             (let ((cur (rtags-dependency-tree-current-file)))
+               (when cur
+                 (rtags-goto-location (car cur) nil other-window))))
+            ((string= (buffer-name) "*RTags Location Stack*")
+             (let ((index (- (length rtags-location-stack) line)))
+               (setq rtags-location-stack-index index)
+               (rtags-goto-location (nth rtags-location-stack-index rtags-location-stack) t other-window t)
+               (rtags-location-stack-visualize-update)))
+            ((and (car idx)
+                  (>= rtags-buffer-bookmarks (car idx))
+                  (member bookmark (rtags-bookmark-all-names)))
+             (when other-window
+               (when (= (length (window-list)) 1)
+                 (funcall rtags-split-window-function))
+               ;; Changed 1 to -1
+               (other-window -1))
+             (let ((switch-to-buffer-preserve-window-point nil)) ;; this can mess up bookmarks
+               (bookmark-jump bookmark))
+             (rtags-location-stack-push))
+            (t
+             (when (cdr idx)
+               (goto-char (cdr idx)))
+             (let ((refloc (car (rtags-references-tree-current-location))))
+               (if refloc
+                   (rtags-goto-location refloc nil other-window)
+                 (rtags-goto-location (buffer-substring-no-properties (save-excursion
+                                                                        (goto-char (point-at-bol))
+                                                                        (skip-chars-forward " ")
+                                                                        (point))
+                                                                      (point-at-eol)) nil other-window)))
+             (when bookmark
+               (bookmark-set bookmark))))
+      (if remove
+          (delete-window window)
+        (when show
+          (select-window window)))))
+
+  (defun rtags-references-tree ()
+    (interactive)
+    (when (or (not (rtags-called-interactively-p)) (rtags-sandbox-id-matches))
+      (rtags-reset-bookmarks)
+      (rtags-delete-rtags-windows)
+      (let ((ref-buffer (rtags-get-buffer "*RTags*"))
+            (loc (rtags-current-location))
+            (refs)
+            (project)
+            (fn (rtags-buffer-file-name)))
+        (when (and fn loc)
+          (rtags-reparse-file-if-needed)
+          (with-temp-buffer
+            (rtags-call-rc :path fn
+                           "-r" loc
+                           "--elisp"
+                           "--containing-function-location"
+                           "--containing-function"
+                           (unless rtags-sort-references-by-input "--no-sort-references-by-input"))
+            (setq refs
+                  (condition-case nil
+                      (eval (read (current-buffer)))
+                    (error
+                     nil))))
+          (if (not refs)
+              (and (message "RTags: No results") nil)
+            (with-temp-buffer
+              (rtags-call-rc "--current-project" :path fn)
+              (when (> (point-max) (point-min))
+                (setq project (buffer-substring-no-properties (point-min) (1- (point-max))))))
+            (rtags-delete-rtags-windows)
+            (rtags-location-stack-push)
+            ;; Added t to the call
+            (rtags-switch-to-buffer ref-buffer t)
+            (setq rtags-results-buffer-type 'references-tree)
+            (rtags-references-tree-mode)
+            (setq rtags-current-project project)
+            (setq buffer-read-only nil)
+            (mapc (lambda (ref)
+                    (rtags-insert-ref ref 0)
+                    (insert "\n"))
+                  refs)
+            (rtags-references-tree-align-cfs)
+            (delete-char -1)
+            (goto-char (point-min))
+            (setq buffer-read-only t)
+            (cond ((or rtags-last-request-not-indexed rtags-last-request-not-connected) nil)
+                  ((= (count-lines (point-min) (point-max)) 1)
+                   (rtags-select-and-remove-rtags-buffer))
+                  (rtags-jump-to-first-match
+                   (shrink-window-if-larger-than-buffer)
+                   (rtags-select-other-window))
+                  (t
+                   (shrink-window-if-larger-than-buffer)
+                   t)))))))
+
+  ;; (defun vr-c++-rtags-references-tree ()
+  ;;   (interactive)
+  ;;   (split-window-below)
+  ;;   (select-window (next-window))
+  ;;   (rtags-references-tree))
+
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
@@ -1565,9 +1746,12 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
-  (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
+  (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
+  (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
   ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
-  (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
@@ -2829,6 +3013,31 @@ with very limited support for special characters."
   (flx-ido-mode 1)
   :ensure t)
 
+;; == ivy mode ==
+
+;; (use-package ivy
+;;   :ensure t)
+
+;; == helm mode ==
+
+;; (defun vr-helm-toggle-header-line ()
+;;   (if (= (length helm-sources) 1)
+;;       (set-face-attribute 'helm-source-header nil :height 0.1)
+;;     (set-face-attribute 'helm-source-header nil :height 1.0)))
+
+;; (use-package helm
+;;   :init
+;;   (add-to-list 'display-buffer-alist
+;;                `(,(rx bos "*helm" (* not-newline) "*" eos)
+;;                  (display-buffer-in-side-window)
+;;                  (inhibit-same-window . t)
+;;                  (window-height . 0.2)))
+
+;;   (setq helm-display-header-line nil)
+
+;;   (add-hook 'helm-before-initialize-hook 'vr-helm-toggle-header-line)
+;;   :ensure t)
+
 ;; == ifilipb mode ==
 
 (require 'iflipb)
@@ -2987,7 +3196,8 @@ with very limited support for special characters."
              up-window
              (- down-height-new down-height-orig)))
         (dolist (pair down-windows-preserved)
-          (window-preserve-size (car pair) nil (cdr pair))))))
+          (window-preserve-size (car pair) nil (cdr pair))))
+      bs-show-result))
 
   (add-hook
    'bs-mode-hook
@@ -3013,13 +3223,14 @@ with very limited support for special characters."
   (delete 'help-mode popwin:special-display-config)
   (delete '(compilation-mode :noselect t) popwin:special-display-config)
   ;; (push '(help-mode :stick t) popwin:special-display-config)
-  (push '(help-mode :stick t) popwin:special-display-config)
-  (push '(compilation-mode :noselect t :stick t) popwin:special-display-config)
+  (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
+  ;; (push '(compilation-mode :dedicated t :noselect t :stick t)
+  ;;       popwin:special-display-config)
   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
   (push '("*skewer-repl*" :stick t) popwin:special-display-config)
-  (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
-  (push '("*rdm*" :noselect t :stick t :height 6 :position top)
-        popwin:special-display-config)
+  ;; (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
+  ;; (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
+  ;;       popwin:special-display-config)
 
   ;; see https://www.emacswiki.org/emacs/OneWindow
   ;; (add-to-list 'same-window-buffer-names "*Help*")
