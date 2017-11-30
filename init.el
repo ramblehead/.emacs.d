@@ -190,15 +190,21 @@
         (when (string-match regexp str)
           (throw 'done t))))))
 
-(cl-defun vr-toggle-display (buffer-name &optional (dedicated nil))
+(defun vr-toggle-display (buffer-name &optional min-height)
   (let* ((buffer (get-buffer buffer-name))
          (buffer-window (get-buffer-window buffer-name)))
     (if buffer
         (if buffer-window
             (delete-window buffer-window)
-          (if dedicated
-              (set-window-dedicated-p (display-buffer buffer-name) t)
-            (display-buffer buffer-name)))
+          (progn
+            (when min-height
+              (set (make-local-variable 'window-min-height) min-height)
+              ;; (window-preserve-size buffer-window nil t)
+              )
+            ;; (set-window-dedicated-p
+            ;;  (display-buffer buffer-name) t)
+            (display-buffer buffer-name)
+            ))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
@@ -533,21 +539,6 @@ when only symbol face names are needed."
   ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
 
   :ensure t)
-
-;; picture-mode
-
-(use-package picture-mode
-  :init
-
-  (add-hook
-   'picture-mode-hook
-   (lambda ()
-     (set (make-local-variable 'vr-picture-show-trailing-whitespace)
-          show-trailing-whitespace)
-     (setq show-trailing-whitespace nil))
-
-   (defadvice picture-mode-exit (after vr-picture-mode-exit (&optional nostrip))
-     (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
 
 ;; -------------------------------------------------------------------
 ;;; File Management
@@ -1375,8 +1366,7 @@ fields which we need."
   (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
   (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step)
 
-  ;; :ensure t
-  )
+  :ensure t)
 
 ;; (gdb-registers-buffer      gdb-registers-buffer-name   gdb-registers-mode   gdb-invalidate-registers  )
 ;; (gdb-locals-buffer         gdb-locals-buffer-name      gdb-locals-mode      gdb-invalidate-locals     )
@@ -1443,8 +1433,7 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise)
 
-  ;; :ensure t
-  )
+  :ensure t)
 
 ;; == RealGUD Mode ==
 
@@ -1535,7 +1524,8 @@ fields which we need."
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
-  (vr-toggle-display "*rdm*"))
+  (vr-toggle-display "*rdm*" 6))
+
 
 ;; (defun vr-c++rtags-references-tree ()
 ;;   (interactive)
@@ -1571,52 +1561,9 @@ fields which we need."
 ;;         (window-preserve-size (car pair) nil (cdr pair))))
 ;;     rtags-references-tree-result))
 
-;; TODO: investigave rtags settings refactoring to use flycheck,
-;; and use-package using the following guide
-;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
-(defun vr-c++-rtags-setup ()
-  (require 'rtags)
-
-  ;; see https://github.com/Andersbakken/rtags/issues/304
-  ;; for flag '-M'
-  ;; (setq rtags-process-flags "-M")
-  ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
-  ;; for gcc-toolchain explanations
-  (setq rtags-process-flags
-        (concat "--default-argument"
-                " \"--gcc-toolchain=/home/ramblehead/clang-gcc-toolchain\""))
-  (setq rtags-autostart-diagnostics t)
-  (rtags-start-process-unless-running)
-
-  ;; Does not work with my clang-auto-complete settings
-  ;; (setq rtags-display-current-error-as-tooltip t)
-
-  ;; Display current function name at the top of the window (header-line).
-  ;; https://github.com/Andersbakken/rtags/issues/435
-  (set (make-local-variable 'rtags-cached-current-container) "")
-  (setq rtags-track-container t)
-
-  (add-hook
-   'find-file-hook
-   (lambda ()
-     ;; (when (rtags-is-indexed)
-     ;;   (set (make-local-variable 'header-line-format)
-     ;;        '(:eval (vr-c++-header-line))))
-
-     (set (make-local-variable 'header-line-format)
-          '(:eval (vr-c++-header-line)))
-     )
-   nil t)
-
-  (custom-set-faces
-   '(rtags-errline ((((class color)) (:background "#ef8990"))))
-   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
-   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
-   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
-
-  ;; (setq rtags-display-result-backend 'helm)
-
-  ;; The idea is taken from:
+(use-package rtags
+  :init
+  ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
                '("*RTags*"
@@ -1631,7 +1578,29 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 4)))
 
-  (defun rtags-select (&optional other-window remove show)
+  :config
+  ;; see https://github.com/Andersbakken/rtags/issues/304
+  ;; for flag '-M'
+  ;; (setq rtags-process-flags "-M")
+  ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
+  ;; for gcc-toolchain explanations
+  (setq rtags-process-flags
+        (concat "--default-argument \"--gcc-toolchain="
+                (expand-file-name "clang-gcc-toolchain" "~")
+                "/\""))
+
+  (setq rtags-autostart-diagnostics t)
+
+  (custom-set-faces
+   '(rtags-errline ((((class color)) (:background "#ef8990"))))
+   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
+   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
+   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
+
+  (defadvice rtags-select (around
+                           vr-c++-rtags-select
+                           (&optional other-window remove show)
+                           activate)
     (interactive "P")
     (push-mark nil t)
     (let* ((idx (get-text-property (point) 'rtags-bookmark-index))
@@ -1663,7 +1632,9 @@ fields which we need."
              (when other-window
                (when (= (length (window-list)) 1)
                  (funcall rtags-split-window-function))
+               ;; ---------------
                ;; Changed 1 to -1
+               ;; ---------------
                (other-window -1))
              (let ((switch-to-buffer-preserve-window-point nil)) ;; this can mess up bookmarks
                (bookmark-jump bookmark))
@@ -1686,7 +1657,9 @@ fields which we need."
         (when show
           (select-window window)))))
 
-  (defun rtags-references-tree ()
+  (defadvice rtags-references-tree (around
+                                    vr-c++-rtags-references-tree ()
+                                    activate)
     (interactive)
     (when (or (not (rtags-called-interactively-p)) (rtags-sandbox-id-matches))
       (rtags-reset-bookmarks)
@@ -1718,7 +1691,9 @@ fields which we need."
                 (setq project (buffer-substring-no-properties (point-min) (1- (point-max))))))
             (rtags-delete-rtags-windows)
             (rtags-location-stack-push)
-            ;; Added t to the call
+            ;; ---------------------
+            ;; Added 't' to the call
+            ;; ---------------------
             (rtags-switch-to-buffer ref-buffer t)
             (setq rtags-results-buffer-type 'references-tree)
             (rtags-references-tree-mode)
@@ -1750,15 +1725,41 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
   ;; (define-key c-mode-base-map (kbd "M-,") 'vr-c++rtags-references-tree)
   (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
   (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
-  ;; (define-key c-mode-base-map (kbd "M-<") 'rtags-find-virtuals-at-point)
   (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
-  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references))
+  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
+
+  :pin manual)
+
+;; TODO: investigave rtags settings refactoring to use flycheck,
+;; and use-package using the following guide
+;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
+(defun vr-c++-rtags-setup ()
+  (require 'rtags)
+
+  (rtags-start-process-unless-running)
+  ;; Does not work with my clang-auto-complete setting
+  ;; (setq rtags-display-current-error-as-tooltip t)
+
+  ;; Display current function name at the top of the window (header-line).
+  ;; https://github.com/Andersbakken/rtags/issues/435
+  (set (make-local-variable 'rtags-cached-current-container) "")
+  ;; (setq rtags-track-container t)
+  (set (make-local-variable 'rtags-track-container) t)
+
+  (add-hook
+   'find-file-hook
+   (lambda ()
+     ;; (when (rtags-is-indexed)
+     ;;   (set (make-local-variable 'header-line-format)
+     ;;        '(:eval (vr-c++-header-line))))
+     (set (make-local-variable 'header-line-format)
+          '(:eval (vr-c++-header-line))))
+   nil t))
 
 (defun vr-c++-auto-complete-clang ()
   (interactive)
@@ -2252,28 +2253,15 @@ continuing (not first) item"
     (add-hook hook 'elisp-slime-nav-mode))
   (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark))
 
-(add-hook
- 'emacs-lisp-mode-hook
- (lambda ()
-   (vr-programming-minor-modes)
-   (eldoc-mode 1)
-   (vr-elisp-slime-nav-setup)
-   (set (make-local-variable 'vr-elisp-mode) t)
-   (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
-   (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
-   (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
-
-;; == Python Mode ==
-
-(use-package python-mode
-  :mode "\\.py\\'"
-  :init
-  (setq python-indent-offset 2)
-
-  (add-hook
-   'python-mode-hook
-   (lambda ()
-     (vr-programming-minor-modes))))
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (vr-programming-minor-modes)
+            (eldoc-mode 1)
+            (vr-elisp-slime-nav-setup)
+            (set (make-local-variable 'vr-elisp-mode) t)
+            (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
+            (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
+            (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
 
 ;; == Visual Basic Mode ==
 
