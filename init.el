@@ -190,21 +190,15 @@
         (when (string-match regexp str)
           (throw 'done t))))))
 
-(defun vr-toggle-display (buffer-name &optional min-height)
+(cl-defun vr-toggle-display (buffer-name &optional (dedicated nil))
   (let* ((buffer (get-buffer buffer-name))
          (buffer-window (get-buffer-window buffer-name)))
     (if buffer
         (if buffer-window
             (delete-window buffer-window)
-          (progn
-            (when min-height
-              (set (make-local-variable 'window-min-height) min-height)
-              ;; (window-preserve-size buffer-window nil t)
-              )
-            ;; (set-window-dedicated-p
-            ;;  (display-buffer buffer-name) t)
-            (display-buffer buffer-name)
-            ))
+          (if dedicated
+              (set-window-dedicated-p (display-buffer buffer-name) t)
+            (display-buffer buffer-name)))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
@@ -539,6 +533,21 @@ when only symbol face names are needed."
   ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
 
   :ensure t)
+
+;; picture-mode
+
+(use-package picture-mode
+  :init
+
+  (add-hook
+   'picture-mode-hook
+   (lambda ()
+     (set (make-local-variable 'vr-picture-show-trailing-whitespace)
+          show-trailing-whitespace)
+     (setq show-trailing-whitespace nil))
+
+   (defadvice picture-mode-exit (after vr-picture-mode-exit (&optional nostrip))
+     (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
 
 ;; -------------------------------------------------------------------
 ;;; File Management
@@ -1364,9 +1373,7 @@ fields which we need."
   (define-key gud-minor-mode-map (kbd "S-<f9>") 'vr-gud-tbreak)
   (define-key gud-minor-mode-map (kbd "C-<f9>") 'vr-gud-remove)
   (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
-  (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step)
-
-  :ensure t)
+  (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step))
 
 ;; (gdb-registers-buffer      gdb-registers-buffer-name   gdb-registers-mode   gdb-invalidate-registers  )
 ;; (gdb-locals-buffer         gdb-locals-buffer-name      gdb-locals-mode      gdb-invalidate-locals     )
@@ -1431,9 +1438,7 @@ fields which we need."
   ;; Non-nil means display source file containing the main routine at startup
   ;; (setq gdb-show-main t)
   (setq gdb-delete-out-of-scope nil)
-  (gdb-speedbar-auto-raise)
-
-  :ensure t)
+  (gdb-speedbar-auto-raise))
 
 ;; == RealGUD Mode ==
 
@@ -1524,7 +1529,7 @@ fields which we need."
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
-  (vr-toggle-display "*rdm*" 6))
+  (vr-toggle-display "*rdm*"))
 
 
 ;; (defun vr-c++rtags-references-tree ()
@@ -1576,7 +1581,7 @@ fields which we need."
                  (display-buffer-in-side-window)
                  (side . top)
                  (inhibit-same-window . t)
-                 (window-height . 4)))
+                 (window-height . 5)))
 
   :config
   ;; see https://github.com/Andersbakken/rtags/issues/304
@@ -2253,15 +2258,28 @@ continuing (not first) item"
     (add-hook hook 'elisp-slime-nav-mode))
   (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark))
 
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (vr-programming-minor-modes)
-            (eldoc-mode 1)
-            (vr-elisp-slime-nav-setup)
-            (set (make-local-variable 'vr-elisp-mode) t)
-            (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
-            (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
-            (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+(add-hook
+ 'emacs-lisp-mode-hook
+ (lambda ()
+   (vr-programming-minor-modes)
+   (eldoc-mode 1)
+   (vr-elisp-slime-nav-setup)
+   (set (make-local-variable 'vr-elisp-mode) t)
+   (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
+   (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
+   (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+
+;; == Python Mode ==
+
+(use-package python-mode
+  :mode "\\.py\\'"
+  :init
+  (setq python-indent-offset 2)
+
+  (add-hook
+   'python-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes))))
 
 ;; == Visual Basic Mode ==
 
