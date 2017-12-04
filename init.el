@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -534,11 +534,10 @@ when only symbol face names are needed."
 
   :ensure t)
 
-;; picture-mode
+;; picture
 
-(use-package picture-mode
-  :init
-
+(use-package picture
+  :config
   (add-hook
    'picture-mode-hook
    (lambda ()
@@ -547,6 +546,8 @@ when only symbol face names are needed."
      (setq show-trailing-whitespace nil))
 
    (defadvice picture-mode-exit (after vr-picture-mode-exit (&optional nostrip))
+     ;; Suppress "Warning (bytecomp): reference to free variable ..."
+     (defvar vr-picture-show-trailing-whitespace)
      (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
 
 ;; -------------------------------------------------------------------
@@ -1443,7 +1444,7 @@ fields which we need."
 ;; == RealGUD Mode ==
 
 (use-package realgud
-  ;; :disabled
+  :disabled
   :pin melpa
   :ensure t)
 
@@ -1697,9 +1698,12 @@ fields which we need."
             (rtags-delete-rtags-windows)
             (rtags-location-stack-push)
             ;; ---------------------
-            ;; Added 't' to the call
+            ;; Added 't' to the rtags-switch-to-buffer call
+            ;; and defvar rtags-results-buffer-type to suppress
+            ;; "Warning (bytecomp): reference to free variable ..."
             ;; ---------------------
             (rtags-switch-to-buffer ref-buffer t)
+            (defvar rtags-results-buffer-type)
             (setq rtags-results-buffer-type 'references-tree)
             (rtags-references-tree-mode)
             (setq rtags-current-project project)
@@ -1740,9 +1744,7 @@ fields which we need."
 
   :pin manual)
 
-;; TODO: investigave rtags settings refactoring to use flycheck,
-;; and use-package using the following guide
-;; https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
+;; see https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
 (defun vr-c++-rtags-setup ()
   (require 'rtags)
 
@@ -1759,9 +1761,6 @@ fields which we need."
   (add-hook
    'find-file-hook
    (lambda ()
-     ;; (when (rtags-is-indexed)
-     ;;   (set (make-local-variable 'header-line-format)
-     ;;        '(:eval (vr-c++-header-line))))
      (set (make-local-variable 'header-line-format)
           '(:eval (vr-c++-header-line))))
    nil t))
@@ -2856,13 +2855,6 @@ with very limited support for special characters."
 ;; (global-set-key (kbd "M-<f7>") 'flyspell-goto-next-error)
 ;; (global-set-key (kbd "S-<f7>") 'ispell-word)
 
-;; == thesaurus mode (on-line) ==
-
-(require 'thesaurus)
-;; from registration
-(setq thesaurus-bhl-api-key "1c46d90bbca27832162e8b9fd70df99a")
-(global-set-key (kbd "C-x t") 'thesaurus-choose-synonym-and-replace)
-
 ;; -------------------------------------------------------------------
 ;;; Windows system interaction
 ;; -------------------------------------------------------------------
@@ -3283,15 +3275,15 @@ with very limited support for special characters."
   ;; restore on load (even before you require bm)
   (setq bm-restore-repository-on-load t)
 
+  ;; where to store persistant files
+  (setq bm-repository-file vr-bm-repository-file-path)
+
   :config
   ;; Allow cross-buffer 'next'
   ;; (setq bm-cycle-all-buffers t)
 
   ;; Only highlight the fringe of the line
   (setq bm-highlight-style 'bm-highlight-only-fringe)
-
-  ;; where to store persistant files
-  (setq bm-repository-file vr-bm-repository-file-path)
 
   ;; save bookmarks
   (setq-default bm-buffer-persistence t)
@@ -3308,9 +3300,11 @@ with very limited support for special characters."
   ;; Saving the repository to file when on exit.
   ;; kill-buffer-hook is not called when Emacs is killed, so we
   ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook #'(lambda nil
-                                 (bm-buffer-save-all)
-                                 (bm-repository-save)))
+  (add-hook
+   'kill-emacs-hook
+   #'(lambda nil
+       (bm-buffer-save-all)
+       (bm-repository-save)))
 
   ;; The `after-save-hook' is not necessary to use to achieve persistence,
   ;; but it makes the bookmark data in repository more in sync with the file
