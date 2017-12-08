@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (google-c-style picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1920,6 +1920,9 @@ continuing (not first) item"
       (goto-char (match-end 0))))
     (vector (+ tab-width (current-column)))))
 
+(use-package google-c-style
+  :ensure)
+
 (defun vr-c++-indentation-setup ()
   (setq tab-width 2)
   (require 'google-c-style)
@@ -1974,11 +1977,13 @@ continuing (not first) item"
        '+)))
 
   ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
-  (defadvice c-lineup-arglist (around my activate)
+  (defadvice c-lineup-arglist (around
+                               vr-c++-c-lineup-arglist (_langelem)
+                               activate)
     "Improve indentation of continued C++11 lambda function opened as argument."
     (setq ad-return-value
           (if (vr-c++-indentation-examine
-               langelem
+               _langelem
                #'vr-c++-looking-at-lambda_as_param)
               0
             ad-do-it))))
@@ -1995,6 +2000,7 @@ continuing (not first) item"
    ;; The following if-condition is preventing the
    ;; second execution.
    ;; (message "c++-mode-hook call")
+
    (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
        (progn
          (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
@@ -2275,10 +2281,28 @@ continuing (not first) item"
   :init
   (setq python-indent-offset 2)
 
+  (defun vr-python-forward-element (&optional arg)
+    (interactive "^p")
+    (if (cg-looking-at-any-group-head)
+        (cg-search-forward-group-balanced-tail)
+      (forward-list arg)))
+
+  (defun vr-python-backward-element (&optional arg)
+    (interactive "^p")
+    (if (cg-looking-at-any-group-tail)
+        (cg-search-backward-group-balanced-head)
+      (backward-list arg)))
+
+  (defun vr-python-code-folding-setup ()
+    (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
+    (local-set-key (kbd "C-M-n") 'vr-python-forward-element)
+    (local-set-key (kbd "C-M-p") 'vr-python-backward-element))
+
   (add-hook
    'python-mode-hook
    (lambda ()
-     (vr-programming-minor-modes))))
+     (vr-programming-minor-modes)
+     (vr-python-code-folding-setup))))
 
 ;; == Visual Basic Mode ==
 
@@ -2287,17 +2311,17 @@ continuing (not first) item"
 
 ;; == nXML mode ==
 
-(defun vr-nxml-forward-element ()
-  (interactive)
+(defun vr-nxml-forward-element (&optional arg)
+  (interactive "^p")
   (if (cg-looking-at-any-group-head)
       (cg-search-forward-group-balanced-tail)
-    (nxml-forward-element)))
+    (nxml-forward-element arg)))
 
-(defun vr-nxml-backward-element ()
-  (interactive)
+(defun vr-nxml-backward-element (&optional arg)
+  (interactive "^p")
   (if (cg-looking-at-any-group-tail)
       (cg-search-backward-group-balanced-head)
-    (nxml-backward-element)))
+    (nxml-backward-element arg)))
 
 (defun vr-nxml-code-folding-setup ()
   (require 'sgml-mode)
@@ -2321,10 +2345,11 @@ continuing (not first) item"
   ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
   :mode "\\.xml\\'"
   :config
-  (add-hook 'nxml-mode-hook
-            (lambda ()
-              (vr-programming-minor-modes)
-              (vr-nxml-code-folding-setup))))
+  (add-hook
+   'nxml-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes)
+     (vr-nxml-code-folding-setup))))
 
 ;; == web-mode mode ==
 
