@@ -1625,128 +1625,132 @@ fields which we need."
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
    '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
-  (defadvice rtags-select (around
-                           vr-c++-rtags-select
-                           (&optional other-window remove show)
-                           activate)
-    (interactive "P")
-    (push-mark nil t)
-    (let* ((idx (get-text-property (point) 'rtags-bookmark-index))
-           (line (line-number-at-pos))
-           (bookmark (and (car idx) (format "RTags_%d" (car idx))))
-           (window (selected-window)))
-      (cond ((eq major-mode 'rtags-taglist-mode)
-             (rtags-goto-location (cdr (assoc line rtags-taglist-locations)) nil other-window)
-             (when rtags-close-taglist-on-selection
-               (rtags-close-taglist)))
-            ((rtags-is-class-hierarchy-buffer)
-             (save-excursion
-               (goto-char (point-at-bol))
-               (let ((loc (and (looking-at "^[^\t]*\t\\(.*:[0-9]+:[0-9]+:\\)\t") (match-string 1))))
-                 (when loc
-                   (rtags-goto-location loc nil other-window)))))
-            ((string= (buffer-name) "*RTags Dependencies*")
-             (let ((cur (rtags-dependency-tree-current-file)))
-               (when cur
-                 (rtags-goto-location (car cur) nil other-window))))
-            ((string= (buffer-name) "*RTags Location Stack*")
-             (let ((index (- (length rtags-location-stack) line)))
-               (setq rtags-location-stack-index index)
-               (rtags-goto-location (nth rtags-location-stack-index rtags-location-stack) t other-window t)
-               (rtags-location-stack-visualize-update)))
-            ((and (car idx)
-                  (>= rtags-buffer-bookmarks (car idx))
-                  (member bookmark (rtags-bookmark-all-names)))
-             (when other-window
-               (when (= (length (window-list)) 1)
-                 (funcall rtags-split-window-function))
-               ;; ---------------
-               ;; Changed 1 to -1
-               ;; ---------------
-               (other-window -1))
-             (let ((switch-to-buffer-preserve-window-point nil)) ;; this can mess up bookmarks
-               (bookmark-jump bookmark))
-             (rtags-location-stack-push))
-            (t
-             (when (cdr idx)
-               (goto-char (cdr idx)))
-             (let ((refloc (car (rtags-references-tree-current-location))))
-               (if refloc
-                   (rtags-goto-location refloc nil other-window)
-                 (rtags-goto-location (buffer-substring-no-properties (save-excursion
-                                                                        (goto-char (point-at-bol))
-                                                                        (skip-chars-forward " ")
-                                                                        (point))
-                                                                      (point-at-eol)) nil other-window)))
-             (when bookmark
-               (bookmark-set bookmark))))
-      (if remove
-          (delete-window window)
-        (when show
-          (select-window window)))))
+  ;; (defadvice rtags-select (around
+  ;;                          vr-c++-rtags-select
+  ;;                          (&optional other-window remove show)
+  ;;                          activate)
+  ;;   (interactive "P")
+  ;;   (push-mark nil t)
+  ;;   (let* ((idx (get-text-property (point) 'rtags-bookmark-index))
+  ;;          (line (line-number-at-pos))
+  ;;          (bookmark (and (car idx) (format "RTags_%d" (car idx))))
+  ;;          (window (selected-window)))
+  ;;     (cond ((eq major-mode 'rtags-taglist-mode)
+  ;;            (rtags-goto-location (cdr (assoc line rtags-taglist-locations)) nil other-window)
+  ;;            (when rtags-close-taglist-on-selection
+  ;;              (rtags-close-taglist)))
+  ;;           ((rtags-is-class-hierarchy-buffer)
+  ;;            (save-excursion
+  ;;              (goto-char (point-at-bol))
+  ;;              (let ((loc (and (looking-at "^[^\t]*\t\\(.*:[0-9]+:[0-9]+:\\)\t") (match-string 1))))
+  ;;                (when loc
+  ;;                  (rtags-goto-location loc nil other-window)))))
+  ;;           ((string= (buffer-name) "*RTags Dependencies*")
+  ;;            (let ((cur (rtags-dependency-tree-current-file)))
+  ;;              (when cur
+  ;;                (rtags-goto-location (car cur) nil other-window))))
+  ;;           ((string= (buffer-name) "*RTags Location Stack*")
+  ;;            (let ((index (- (length rtags-location-stack) line)))
+  ;;              (setq rtags-location-stack-index index)
+  ;;              (rtags-goto-location (nth rtags-location-stack-index rtags-location-stack) t other-window t)
+  ;;              (rtags-location-stack-visualize-update)))
+  ;;           ((and (car idx)
+  ;;                 (>= rtags-buffer-bookmarks (car idx))
+  ;;                 (member bookmark (rtags-bookmark-all-names)))
+  ;;            (when other-window
+  ;;              (when (= (length (window-list)) 1)
+  ;;                (funcall rtags-split-window-function))
+  ;;              ;; ---------------
+  ;;              ;; Changed 1 to -1
+  ;;              ;; ---------------
+  ;;              (other-window -1))
+  ;;            (let ((switch-to-buffer-preserve-window-point nil)) ;; this can mess up bookmarks
+  ;;              (bookmark-jump bookmark))
+  ;;            (rtags-location-stack-push))
+  ;;           (t
+  ;;            (when (cdr idx)
+  ;;              (goto-char (cdr idx)))
+  ;;            (let ((refloc (car (rtags-references-tree-current-location))))
+  ;;              (if refloc
+  ;;                  (rtags-goto-location refloc nil other-window)
+  ;;                (rtags-goto-location (buffer-substring-no-properties (save-excursion
+  ;;                                                                       (goto-char (point-at-bol))
+  ;;                                                                       (skip-chars-forward " ")
+  ;;                                                                       (point))
+  ;;                                                                     (point-at-eol)) nil other-window)))
+  ;;            (when bookmark
+  ;;              (bookmark-set bookmark))))
+  ;;     (if remove
+  ;;         (delete-window window)
+  ;;       (when show
+  ;;         (select-window window)))))
 
-  (defadvice rtags-references-tree (around
-                                    vr-c++-rtags-references-tree ()
-                                    activate)
-    (interactive)
-    (when (or (not (rtags-called-interactively-p)) (rtags-sandbox-id-matches))
-      (rtags-reset-bookmarks)
-      (rtags-delete-rtags-windows)
-      (let ((ref-buffer (rtags-get-buffer "*RTags*"))
-            (loc (rtags-current-location))
-            (refs)
-            (project)
-            (fn (rtags-buffer-file-name)))
-        (when (and fn loc)
-          (rtags-reparse-file-if-needed)
-          (with-temp-buffer
-            (rtags-call-rc :path fn
-                           "-r" loc
-                           "--elisp"
-                           "--containing-function-location"
-                           "--containing-function"
-                           (unless rtags-sort-references-by-input "--no-sort-references-by-input"))
-            (setq refs
-                  (condition-case nil
-                      (eval (read (current-buffer)))
-                    (error
-                     nil))))
-          (if (not refs)
-              (and (message "RTags: No results") nil)
-            (with-temp-buffer
-              (rtags-call-rc "--current-project" :path fn)
-              (when (> (point-max) (point-min))
-                (setq project (buffer-substring-no-properties (point-min) (1- (point-max))))))
-            (rtags-delete-rtags-windows)
-            (rtags-location-stack-push)
-            ;; ---------------------
-            ;; Added 't' to the rtags-switch-to-buffer call
-            ;; and defvar rtags-results-buffer-type to suppress
-            ;; "Warning (bytecomp): reference to free variable ..."
-            ;; ---------------------
-            (rtags-switch-to-buffer ref-buffer t)
-            (defvar rtags-results-buffer-type)
-            (setq rtags-results-buffer-type 'references-tree)
-            (rtags-references-tree-mode)
-            (setq rtags-current-project project)
-            (setq buffer-read-only nil)
-            (mapc (lambda (ref)
-                    (rtags-insert-ref ref 0)
-                    (insert "\n"))
-                  refs)
-            (rtags-references-tree-align-cfs)
-            (delete-char -1)
-            (goto-char (point-min))
-            (setq buffer-read-only t)
-            (cond ((or rtags-last-request-not-indexed rtags-last-request-not-connected) nil)
-                  ((= (count-lines (point-min) (point-max)) 1)
-                   (rtags-select-and-remove-rtags-buffer))
-                  (rtags-jump-to-first-match
-                   (shrink-window-if-larger-than-buffer)
-                   (rtags-select-other-window))
-                  (t
-                   (shrink-window-if-larger-than-buffer)
-                   t)))))))
+  (setq rtags-other-window-function #'(lambda () (other-window -1)))
+
+  ;; (defadvice rtags-references-tree (around
+  ;;                                   vr-c++-rtags-references-tree ()
+  ;;                                   activate)
+  ;;   (interactive)
+  ;;   (when (or (not (rtags-called-interactively-p)) (rtags-sandbox-id-matches))
+  ;;     (rtags-reset-bookmarks)
+  ;;     (rtags-delete-rtags-windows)
+  ;;     (let ((ref-buffer (rtags-get-buffer "*RTags*"))
+  ;;           (loc (rtags-current-location))
+  ;;           (refs)
+  ;;           (project)
+  ;;           (fn (rtags-buffer-file-name)))
+  ;;       (when (and fn loc)
+  ;;         (rtags-reparse-file-if-needed)
+  ;;         (with-temp-buffer
+  ;;           (rtags-call-rc :path fn
+  ;;                          "-r" loc
+  ;;                          "--elisp"
+  ;;                          "--containing-function-location"
+  ;;                          "--containing-function"
+  ;;                          (unless rtags-sort-references-by-input "--no-sort-references-by-input"))
+  ;;           (setq refs
+  ;;                 (condition-case nil
+  ;;                     (eval (read (current-buffer)))
+  ;;                   (error
+  ;;                    nil))))
+  ;;         (if (not refs)
+  ;;             (and (message "RTags: No results") nil)
+  ;;           (with-temp-buffer
+  ;;             (rtags-call-rc "--current-project" :path fn)
+  ;;             (when (> (point-max) (point-min))
+  ;;               (setq project (buffer-substring-no-properties (point-min) (1- (point-max))))))
+  ;;           (rtags-delete-rtags-windows)
+  ;;           (rtags-location-stack-push)
+  ;;           ;; ---------------------
+  ;;           ;; Added 't' to the rtags-switch-to-buffer call
+  ;;           ;; and defvar rtags-results-buffer-type to suppress
+  ;;           ;; "Warning (bytecomp): reference to free variable ..."
+  ;;           ;; ---------------------
+  ;;           (rtags-switch-to-buffer ref-buffer t)
+  ;;           (defvar rtags-results-buffer-type)
+  ;;           (setq rtags-results-buffer-type 'references-tree)
+  ;;           (rtags-references-tree-mode)
+  ;;           (setq rtags-current-project project)
+  ;;           (setq buffer-read-only nil)
+  ;;           (mapc (lambda (ref)
+  ;;                   (rtags-insert-ref ref 0)
+  ;;                   (insert "\n"))
+  ;;                 refs)
+  ;;           (rtags-references-tree-align-cfs)
+  ;;           (delete-char -1)
+  ;;           (goto-char (point-min))
+  ;;           (setq buffer-read-only t)
+  ;;           (cond ((or rtags-last-request-not-indexed rtags-last-request-not-connected) nil)
+  ;;                 ((= (count-lines (point-min) (point-max)) 1)
+  ;;                  (rtags-select-and-remove-rtags-buffer))
+  ;;                 (rtags-jump-to-first-match
+  ;;                  (shrink-window-if-larger-than-buffer)
+  ;;                  (rtags-select-other-window))
+  ;;                 (t
+  ;;                  (shrink-window-if-larger-than-buffer)
+  ;;                  t)))))))
+
+  (setq rtags-results-buffer-other-window t)
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
