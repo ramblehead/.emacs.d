@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (google-c-style picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (which-key undo-tree google-c-style picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -286,8 +286,8 @@ when only symbol face names are needed."
 
 ;; (setq split-height-threshold nil)
 ;; (setq split-width-threshold nil)
-(setq split-height-threshold 0)
-(setq split-width-threshold 160)
+(setq split-height-threshold 20)
+(setq split-width-threshold 90)
 
 ;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
 (setq save-place-file vr-saved-places-file-path)
@@ -516,7 +516,7 @@ when only symbol face names are needed."
   :pin melpa
   :ensure t)
 
-;; visual-regexp
+;; == visual-regexp ==
 
 (use-package visual-regexp
   :pin melpa
@@ -527,14 +527,16 @@ when only symbol face names are needed."
   (define-key vr/minibuffer-keymap (kbd "C-j") 'newline)
   (define-key vr/minibuffer-keymap (kbd "C-<return>") 'newline)
 
-  (define-key global-map (kbd "C-c v") 'vr/replace)
-  (define-key global-map (kbd "C-c q") 'vr/query-replace)
+  (global-set-key (kbd "C-c v") 'vr/replace)
+  (global-set-key (kbd "C-c q") 'vr/query-replace)
+  ;; (define-key global-map (kbd "C-c v") 'vr/replace)
+  ;; (define-key global-map (kbd "C-c q") 'vr/query-replace)
   ;; (define-key global-map (kbd "M-%") 'vr/replace)
   ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
 
   :ensure t)
 
-;; picture
+;; == picture ==
 
 (use-package picture
   :config
@@ -549,6 +551,26 @@ when only symbol face names are needed."
      ;; Suppress "Warning (bytecomp): reference to free variable ..."
      (defvar vr-picture-show-trailing-whitespace)
      (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
+
+;; == undo operations ==
+
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode)
+  (global-set-key (kbd "C-z") 'undo-tree-undo)
+  (global-set-key (kbd "C-S-z") 'undo-tree-redo)
+  (global-set-key (kbd "C-M-z") 'undo-tree-visualize)
+
+  :pin melpa
+  :ensure t)
+
+(use-package which-key
+  :init
+  (setq which-key-side-window-max-height 0.2)
+
+  :pin melpa
+  :ensure t)
+
 
 ;; -------------------------------------------------------------------
 ;;; File Management
@@ -2294,6 +2316,7 @@ continuing (not first) item"
       (backward-list arg)))
 
   (defun vr-python-code-folding-setup ()
+    (hs-minor-mode 1)
     (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
     (local-set-key (kbd "C-M-n") 'vr-python-forward-element)
     (local-set-key (kbd "C-M-p") 'vr-python-backward-element))
@@ -3388,7 +3411,6 @@ with very limited support for special characters."
 (global-set-key (kbd "C-<end>") 'end-of-buffer)
 (global-set-key (kbd "C-<kp-end>") 'end-of-buffer)
 
-(global-set-key (kbd "C-z") 'undo)
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "M-v") 'yank-pop)
 
@@ -3414,6 +3436,7 @@ with very limited support for special characters."
 (global-set-key (kbd "C-x <kp-right>") 'windmove-right)
 (global-set-key (kbd "C-x <left>") 'windmove-left)
 (global-set-key (kbd "C-x <kp-left>") 'windmove-left)
+(global-set-key (kbd "C-x o") 'other-frame)
 
 ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
 ;; for keybindings aliases. Can also be used with (current-local-map)
