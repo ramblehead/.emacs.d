@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (which-key undo-tree google-c-style picture-mode nlinum-hl modern-cpp-font-lock magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -374,6 +374,10 @@ when only symbol face names are needed."
 ;; Disable horizontal-scrolling "snap" behaviour, which prevents scrolling
 ;; when cursor is within a certain distance from the left edge.
 (setq hscroll-snap-threshold 0)
+
+(when (and (eq window-system 'x)
+           (string-match "GTK+" (version)))
+  (setq focus-follows-mouse t))
 
 ;; Allow cursor to be at a scrolled edge.
 (setq hscroll-margin 0)
@@ -908,7 +912,7 @@ fields which we need."
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; -------------------------------------------------------------------
-;;; Programming Languages, Debuggers, Profilers etc.
+;;; Programming Languages, Debuggers, Profilers, Shells etc.
 ;; -------------------------------------------------------------------
 
 ;; == vr-project ==
@@ -1170,6 +1174,27 @@ fields which we need."
 ;; (defun code-groups-minor-mode ()
 ;;   (interactive))
 
+;; == eshell mode ==
+
+(use-package eshell
+  :config
+  (add-hook
+   'eshell-mode-hook
+   #'(lambda ()
+     (define-key eshell-mode-map (kbd "<up>") #'previous-line)
+     (define-key eshell-mode-map (kbd "<down>") #'next-line)
+
+     (define-key eshell-mode-map (kbd "C-<up>")
+       #'eshell-previous-matching-input-from-input)
+     (define-key eshell-mode-map (kbd "C-<kp-up>")
+       #'eshell-previous-matching-input-from-input)
+     (define-key eshell-mode-map (kbd "C-<down>")
+       #'eshell-next-matching-input-from-input)
+     (define-key eshell-mode-map (kbd "C-<kp-down>")
+       #'eshell-next-matching-input-from-input)))
+
+  :ensure t)
+
 ;; == Line numbering ==
 
 (use-package linum
@@ -1364,7 +1389,6 @@ fields which we need."
 ;;             (setq gdb-source-window window))))))
 
 (use-package gud
-  :init
   :config
   (defun vr-gud-call-func (begin end func)
     (let ((pos (point)))
@@ -1466,7 +1490,7 @@ fields which we need."
 ;; == RealGUD Mode ==
 
 (use-package realgud
-  :disabled
+  ;; :disabled
   :pin melpa
   :ensure t)
 
