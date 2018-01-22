@@ -361,6 +361,18 @@ when only symbol face names are needed."
 (setq yank-excluded-properties (append '(font face font-lock-face)
                                        yank-excluded-properties))
 
+(use-package help
+  :init
+  (add-to-list 'display-buffer-alist
+               '("*Help*"
+                 (display-buffer-in-side-window)
+                 ;; (side . bottom)
+                 ;; (slot . 1)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
+  :config
+  (setq help-window-select t))
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
@@ -556,10 +568,25 @@ when only symbol face names are needed."
 
 (use-package undo-tree
   :config
-  (global-undo-tree-mode)
-  (global-set-key (kbd "C-z") 'undo-tree-undo)
-  (global-set-key (kbd "C-S-z") 'undo-tree-redo)
-  (global-set-key (kbd "C-M-z") 'undo-tree-visualize)
+  ;; (global-undo-tree-mode)
+  ;; (global-set-key (kbd "C-z") #'undo-tree-undo)
+  ;; (global-set-key (kbd "C-S-z") #'undo-tree-redo)
+  ;; (global-set-key (kbd "C-M-z") #'undo-tree-visualize)
+
+  (define-key undo-tree-map (kbd "C-z") #'undo-tree-undo)
+  (define-key undo-tree-map (kbd "C-S-z") #'undo-tree-redo)
+  (define-key undo-tree-map (kbd "C-M-z") #'undo-tree-visualize)
+
+  ;; (add-hook
+  ;;  'undo-tree-mode-hook
+  ;;  (lambda ()
+  ;;    (global-set-key (kbd "C-z") #'undo-tree-undo)
+  ;;    (global-set-key (kbd "C-z") #'undo-tree-mode)
+  ;;    (global-set-key (kbd "C-S-z") #'undo-tree-redo)
+  ;;    (global-set-key (kbd "C-M-z") #'undo-tree-visualize))
+
+  ;;  (define-key c-mode-base-map (kbd "C-c r d") #'vr-c++-rtags-toggle-rdm-display)
+  ;;  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
 
   :pin melpa
   :ensure t)
@@ -1277,6 +1304,7 @@ fields which we need."
           (nlinum-mode 1)
           (show-paren-local-mode 1)
           (hs-minor-mode 1)
+          (undo-tree-mode 1)
           ;; (fci-mode 1)
           (setq show-trailing-whitespace t)
           ;; (highlight-indent-guides-mode 1)
@@ -1290,6 +1318,7 @@ fields which we need."
         (nlinum-mode -1)
         (show-paren-local-mode -1)
         (hs-minor-mode -1)
+        (undo-tree-mode -1)
         ;; (fci-mode -1)
         (setq show-trailing-whitespace nil)
         ;; (highlight-indent-guides-mode -1)
@@ -1552,7 +1581,7 @@ fields which we need."
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
-  (vr-toggle-display "*rdm*"))
+  (vr-toggle-display "*rdm*" t))
 
 (use-package rtags
   :init
@@ -3131,7 +3160,7 @@ with very limited support for special characters."
   (delete 'help-mode popwin:special-display-config)
   (delete '(compilation-mode :noselect t) popwin:special-display-config)
   ;; (push '(help-mode :stick t) popwin:special-display-config)
-  (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
+  ;; (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
   ;; (push '(compilation-mode :dedicated t :noselect t :stick t)
   ;;       popwin:special-display-config)
   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
@@ -3195,7 +3224,7 @@ with very limited support for special characters."
   ;; must save all bookmarks first.
   (add-hook
    'kill-emacs-hook
-   #'(lambda nil
+   #'(lambda ()
        (bm-buffer-save-all)
        (bm-repository-save)))
 
@@ -3230,6 +3259,7 @@ with very limited support for special characters."
 
 ;; Disable annoying key binding for (suspend-frame) function
 (global-unset-key (kbd "C-x C-z"))
+(global-set-key (kbd "C-z") #'undo)
 
 ;; Re-map obsolete emacs exit key to "Really Quit"
 (global-unset-key (kbd "C-x C-c"))
