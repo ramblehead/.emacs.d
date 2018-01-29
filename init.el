@@ -1878,35 +1878,89 @@ continuing (not first) item"
        0)
       (t '(nil c-lineup-assignments +)))))
 
-  (c-set-offset
-   'block-close
-   (lambda (langelem)
-     (if (vr-c++-indentation-examine
-          langelem
-          #'vr-c++-looking-at-lambda_in_uniform_init)
-         '-
-       0)))
+  ;; (c-set-offset
+  ;;  'defun-block-intro
+  ;;  (lambda (langelem)
+  ;;    (let ((syntax (if (boundp 'c-syntactic-context)
+  ;;       	       c-syntactic-context
+  ;;       	     (c-save-buffer-state nil
+  ;;       	       (c-guess-basic-syntax)))))
+  ;;      (if (member '(inlambda) syntax)
+  ;;          #'(lambda (langelem)
+  ;;              (let ((indent nil))
+  ;;                (save-excursion
+  ;;                  (when langelem
+  ;;                    (goto-char (c-langelem-pos langelem))
+  ;;                    (setq indent (current-column)))
+  ;;                  `(add [,indent] +))))
+  ;;        nil))))
 
   (c-set-offset
-   'statement-block-intro
+   'defun-block-intro
    (lambda (langelem)
-     (if (vr-c++-indentation-examine
-          langelem
-          #'vr-c++-looking-at-lambda_in_uniform_init)
-         0
-       '+)))
+     (let ((syntax (if (boundp 'c-syntactic-context)
+		       c-syntactic-context
+		     (c-save-buffer-state nil
+		       (c-guess-basic-syntax)))))
+       (if (member '(inlambda) syntax)
+           #'(lambda (langelem)
+               (save-excursion
+                 (goto-char (c-langelem-pos langelem))
+                 `(add [,(current-column)] +)))
+         nil))))
+
+  ;; (c-set-offset
+  ;;  'inline-close
+  ;;  (lambda (langelem)
+  ;;    (let ((syntax (if (boundp 'c-syntactic-context)
+  ;;       	       c-syntactic-context
+  ;;       	     (c-save-buffer-state nil
+  ;;       	       (c-guess-basic-syntax)))))
+  ;;      (if (member '(inlambda) syntax)
+  ;;          #'(lambda (langelem)
+  ;;              (let ((indent nil))
+  ;;                (save-excursion
+  ;;                  (when langelem
+  ;;                    (goto-char (c-langelem-pos langelem))
+  ;;                    (setq indent (current-column)))
+  ;;                  `[,indent])))
+  ;;        nil))))
+
+  (c-set-offset
+   'inline-close
+   (lambda (langelem)
+     (let ((syntax (if (boundp 'c-syntactic-context)
+		       c-syntactic-context
+		     (c-save-buffer-state nil
+		       (c-guess-basic-syntax)))))
+       (if (member '(inlambda) syntax)
+           #'(lambda (langelem)
+               (save-excursion
+                 (goto-char (c-langelem-pos langelem))
+                 `[,(current-column)]))
+         nil))))
+
+  ;; (c-set-offset
+  ;;  'statement-block-intro
+  ;;  (lambda (langelem)
+  ;;    (if (vr-c++-indentation-examine
+  ;;         langelem
+  ;;         #'vr-c++-looking-at-lambda_in_uniform_init)
+  ;;        0
+  ;;      '+)))
 
   ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
-  (defadvice c-lineup-arglist (around
-                               vr-c++-c-lineup-arglist (_langelem)
-                               activate)
-    "Improve indentation of continued C++11 lambda function opened as argument."
-    (setq ad-return-value
-          (if (vr-c++-indentation-examine
-               _langelem
-               #'vr-c++-looking-at-lambda_as_param)
-              0
-            ad-do-it))))
+  ;; (defadvice c-lineup-arglist (around
+  ;;                              vr-c++-c-lineup-arglist (_langelem)
+  ;;                              activate)
+  ;;   "Improve indentation of continued C++11 lambda function opened as argument."
+  ;;   (setq ad-return-value
+  ;;         (if (vr-c++-indentation-examine
+  ;;              _langelem
+  ;;              #'vr-c++-looking-at-lambda_as_param)
+  ;;             0
+  ;;           ad-do-it)))
+  )
 
 (defun vr-c++-font-lock-setup ()
   (modern-c++-font-lock-mode 1))
