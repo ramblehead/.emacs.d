@@ -1907,7 +1907,7 @@ continuing (not first) item"
                (save-excursion
                  (goto-char (c-langelem-pos langelem))
                  `(add [,(current-column)] +)))
-         nil))))
+         '+))))
 
   ;; (c-set-offset
   ;;  'inline-close
