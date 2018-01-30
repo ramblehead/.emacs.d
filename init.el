@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1839,6 +1839,12 @@ continuing (not first) item"
      ((looking-at ":\\s *")
       (goto-char (match-end 0))))
     (vector (+ tab-width (current-column)))))
+
+(use-package clang-format
+  :load-path "/usr/share/emacs/site-lisp/clang-format-5.0"
+  :pin manual)
+
+;; (load "/usr/share/emacs/site-lisp/clang-format-5.0/clang-format.el")
 
 (use-package google-c-style
   :ensure)
