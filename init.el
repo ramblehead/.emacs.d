@@ -373,6 +373,14 @@ when only symbol face names are needed."
   :config
   (setq help-window-select t))
 
+(use-package grep
+  :init
+  (add-to-list 'display-buffer-alist
+               '("*grep*"
+                 (display-buffer-in-side-window)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3))))
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
@@ -1205,6 +1213,13 @@ fields which we need."
 
 (use-package eshell
   :config
+  (defun eshell-clear-buffer ()
+    "Clear terminal"
+    (interactive)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eshell-send-input)))
+
   (add-hook
    'eshell-mode-hook
    #'(lambda ()
@@ -1524,6 +1539,10 @@ fields which we need."
   :ensure t)
 
 ;; == C++ Mode ==
+
+;; (use-package cc-mode
+;;   :load-path "/home/ramblehead/cc-mode"
+;;   :pin manual)
 
 ; https://github.com/ludwigpacifici/modern-cpp-font-lock
 
@@ -1857,17 +1876,19 @@ continuing (not first) item"
   ;; (c-set-offset 'statement-cont '(nil c-lineup-assignments +))
   (c-set-offset 'arglist-intro 'vr-c++-lineup-expression-plus-tab-width)
   ;; (c-set-offset 'inher-intro '+)
-  (c-set-offset 'member-init-intro '+)
   (c-set-offset 'func-decl-cont '+)
+  (c-set-offset 'inher-intro '++)
+  (c-set-offset 'member-init-intro '++)
+  (c-set-offset 'topmost-intro-cont '+)
 
-  (c-set-offset
-   'inher-intro
-   (lambda (langelem)
-     (if (vr-c++-indentation-examine
-          langelem
-          #'vr-c++-looking-at-class_in_namespace)
-         0
-       '+)))
+  ;; (c-set-offset
+  ;;  'inher-intro
+  ;;  (lambda (langelem)
+  ;;    (if (vr-c++-indentation-examine
+  ;;         langelem
+  ;;         #'vr-c++-looking-at-class_in_namespace)
+  ;;        '++
+  ;;      '++)))
 
   (c-set-offset
    'statement-cont
