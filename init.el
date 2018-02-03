@@ -1331,7 +1331,7 @@ fields which we need."
           (hs-minor-mode 1)
           (undo-tree-mode 1)
           ;; (fci-mode 1)
-          (setq show-trailing-whitespace t)
+          (set (make-local-variable 'show-trailing-whitespace) t)
           ;; (highlight-indent-guides-mode 1)
           ;; ;; Use case-sensitive search (buffer-local)
           ;; (setq case-fold-search nil)
@@ -1345,7 +1345,7 @@ fields which we need."
         (hs-minor-mode -1)
         (undo-tree-mode -1)
         ;; (fci-mode -1)
-        (setq show-trailing-whitespace nil)
+        (kill-local-variable 'show-trailing-whitespace)
         ;; (highlight-indent-guides-mode -1)
         ;; (message "Disabling programming modes")
         ))))
@@ -2025,7 +2025,7 @@ continuing (not first) item"
 
 (use-package js2-mode
   :commands js2-mode
-  :mode "\\.jse?\\'"
+  ;; :mode "\\.jse?\\'"
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2068,17 +2068,17 @@ continuing (not first) item"
    'js2-mode-hook
    (lambda ()
      (vr-programming-minor-modes)
-     (skewer-mode 1)
+     ;; (skewer-mode 1)
      ;; (moz-minor-mode -1)
      (abbrev-mode -1)
      (yas-minor-mode 1)
      ;; (ac-js2-mode 1)
-     (js2-refactor-mode 1)
+     ;; (js2-refactor-mode 1)
 
-     (setq ac-sources
-           (remove 'ac-source-abbrev ac-sources))
-     (add-to-list 'ac-sources 'ac-source-yasnippet)
-     (vr-ac-add-buffer-dict "js-mode")
+     ;; (setq ac-sources
+     ;;       (remove 'ac-source-abbrev ac-sources))
+     ;; (add-to-list 'ac-sources 'ac-source-yasnippet)
+     ;; (vr-ac-add-buffer-dict "js-mode")
 
      (if (or (string-suffix-p ".scratch.js" (buffer-name))
              (string-equal "scratch.js" (buffer-name)))
@@ -2367,7 +2367,7 @@ continuing (not first) item"
         (cond
          ((string-equal web-mode-cur-language "css")
           (vr-skewer-css-eval-current-declaration))
-         (t (message "Can't last expression in browser")))))))
+         (t (message "Can't evaluate last expression in browser")))))))
 
 (defun vr-web-skewer-eval-print-region (start end)
   (interactive "r")
@@ -2384,6 +2384,28 @@ continuing (not first) item"
   (let ((web-mode-cur-language (web-mode-language-at-pos)))
     (when (string-equal web-mode-cur-language "css")
       (skewer-css-clear-all))))
+
+(cl-defun vr-web-skewer-mode (&optional (value nil value-supplied-p))
+  (interactive)
+  (let ((enable))
+    (if (null value-supplied-p)
+        (setq enable (if (bound-and-true-p skewer-mode) -1 1))
+      (setq enable (if (eq value 1) 1 -1)))
+    (if (eq enable 1)
+        (progn
+          (skewer-mode 1)
+          (skewer-css-mode 1)
+          (local-set-key (kbd "<f5>") 'vr-web-skewer-eval-region)
+          (local-set-key (kbd "M-<f5>") 'vr-web-skewer-eval-print-region)
+          (local-set-key (kbd "S-<f5>") 'skewer-repl)
+          (local-set-key (kbd "<f6>") 'vr-web-skewer-css-clear-all))
+      (progn
+        (skewer-mode -1)
+        (skewer-css-mode -1)
+        (local-unset-key (kbd "<f5>"))
+        (local-unset-key (kbd "M-<f5>"))
+        (local-unset-key (kbd "S-<f5>"))
+        (local-unset-key (kbd "<f6>"))))))
 
 ;; (defun vr-web-hs-default-toggle-hiding ()
 ;;   (interactive)
@@ -2419,7 +2441,7 @@ continuing (not first) item"
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.jse?\\'\\|\\.json\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
@@ -2446,10 +2468,12 @@ continuing (not first) item"
         (if (string-equal web-mode-cur-language "javascript")
             (progn
               (vr-ac-add-buffer-dict "js-mode")
-              (yas-activate-extra-mode 'js2-mode))
+              ;; (yas-activate-extra-mode 'js2-mode)
+              )
           (progn
             (vr-ac-remove-buffer-dict "js-mode")
-            (yas-deactivate-extra-mode 'js2-mode))))))
+            ;; (yas-deactivate-extra-mode 'js2-mode)
+            )))))
 
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
@@ -2474,19 +2498,14 @@ continuing (not first) item"
    (lambda ()
      (vr-programming-minor-modes t)
      (vr-web-ac-setup)
-     (linum-mode 1)
-     (show-paren-local-mode 1)
-     ;; (vr-web-code-folding-setup)
-     (hs-minor-mode 1)
-     ;; (abbrev-mode -1)
+     (abbrev-mode -1)
      (yas-minor-mode 1)
-     (skewer-mode 1)
-     (skewer-css-mode 1)
 
-     (local-set-key (kbd "<f5>") 'vr-web-skewer-eval-region)
-     (local-set-key (kbd "M-<f5>") 'vr-web-skewer-eval-print-region)
-     (local-set-key (kbd "S-<f5>") 'skewer-repl)
-     (local-set-key (kbd "<f6>") 'vr-web-skewer-css-clear-all)
+     ;; (when (stringp buffer-file-name)
+     ;;   (cond
+     ;;    ((string-match "\\.html\\'" buffer-file-name)
+     ;;     )))
+
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
      (local-set-key (kbd "C-M-n") 'forward-sexp)
