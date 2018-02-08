@@ -968,7 +968,15 @@ fields which we need."
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
 
-;; == code-groups ==
+;; /b/{ == code-groups mode ==
+
+(defvar-local cg-forward-list-original #'forward-list
+  "Original forward-list function used by the major mode before loading
+code-groups minor mode - i.e. the function usually bound to C-M-n")
+
+(defvar-local cg-backward-list-original #'backward-list
+  "Original backward-list function used by the major mode before loading
+code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (setq cg-doxygen-group-open-token "///@{")
 (setq cg-doxygen-group-close-token "///@}")
@@ -1206,8 +1214,53 @@ fields which we need."
         (delete-region start end))
       (cg-generate-auto-code data template))))
 
-;; (defun code-groups-minor-mode ()
-;;   (interactive))
+(defun cg-forward-list (arg)
+  (interactive "^p")
+  (if (cg-looking-at-any-group-head)
+      (cg-search-forward-group-balanced-tail)
+    (if cg-forward-list-original
+        (funcall cg-forward-list-original arg)
+      (forward-list arg))))
+
+(defun cg-backward-list (arg)
+  (interactive "^p")
+  (if (cg-looking-at-any-group-tail)
+      (cg-search-backward-group-balanced-head)
+    (if cg-backward-list-original
+        (funcall cg-backward-list-original arg)
+      (backward-list arg))))
+
+(defun cg-key-bindings-enable ()
+  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
+  (local-set-key (kbd "C-M-n") #'cg-forward-list)
+  (local-set-key (kbd "C-M-p") #'cg-backward-list))
+
+(defun cg-key-bindings-disable ()
+  (local-unset-key (kbd "C-S-j"))
+  (local-unset-key (kbd "C-M-n"))
+  (local-unset-key (kbd "C-M-p")))
+
+(defun code-groups-minor-mode-enable ()
+  (hs-minor-mode 1)
+  (cg-key-bindings-enable)
+  (setq code-groups-minor-mode t))
+
+(defun code-groups-minor-mode-disable ()
+  (cg-key-bindings-disable)
+  (setq code-groups-minor-mode nil))
+
+(cl-defun code-groups-minor-mode (&optional (enable nil enable-supplied-p))
+  (interactive)
+  (make-local-variable 'code-groups-minor-mode)
+  (if enable-supplied-p
+      (if (eq enable -1)
+          (code-groups-minor-mode-disable)
+        (code-groups-minor-mode-enable))
+    (if code-groups-minor-mode
+        (code-groups-minor-mode-disable)
+      (code-groups-minor-mode-enable))))
+
+;; /b/} == code-groups mode ==
 
 ;; == eshell mode ==
 
@@ -1345,6 +1398,7 @@ fields which we need."
           (show-paren-local-mode 1)
           (hs-minor-mode 1)
           (undo-tree-mode 1)
+          (code-groups-minor-mode 1)
           ;; (fci-mode 1)
           (set (make-local-variable 'show-trailing-whitespace) t)
           ;; (highlight-indent-guides-mode 1)
@@ -1359,6 +1413,7 @@ fields which we need."
         (show-paren-local-mode -1)
         (hs-minor-mode -1)
         (undo-tree-mode -1)
+        (code-groups-minor-mode -1)
         ;; (fci-mode -1)
         (kill-local-variable 'show-trailing-whitespace)
         ;; (highlight-indent-guides-mode -1)
@@ -1802,29 +1857,29 @@ fields which we need."
             (yas-reload-all))))
   (yas-minor-mode 1))
 
-(defun vr-c++-looking-at-lambda_as_param ()
+(defun vr-c++-looking-at-lambda_as_param (langelem)
   "Return t if text after point matches '[...](' or '[...]{'"
   (looking-at ".*[,(][ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
 
-(defun vr-c++-looking-at-lambda_in_uniform_init ()
+(defun vr-c++-looking-at-lambda_in_uniform_init (langelem)
   "Return t if text after point matches '{[...](' or '{[...]{'"
   (looking-at ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
 
-(defun vr-c++-looking-at-uniform_init_block_closing_brace_line ()
+(defun vr-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
 closing brace"
   (back-to-indentation)
   (looking-at "}"))
 
-(defun vr-c++-looking-at-uniform_init_block_cont_item ()
+(defun vr-c++-looking-at-uniform_init_block_cont_item (langelem)
   "Return t if cursor if looking at C++11 uniform init block
 continuing (not first) item"
   (back-to-indentation)
   (c-backward-syntactic-ws)
   (looking-back ","))
 
-(defun vr-c++-looking-at-class_in_namespace ()
-  "Return t if cursor if looking topmost-intro class in namespace"
+(defun vr-c++-looking-at-class_in_namespace (langelem)
+  "Return t if looking at topmost-intro class in namespace"
   (back-to-indentation)
   (let* ((c-parsing-error nil)
          (syntax (c-save-buffer-state nil
@@ -1833,13 +1888,17 @@ continuing (not first) item"
          (equal (car (nth 1 syntax)) 'topmost-intro)
          (looking-at "class"))))
 
+(defun vr-c++-looking-at-class_template (langelem)
+  "Return t if looking at class template"
+  (if (looking-at "template") t nil))
+
 (defun vr-c++-indentation-examine (langelem looking-at-p)
   (and (equal major-mode 'c++-mode)
        (ignore-errors
          (save-excursion
            (when langelem
              (goto-char (c-langelem-pos langelem)))
-           (funcall looking-at-p)))))
+           (funcall looking-at-p langelem)))))
 
 ;; Adapted from google-c-lineup-expression-plus-4
 (defun vr-c++-lineup-expression-plus-tab-width (langelem)
@@ -1863,8 +1922,6 @@ continuing (not first) item"
   :load-path "/usr/share/emacs/site-lisp/clang-format-5.0"
   :pin manual)
 
-;; (load "/usr/share/emacs/site-lisp/clang-format-5.0/clang-format.el")
-
 (use-package google-c-style
   :ensure)
 
@@ -1880,6 +1937,16 @@ continuing (not first) item"
   (c-set-offset 'inher-intro '++)
   (c-set-offset 'member-init-intro '++)
   (c-set-offset 'topmost-intro-cont '+)
+
+  (c-set-offset
+   'topmost-intro-cont
+   (lambda (langelem)
+     (message "%s" langelem)
+     (if (vr-c++-indentation-examine
+          langelem
+          #'vr-c++-looking-at-class_template)
+         nil
+       '+)))
 
   ;; (c-set-offset
   ;;  'inher-intro
@@ -2239,7 +2306,7 @@ continuing (not first) item"
 (use-package web-beautify
   :ensure t)
 
-;; == Emacs Lisp Mode ==
+;; /b/{ == Emacs Lisp (elisp) Mode ==
 
 (setq eval-expression-print-length nil)
 (setq eval-expression-print-level nil)
@@ -2275,55 +2342,62 @@ continuing (not first) item"
    (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
    (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
 
-;; == Python Mode ==
+;; /b/} == Emacs Lisp (elisp) Mode ==
+
+;; /b/{ == Python Mode ==
 
 (use-package python-mode
   :mode "\\.py\\'"
   :init
   (setq python-indent-offset 2)
 
-  (defun vr-python-forward-element (&optional arg)
-    (interactive "^p")
-    (if (cg-looking-at-any-group-head)
-        (cg-search-forward-group-balanced-tail)
-      (forward-list arg)))
+  ;; (defun vr-python-forward-element (&optional arg)
+  ;;   (interactive "^p")
+  ;;   (if (cg-looking-at-any-group-head)
+  ;;       (cg-search-forward-group-balanced-tail)
+  ;;     (forward-list arg)))
 
-  (defun vr-python-backward-element (&optional arg)
-    (interactive "^p")
-    (if (cg-looking-at-any-group-tail)
-        (cg-search-backward-group-balanced-head)
-      (backward-list arg)))
+  ;; (defun vr-python-backward-element (&optional arg)
+  ;;   (interactive "^p")
+  ;;   (if (cg-looking-at-any-group-tail)
+  ;;       (cg-search-backward-group-balanced-head)
+  ;;     (backward-list arg)))
 
-  (defun vr-python-code-folding-setup ()
-    (hs-minor-mode 1)
-    (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-    (local-set-key (kbd "C-M-n") 'vr-python-forward-element)
-    (local-set-key (kbd "C-M-p") 'vr-python-backward-element))
+  ;; (defun vr-python-code-folding-setup ()
+  ;;   (hs-minor-mode 1)
+  ;;   (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
+  ;;   (local-set-key (kbd "C-M-n") 'vr-python-forward-element)
+  ;;   (local-set-key (kbd "C-M-p") 'vr-python-backward-element))
 
   (add-hook
    'python-mode-hook
    (lambda ()
      (vr-programming-minor-modes)
-     (vr-python-code-folding-setup))))
+     ;; (vr-python-code-folding-setup)
+     )))
 
-;; == Visual Basic Mode ==
+;; /b/} == Python Mode ==
+
+;; /b/{ == Visual Basic Mode ==
 
 (autoload 'visual-basic-mode "visual-basic-mode" "Visual Basic mode." t)
 (add-to-list 'auto-mode-alist '("\\.vbs\\'" . visual-basic-mode))
 
-;; == nXML mode ==
+;; /b/} == Visual Basic Mode ==
 
-(defun vr-nxml-forward-element (&optional arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-head)
-      (cg-search-forward-group-balanced-tail)
-    (nxml-forward-element arg)))
+;; /b/{ == nXML mode ==
 
-(defun vr-nxml-backward-element (&optional arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head)
-    (nxml-backward-element arg)))
+;; (defun vr-nxml-forward-element (&optional arg)
+;;   (interactive "^p")
+;;   (if (cg-looking-at-any-group-head)
+;;       (cg-search-forward-group-balanced-tail)
+;;     (nxml-forward-element arg)))
+
+;; (defun vr-nxml-backward-element (&optional arg)
+;;   (interactive "^p")
+;;   (if (cg-looking-at-any-group-tail)
+;;       (cg-search-backward-group-balanced-head)
+;;     (nxml-backward-element arg)))
 
 (defun vr-nxml-code-folding-setup ()
   (require 'sgml-mode)
@@ -2337,11 +2411,16 @@ continuing (not first) item"
                  "<!--"
                  sgml-skip-tag-forward
                  nil))
-  (setq vr-nxml-code-folding-initialised t)
-  (hs-minor-mode 1)
-  (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-  (local-set-key (kbd "C-M-n") 'vr-nxml-forward-element)
-  (local-set-key (kbd "C-M-p") 'vr-nxml-backward-element))
+
+  (setq cg-forward-list-original #'nxml-forward-element)
+  (setq cg-backward-list-original #'nxml-backward-element)
+
+  ;; (setq vr-nxml-code-folding-initialised t)
+  ;; (hs-minor-mode 1)
+  ;; (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
+  ;; (local-set-key (kbd "C-M-n") 'vr-nxml-forward-element)
+  ;; (local-set-key (kbd "C-M-p") 'vr-nxml-backward-element)
+  )
 
 (use-package nxml-mode
   ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
@@ -2350,8 +2429,10 @@ continuing (not first) item"
   (add-hook
    'nxml-mode-hook
    (lambda ()
-     (vr-programming-minor-modes)
-     (vr-nxml-code-folding-setup))))
+     (vr-nxml-code-folding-setup)
+     (vr-programming-minor-modes))))
+
+;; /b/} == nXML mode ==
 
 ;; == web-mode mode ==
 
