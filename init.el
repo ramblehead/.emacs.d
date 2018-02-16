@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (company tide clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1333,6 +1333,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (use-package nlinum-hl
   :ensure t)
 
+;; == Exporting buffers to other formats (html, pdf etc.)
+
+(use-package htmlize
+  :ensure t)
+
 ;; == Indentation highlighting ==
 
 (use-package highlight-indent-guides
@@ -1887,6 +1892,26 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   "Return t if text after point matches '{[...](' or '{[...]{'"
   (looking-at ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
 
+(defun vr-c++-looking-at-guess-macro-definition (langelem)
+  "Return t if the guess is that we are looking at macro definition"
+  (let ((case-fold-search nil))
+    (or (looking-at "\\b[A-Z0-9_]+(.*)[ \t]*$")
+        (looking-at "\\b[A-Z0-9_]+[ \t]*$"))))
+
+(defun vr-c++-looking-at-return (langelem)
+  "Return t if looking at return statement"
+  (looking-at "return"))
+
+(defun vr-c++-get-offset-return (langelem)
+  "Returns offset for the next line after sptit return"
+  (ignore-errors
+    (save-excursion
+      (goto-char (c-langelem-pos langelem))
+      (save-match-data
+        (let ((line (thing-at-point 'line t)))
+          (when (string-match "return[ \t]+" line)
+            (length (match-string 0 line))))))))
+
 (defun vr-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
 closing brace"
@@ -1963,12 +1988,21 @@ continuing (not first) item"
   (c-set-offset
    'topmost-intro-cont
    (lambda (langelem)
-     (message "%s" langelem)
      (if (vr-c++-indentation-examine
           langelem
-          #'vr-c++-looking-at-class_template)
+          #'vr-c++-looking-at-guess-macro-definition)
          nil
-       '+)))
+       0)))
+
+  ;; (c-set-offset
+  ;;  'topmost-intro-cont
+  ;;  (lambda (langelem)
+  ;;    (message "%s" langelem)
+  ;;    (if (vr-c++-indentation-examine
+  ;;         langelem
+  ;;         #'vr-c++-looking-at-class_template)
+  ;;        nil
+  ;;      '+)))
 
   ;; (c-set-offset
   ;;  'inher-intro
@@ -1983,6 +2017,10 @@ continuing (not first) item"
    'statement-cont
    (lambda (langelem)
      (cond
+      ((vr-c++-indentation-examine
+        langelem
+        #'vr-c++-looking-at-return)
+       (vr-c++-get-offset-return langelem))
       ((vr-c++-indentation-examine
         nil
         ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
