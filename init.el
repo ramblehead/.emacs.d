@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (company tide clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -817,7 +817,7 @@ fields which we need."
 ;;; Smart Autocompletion, Advanced Editing and IntelliSense Tools
 ;; -------------------------------------------------------------------
 
-;; == multiple-cursors mode ==
+;; /b/{ == multiple-cursors ==
 
 ;; This mode is only used in js2-refactor mode at the moment.
 
@@ -827,17 +827,23 @@ fields which we need."
 ;;   (mc-hide-unmatched-lines-mode 1)
 ;;   :ensure t)
 
-;; == yasnippet ==
+;; /b/} == multiple-cursors ==
+
+;; /b/{ == yasnippet ==
 
 ;; see https://github.com/capitaomorte/yasnippet
 (setq yas-snippet-dirs
       '("~/.emacs.d/local-snippets" ;; local snippets
         "~/.emacs.d/snippets"       ;; default collection
         ))
+
 (require 'yasnippet)
+
 (yas-reload-all)
 
-;; == auto-complete mode ==
+;; /b/} == yasnippet ==
+
+;; /b/{ == auto-complete mode ==
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -945,6 +951,22 @@ fields which we need."
 
 (global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
+
+;; /b/} == auto-complete mode ==
+
+;; /b/{ == flycheck ==
+
+(use-package flycheck
+  :ensure t)
+
+;; /b/} == flycheck ==
+
+;; /b/{ == company ==
+
+(use-package company
+  :ensure t)
+
+;; /b/} == company ==
 
 ;; -------------------------------------------------------------------
 ;;; Programming Languages, Debuggers, Profilers, Shells etc.
@@ -2434,7 +2456,7 @@ continuing (not first) item"
 
 ;; /b/} == nXML mode ==
 
-;; == web-mode mode ==
+;; /b/{ == web-mode ==
 
 (defun vr-web-hs-html ()
   ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
@@ -2616,11 +2638,51 @@ continuing (not first) item"
   :pin melpa
   :ensure t)
 
-;; (use-package vimish-fold
-;;   :pin melpa
-;;   :ensure t)
+;; /b/} == web-mode ==
 
-;; (vimish-fold-global-mode 1)
+;; /b/{ == typescript-mode ==
+
+(use-package typescript-mode
+  :config
+  (defun vr-typescript-tide-setup ()
+    (company-mode 1)
+    ;; aligns annotation to the right hand side
+    (setq company-tooltip-align-annotations t)
+    (tide-setup)
+    (tide-hl-identifier-mode 1))
+
+  (defun vr-typescript-flycheck-setup ()
+    (flycheck-mode 1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+
+  (setq typescript-indent-level 2)
+
+  (add-hook
+   'typescript-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes t)
+     (vr-typescript-tide-setup)
+     (vr-typescript-flycheck-setup)
+     (eldoc-mode 1)
+     (abbrev-mode -1)
+     (yas-minor-mode 1)))
+
+  :ensure t)
+
+;; /b/} == typescript-mode ==
+
+;; /b/{ == tide ==
+
+(use-package tide
+  :config
+  (setq tide-tsserver-executable
+  "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
+  ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
+  (setq tide-completion-ignore-case t)
+
+  :ensure t)
+
+;; /b/} == tide ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -3067,6 +3129,7 @@ with very limited support for special characters."
                           ;; compile/script outputs
                           "^\\*skewer-error\\*$"
                           "^\\*compilation\\*$"
+                          "^\\*tide-server\\*$"
                           ;; rtags buffers
                           "^\\*rdm\\*$"
                           "^\\*RTags\\*$"
