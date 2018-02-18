@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (xref-js2 company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -384,6 +384,19 @@ when only symbol face names are needed."
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
+
+;; /b/{ == unicode-fonts ==
+
+;; see https://emacs.stackexchange.com/questions/251/line-height-with-unicode-characters
+;; Disabled due to very long startup time (> 30 sec)
+;; (use-package unicode-fonts
+;;   :config
+;;   (unicode-fonts-setup)
+
+;;   :ensure t)
+
+;; /b/} == unicode-fonts ==
+
 
 ;; == Basic Functionality ==
 
@@ -1328,6 +1341,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   :init
   (setq nlinum-format "%4d ")
   ;; (setq nlinum-highlight-current-line t)
+
+  :config
+  (require 'nlinum-hl)
+
   :ensure t)
 
 (use-package nlinum-hl
@@ -2680,30 +2697,81 @@ continuing (not first) item"
 
 ;; /b/{ == typescript-mode ==
 
+(defun vr-ts-company-setup ()
+  (company-mode 1)
+  (setq company-tooltip-align-annotations t)
+  (setq company-echo-truncate-lines nil))
+
+(defun vr-ts-eldoc-setup ()
+  (eldoc-mode 1))
+
+(defun vr-ts-flycheck-setup ()
+  (flycheck-mode 1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+
+(defun vr-ts-yas-setup ()
+  (abbrev-mode -1)
+  (yas-minor-mode 1))
+
+(defun vr-ts-tide-setup ()
+  (tide-setup)
+  (tide-hl-identifier-mode 1)
+  ;; (setq tide-completion-detailed t)
+  )
+
+(defun vr-ts-tern-setup ()
+  (tern-mode 1)
+
+  ;; (setq company-tern-meta-as-single-line t)
+  ;; (setq company-tern-property-marker " trn")
+  (defvar tern-argument-hints-enabled nil)
+
+  (defun tern-argument-hint-at-point ()
+    (interactive)
+    (tern-update-argument-hints))
+
+  (defun tern-post-command ()
+    (unless (eq (point) tern-last-point-pos)
+      (setf tern-last-point-pos (point))
+      (setf tern-activity-since-command tern-command-generation)
+      (when tern-argument-hints-enabled
+        (tern-update-argument-hints-async))))
+
+  (defun company-tern-annotation (candidate)
+    "Return simplified type annotation. 'f' for functions and
+'p' for anything else."
+    (if (company-tern-function-p candidate) "f trn" "p trn")))
+
+(defun vr-ts-xref-js2-setup ()
+  (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))
+
 (use-package typescript-mode
+  :init
+  (add-to-list 'display-buffer-alist
+               '("*tide-references*"
+                 (display-buffer-below-selected)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
+
   :config
-  (defun vr-typescript-tide-setup ()
-    (company-mode 1)
-    ;; aligns annotation to the right hand side
-    (setq company-tooltip-align-annotations t)
-    (tide-setup)
-    (tide-hl-identifier-mode 1))
-
-  (defun vr-typescript-flycheck-setup ()
-    (flycheck-mode 1)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-
   (setq typescript-indent-level 2)
 
   (add-hook
    'typescript-mode-hook
    (lambda ()
      (vr-programming-minor-modes t)
-     (vr-typescript-tide-setup)
-     (vr-typescript-flycheck-setup)
-     (eldoc-mode 1)
-     (abbrev-mode -1)
-     (yas-minor-mode 1)))
+     (vr-ts-company-setup)
+     (vr-ts-flycheck-setup)
+     (vr-ts-yas-setup)
+     (vr-ts-tern-setup)
+     (vr-ts-tide-setup)
+     (vr-ts-eldoc-setup)
+
+     ;; (define-key js-mode-map (kbd "M-.") nil)
+     ;; (define-key tide-mode-map (kbd "M-.") nil)
+     ;; (define-key tern-mode-keymap (kbd "M-.") nil)
+     ;; (define-key tern-mode-keymap (kbd "M-,") nil)
+     ))
 
   :ensure t)
 
@@ -2721,6 +2789,31 @@ continuing (not first) item"
   :ensure t)
 
 ;; /b/} == tide ==
+
+;; /b/{ == tern ==
+
+(use-package tern
+  :config
+  (setq tern-command
+        '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
+
+  :ensure t)
+
+;; /b/} == tern ==
+
+;; /b/{ == company-tern ==
+
+(use-package company-tern
+  :ensure t)
+
+;; /b/} == company-tern ==
+
+;; /b/{ == company-tern ==
+
+(use-package xref-js2
+  :ensure t)
+
+;; /b/} == company-tern ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
