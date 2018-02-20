@@ -1001,10 +1001,12 @@ fields which we need."
       (abbreviate-file-name
        (expand-file-name (concat rh-project "../"))))))
 
-(defun rh-project-setup (setup-file-name-base)
+(cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
   (let ((rh-project (rh-project-get-path)))
     (when rh-project
-      (load (concat rh-project setup-file-name-base "-setup.el")))))
+      (if supplied-p
+          (load (concat rh-project setup-file-name-base "-setup.el"))
+        (load (concat rh-project setup-file-name-base ".el"))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
