@@ -1940,8 +1940,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
       (goto-char (c-langelem-pos langelem))
       (save-match-data
         (let ((line (thing-at-point 'line t)))
-          (when (string-match "return[ \t]+" line)
-            (length (match-string 0 line))))))))
+          (if (string-match "\\(return[[:space:]]+\\)[^[:space:]]+\n" line)
+              (length (match-string 1 line))
+            '+))))))
 
 (defun vr-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
@@ -1966,7 +1967,7 @@ continuing (not first) item"
          (equal (car (nth 1 syntax)) 'topmost-intro)
          (looking-at "class"))))
 
-(defun vr-c++-looking-at-class_template (langelem)
+(defun vr-c++-looking-at-template (langelem)
   "Return t if looking at class template"
   (if (looking-at "template") t nil))
 
@@ -2014,16 +2015,31 @@ continuing (not first) item"
   (c-set-offset 'func-decl-cont '+)
   (c-set-offset 'inher-intro '++)
   (c-set-offset 'member-init-intro '++)
-  (c-set-offset 'topmost-intro-cont '+)
 
   (c-set-offset
    'topmost-intro-cont
    (lambda (langelem)
-     (if (vr-c++-indentation-examine
-          langelem
-          #'vr-c++-looking-at-guess-macro-definition)
-         nil
-       0)))
+     (cond
+      ((vr-c++-indentation-examine
+        langelem
+        #'vr-c++-looking-at-guess-macro-definition)
+       nil)
+      ((vr-c++-indentation-examine
+        langelem
+        #'vr-c++-looking-at-template)
+       0)
+      (t '+))))
+
+  ;; (c-set-offset 'topmost-intro-cont '+)
+
+  ;; (c-set-offset
+  ;;  'topmost-intro-cont
+  ;;  (lambda (langelem)
+  ;;    (if (vr-c++-indentation-examine
+  ;;         langelem
+  ;;         #'vr-c++-looking-at-guess-macro-definition)
+  ;;        nil
+  ;;      0)))
 
   ;; (c-set-offset
   ;;  'topmost-intro-cont
@@ -2031,7 +2047,7 @@ continuing (not first) item"
   ;;    (message "%s" langelem)
   ;;    (if (vr-c++-indentation-examine
   ;;         langelem
-  ;;         #'vr-c++-looking-at-class_template)
+  ;;         #'vr-c++-looking-at-template)
   ;;        nil
   ;;      '+)))
 
