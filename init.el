@@ -397,7 +397,6 @@ when only symbol face names are needed."
 
 ;; /b/} == unicode-fonts ==
 
-
 ;; == Basic Functionality ==
 
 (prefer-coding-system 'utf-8-unix)
@@ -985,23 +984,36 @@ fields which we need."
 ;;; Programming Languages, Debuggers, Profilers, Shells etc.
 ;; -------------------------------------------------------------------
 
-;; == vr-project ==
+;; /b/{ == rh-project ==
 
-(setq vr-project-dir-name ".project")
+(setq rh-project-dir-name ".project")
 
-(defun vr-project-get-path ()
+(defun rh-project-get-path ()
   (let ((src-tree-root (locate-dominating-file
                         (file-truename default-directory)
-                        vr-project-dir-name)))
+                        rh-project-dir-name)))
     (when src-tree-root
-      (concat src-tree-root vr-project-dir-name "/"))))
+      (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
-(defun vr-project-get-generators-path ()
+(defun rh-project-get-root ()
+  (let ((rh-project (rh-project-get-path)))
+    (when rh-project
+      (abbreviate-file-name
+       (expand-file-name (concat rh-project "../"))))))
+
+(defun rh-project-setup (setup-file-name-base)
+  (let ((rh-project (rh-project-get-path)))
+    (when rh-project
+      (load (concat rh-project setup-file-name-base "-setup.el")))))
+
+(defun rh-project-get-generators-path ()
   (let ((generators-path (concat
-                          (vr-project-get-path)
+                          (rh-project-get-path)
                           "../generators/")))
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
+
+;; /b/} == rh-project ==
 
 ;; /b/{ == code-groups mode ==
 
@@ -1209,7 +1221,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
       (hs-toggle-hiding))))
 
 (defun cg-generate-auto-code (data template)
-  (let* ((generators-path (vr-project-get-generators-path))
+  (let* ((generators-path (rh-project-get-generators-path))
          (code-gen (concat generators-path "auto-code")))
     (when (and generators-path
                (file-exists-p code-gen))
@@ -1668,7 +1680,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     (split-string include-string)))
 
 (defun vr-c++-get-project-include-path ()
-  (let* ((project-path (vr-project-get-path))
+  (let* ((project-path (rh-project-get-path))
          (src-tree-root (concat project-path "../"))
          (c++-include-path (concat project-path "c++-include-path")))
     (when (and project-path (file-exists-p c++-include-path))
@@ -1687,7 +1699,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defun vr-c++-compilation-setup ()
   (setq compilation-scroll-output t)
-  (let ((path (vr-project-get-path)))
+  (let ((path (rh-project-get-path)))
     (if path
         (progn
           (set (make-local-variable 'compile-command)
@@ -1893,7 +1905,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (defun vr-c++-yas-setup ()
   ;; Use yast instead of abbrev-mode
   (abbrev-mode -1)
-  (let* ((project-path (vr-project-get-path))
+  (let* ((project-path (rh-project-get-path))
          (snippets-path (concat project-path "snippets")))
     (if (and project-path (file-exists-p snippets-path))
         (if (not (equal yas-snippet-dirs
@@ -2724,23 +2736,7 @@ continuing (not first) item"
 
   ;; (setq company-tern-meta-as-single-line t)
   ;; (setq company-tern-property-marker " trn")
-  (defvar tern-argument-hints-enabled nil)
-
-  (defun tern-argument-hint-at-point ()
-    (interactive)
-    (tern-update-argument-hints))
-
-  (defun tern-post-command ()
-    (unless (eq (point) tern-last-point-pos)
-      (setf tern-last-point-pos (point))
-      (setf tern-activity-since-command tern-command-generation)
-      (when tern-argument-hints-enabled
-        (tern-update-argument-hints-async))))
-
-  (defun company-tern-annotation (candidate)
-    "Return simplified type annotation. 'f' for functions and
-'p' for anything else."
-    (if (company-tern-function-p candidate) "f trn" "p trn")))
+  (defvar tern-argument-hints-enabled nil))
 
 (defun vr-ts-xref-js2-setup ()
   (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))
@@ -2759,19 +2755,7 @@ continuing (not first) item"
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (vr-programming-minor-modes t)
-     (vr-ts-company-setup)
-     (vr-ts-flycheck-setup)
-     (vr-ts-yas-setup)
-     (vr-ts-tern-setup)
-     (vr-ts-tide-setup)
-     (vr-ts-eldoc-setup)
-
-     ;; (define-key js-mode-map (kbd "M-.") nil)
-     ;; (define-key tide-mode-map (kbd "M-.") nil)
-     ;; (define-key tern-mode-keymap (kbd "M-.") nil)
-     ;; (define-key tern-mode-keymap (kbd "M-,") nil)
-     ))
+     (vr-programming-minor-modes t)))
 
   :ensure t)
 
@@ -2781,8 +2765,8 @@ continuing (not first) item"
 
 (use-package tide
   :config
-  (setq tide-tsserver-executable
-  "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
+  ;; (setq tide-tsserver-executable
+  ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
   ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
   (setq tide-completion-ignore-case t)
 
@@ -2794,8 +2778,19 @@ continuing (not first) item"
 
 (use-package tern
   :config
-  (setq tern-command
-        '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
+  ;; (setq tern-command
+  ;;       '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
+
+  (defun tern-argument-hint-at-point ()
+    (interactive)
+    (tern-update-argument-hints-async))
+
+  (defun tern-post-command ()
+    (unless (eq (point) tern-last-point-pos)
+      (setf tern-last-point-pos (point))
+      (setf tern-activity-since-command tern-command-generation)
+      (when tern-argument-hints-enabled
+        (tern-update-argument-hints-async))))
 
   :ensure t)
 
@@ -2804,16 +2799,36 @@ continuing (not first) item"
 ;; /b/{ == company-tern ==
 
 (use-package company-tern
+  :config
+  (defun company-tern-annotation (candidate)
+    "Return simplified type annotation. 'f' for functions and
+'p' for anything else."
+    (if (company-tern-function-p candidate) "f trn" "p trn"))
+
   :ensure t)
 
 ;; /b/} == company-tern ==
 
-;; /b/{ == company-tern ==
+;; /b/{ == xref-js2 ==
 
 (use-package xref-js2
+  :config
+  (defun xref-js2--root-dir ()
+    "Return the root directory of the project."
+    (or (rh-project-get-path)
+        (ignore-errors
+          (projectile-project-root))
+        (ignore-errors
+          (vc-root-dir))
+        (user-error "You are not in a project")))
+
+  ;; (defadvice xref-js2--root-dir (around rh-xref-js2--root-dir activate)
+  ;;   (let ((rh-project (rh-project-get-path)))
+  ;;     (if rh-project rh-project ad-do-it)))
+
   :ensure t)
 
-;; /b/} == company-tern ==
+;; /b/} == xref-js2 ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
