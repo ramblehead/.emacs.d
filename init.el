@@ -18,10 +18,15 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (tern typescript-mode flycheck xref-js2 company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
+ '(safe-local-variable-values
+   (quote
+    ((eval rh-setup "foxx-ide")
+     (eval progn
+           (linum-mode -1)
+           (nlinum-mode 1)))))
  '(tab-stop-list
    (quote
     (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
@@ -969,6 +974,9 @@ fields which we need."
 ;; /b/{ == flycheck ==
 
 (use-package flycheck
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+
   :ensure t)
 
 ;; /b/} == flycheck ==
@@ -976,6 +984,10 @@ fields which we need."
 ;; /b/{ == company ==
 
 (use-package company
+  :config
+  (setq company-tooltip-align-annotations t)
+  (setq company-echo-truncate-lines nil)
+
   :ensure t)
 
 ;; /b/} == company ==
@@ -1001,7 +1013,7 @@ fields which we need."
       (abbreviate-file-name
        (expand-file-name (concat rh-project "../"))))))
 
-(cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
+(cl-defun rh-setup (&optional (setup-file-name-base "setup" supplied-p))
   (let ((rh-project (rh-project-get-path)))
     (when rh-project
       (if supplied-p
@@ -2727,38 +2739,6 @@ continuing (not first) item"
 
 ;; /b/{ == typescript-mode ==
 
-(defun vr-ts-company-setup ()
-  (company-mode 1)
-  (setq company-tooltip-align-annotations t)
-  (setq company-echo-truncate-lines nil))
-
-(defun vr-ts-eldoc-setup ()
-  (eldoc-mode 1))
-
-(defun vr-ts-flycheck-setup ()
-  (flycheck-mode 1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-
-(defun vr-ts-yas-setup ()
-  (abbrev-mode -1)
-  (yas-minor-mode 1))
-
-(defun vr-ts-tide-setup ()
-  (tide-setup)
-  (tide-hl-identifier-mode 1)
-  ;; (setq tide-completion-detailed t)
-  )
-
-(defun vr-ts-tern-setup ()
-  (tern-mode 1)
-
-  ;; (setq company-tern-meta-as-single-line t)
-  ;; (setq company-tern-property-marker " trn")
-  (defvar tern-argument-hints-enabled nil))
-
-(defun vr-ts-xref-js2-setup ()
-  (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))
-
 (use-package typescript-mode
   :init
   (add-to-list 'display-buffer-alist
@@ -2826,27 +2806,6 @@ continuing (not first) item"
   :ensure t)
 
 ;; /b/} == company-tern ==
-
-;; /b/{ == xref-js2 ==
-
-(use-package xref-js2
-  :config
-  (defun xref-js2--root-dir ()
-    "Return the root directory of the project."
-    (or (rh-project-get-path)
-        (ignore-errors
-          (projectile-project-root))
-        (ignore-errors
-          (vc-root-dir))
-        (user-error "You are not in a project")))
-
-  ;; (defadvice xref-js2--root-dir (around rh-xref-js2--root-dir activate)
-  ;;   (let ((rh-project (rh-project-get-path)))
-  ;;     (if rh-project rh-project ad-do-it)))
-
-  :ensure t)
-
-;; /b/} == xref-js2 ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
