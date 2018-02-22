@@ -2767,6 +2767,7 @@ continuing (not first) item"
   ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
   ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
   (setq tide-completion-ignore-case t)
+  ;; (setq tide-jump-to-definition-reuse-window nil)
 
   :ensure t)
 
@@ -2779,6 +2780,8 @@ continuing (not first) item"
   ;; (setq tern-command
   ;;       '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
 
+  (defvar rh-tern-argument-hints-enabled t)
+
   (defun tern-argument-hint-at-point ()
     (interactive)
     (tern-update-argument-hints-async))
@@ -2787,7 +2790,7 @@ continuing (not first) item"
     (unless (eq (point) tern-last-point-pos)
       (setf tern-last-point-pos (point))
       (setf tern-activity-since-command tern-command-generation)
-      (when tern-argument-hints-enabled
+      (when rh-tern-argument-hints-enabled
         (tern-update-argument-hints-async))))
 
   :ensure t)
