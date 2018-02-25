@@ -23,7 +23,7 @@
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
    (quote
-    ((eval rh-setup "foxx-ide")
+    ((eval rh-setup "foxx-ts")
      (eval progn
            (linum-mode -1)
            (nlinum-mode 1)))))
@@ -277,6 +277,10 @@ when only symbol face names are needed."
 
 (global-set-key (kbd "<f12>") 'what-face)
 
+(defun rh-quit-window-kill ()
+  (interactive)
+  (quit-window t))
+
 ;; -------------------------------------------------------------------
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
@@ -367,24 +371,65 @@ when only symbol face names are needed."
                                        yank-excluded-properties))
 
 (use-package help
-  :init
-  (add-to-list 'display-buffer-alist
-               '("*Help*"
-                 (display-buffer-in-side-window)
-                 ;; (side . bottom)
-                 ;; (slot . 1)
-                 (inhibit-same-window . t)
-                 (window-height . 0.3)))
+  ;; :init
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*Help*"
+  ;;                (display-buffer-in-side-window)
+  ;;                ;; (side . bottom)
+  ;;                ;; (slot . 1)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
   :config
-  (setq help-window-select t))
+  (setq help-window-select t)
+
+  (define-key help-mode-map (kbd "<escape>") #'rh-quit-window-kill)
+
+  :demand t)
 
 (use-package grep
   :init
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*grep*"
+  ;;                (display-buffer-below-selected)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
   (add-to-list 'display-buffer-alist
-               '("*grep*"
-                 (display-buffer-in-side-window)
+               '((lambda (buffer-nm actions)
+                   (when (string= buffer-nm "*grep*")
+                     (let ((current-window (get-buffer-window (current-buffer)
+                                                              (selected-frame))))
+                       (with-current-buffer buffer-nm
+                         (set (make-local-variable 'rh-original-command-window)
+                              current-window)))
+                     t))
+                 (display-buffer-below-selected)
                  (inhibit-same-window . t)
-                 (window-height . 0.3))))
+                 (window-height . 0.3)))
+
+  :config
+  (define-key grep-mode-map (kbd "<escape>") #'rh-quit-window-kill)
+
+  (add-hook
+   'grep-mode-hook
+   #'(lambda ()
+       (setq truncate-lines t)))
+
+  :demand t)
+
+(defvar display-buffer-same-window-commands
+  '(occur-mode-goto-occurrence compile-goto-error))
+
+(add-to-list 'display-buffer-alist
+             '((lambda (buffer-nm actions)
+                 (memq this-command display-buffer-same-window-commands))
+               (lambda (buffer alist)
+                 (if (boundp 'rh-original-command-window)
+                     (window--display-buffer buffer rh-original-command-window
+                                             'reuse alist
+                                             display-buffer-mark-dedicated)
+                   (display-buffer-reuse-window)))
+               (inhibit-same-window . t)))
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -2769,6 +2814,11 @@ continuing (not first) item"
   (setq tide-completion-ignore-case t)
   ;; (setq tide-jump-to-definition-reuse-window nil)
 
+  (define-key tide-mode-map (kbd "M-.") #'tide-jump-to-definition)
+  (define-key tide-mode-map (kbd "M-/") #'tide-jump-to-implementation)
+  (define-key tide-mode-map (kbd "M-,") #'tide-references)
+  (define-key tide-mode-map (kbd "M-[") #'tide-jump-back)
+
   :ensure t)
 
 ;; /b/} == tide ==
@@ -2793,6 +2843,12 @@ continuing (not first) item"
       (when rh-tern-argument-hints-enabled
         (tern-update-argument-hints-async))))
 
+  (define-key tern-mode-keymap (kbd "M-.") nil)
+  (define-key tern-mode-keymap (kbd "M-,") nil)
+  (define-key tern-mode-keymap (kbd "C-c M-.") #'tern-find-definition)
+  (define-key tern-mode-keymap (kbd "C-c M-[") #'tern-pop-find-definition)
+  (define-key tern-mode-keymap (kbd "C-c M-i") #'tern-argument-hint-at-point)
+
   :ensure t)
 
 ;; /b/} == tern ==
@@ -2809,6 +2865,20 @@ continuing (not first) item"
   :ensure t)
 
 ;; /b/} == company-tern ==
+
+;; /b/{ == JavaScript Environment Setup Functions ==
+
+(defun rh-foxx-ts-setup ()
+  (company-mode 1)
+  (flycheck-mode 1)
+  (abbrev-mode -1)
+  (yas-minor-mode 1)
+  (tern-mode 1)
+  (tide-setup)
+  (tide-hl-identifier-mode 1)
+  (eldoc-mode 1))
+
+;; /b/} == JavaScript Environment Setup Functions ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -3547,40 +3617,40 @@ with very limited support for special characters."
 
 ;; == popwin mode ==
 
-(use-package popwin
-  :config
-  ;; Find how to search and replace within lists in elisp and
-  ;; generalise the following functions
-  (delete 'help-mode popwin:special-display-config)
-  (delete '(compilation-mode :noselect t) popwin:special-display-config)
-  ;; (push '(help-mode :stick t) popwin:special-display-config)
-  ;; (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
-  ;; (push '(compilation-mode :dedicated t :noselect t :stick t)
-  ;;       popwin:special-display-config)
-  (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
-  (push '("*skewer-repl*" :stick t) popwin:special-display-config)
-  ;; (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
-  ;; (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
-  ;;       popwin:special-display-config)
+;; (use-package popwin
+;;   :config
+;;   ;; Find how to search and replace within lists in elisp and
+;;   ;; generalise the following functions
+;;   (delete 'help-mode popwin:special-display-config)
+;;   (delete '(compilation-mode :noselect t) popwin:special-display-config)
+;;   ;; (push '(help-mode :stick t) popwin:special-display-config)
+;;   ;; (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
+;;   ;; (push '(compilation-mode :dedicated t :noselect t :stick t)
+;;   ;;       popwin:special-display-config)
+;;   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
+;;   (push '("*skewer-repl*" :stick t) popwin:special-display-config)
+;;   ;; (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
+;;   ;; (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
+;;   ;;       popwin:special-display-config)
 
-  ;; see https://www.emacswiki.org/emacs/OneWindow
-  ;; (add-to-list 'same-window-buffer-names "*Help*")
+;;   ;; see https://www.emacswiki.org/emacs/OneWindow
+;;   ;; (add-to-list 'same-window-buffer-names "*Help*")
 
-  ;; (defun vr-popwin:popup-smart ()
-  ;;   (interactive)
-  ;;   (if popwin:popup-window
-  ;;       (popwin:select-popup-window)
-  ;;     (if popwin:popup-last-config
-  ;;         (popwin:popup-last-buffer)
-  ;;       (popwin:messages))))
+;;   ;; (defun vr-popwin:popup-smart ()
+;;   ;;   (interactive)
+;;   ;;   (if popwin:popup-window
+;;   ;;       (popwin:select-popup-window)
+;;   ;;     (if popwin:popup-last-config
+;;   ;;         (popwin:popup-last-buffer)
+;;   ;;       (popwin:messages))))
 
-  ;; (global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
-  ;; (global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
-  (global-set-key (kbd "C-x p") popwin:keymap)
+;;   ;; (global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
+;;   ;; (global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
+;;   (global-set-key (kbd "C-x p") popwin:keymap)
 
-  (popwin-mode 1)
-  :demand t
-  :ensure t)
+;;   (popwin-mode 1)
+;;   :demand t
+;;   :ensure t)
 
 ;; -------------------------------------------------------------------
 ;;; Bookmarks
