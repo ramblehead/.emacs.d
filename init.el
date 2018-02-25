@@ -23,7 +23,7 @@
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
    (quote
-    ((eval rh-setup "foxx-ts")
+    ((eval rh-setup "ts-foxx")
      (eval progn
            (linum-mode -1)
            (nlinum-mode 1)))))
@@ -382,7 +382,7 @@ when only symbol face names are needed."
   :config
   (setq help-window-select t)
 
-  (define-key help-mode-map (kbd "<escape>") #'rh-quit-window-kill)
+  (define-key help-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :demand t)
 
@@ -408,7 +408,7 @@ when only symbol face names are needed."
                  (window-height . 0.3)))
 
   :config
-  (define-key grep-mode-map (kbd "<escape>") #'rh-quit-window-kill)
+  (define-key grep-mode-map (kbd "q") #'rh-quit-window-kill)
 
   (add-hook
    'grep-mode-hook
@@ -2785,13 +2785,6 @@ continuing (not first) item"
 ;; /b/{ == typescript-mode ==
 
 (use-package typescript-mode
-  :init
-  (add-to-list 'display-buffer-alist
-               '("*tide-references*"
-                 (display-buffer-below-selected)
-                 (inhibit-same-window . t)
-                 (window-height . 0.3)))
-
   :config
   (setq typescript-indent-level 2)
 
@@ -2807,6 +2800,13 @@ continuing (not first) item"
 ;; /b/{ == tide ==
 
 (use-package tide
+  :init
+  (add-to-list 'display-buffer-alist
+               '("*tide-references*"
+                 (display-buffer-below-selected)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
+
   :config
   ;; (setq tide-tsserver-executable
   ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
@@ -2818,6 +2818,8 @@ continuing (not first) item"
   (define-key tide-mode-map (kbd "M-/") #'tide-jump-to-implementation)
   (define-key tide-mode-map (kbd "M-,") #'tide-references)
   (define-key tide-mode-map (kbd "M-[") #'tide-jump-back)
+
+  (define-key tide-references-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :ensure t)
 
@@ -2868,7 +2870,8 @@ continuing (not first) item"
 
 ;; /b/{ == JavaScript Environment Setup Functions ==
 
-(defun rh-foxx-ts-setup ()
+(defun rh-ts-foxx-setup ()
+  (interactive)
   (company-mode 1)
   (flycheck-mode 1)
   (abbrev-mode -1)
@@ -3605,7 +3608,7 @@ with very limited support for special characters."
    (lambda ()
      (hl-line-mode 1)))
 
-  (define-key bs-mode-map (kbd "<escape>") 'bs-kill)
+  ;; (define-key bs-mode-map (kbd "<escape>") 'bs-kill)
   (global-set-key (kbd "C-x C-b") 'vr-bs-show)
 
   :demand t
