@@ -1399,6 +1399,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                  ,reuse-visible))
         t))))
 
+(defun goto-window-ref (choice)
+  (interactive
+   (let* (value
+          (choices (mapcar (lambda (w)
+                             (list (format "%s" w) w))
+                           (window-list)))
+          (completion-ignore-case  t))
+     (setq value (list (completing-read "goto-window-ref: " choices nil t)))
+     (cdr (assoc (car value) choices 'string=))))
+  (if (local-variable-p 'goto-window-ref)
+      (progn
+        (setq goto-window-ref choice)
+        (select-window choice)
+        (message "goto-window-ref: %s" choice)
+        choice)
+    (progn
+      (message "current buffer has no associated `goto-window-ref'")
+      nil)))
+
 ;; /b/} == goto-window ==
 
 ;; /b/{ == compile ==
