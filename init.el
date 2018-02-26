@@ -1370,6 +1370,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :config
   (require 'nlinum-hl)
+  (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
 
   :ensure t)
 
