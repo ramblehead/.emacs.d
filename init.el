@@ -282,6 +282,402 @@ when only symbol face names are needed."
   (quit-window t))
 
 ;; -------------------------------------------------------------------
+;;; Packages Tree (where packages grow)
+;; -------------------------------------------------------------------
+
+;; /b/{ == rh-project ==
+
+(setq rh-project-dir-name ".project")
+
+(defun rh-project-get-path ()
+  (let ((src-tree-root (locate-dominating-file
+                        (file-truename default-directory)
+                        rh-project-dir-name)))
+    (when src-tree-root
+      (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
+
+(defun rh-project-get-root ()
+  (let ((rh-project (rh-project-get-path)))
+    (when rh-project
+      (abbreviate-file-name
+       (expand-file-name (concat rh-project "../"))))))
+
+(cl-defun rh-setup (&optional (setup-file-name-base "setup" supplied-p))
+  (let ((rh-project (rh-project-get-path)))
+    (when rh-project
+      (if supplied-p
+          (load (concat rh-project setup-file-name-base "-setup.el"))
+        (load (concat rh-project setup-file-name-base ".el"))))))
+
+(defun rh-project-get-generators-path ()
+  (let ((generators-path (concat
+                          (rh-project-get-path)
+                          "../generators/")))
+    (when (file-directory-p generators-path)
+      (expand-file-name generators-path))))
+
+;; /b/} == rh-project ==
+
+;; /b/{ == code-groups ==
+
+(defvar-local cg-forward-list-original #'forward-list
+  "Original forward-list function used by the major mode before loading
+code-groups minor mode - i.e. the function usually bound to C-M-n")
+
+(defvar-local cg-backward-list-original #'backward-list
+  "Original backward-list function used by the major mode before loading
+code-groups minor mode - i.e. the function usually bound to C-M-n")
+
+(setq cg-doxygen-group-open-token "///@{")
+(setq cg-doxygen-group-close-token "///@}")
+
+(setq cg-auto-code-group-open-token "/a/{")
+(setq cg-auto-code-group-close-token "/a/}")
+
+(setq cg-custom-code-group-open-token "/c/{")
+(setq cg-custom-code-group-close-token "/c/}")
+
+(setq cg-block-code-group-open-token "/b/{")
+(setq cg-block-code-group-close-token "/b/}")
+
+(defun cg-group-head-regexp (open-token)
+  (concat "^.*" open-token ".*$"))
+
+(defun cg-group-tail-regexp (close-token)
+  (concat "^.*" close-token ".*$"))
+
+(defun cg-looking-at-group-head (open-token)
+  (if (string-match
+       (concat "^.*" open-token ".*$")
+       (thing-at-point 'line t))
+      open-token))
+
+(defun cg-looking-at-group-tail (close-token)
+  (if (string-match
+       (concat "^.*" close-token ".*$")
+       (thing-at-point 'line t))
+      close-token))
+
+(defun cg-group-head-or-tail-length (token line)
+  (length
+   (replace-regexp-in-string
+    (concat "^.*\\(" token ".*\\)[\r\n]?$")
+    "\\1"
+    line)))
+
+(defun cg-group-reverse-token (token)
+  (cond
+   ((string= cg-doxygen-group-open-token token)
+    cg-doxygen-group-close-token)
+   ((string= cg-doxygen-group-close-token token)
+    cg-doxygen-group-open-token)
+   ((string= cg-auto-code-group-open-token token)
+    cg-auto-code-group-close-token)
+   ((string= cg-auto-code-group-close-token token)
+    cg-auto-code-group-open-token)
+   ((string= cg-custom-code-group-open-token token)
+    cg-custom-code-group-close-token)
+   ((string= cg-custom-code-group-close-token token)
+    cg-custom-code-group-open-token)
+   ((string= cg-block-code-group-open-token token)
+    cg-block-code-group-close-token)
+   ((string= cg-block-code-group-close-token token)
+    cg-block-code-group-open-token)))
+
+(defun cg-looking-at-auto-code-group-head-or-tail ()
+  (cond ((cg-looking-at-group-head
+          cg-auto-code-group-open-token)
+         cg-auto-code-group-open-token)
+        ((cg-looking-at-group-head
+          cg-auto-code-group-close-token)
+         cg-auto-code-group-close-token)))
+
+(defun cg-looking-at-any-group-head ()
+  (cond ((cg-looking-at-group-head
+          cg-doxygen-group-open-token)
+         cg-doxygen-group-open-token)
+        ((cg-looking-at-group-head
+          cg-auto-code-group-open-token)
+         cg-auto-code-group-open-token)
+        ((cg-looking-at-group-head
+          cg-custom-code-group-open-token)
+         cg-custom-code-group-open-token)
+        ((cg-looking-at-group-head
+          cg-block-code-group-open-token)
+         cg-block-code-group-open-token)))
+
+(defun cg-looking-at-any-group-tail ()
+  (cond ((cg-looking-at-group-tail
+          cg-doxygen-group-close-token)
+         cg-doxygen-group-close-token)
+        ((cg-looking-at-group-tail
+          cg-auto-code-group-close-token)
+         cg-auto-code-group-close-token)
+        ((cg-looking-at-group-tail
+          cg-custom-code-group-close-token)
+         cg-custom-code-group-close-token)
+        ((cg-looking-at-group-tail
+          cg-block-code-group-close-token)
+         cg-block-code-group-close-token)))
+
+(defun cg-search-backward-group-balanced-head ()
+  (let ((open-token)
+        (close-token)
+        (mark-pos (point)))
+    (setq close-token (cg-looking-at-any-group-tail))
+    (when close-token
+      (setq open-token (cg-group-reverse-token close-token))
+      (move-beginning-of-line nil)
+      (if (cg-looking-at-group-head open-token)
+          (search-forward open-token)
+        (let ((pos nil)
+              (found nil)
+              (skip-tail 0))
+          (push-mark mark-pos t)
+          (while (and (not found)
+                      (setq pos (re-search-backward
+                                 (concat (cg-group-head-regexp open-token)
+                                         "\\|"
+                                         (cg-group-tail-regexp close-token)))))
+            (if (cg-looking-at-group-tail close-token)
+                (incf skip-tail)
+              (if (<= skip-tail 0)
+                  (setq found t)
+                (decf skip-tail))))
+          (when (cg-looking-at-group-head open-token)
+            (move-end-of-line nil)
+            (backward-char (cg-group-head-or-tail-length
+                            open-token (thing-at-point 'line t))))
+          (point))))))
+
+(defun cg-search-forward-group-balanced-tail ()
+  (let ((open-token)
+        (close-token)
+        (mark-pos (point)))
+    (setq open-token (cg-looking-at-any-group-head))
+    (when open-token
+      (setq close-token (cg-group-reverse-token open-token))
+      (move-end-of-line nil)
+      (if (cg-looking-at-group-tail close-token)
+          (search-backward close-token)
+        (let ((pos nil)
+              (found nil)
+              (skip-tail 0))
+          (push-mark mark-pos t)
+          (while (and (not found)
+                      (setq pos (re-search-forward
+                                 (concat (cg-group-head-regexp open-token)
+                                         "\\|"
+                                         (cg-group-tail-regexp close-token)))))
+            (if (cg-looking-at-group-head open-token)
+                (incf skip-tail)
+              (if (<= skip-tail 0)
+                  (setq found t)
+                (decf skip-tail))))
+          pos)))))
+
+(defun cg-hs-hide-group ()
+  (interactive)
+  (let ((open-token)
+        (close-token))
+    (when (cg-looking-at-any-group-tail)
+      (cg-search-backward-group-balanced-head))
+    (setq open-token (cg-looking-at-any-group-head))
+    (when open-token
+      (setq close-token (cg-group-reverse-token open-token))
+      (move-beginning-of-line nil)
+      (let* ((beg (search-forward open-token))
+             (end (- (cg-search-forward-group-balanced-tail)
+                     (cg-group-head-or-tail-length
+                      close-token (thing-at-point 'line t)))))
+        (hs-make-overlay beg end 'comment beg end)
+        (goto-char beg)))))
+
+(defun cg-hs-toggle-hiding ()
+  (interactive)
+  (let ((open-token)
+        (close-token))
+    (setq open-token (cg-looking-at-any-group-head))
+    (if open-token
+        (setq close-token (cg-group-reverse-token open-token))
+      (progn
+        (setq close-token (cg-looking-at-any-group-tail))
+        (when close-token
+          (setq open-token (cg-group-reverse-token close-token)))))
+    (if open-token
+        (let ((hidden nil)
+              (at-tail (cg-looking-at-group-tail close-token)))
+          (save-excursion
+            (move-beginning-of-line nil)
+            (if (cg-looking-at-group-head open-token)
+                (progn
+                  (move-end-of-line nil)
+                  (if (cg-looking-at-group-tail close-token)
+                      (setq hidden t)))))
+          (if hidden
+              (progn
+                (move-beginning-of-line nil)
+                (search-forward open-token)
+                (if (not at-tail)
+                    (hs-show-block)))
+            (cg-hs-hide-group)))
+      (hs-toggle-hiding))))
+
+(defun cg-generate-auto-code (data template)
+  (let* ((generators-path (rh-project-get-generators-path))
+         (code-gen (concat generators-path "auto-code")))
+    (when (and generators-path
+               (file-exists-p code-gen))
+      (setq code-gen (concat code-gen " " data " " template))
+      (insert (shell-command-to-string code-gen)))))
+
+(defun cg-generate-auto-code-group ()
+  (interactive)
+  (let* ((current-line (thing-at-point 'line t))
+         (open-token cg-auto-code-group-open-token)
+         (close-token cg-auto-code-group-close-token)
+         (desc-regex (concat
+                      "[[:blank:]]*auto-code[[:blank:]]+"
+                      "\\([^[:blank:]]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"
+                      ".*[\r\n]?$"))
+         (open-regex (concat "^.*" open-token desc-regex))
+         (close-regex (concat "^.*" close-token desc-regex))
+         (data)
+         (template))
+    (when (string-match close-regex current-line)
+      (cg-search-backward-group-balanced-head)
+      (setq current-line (thing-at-point 'line t)))
+    (when (string-match open-regex current-line)
+      (setq data (replace-regexp-in-string open-regex "\\1" current-line))
+      (setq template
+            (concat
+             (replace-regexp-in-string open-regex "\\2" current-line)
+             ".mako"))
+      (let ((start) (end))
+        (move-beginning-of-line 2)
+        (setq start (point))
+        (previous-line)
+        (cg-search-forward-group-balanced-tail)
+        (move-beginning-of-line nil)
+        (setq end (point))
+        (goto-char start)
+        (delete-region start end))
+      (cg-generate-auto-code data template))))
+
+(defun cg-forward-list (arg)
+  (interactive "^p")
+  (if (cg-looking-at-any-group-head)
+      (cg-search-forward-group-balanced-tail)
+    (if cg-forward-list-original
+        (funcall cg-forward-list-original arg)
+      (forward-list arg))))
+
+(defun cg-backward-list (arg)
+  (interactive "^p")
+  (if (cg-looking-at-any-group-tail)
+      (cg-search-backward-group-balanced-head)
+    (if cg-backward-list-original
+        (funcall cg-backward-list-original arg)
+      (backward-list arg))))
+
+(defun cg-key-bindings-enable ()
+  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
+  (local-set-key (kbd "C-M-n") #'cg-forward-list)
+  (local-set-key (kbd "C-M-p") #'cg-backward-list))
+
+(defun cg-key-bindings-disable ()
+  (local-unset-key (kbd "C-S-j"))
+  (local-unset-key (kbd "C-M-n"))
+  (local-unset-key (kbd "C-M-p")))
+
+(defun code-groups-minor-mode-enable ()
+  (hs-minor-mode 1)
+  (cg-key-bindings-enable)
+  (setq code-groups-minor-mode t))
+
+(defun code-groups-minor-mode-disable ()
+  (cg-key-bindings-disable)
+  (setq code-groups-minor-mode nil))
+
+(cl-defun code-groups-minor-mode (&optional (enable nil enable-supplied-p))
+  (interactive)
+  (make-local-variable 'code-groups-minor-mode)
+  (if enable-supplied-p
+      (if (eq enable -1)
+          (code-groups-minor-mode-disable)
+        (code-groups-minor-mode-enable))
+    (if code-groups-minor-mode
+        (code-groups-minor-mode-disable)
+      (code-groups-minor-mode-enable))))
+
+;; /b/} == code-groups ==
+
+;; /b/{ == goto-window ==
+
+(defvar goto-window-reuse-visible-default t)
+
+(defvar goto-window-display-buffer-fallback
+  'display-buffer-reuse-window)
+
+;; (defvar goto-window-display-buffer-commands
+;;   '(occur-mode-goto-occurrence))
+(defvar goto-window-display-buffer-commands
+  '())
+
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (buffer actions)
+     (memq this-command goto-window-display-buffer-commands))
+   (lambda (buffer alist)
+     (if (and (boundp 'goto-window-ref)
+              (member goto-window-ref (window-list)))
+         (let ((win goto-window-ref))
+           (when (bound-and-true-p goto-window-reuse-visible)
+             (let ((win-reuse
+                    (get-buffer-window buffer (selected-frame))))
+               (when win-reuse (setq win win-reuse))))
+           (window--display-buffer buffer win
+                                   'reuse alist
+                                   display-buffer-mark-dedicated))
+       (funcall goto-window-display-buffer-fallback buffer alist)))
+   (inhibit-same-window . t)))
+
+(cl-defmacro goto-window-condition
+    (condition &optional (reuse-visible goto-window-reuse-visible-default))
+  `#'(lambda (buffer-nm actions)
+      (when (string-match-p ,condition buffer-nm)
+        (let ((current-window (get-buffer-window
+                               (current-buffer)
+                               (selected-frame))))
+          (with-current-buffer buffer-nm
+            (set (make-local-variable 'goto-window-ref)
+                 current-window)
+            (set (make-local-variable 'goto-window-reuse-visible)
+                 ,reuse-visible))
+        t))))
+
+(defun goto-window-ref (choice)
+  (interactive
+   (let* (value
+          (choices (mapcar (lambda (w)
+                             (list (format "%s" w) w))
+                           (window-list)))
+          (completion-ignore-case  t))
+     (setq value (list (completing-read "goto-window-ref: " choices nil t)))
+     (cdr (assoc (car value) choices 'string=))))
+  (if (local-variable-p 'goto-window-ref)
+      (progn
+        (setq goto-window-ref choice)
+        (select-window choice)
+        (message "goto-window-ref: %s" choice)
+        choice)
+    (progn
+      (message "current buffer has no associated `goto-window-ref'")
+      nil)))
+
+;; /b/} == goto-window ==
+
+;; -------------------------------------------------------------------
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
 
@@ -394,19 +790,27 @@ when only symbol face names are needed."
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 0.3)))
 
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '((lambda (buffer actions)
+  ;;                  (when (string-match-p "*grep*" buffer)
+  ;;                    (let ((current-window (get-buffer-window
+  ;;                                           (current-buffer)
+  ;;                                           (selected-frame))))
+  ;;                      (with-current-buffer buffer
+  ;;                        (set (make-local-variable 'goto-window-ref)
+  ;;                             current-window)))
+  ;;                    t))
+  ;;                (display-buffer-below-selected)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
   (add-to-list 'display-buffer-alist
-               '((lambda (buffer actions)
-                   (when (string-match-p "*grep*" buffer)
-                     (let ((current-window (get-buffer-window
-                                            (current-buffer)
-                                            (selected-frame))))
-                       (with-current-buffer buffer
-                         (set (make-local-variable 'goto-window-ref)
-                              current-window)))
-                     t))
-                 (display-buffer-below-selected)
+               `(,(goto-window-condition "*grep*")
+                 (display-buffer-in-side-window)
                  (inhibit-same-window . t)
-                 (window-height . 0.3)))
+                 (window-height . 15)))
+
+  (add-to-list 'goto-window-display-buffer-commands 'compile-goto-error)
 
   :config
   (define-key grep-mode-map (kbd "q") #'rh-quit-window-kill)
@@ -1027,398 +1431,6 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Programming Languages, Debuggers, Profilers, Shells etc.
 ;; -------------------------------------------------------------------
-
-;; /b/{ == rh-project ==
-
-(setq rh-project-dir-name ".project")
-
-(defun rh-project-get-path ()
-  (let ((src-tree-root (locate-dominating-file
-                        (file-truename default-directory)
-                        rh-project-dir-name)))
-    (when src-tree-root
-      (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
-
-(defun rh-project-get-root ()
-  (let ((rh-project (rh-project-get-path)))
-    (when rh-project
-      (abbreviate-file-name
-       (expand-file-name (concat rh-project "../"))))))
-
-(cl-defun rh-setup (&optional (setup-file-name-base "setup" supplied-p))
-  (let ((rh-project (rh-project-get-path)))
-    (when rh-project
-      (if supplied-p
-          (load (concat rh-project setup-file-name-base "-setup.el"))
-        (load (concat rh-project setup-file-name-base ".el"))))))
-
-(defun rh-project-get-generators-path ()
-  (let ((generators-path (concat
-                          (rh-project-get-path)
-                          "../generators/")))
-    (when (file-directory-p generators-path)
-      (expand-file-name generators-path))))
-
-;; /b/} == rh-project ==
-
-;; /b/{ == code-groups ==
-
-(defvar-local cg-forward-list-original #'forward-list
-  "Original forward-list function used by the major mode before loading
-code-groups minor mode - i.e. the function usually bound to C-M-n")
-
-(defvar-local cg-backward-list-original #'backward-list
-  "Original backward-list function used by the major mode before loading
-code-groups minor mode - i.e. the function usually bound to C-M-n")
-
-(setq cg-doxygen-group-open-token "///@{")
-(setq cg-doxygen-group-close-token "///@}")
-
-(setq cg-auto-code-group-open-token "/a/{")
-(setq cg-auto-code-group-close-token "/a/}")
-
-(setq cg-custom-code-group-open-token "/c/{")
-(setq cg-custom-code-group-close-token "/c/}")
-
-(setq cg-block-code-group-open-token "/b/{")
-(setq cg-block-code-group-close-token "/b/}")
-
-(defun cg-group-head-regexp (open-token)
-  (concat "^.*" open-token ".*$"))
-
-(defun cg-group-tail-regexp (close-token)
-  (concat "^.*" close-token ".*$"))
-
-(defun cg-looking-at-group-head (open-token)
-  (if (string-match
-       (concat "^.*" open-token ".*$")
-       (thing-at-point 'line t))
-      open-token))
-
-(defun cg-looking-at-group-tail (close-token)
-  (if (string-match
-       (concat "^.*" close-token ".*$")
-       (thing-at-point 'line t))
-      close-token))
-
-(defun cg-group-head-or-tail-length (token line)
-  (length
-   (replace-regexp-in-string
-    (concat "^.*\\(" token ".*\\)[\r\n]?$")
-    "\\1"
-    line)))
-
-(defun cg-group-reverse-token (token)
-  (cond
-   ((string= cg-doxygen-group-open-token token)
-    cg-doxygen-group-close-token)
-   ((string= cg-doxygen-group-close-token token)
-    cg-doxygen-group-open-token)
-   ((string= cg-auto-code-group-open-token token)
-    cg-auto-code-group-close-token)
-   ((string= cg-auto-code-group-close-token token)
-    cg-auto-code-group-open-token)
-   ((string= cg-custom-code-group-open-token token)
-    cg-custom-code-group-close-token)
-   ((string= cg-custom-code-group-close-token token)
-    cg-custom-code-group-open-token)
-   ((string= cg-block-code-group-open-token token)
-    cg-block-code-group-close-token)
-   ((string= cg-block-code-group-close-token token)
-    cg-block-code-group-open-token)))
-
-(defun cg-looking-at-auto-code-group-head-or-tail ()
-  (cond ((cg-looking-at-group-head
-          cg-auto-code-group-open-token)
-         cg-auto-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-auto-code-group-close-token)
-         cg-auto-code-group-close-token)))
-
-(defun cg-looking-at-any-group-head ()
-  (cond ((cg-looking-at-group-head
-          cg-doxygen-group-open-token)
-         cg-doxygen-group-open-token)
-        ((cg-looking-at-group-head
-          cg-auto-code-group-open-token)
-         cg-auto-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-custom-code-group-open-token)
-         cg-custom-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-block-code-group-open-token)
-         cg-block-code-group-open-token)))
-
-(defun cg-looking-at-any-group-tail ()
-  (cond ((cg-looking-at-group-tail
-          cg-doxygen-group-close-token)
-         cg-doxygen-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-auto-code-group-close-token)
-         cg-auto-code-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-custom-code-group-close-token)
-         cg-custom-code-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-block-code-group-close-token)
-         cg-block-code-group-close-token)))
-
-(defun cg-search-backward-group-balanced-head ()
-  (let ((open-token)
-        (close-token)
-        (mark-pos (point)))
-    (setq close-token (cg-looking-at-any-group-tail))
-    (when close-token
-      (setq open-token (cg-group-reverse-token close-token))
-      (move-beginning-of-line nil)
-      (if (cg-looking-at-group-head open-token)
-          (search-forward open-token)
-        (let ((pos nil)
-              (found nil)
-              (skip-tail 0))
-          (push-mark mark-pos t)
-          (while (and (not found)
-                      (setq pos (re-search-backward
-                                 (concat (cg-group-head-regexp open-token)
-                                         "\\|"
-                                         (cg-group-tail-regexp close-token)))))
-            (if (cg-looking-at-group-tail close-token)
-                (incf skip-tail)
-              (if (<= skip-tail 0)
-                  (setq found t)
-                (decf skip-tail))))
-          (when (cg-looking-at-group-head open-token)
-            (move-end-of-line nil)
-            (backward-char (cg-group-head-or-tail-length
-                            open-token (thing-at-point 'line t))))
-          (point))))))
-
-(defun cg-search-forward-group-balanced-tail ()
-  (let ((open-token)
-        (close-token)
-        (mark-pos (point)))
-    (setq open-token (cg-looking-at-any-group-head))
-    (when open-token
-      (setq close-token (cg-group-reverse-token open-token))
-      (move-end-of-line nil)
-      (if (cg-looking-at-group-tail close-token)
-          (search-backward close-token)
-        (let ((pos nil)
-              (found nil)
-              (skip-tail 0))
-          (push-mark mark-pos t)
-          (while (and (not found)
-                      (setq pos (re-search-forward
-                                 (concat (cg-group-head-regexp open-token)
-                                         "\\|"
-                                         (cg-group-tail-regexp close-token)))))
-            (if (cg-looking-at-group-head open-token)
-                (incf skip-tail)
-              (if (<= skip-tail 0)
-                  (setq found t)
-                (decf skip-tail))))
-          pos)))))
-
-(defun cg-hs-hide-group ()
-  (interactive)
-  (let ((open-token)
-        (close-token))
-    (when (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head))
-    (setq open-token (cg-looking-at-any-group-head))
-    (when open-token
-      (setq close-token (cg-group-reverse-token open-token))
-      (move-beginning-of-line nil)
-      (let* ((beg (search-forward open-token))
-             (end (- (cg-search-forward-group-balanced-tail)
-                     (cg-group-head-or-tail-length
-                      close-token (thing-at-point 'line t)))))
-        (hs-make-overlay beg end 'comment beg end)
-        (goto-char beg)))))
-
-(defun cg-hs-toggle-hiding ()
-  (interactive)
-  (let ((open-token)
-        (close-token))
-    (setq open-token (cg-looking-at-any-group-head))
-    (if open-token
-        (setq close-token (cg-group-reverse-token open-token))
-      (progn
-        (setq close-token (cg-looking-at-any-group-tail))
-        (when close-token
-          (setq open-token (cg-group-reverse-token close-token)))))
-    (if open-token
-        (let ((hidden nil)
-              (at-tail (cg-looking-at-group-tail close-token)))
-          (save-excursion
-            (move-beginning-of-line nil)
-            (if (cg-looking-at-group-head open-token)
-                (progn
-                  (move-end-of-line nil)
-                  (if (cg-looking-at-group-tail close-token)
-                      (setq hidden t)))))
-          (if hidden
-              (progn
-                (move-beginning-of-line nil)
-                (search-forward open-token)
-                (if (not at-tail)
-                    (hs-show-block)))
-            (cg-hs-hide-group)))
-      (hs-toggle-hiding))))
-
-(defun cg-generate-auto-code (data template)
-  (let* ((generators-path (rh-project-get-generators-path))
-         (code-gen (concat generators-path "auto-code")))
-    (when (and generators-path
-               (file-exists-p code-gen))
-      (setq code-gen (concat code-gen " " data " " template))
-      (insert (shell-command-to-string code-gen)))))
-
-(defun cg-generate-auto-code-group ()
-  (interactive)
-  (let* ((current-line (thing-at-point 'line t))
-         (open-token cg-auto-code-group-open-token)
-         (close-token cg-auto-code-group-close-token)
-         (desc-regex (concat
-                      "[[:blank:]]*auto-code[[:blank:]]+"
-                      "\\([^[:blank:]]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"
-                      ".*[\r\n]?$"))
-         (open-regex (concat "^.*" open-token desc-regex))
-         (close-regex (concat "^.*" close-token desc-regex))
-         (data)
-         (template))
-    (when (string-match close-regex current-line)
-      (cg-search-backward-group-balanced-head)
-      (setq current-line (thing-at-point 'line t)))
-    (when (string-match open-regex current-line)
-      (setq data (replace-regexp-in-string open-regex "\\1" current-line))
-      (setq template
-            (concat
-             (replace-regexp-in-string open-regex "\\2" current-line)
-             ".mako"))
-      (let ((start) (end))
-        (move-beginning-of-line 2)
-        (setq start (point))
-        (previous-line)
-        (cg-search-forward-group-balanced-tail)
-        (move-beginning-of-line nil)
-        (setq end (point))
-        (goto-char start)
-        (delete-region start end))
-      (cg-generate-auto-code data template))))
-
-(defun cg-forward-list (arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-head)
-      (cg-search-forward-group-balanced-tail)
-    (if cg-forward-list-original
-        (funcall cg-forward-list-original arg)
-      (forward-list arg))))
-
-(defun cg-backward-list (arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head)
-    (if cg-backward-list-original
-        (funcall cg-backward-list-original arg)
-      (backward-list arg))))
-
-(defun cg-key-bindings-enable ()
-  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
-  (local-set-key (kbd "C-M-n") #'cg-forward-list)
-  (local-set-key (kbd "C-M-p") #'cg-backward-list))
-
-(defun cg-key-bindings-disable ()
-  (local-unset-key (kbd "C-S-j"))
-  (local-unset-key (kbd "C-M-n"))
-  (local-unset-key (kbd "C-M-p")))
-
-(defun code-groups-minor-mode-enable ()
-  (hs-minor-mode 1)
-  (cg-key-bindings-enable)
-  (setq code-groups-minor-mode t))
-
-(defun code-groups-minor-mode-disable ()
-  (cg-key-bindings-disable)
-  (setq code-groups-minor-mode nil))
-
-(cl-defun code-groups-minor-mode (&optional (enable nil enable-supplied-p))
-  (interactive)
-  (make-local-variable 'code-groups-minor-mode)
-  (if enable-supplied-p
-      (if (eq enable -1)
-          (code-groups-minor-mode-disable)
-        (code-groups-minor-mode-enable))
-    (if code-groups-minor-mode
-        (code-groups-minor-mode-disable)
-      (code-groups-minor-mode-enable))))
-
-;; /b/} == code-groups ==
-
-;; /b/{ == goto-window ==
-
-(defvar goto-window-reuse-visible-default t)
-
-(defvar goto-window-display-buffer-fallback
-  'display-buffer-reuse-window)
-
-;; (defvar goto-window-display-buffer-commands
-;;   '(occur-mode-goto-occurrence))
-(defvar goto-window-display-buffer-commands
-  '())
-
-(add-to-list
- 'display-buffer-alist
- '((lambda (buffer actions)
-     (memq this-command goto-window-display-buffer-commands))
-   (lambda (buffer alist)
-     (if (and (boundp 'goto-window-ref)
-              (member goto-window-ref (window-list)))
-         (let ((win goto-window-ref))
-           (when (bound-and-true-p goto-window-reuse-visible)
-             (let ((win-reuse
-                    (get-buffer-window buffer (selected-frame))))
-               (when win-reuse (setq win win-reuse))))
-           (window--display-buffer buffer win
-                                   'reuse alist
-                                   display-buffer-mark-dedicated))
-       (funcall goto-window-display-buffer-fallback buffer alist)))
-   (inhibit-same-window . t)))
-
-(cl-defmacro goto-window-condition
-    (condition &optional (reuse-visible goto-window-reuse-visible-default))
-  `#'(lambda (buffer-nm actions)
-      (when (string-match-p ,condition buffer-nm)
-        (let ((current-window (get-buffer-window
-                               (current-buffer)
-                               (selected-frame))))
-          (with-current-buffer buffer-nm
-            (set (make-local-variable 'goto-window-ref)
-                 current-window)
-            (set (make-local-variable 'goto-window-reuse-visible)
-                 ,reuse-visible))
-        t))))
-
-(defun goto-window-ref (choice)
-  (interactive
-   (let* (value
-          (choices (mapcar (lambda (w)
-                             (list (format "%s" w) w))
-                           (window-list)))
-          (completion-ignore-case  t))
-     (setq value (list (completing-read "goto-window-ref: " choices nil t)))
-     (cdr (assoc (car value) choices 'string=))))
-  (if (local-variable-p 'goto-window-ref)
-      (progn
-        (setq goto-window-ref choice)
-        (select-window choice)
-        (message "goto-window-ref: %s" choice)
-        choice)
-    (progn
-      (message "current buffer has no associated `goto-window-ref'")
-      nil)))
-
-;; /b/} == goto-window ==
 
 ;; /b/{ == compile ==
 
