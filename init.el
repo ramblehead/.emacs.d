@@ -395,12 +395,13 @@ when only symbol face names are needed."
   ;;                (window-height . 0.3)))
 
   (add-to-list 'display-buffer-alist
-               '((lambda (buffer-nm actions)
-                   (when (string= buffer-nm "*grep*")
-                     (let ((current-window (get-buffer-window (current-buffer)
-                                                              (selected-frame))))
-                       (with-current-buffer buffer-nm
-                         (set (make-local-variable 'rh-original-command-window)
+               '((lambda (buffer actions)
+                   (when (string-match-p "*grep*" buffer)
+                     (let ((current-window (get-buffer-window
+                                            (current-buffer)
+                                            (selected-frame))))
+                       (with-current-buffer buffer
+                         (set (make-local-variable 'goto-window-ref)
                               current-window)))
                      t))
                  (display-buffer-below-selected)
@@ -416,20 +417,6 @@ when only symbol face names are needed."
        (setq truncate-lines t)))
 
   :demand t)
-
-(defvar display-buffer-same-window-commands
-  '(occur-mode-goto-occurrence compile-goto-error))
-
-(add-to-list 'display-buffer-alist
-             '((lambda (buffer-nm actions)
-                 (memq this-command display-buffer-same-window-commands))
-               (lambda (buffer alist)
-                 (if (boundp 'rh-original-command-window)
-                     (window--display-buffer buffer rh-original-command-window
-                                             'reuse alist
-                                             display-buffer-mark-dedicated)
-                   (display-buffer-reuse-window)))
-               (inhibit-same-window . t)))
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -1074,7 +1061,7 @@ fields which we need."
 
 ;; /b/} == rh-project ==
 
-;; /b/{ == code-groups mode ==
+;; /b/{ == code-groups ==
 
 (defvar-local cg-forward-list-original #'forward-list
   "Original forward-list function used by the major mode before loading
@@ -1366,9 +1353,91 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
         (code-groups-minor-mode-disable)
       (code-groups-minor-mode-enable))))
 
-;; /b/} == code-groups mode ==
+;; /b/} == code-groups ==
 
-;; == eshell mode ==
+;; /b/{ == goto-window ==
+
+(defvar goto-window-reuse-visible-default t)
+
+(defvar goto-window-display-buffer-fallback
+  'display-buffer-reuse-window)
+
+;; (defvar goto-window-display-buffer-commands
+;;   '(occur-mode-goto-occurrence))
+(defvar goto-window-display-buffer-commands
+  '())
+
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (buffer actions)
+     (memq this-command goto-window-display-buffer-commands))
+   (lambda (buffer alist)
+     (if (and (boundp 'goto-window-ref)
+              (member goto-window-ref (window-list)))
+         (let ((win goto-window-ref))
+           (when (bound-and-true-p goto-window-reuse-visible)
+             (let ((win-reuse
+                    (get-buffer-window buffer (selected-frame))))
+               (when win-reuse (setq win win-reuse))))
+           (window--display-buffer buffer win
+                                   'reuse alist
+                                   display-buffer-mark-dedicated))
+       (funcall goto-window-display-buffer-fallback buffer alist)))
+   (inhibit-same-window . t)))
+
+(cl-defmacro goto-window-condition
+    (condition &optional (reuse-visible goto-window-reuse-visible-default))
+  `#'(lambda (buffer-nm actions)
+      (when (string-match-p ,condition buffer-nm)
+        (let ((current-window (get-buffer-window
+                               (current-buffer)
+                               (selected-frame))))
+          (with-current-buffer buffer-nm
+            (set (make-local-variable 'goto-window-ref)
+                 current-window)
+            (set (make-local-variable 'goto-window-reuse-visible)
+                 ,reuse-visible))
+        t))))
+
+;; /b/} == goto-window ==
+
+;; /b/{ == compile ==
+
+(use-package compile
+  :init
+  ;; Idea is taken from:
+  ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*compilation*"
+  ;;                (display-buffer-in-side-window)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '((lambda (buffer-nm actions)
+  ;;                  (when (string-match-p "*compilation*" buffer-nm)
+  ;;                    (let ((current-window (get-buffer-window
+  ;;                                           (current-buffer)
+  ;;                                           (selected-frame))))
+  ;;                      (with-current-buffer buffer-nm
+  ;;                        (set (make-local-variable 'goto-window-ref)
+  ;;                             current-window)))
+  ;;                    t))
+  ;;                (display-buffer-in-side-window)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
+  (add-to-list 'display-buffer-alist
+               `(,(goto-window-condition "*compilation*")
+                 (display-buffer-in-side-window)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'goto-window-display-buffer-commands 'compile-goto-error))
+
+;; /b/} == compile ==
+
+;; /b/{ == eshell mode ==
 
 (use-package eshell
   :config
@@ -1395,6 +1464,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
        #'eshell-next-matching-input-from-input)))
 
   :ensure t)
+
+;; /b/} == eshell mode ==
 
 ;; == Line numbering ==
 
@@ -1766,16 +1837,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                (concat path "make -k"))
           (message (concat "vr-project: " path))))
     (define-key c-mode-base-map (kbd "C-c b")
-      'vr-c++-compilation-toggle-display))
-
-  ;; Idea is taken from:
-  ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
-  (add-to-list 'display-buffer-alist
-               '("*compilation*"
-                 (display-buffer-in-side-window)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-  )
+      'vr-c++-compilation-toggle-display)))
 
 (cl-defun vr-c++-header-line (&optional
                               (header-line-trim-indicator "\x203a")
