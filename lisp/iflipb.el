@@ -242,13 +242,14 @@ minibuffer."
 
 (defun iflipb-format-buffers (current-buffer buffers)
   "Format buffer names for displaying them in the minibuffer."
-  (truncate-string-to-width
+  ;; (truncate-string-to-width
    (mapconcat
     (lambda (buffer)
       (iflipb-format-buffer current-buffer buffer))
     buffers
     " ")
-   (1- (window-width (minibuffer-window)))))
+   ;; (1- (window-width (minibuffer-window))))
+   )
 
 (defun iflipb-message (text)
   (let (message-log-max)

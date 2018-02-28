@@ -302,12 +302,14 @@ when only symbol face names are needed."
       (abbreviate-file-name
        (expand-file-name (concat rh-project "../"))))))
 
-(cl-defun rh-setup (&optional (setup-file-name-base "setup" supplied-p))
+(cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
   (let ((rh-project (rh-project-get-path)))
     (when rh-project
       (if supplied-p
           (load (concat rh-project setup-file-name-base "-setup.el"))
-        (load (concat rh-project setup-file-name-base ".el"))))))
+        (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
+          (when (file-exists-p setup-file-name)
+            (load (concat rh-project setup-file-name-base ".el"))))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
@@ -347,13 +349,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   (concat "^.*" close-token ".*$"))
 
 (defun cg-looking-at-group-head (open-token)
-  (if (string-match
+  (if (string-match-p
        (concat "^.*" open-token ".*$")
        (thing-at-point 'line t))
       open-token))
 
 (defun cg-looking-at-group-tail (close-token)
-  (if (string-match
+  (if (string-match-p
        (concat "^.*" close-token ".*$")
        (thing-at-point 'line t))
       close-token))
@@ -2885,7 +2887,8 @@ continuing (not first) item"
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (vr-programming-minor-modes t)))
+     (vr-programming-minor-modes t)
+     (rh-project-setup)))
 
   :ensure t)
 
