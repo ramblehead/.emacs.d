@@ -23,8 +23,7 @@
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
    (quote
-    ((eval rh-setup "ts-foxx")
-     (eval progn
+    ((eval progn
            (linum-mode -1)
            (nlinum-mode 1)))))
  '(tab-stop-list
@@ -1414,6 +1413,9 @@ fields which we need."
 (use-package flycheck
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
+
+  (require 'web-mode)
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
 
   :ensure t)
 
@@ -2807,7 +2809,7 @@ continuing (not first) item"
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.jse?\\'\\|\\.json\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.jse?\\'\\|\\.json\\'\\|\\.tsx\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
@@ -2863,9 +2865,11 @@ continuing (not first) item"
    'web-mode-hook
    (lambda ()
      (vr-programming-minor-modes t)
-     (vr-web-ac-setup)
-     (abbrev-mode -1)
-     (yas-minor-mode 1)
+     (auto-complete-mode -1)
+     (rh-project-setup)
+     ;; (vr-web-ac-setup)
+     ;; (abbrev-mode -1)
+     ;; (yas-minor-mode 1)
 
      ;; (when (stringp buffer-file-name)
      ;;   (cond
@@ -2972,6 +2976,17 @@ continuing (not first) item"
 ;; /b/{ == JavaScript Environment Setup Functions ==
 
 (defun rh-ts-foxx-setup ()
+  (interactive)
+  (company-mode 1)
+  (flycheck-mode 1)
+  (abbrev-mode -1)
+  (yas-minor-mode 1)
+  (tern-mode 1)
+  (tide-setup)
+  (tide-hl-identifier-mode 1)
+  (eldoc-mode 1))
+
+(defun rh-tsx-react-setup ()
   (interactive)
   (company-mode 1)
   (flycheck-mode 1)
