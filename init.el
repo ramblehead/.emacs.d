@@ -657,21 +657,33 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                  ,reuse-visible))
         t))))
 
-(defun goto-window-ref (choice)
+(defun goto-window-set-ref (choice)
   (interactive
-   (let* (value
-          (choices (mapcar (lambda (w)
-                             (list (format "%s" w) w))
-                           (window-list)))
-          (completion-ignore-case  t))
-     (setq value (list (completing-read "goto-window-ref: " choices nil t)))
-     (cdr (assoc (car value) choices 'string=))))
+   (if (local-variable-p 'goto-window-ref)
+     (let* (value
+            (choices (mapcar (lambda (w)
+                               (list (format "%s" w) w))
+                             (window-list)))
+            (completion-ignore-case  t))
+       (setq value (list (completing-read "goto-window-ref: " choices nil t)))
+       (cdr (assoc (car value) choices 'string=)))
+     '(nil)))
   (if (local-variable-p 'goto-window-ref)
       (progn
         (setq goto-window-ref choice)
         (select-window choice)
         (message "goto-window-ref: %s" choice)
         choice)
+    (progn
+      (message "current buffer has no associated `goto-window-ref'")
+      nil)))
+
+(defun goto-window-select-ref ()
+  (interactive)
+  (if (local-variable-p 'goto-window-ref)
+      (if (member goto-window-ref (window-list))
+          (select-window goto-window-ref)
+        (message "`goto-window-ref' window has been killed"))
     (progn
       (message "current buffer has no associated `goto-window-ref'")
       nil)))
@@ -1521,7 +1533,7 @@ fields which we need."
 
   :config
   (require 'nlinum-hl)
-  (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
+  ;; (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
   (global-set-key (kbd "C-<f12>")
                   #'(lambda ()
                       (interactive)
