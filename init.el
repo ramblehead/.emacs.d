@@ -1520,7 +1520,10 @@ fields which we need."
   :config
   (require 'nlinum-hl)
   (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
-
+  (global-set-key (kbd "C-<f12>")
+                  #'(lambda ()
+                      (interactive)
+                      (nlinum--flush)))
   :ensure t)
 
 (use-package nlinum-hl
@@ -2093,8 +2096,9 @@ fields which we need."
       (goto-char (c-langelem-pos langelem))
       (save-match-data
         (let ((line (thing-at-point 'line t)))
-          (if (string-match "\\(return[[:space:]]+\\)[^[:space:]]+\n" line)
-              (length (match-string 1 line))
+          (if (string-match "\\(return[[:space:]]+\\)[^[:space:]]+.*\n" line)
+              ;; (length (match-string 1 line))
+              `(add ,(length (match-string 1 line)) +)
             '+))))))
 
 (defun vr-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
