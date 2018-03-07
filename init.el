@@ -18,14 +18,10 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm js2-refactor web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (yasnippet-snippets yasnippet tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values
-   (quote
-    ((eval progn
-           (linum-mode -1)
-           (nlinum-mode 1)))))
+ '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
  '(tab-stop-list
    (quote
     (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
@@ -1140,37 +1136,6 @@ filename associated with it."
 
 (global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
 
-;; I do not use Sunrise Commander any more - mc is better for file operarions
-;; and dired is sufficient for emacs.
-;; == Sunrise Commander ==
-
-;; For sunrise use M-x customize-group [enter] sunrise [enter]
-;; (require 'sunrise-commander)
-;; (require 'sunrise-x-modeline)
-;; (require 'sunrise-x-w32-addons)
-;; ;;(require 'sunrise-x-buttons)
-;; ;; does not seem to be needed
-;; (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
-;; ;; defines panel view mask for sr-toggle-attributes
-;; ;;(setq sr-attributes-display-mask '(nil t t t t))
-
-;; (defun vr-sr-mode-keys ()
-;;   (define-key sr-mode-map (kbd "S-<f4>") 'sr-find-file)
-;;   (define-key sr-mode-map (kbd "<escape>") 'sr-quit)
-;;   (define-key sr-mode-map (kbd "<return>") 'sr-advertised-find-file)
-;;   (define-key sr-mode-map (kbd "<kp-enter>") 'sr-advertised-find-file)
-;;   (define-key sr-mode-map (kbd "C-<return>") 'sr-advertised-execute-file)
-;;   (define-key sr-mode-map (kbd "C-<kp-enter>") 'sr-advertised-execute-file)
-;;   (define-key sr-mode-map (kbd "M-<f4>") 'sr-recent-files))
-
-;; (defun vr-sr-virtual-mode-keys ()
-;;   (local-set-key (kbd "M-<f4>") 'sr-virtual-dismiss))
-
-;; (add-hook 'sr-mode-hook 'vr-sr-mode-keys)
-;; (add-hook 'sr-virtual-mode-hook 'vr-sr-virtual-mode-keys)
-
-;; (global-set-key (kbd "S-<f4>") 'sunrise)
-
 ;; == recentf mode ==
 
 (setq recentf-save-file vr-recent-files-file-path)
@@ -1280,36 +1245,24 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; -------------------------------------------------------------------
-;;; Smart Autocompletion, Advanced Editing and IntelliSense Tools
-;; -------------------------------------------------------------------
-
-;; /b/{ == multiple-cursors ==
-
-;; This mode is only used in js2-refactor mode at the moment.
-
-;; (use-package multiple-cursors
-;;   :commands multiple-cursors-mode
-;;   :config
-;;   (mc-hide-unmatched-lines-mode 1)
-;;   :ensure t)
-
-;; /b/} == multiple-cursors ==
+;;; Smart Autocompletion and IntelliSense Tools
+;; /b/{ +++++++++ ----------------------------------------------------
 
 ;; /b/{ == yasnippet ==
 
-;; see https://github.com/capitaomorte/yasnippet
-(setq yas-snippet-dirs
-      '("~/.emacs.d/local-snippets" ;; local snippets
-        "~/.emacs.d/snippets"       ;; default collection
-        ))
+(use-package yasnippet
+  :config
+  (yas-reload-all)
 
-(require 'yasnippet)
+  :ensure t)
 
-(yas-reload-all)
+(use-package yasnippet-snippets
+  :requires yasnippet
+  :ensure t)
 
 ;; /b/} == yasnippet ==
 
-;; /b/{ == auto-complete mode ==
+;; /b/{ == auto-complete ==
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -1418,20 +1371,7 @@ fields which we need."
 (global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
 (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
-;; /b/} == auto-complete mode ==
-
-;; /b/{ == flycheck ==
-
-(use-package flycheck
-  :config
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-
-  (require 'web-mode)
-  (flycheck-add-mode 'typescript-tslint 'web-mode)
-
-  :ensure t)
-
-;; /b/} == flycheck ==
+;; /b/} == auto-complete ==
 
 ;; /b/{ == company ==
 
@@ -1443,6 +1383,25 @@ fields which we need."
   :ensure t)
 
 ;; /b/} == company ==
+
+;; /b/{ == flycheck ==
+
+(use-package flycheck
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+
+  (require 'web-mode)
+  (require 'tide)
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+
+  :ensure t)
+
+;; /b/} == flycheck ==
+
+;; -------------------------------------------------------------------
+;;; Smart Autocompletion and IntelliSense Tools
+;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
 ;;; Programming Languages, Debuggers, Profilers, Shells etc.
@@ -1830,7 +1789,7 @@ fields which we need."
   :pin melpa
   :ensure t)
 
-;; == C++ Mode ==
+;; /b/{ == C++ ==
 
 ;; (use-package cc-mode
 ;;   :load-path "/home/ramblehead/cc-mode"
@@ -2373,25 +2332,26 @@ continuing (not first) item"
          ;; Build Solution - just like MSVS ;)
          (local-set-key (kbd "C-S-b") 'recompile)))))
 
-;; == Enhanced JavaScript Mode ==
+;; /b/} == C++ ==
 
-(defun vr-js2-scratch-config ()
-  (interactive)
-  (set (make-local-variable
-        'js2-highlight-external-variables)
-       nil)
-  (ac-js2-mode 1))
+;; /b/{ == js2-mode ==
 
-(defadvice js2-enter-key (around vr-js2-enter-key ())
-  (progn
-    (if (use-region-p)
-        (delete-region (region-beginning) (region-end)))
-    ad-do-it))
-(ad-activate 'js2-enter-key)
+;; (defun vr-js2-scratch-config ()
+;;   (interactive)
+;;   (set (make-local-variable
+;;         'js2-highlight-external-variables)
+;;        nil)
+;;   (ac-js2-mode 1))
+
+;; (defadvice js2-enter-key (around vr-js2-enter-key ())
+;;   (progn
+;;     (if (use-region-p)
+;;         (delete-region (region-beginning) (region-end)))
+;;     ad-do-it))
+;; (ad-activate 'js2-enter-key)
 
 (use-package js2-mode
-  :commands js2-mode
-  ;; :mode "\\.jse?\\'"
+  :mode "\\.jse?\\'"
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2434,10 +2394,11 @@ continuing (not first) item"
    'js2-mode-hook
    (lambda ()
      (vr-programming-minor-modes)
+     (rh-project-setup)
      ;; (skewer-mode 1)
      ;; (moz-minor-mode -1)
-     (abbrev-mode -1)
-     (yas-minor-mode 1)
+     ;; (abbrev-mode -1)
+     ;; (yas-minor-mode 1)
      ;; (ac-js2-mode 1)
      ;; (js2-refactor-mode 1)
 
@@ -2446,40 +2407,62 @@ continuing (not first) item"
      ;; (add-to-list 'ac-sources 'ac-source-yasnippet)
      ;; (vr-ac-add-buffer-dict "js-mode")
 
-     (if (or (string-suffix-p ".scratch.js" (buffer-name))
-             (string-equal "scratch.js" (buffer-name)))
-         (vr-js2-scratch-config))
+     ;; (when (or (string-suffix-p ".scratch.js" (buffer-name))
+     ;;           (string-equal "scratch.js" (buffer-name)))
+     ;;   (vr-js2-scratch-config))
 
      ;; (vr-ac-add-buffer-dict "js-mode")
 
      ;; (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
-     (local-set-key (kbd "M-[") 'pop-tag-mark)
-     (local-set-key (kbd "<f5>") #'vr-skewer-eval-last-expression-or-region)
-     (local-set-key (kbd "M-<f5>")
-                    #'vr-skewer-eval-print-last-expression-or-region)
+     ;; (local-set-key (kbd "M-[") 'pop-tag-mark)
+     ;; (local-set-key (kbd "<f5>") #'vr-skewer-eval-last-expression-or-region)
+     ;; (local-set-key (kbd "M-<f5>")
+     ;;                #'vr-skewer-eval-print-last-expression-or-region)
      ;; (local-set-key (kbd "<f5>") 'moz-send-region)
-     (local-set-key (kbd "S-<f5>") 'skewer-repl)
+     ;; (local-set-key (kbd "S-<f5>") 'skewer-repl)
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
      ))
   :pin melpa
   :ensure t)
 
-;; (defun vr-js2r-rename-var-start/stop ()
-;;   (interactive)
-;;   (if multiple-cursors-mode
-;;       (progn
-;;         (mc/keyboard-quit)
-;;         (mc/keyboard-quit))
-;;     (js2r-rename-var)))
+;; /b/} == js2-mode ==
 
-(use-package js2-refactor
-  :commands js2-refactor-mode
+;; /b/{ == typescript-mode ==
+
+(use-package typescript-mode
   :config
-  ;; "C-'" to toggle mc-hide-unmatched-lines-mode
-  (mc-hide-unmatched-lines-mode -1)
-  (js2r-add-keybindings-with-prefix "C-c r")
+  (setq typescript-indent-level 2)
+
+  (add-hook
+   'typescript-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes t)
+     (rh-project-setup)))
 
   :ensure t)
+
+;; /b/} == typescript-mode ==
+
+;; /b/{ == ac-js2 ==
+
+(use-package ac-js2
+  :commands (ac-js2-mode)
+  :init
+  ;; (setq ac-js2-evaluate-calls t)
+  :ensure t)
+
+;; /b/} == ac-js2 ==
+
+;; /b/{ == moz-minor-mode ==
+
+;; (use-package moz
+;;   :commands moz-minor-mode
+;;   :interpreter ("moz" . moz-minor-mode)
+;;   :ensure t)
+
+;; /b/} == moz-minor-mode ==
+
+;; /b/{ == skewer-mode ==
 
 (use-package skewer-mode
   :commands (skewer-mode skewer-css-mode skewer-html-mode)
@@ -2534,18 +2517,9 @@ continuing (not first) item"
                (pos (cons (current-buffer) (point))))
           (setf (cache-table-get id skewer-eval-print-map) pos))))))
 
-(use-package ac-js2
-  :commands (ac-js2-mode)
-  :init
-  ;; (setq ac-js2-evaluate-calls t)
-  :ensure t)
+;; /b/} == skewer-mode ==
 
-;; (use-package moz
-;;   :commands moz-minor-mode
-;;   :interpreter ("moz" . moz-minor-mode)
-;;   :ensure t)
-
-;; == CSS Mode ==
+;; /b/{ == css-mode ==
 
 (defun vr-skewer-css-clear-all ()
   (interactive)
@@ -2565,7 +2539,6 @@ continuing (not first) item"
 ;;     (message "looking at rule")))
 
 (use-package css-mode
-  :commands css-mode
   :mode "\\.css\\'"
   :config
   (setq css-indent-offset 2)
@@ -2577,14 +2550,19 @@ continuing (not first) item"
               (yas-minor-mode 1)
               (local-set-key (kbd "<f6>") 'vr-skewer-css-clear-all)
               (local-set-key (kbd "<f5>")
-                             'vr-skewer-css-eval-current-declaration))))
+                             'vr-skewer-css-eval-current-declaration)))
+  :ensure t)
 
-;; == js, html and css common
+;; /b/} == css-mode ==
+
+;; /b/{ == web-beautify ==
 
 (use-package web-beautify
   :ensure t)
 
-;; /b/{ == Emacs Lisp (elisp) Mode ==
+;; /b/} == web-beautify ==
+
+;; /b/{ == Emacs Lisp ==
 
 (setq eval-expression-print-length nil)
 (setq eval-expression-print-level nil)
@@ -2620,9 +2598,9 @@ continuing (not first) item"
    (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
    (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
 
-;; /b/} == Emacs Lisp (elisp) Mode ==
+;; /b/} == Emacs Lisp ==
 
-;; /b/{ == Python Mode ==
+;; /b/{ == python-mode ==
 
 (use-package python-mode
   :mode "\\.py\\'"
@@ -2654,16 +2632,16 @@ continuing (not first) item"
      ;; (vr-python-code-folding-setup)
      )))
 
-;; /b/} == Python Mode ==
+;; /b/} == python-mode ==
 
-;; /b/{ == Visual Basic Mode ==
+;; /b/{ == visual-basic-mode ==
 
 (autoload 'visual-basic-mode "visual-basic-mode" "Visual Basic mode." t)
 (add-to-list 'auto-mode-alist '("\\.vbs\\'" . visual-basic-mode))
 
-;; /b/} == Visual Basic Mode ==
+;; /b/} == visual-basic-mode ==
 
-;; /b/{ == nXML mode ==
+;; /b/{ == nxml-mode ==
 
 ;; (defun vr-nxml-forward-element (&optional arg)
 ;;   (interactive "^p")
@@ -2710,7 +2688,7 @@ continuing (not first) item"
      (vr-nxml-code-folding-setup)
      (vr-programming-minor-modes))))
 
-;; /b/} == nXML mode ==
+;; /b/} == nxml-mode ==
 
 ;; /b/{ == web-mode ==
 
@@ -2821,7 +2799,7 @@ continuing (not first) item"
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.jse?\\'\\|\\.json\\'\\|\\.tsx\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
@@ -2870,9 +2848,6 @@ continuing (not first) item"
 
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
 
-  ;; sgml-skip-tag-forward is used in html code folding
-  ;; (require 'sgml-mode)
-
   (add-hook
    'web-mode-hook
    (lambda ()
@@ -2883,11 +2858,6 @@ continuing (not first) item"
      ;; (abbrev-mode -1)
      ;; (yas-minor-mode 1)
 
-     ;; (when (stringp buffer-file-name)
-     ;;   (cond
-     ;;    ((string-match "\\.html\\'" buffer-file-name)
-     ;;     )))
-
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
      (local-set-key (kbd "C-M-n") 'forward-sexp)
@@ -2897,22 +2867,6 @@ continuing (not first) item"
   :ensure t)
 
 ;; /b/} == web-mode ==
-
-;; /b/{ == typescript-mode ==
-
-(use-package typescript-mode
-  :config
-  (setq typescript-indent-level 2)
-
-  (add-hook
-   'typescript-mode-hook
-   (lambda ()
-     (vr-programming-minor-modes t)
-     (rh-project-setup)))
-
-  :ensure t)
-
-;; /b/} == typescript-mode ==
 
 ;; /b/{ == tide ==
 
@@ -2985,9 +2939,39 @@ continuing (not first) item"
 
 ;; /b/} == company-tern ==
 
-;; /b/{ == JavaScript Environment Setup Functions ==
+;; /b/{ == xref-js2 ==
 
-(defun rh-ts-foxx-setup ()
+;; (use-package xref-js2
+;;   :config
+;;   (setq xref-js2-ignored-dirs '("build"))
+
+;;   (defun xref-js2--root-dir ()
+;;     "Return the root directory of the project."
+;;     (or (rh-project-get-root)
+;;         (ignore-errors
+;;           (projectile-project-root))
+;;         (ignore-errors
+;;           (vc-root-dir))
+;;         (user-error "You are not in a project")))
+
+;;   :ensure t)
+
+;; /b/} == xref-js2 ==
+
+;; /b/{ == JavaScript Environments Setup ==
+
+(defun rh-typescript-setup ()
+  (interactive)
+  (company-mode 1)
+  (flycheck-mode 1)
+  (abbrev-mode -1)
+  (yas-minor-mode 1)
+  ;; (tern-mode 1)
+  (tide-setup)
+  (tide-hl-identifier-mode 1)
+  (eldoc-mode 1))
+
+(defun rh-javascript-setup ()
   (interactive)
   (company-mode 1)
   (flycheck-mode 1)
@@ -2998,18 +2982,7 @@ continuing (not first) item"
   (tide-hl-identifier-mode 1)
   (eldoc-mode 1))
 
-(defun rh-tsx-react-setup ()
-  (interactive)
-  (company-mode 1)
-  (flycheck-mode 1)
-  (abbrev-mode -1)
-  (yas-minor-mode 1)
-  (tern-mode 1)
-  (tide-setup)
-  (tide-hl-identifier-mode 1)
-  (eldoc-mode 1))
-
-;; /b/} == JavaScript Environment Setup Functions ==
+;; /b/} == JavaScript Environments Setup ==
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
