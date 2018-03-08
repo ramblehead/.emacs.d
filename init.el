@@ -157,22 +157,23 @@
 
 (use-package paradox
   :init
-  (setq paradox-github-token "bcf7336d121859df17513827f4b4e78eefbe44b4")
+  (setq paradox-github-token "174aee651c1f3662f268f9609cb17399be4e3574")
 
   :config
   (setq paradox-automatically-star nil)
   (paradox-enable)
 
+  :demand
   :ensure t)
 
 (use-package async
-  :pin melpa
+  :demand
   :ensure t)
 
 ;; == Modules ==
 
 (use-package cl
-  :pin melpa
+  :demand
   :ensure t)
 
 ;; == Auxiliary functions ==
@@ -777,7 +778,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (setq yank-excluded-properties (append '(font face font-lock-face)
                                        yank-excluded-properties))
 
-(use-package help
+(use-package help-mode
   ;; :init
   ;; (add-to-list 'display-buffer-alist
   ;;              '("*Help*"
@@ -788,7 +789,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                (window-height . 0.3)))
   :config
   (setq help-window-select t)
-
   (define-key help-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :demand t)
@@ -1001,13 +1001,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;; == SrSpeedbar Mode ==
 
 (use-package sr-speedbar
-  :pin melpa
   :ensure t)
 
 ;; == visual-regexp ==
 
 (use-package visual-regexp
-  :pin melpa
   :config
   (setq vr/match-separator-use-custom-face t)
   (custom-set-variables '(vr/match-separator-string " -> "))
@@ -1064,14 +1062,12 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;  (define-key c-mode-base-map (kbd "C-c r d") #'vr-c++-rtags-toggle-rdm-display)
   ;;  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
 
-  :pin melpa
   :ensure t)
 
 (use-package which-key
   :init
   (setq which-key-side-window-max-height 0.2)
 
-  :pin melpa
   :ensure t)
 
 
@@ -1788,7 +1784,6 @@ fields which we need."
 
 (use-package realgud
   ;; :disabled
-  :pin melpa
   :ensure t)
 
 ;; /b/{ == C++ ==
@@ -1800,7 +1795,6 @@ fields which we need."
 ; https://github.com/ludwigpacifici/modern-cpp-font-lock
 
 (use-package modern-cpp-font-lock
-  :pin melpa
   :ensure t)
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
@@ -2438,7 +2432,6 @@ continuing (not first) item"
      ;; (local-set-key (kbd "S-<f5>") 'skewer-repl)
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
      ))
-  :pin melpa
   :ensure t)
 
 ;; /b/} == js2-mode ==
@@ -2879,7 +2872,6 @@ continuing (not first) item"
      (local-set-key (kbd "C-M-n") 'forward-sexp)
      (local-set-key (kbd "C-M-p") 'backward-sexp)))
 
-  :pin melpa
   :ensure t)
 
 ;; /b/} == web-mode ==
