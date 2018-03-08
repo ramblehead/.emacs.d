@@ -157,7 +157,7 @@
 
 (use-package paradox
   :init
-  (setq paradox-github-token "174aee651c1f3662f268f9609cb17399be4e3574")
+  ;; (setq paradox-github-token "174aee651c1f3662f268f9609cb17399be4e3574")
 
   :config
   (setq paradox-automatically-star nil)
