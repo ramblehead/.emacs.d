@@ -631,7 +631,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
      (memq this-command goto-window-display-buffer-commands))
    (lambda (buffer alist)
      (if (and (boundp 'goto-window-ref)
-              (member goto-window-ref (window-list)))
+              (memq goto-window-ref (window-list)))
          (let ((win goto-window-ref))
            (when (bound-and-true-p goto-window-reuse-visible)
              (let ((win-reuse
@@ -653,8 +653,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
           (with-current-buffer buffer-nm
             (set (make-local-variable 'goto-window-ref)
                  current-window)
+            (put 'goto-window-ref 'permanent-local t)
             (set (make-local-variable 'goto-window-reuse-visible)
-                 ,reuse-visible))
+                 ,reuse-visible)
+            (put 'goto-window-reuse-visible 'permanent-local t))
         t))))
 
 (defun goto-window-set-ref (choice)
@@ -1913,11 +1915,25 @@ fields which we need."
   :init
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*RTags*"
+  ;;                (display-buffer-below-selected)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
   (add-to-list 'display-buffer-alist
-               '("*RTags*"
+               `(,(goto-window-condition "*RTags*" nil)
                  (display-buffer-below-selected)
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
+
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-select-and-remove-rtags-buffer)
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-select-other-window)
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-next-match)
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-previous-match)
 
   (add-to-list 'display-buffer-alist
                '("*rdm*"
