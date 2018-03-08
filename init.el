@@ -123,14 +123,8 @@
       (concat user-emacs-directory "smex-items"))
 (setq vr-user-lisp-directory-path
       (concat user-emacs-directory "lisp/"))
-;; (setq vr-predictive-dict-directory-path
-;;       (concat vr-user-lisp-directory-path "predictive-dict/"))
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
-
-;; (let ((EMACSSRC (getenv "EMACSSRC")))
-;;   (when EMACSSRC
-;;     (setq source-directory EMACSSRC)))
 
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
@@ -177,7 +171,9 @@
 
 ;; == Modules ==
 
-(require 'cl)                           ; defines defun* etc.
+(use-package cl
+  :pin melpa
+  :ensure t)
 
 ;; == Auxiliary functions ==
 
