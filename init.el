@@ -127,6 +127,12 @@
       (concat vr-user-lisp-directory-path "site-start.el"))
 
 ;; ------------------------------------------------------------------
+;;; Load Emacs secret variables
+;; ------------------------------------------------------------------
+
+(load "~/.emacs.d/secret.el" t)
+
+;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
 
@@ -156,12 +162,11 @@
   (package-install 'use-package))
 
 (use-package paradox
-  :init
-  ;; (setq paradox-github-token "174aee651c1f3662f268f9609cb17399be4e3574")
-
   :config
   (setq paradox-automatically-star nil)
   (paradox-enable)
+
+  (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :demand
   :ensure t)
@@ -278,7 +283,7 @@ when only symbol face names are needed."
   (quit-window t))
 
 ;; -------------------------------------------------------------------
-;;; Packages Tree (where packages grow)
+;;; Emacs Packages Tree (where packages grow)
 ;; -------------------------------------------------------------------
 
 ;; /b/{ == rh-project ==
@@ -305,7 +310,7 @@ when only symbol face names are needed."
           (load (concat rh-project setup-file-name-base "-setup.el"))
         (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
           (when (file-exists-p setup-file-name)
-            (load (concat rh-project setup-file-name-base ".el"))))))))
+            (load setup-file-name)))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
@@ -779,14 +784,14 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                                        yank-excluded-properties))
 
 (use-package help-mode
-  ;; :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*Help*"
-  ;;                (display-buffer-in-side-window)
-  ;;                ;; (side . bottom)
-  ;;                ;; (slot . 1)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
+  :init
+  (add-to-list 'display-buffer-alist
+               '("*Help*"
+                 (display-buffer-in-side-window)
+                 ;; (side . bottom)
+                 ;; (slot . 1)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
   :config
   (setq help-window-select t)
   (define-key help-mode-map (kbd "q") #'rh-quit-window-kill)
