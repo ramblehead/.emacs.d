@@ -2854,6 +2854,7 @@ continuing (not first) item"
                      (string-equal (car comment-format) "javascript"))
                    web-mode-comment-formats))
   (add-to-list 'web-mode-comment-formats '("javascript" . "//"))
+  (add-to-list 'web-mode-comment-formats '("jsx" . "//"))
 
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
 
