@@ -1353,6 +1353,8 @@ fields which we need."
     (cg-generate-auto-code-group))
    ((bound-and-true-p auto-complete-mode)
     (auto-complete))
+   ((bound-and-true-p company-mode)
+    (company-complete))
 
     ;; (ignore-errors
     ;;   (auto-complete))
@@ -1364,7 +1366,7 @@ fields which we need."
 
     ;; (message "Cleaning up..."))
    (t
-    (message "No auto-completion is running or nothing to complete.")))
+    (message "No auto-completion engine is running or nothing to complete.")))
 
   ;; (if (bound-and-true-p auto-complete-mode)
   ;;     (auto-complete)
@@ -1380,8 +1382,56 @@ fields which we need."
 
 (use-package company
   :config
+  ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
+  (defun rh-company-pseudo-tooltip-on-explicit-action (command)
+    (if (company-explicit-action-p)
+        (company-pseudo-tooltip-frontend command)
+      (company-preview-frontend command)))
+
   (setq company-tooltip-align-annotations t)
   (setq company-echo-truncate-lines nil)
+  (setq company-minimum-prefix-length 1)
+  (setq company-frontends '(rh-company-pseudo-tooltip-on-explicit-action
+                            company-preview-frontend
+                            company-echo-metadata-frontend))
+  (setq company-require-match nil)
+
+  (setq company-idle-delay 0)
+
+  (define-key company-active-map (kbd "<f1>") nil)
+  (define-key company-active-map (kbd "C-h") nil)
+    (define-key company-active-map (kbd "C-M-h") nil)
+
+  (define-key company-active-map (kbd "<escape>") 'company-abort)
+  (define-key company-active-map (kbd "C-n") 'company-select-next)
+  (define-key company-active-map (kbd "C-p") 'company-select-previous)
+  (define-key company-active-map (kbd "<down>") 'company-select-next)
+  (define-key company-active-map (kbd "<up>") 'company-select-previous)
+  (define-key company-active-map (kbd "C-<tab>") 'company-select-next)
+  (define-key company-active-map (kbd "C-S-<tab>") 'company-select-previous)
+  (define-key company-active-map
+    (kbd "C-S-<iso-lefttab>") 'company-select-previous)
+  (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
+  (define-key company-active-map (kbd "C-s") 'company-filter-candidates)
+
+  (define-key company-search-map (kbd "<tab>") 'company-complete-selection)
+  (define-key company-search-map (kbd "<escape>") 'company-search-abort)
+
+  ;; (custom-set-faces
+  ;;  '(company-preview
+  ;;    ((t (:foreground "darkgray" :underline t))))
+  ;;  '(company-preview-common
+  ;;    ((t (:inherit company-preview))))
+  ;;  '(company-tooltip
+  ;;    ((t (:background "lightgray" :foreground "black"))))
+  ;;  '(company-tooltip-selection
+  ;;    ((t (:background "steelblue" :foreground "white"))))
+  ;;  '(company-tooltip-common
+  ;;    ((((type x)) (:inherit company-tooltip :weight bold))
+  ;;     (t (:inherit company-tooltip))))
+  ;;  '(company-tooltip-common-selection
+  ;;    ((((type x)) (:inherit company-tooltip-selection :weight bold))
+  ;;     (t (:inherit company-tooltip-selection)))))
 
   :ensure t)
 
