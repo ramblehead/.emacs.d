@@ -648,18 +648,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (cl-defmacro goto-window-condition
     (condition &optional (reuse-visible goto-window-reuse-visible-default))
   `#'(lambda (buffer-nm actions)
-      (when (string-match-p ,condition buffer-nm)
-        (let ((current-window (get-buffer-window
-                               (current-buffer)
-                               (selected-frame))))
-          (with-current-buffer buffer-nm
-            (set (make-local-variable 'goto-window-ref)
-                 current-window)
-            (put 'goto-window-ref 'permanent-local t)
-            (set (make-local-variable 'goto-window-reuse-visible)
-                 ,reuse-visible)
-            (put 'goto-window-reuse-visible 'permanent-local t))
-        t))))
+       (when (string-match-p ,condition buffer-nm)
+         (let ((current-window (get-buffer-window
+                                (current-buffer)
+                                (selected-frame))))
+           (with-current-buffer buffer-nm
+             (set (make-local-variable 'goto-window-ref)
+                  current-window)
+             (put 'goto-window-ref 'permanent-local t)
+             (set (make-local-variable 'goto-window-reuse-visible)
+                  ,reuse-visible)
+             (put 'goto-window-reuse-visible 'permanent-local t))
+           t))))
 
 (defun goto-window-set-ref (choice)
   (interactive
@@ -1380,13 +1380,40 @@ fields which we need."
 
 ;; /b/{ == company ==
 
+(defun rh-test ()
+  (interactive)
+  (if (company-tooltip-visible-p)
+      (message "visible")
+    (message "invisible")))
+
+(global-set-key (kbd "C-t") 'rh-test)
+
 (use-package company
   :config
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
-    (if (company-explicit-action-p)
-        (company-pseudo-tooltip-frontend command)
-      (company-preview-frontend command)))
+    (cl-case command
+      (hide (company-pseudo-tooltip-frontend command)
+            (company-preview-frontend command))
+      (t (if (company-explicit-action-p)
+             (company-pseudo-tooltip-frontend command)
+           (company-preview-frontend command)))))
+
+  (defmacro rh-company-tooltip-key (default-key cmd)
+    `#'(lambda ()
+         (interactive)
+         (if (company-tooltip-visible-p)
+             (funcall ,cmd)
+           (let ((default-cmd (or (local-key-binding ,default-key)
+                                  (global-key-binding ,default-key))))
+             (when (fboundp default-cmd) (funcall default-cmd))))))
+
+  (defmacro rh-company-tooltip-cmd (default-cmd cmd)
+    `#'(lambda ()
+         (interactive)
+         (if (company-tooltip-visible-p)
+             (funcall ,cmd)
+           (funcall ,default-cmd))))
 
   (setq company-tooltip-align-annotations t)
   (setq company-echo-truncate-lines nil)
@@ -1400,22 +1427,45 @@ fields which we need."
 
   (define-key company-active-map (kbd "<f1>") nil)
   (define-key company-active-map (kbd "C-h") nil)
-    (define-key company-active-map (kbd "C-M-h") nil)
+  (define-key company-active-map (kbd "C-M-h") nil)
+  (define-key company-active-map (kbd "C-S-s") nil)
 
-  (define-key company-active-map (kbd "<escape>") 'company-abort)
-  (define-key company-active-map (kbd "C-n") 'company-select-next)
-  (define-key company-active-map (kbd "C-p") 'company-select-previous)
-  (define-key company-active-map (kbd "<down>") 'company-select-next)
-  (define-key company-active-map (kbd "<up>") 'company-select-previous)
-  (define-key company-active-map (kbd "C-<tab>") 'company-select-next)
-  (define-key company-active-map (kbd "C-S-<tab>") 'company-select-previous)
+  (define-key company-active-map (kbd "<escape>") #'company-abort)
+
+  (define-key company-active-map (kbd "C-n")
+    (rh-company-tooltip-key (kbd "C-n") #'company-select-next))
+  (define-key company-active-map (kbd "C-p")
+    (rh-company-tooltip-key (kbd "C-p") #'company-select-previous))
+
+  (define-key company-active-map (kbd "<down>")
+    (rh-company-tooltip-key (kbd "<down>") #'company-select-next))
+  (define-key company-active-map (kbd "<up>")
+    (rh-company-tooltip-key (kbd "<up>") #'company-select-previous))
+
+  (define-key company-active-map (kbd "<return>")
+    (rh-company-tooltip-key (kbd "<return>") #'company-complete-selection))
+  (define-key company-active-map (kbd "<return>")
+    (rh-company-tooltip-key (kbd "<kp-return>") #'company-complete-selection))
+  (define-key company-active-map (kbd "RET")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+
+  (define-key company-active-map (kbd "C-s")
+    (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
+
+  (define-key company-active-map [remap scroll-up-command]
+    (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
+  (define-key company-active-map [remap scroll-down-command]
+    (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
+
+  (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
+  (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
   (define-key company-active-map
-    (kbd "C-S-<iso-lefttab>") 'company-select-previous)
-  (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
-  (define-key company-active-map (kbd "C-s") 'company-filter-candidates)
+    (kbd "C-S-<iso-lefttab>") #'company-select-previous)
 
-  (define-key company-search-map (kbd "<tab>") 'company-complete-selection)
-  (define-key company-search-map (kbd "<escape>") 'company-search-abort)
+  (define-key company-search-map (kbd "<tab>") #'company-complete-selection)
+  (define-key company-search-map (kbd "TAB") #'company-complete-selection)
+
+  (define-key company-search-map (kbd "<escape>") #'company-search-abort)
 
   ;; (custom-set-faces
   ;;  '(company-preview
