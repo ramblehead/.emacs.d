@@ -1399,6 +1399,10 @@ fields which we need."
              (company-pseudo-tooltip-frontend command)
            (company-preview-frontend command)))))
 
+  ;; (defun rh-company-echo-metadata-toggle ()
+  ;;   (interactive)
+  ;;   (company-echo-hide))
+
   (defmacro rh-company-tooltip-key (default-key cmd)
     `#'(lambda ()
          (interactive)
@@ -1425,10 +1429,14 @@ fields which we need."
 
   (setq company-idle-delay 0)
 
+  ;; Use "M-h" for company-show-doc-buffer
   (define-key company-active-map (kbd "<f1>") nil)
   (define-key company-active-map (kbd "C-h") nil)
-  (define-key company-active-map (kbd "C-M-h") nil)
-  (define-key company-active-map (kbd "C-S-s") nil)
+  ;; Use company-filter-candidates by default, i.e. C-s
+  ;; In search mode use C-o to switch between filtered and unfiltered
+  (define-key company-active-map (kbd "C-M-s") nil)
+  ;; Use some other tools for code navigation
+  (define-key company-active-map (kbd "C-w") nil)
 
   (define-key company-active-map (kbd "<escape>") #'company-abort)
 
@@ -1436,36 +1444,48 @@ fields which we need."
     (rh-company-tooltip-key (kbd "C-n") #'company-select-next))
   (define-key company-active-map (kbd "C-p")
     (rh-company-tooltip-key (kbd "C-p") #'company-select-previous))
-
   (define-key company-active-map (kbd "<down>")
     (rh-company-tooltip-key (kbd "<down>") #'company-select-next))
   (define-key company-active-map (kbd "<up>")
     (rh-company-tooltip-key (kbd "<up>") #'company-select-previous))
 
   (define-key company-active-map (kbd "<return>")
-    (rh-company-tooltip-key (kbd "<return>") #'company-complete-selection))
-  (define-key company-active-map (kbd "<return>")
-    (rh-company-tooltip-key (kbd "<kp-return>") #'company-complete-selection))
-  (define-key company-active-map (kbd "RET")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+  (define-key company-active-map (kbd "<kp-return>")
     (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
 
   (define-key company-active-map (kbd "C-s")
     (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
+
+  ;; (define-key company-active-map (kbd "M-h")
+  ;;   (rh-company-tooltip-key (kbd "M-h") #'company-show-doc-buffer))
 
   (define-key company-active-map [remap scroll-up-command]
     (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
   (define-key company-active-map [remap scroll-down-command]
     (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
 
+  (define-key company-active-map (kbd "M-i") #'rh-company-echo-metadata-toggle)
+
   (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
   (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
   (define-key company-active-map
     (kbd "C-S-<iso-lefttab>") #'company-select-previous)
 
+  (define-key company-search-map (kbd "M-n") 'nil)
+  (define-key company-search-map (kbd "M-p") 'nil)
+
+  (define-key company-search-map (kbd "<escape>") #'company-search-abort)
+
   (define-key company-search-map (kbd "<tab>") #'company-complete-selection)
   (define-key company-search-map (kbd "TAB") #'company-complete-selection)
 
-  (define-key company-search-map (kbd "<escape>") #'company-search-abort)
+  (define-key company-search-map (kbd "C-n") #'company-select-next)
+  (define-key company-search-map (kbd "C-p") #'company-select-previous)
+  (define-key company-search-map (kbd "<down>") #'company-select-next)
+  (define-key company-search-map (kbd "<up>") #'company-select-previous)
+  (define-key company-search-map (kbd "<kp-down>") #'company-select-next)
+  (define-key company-search-map (kbd "<kp-up>") #'company-select-previous)
 
   ;; (custom-set-faces
   ;;  '(company-preview
