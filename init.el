@@ -619,11 +619,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defvar goto-window-reuse-visible-default t)
 
+;; (defvar goto-window-next-display-buffer-ref nil)
+
 (defvar goto-window-display-buffer-fallback
   'display-buffer-reuse-window)
 
-;; (defvar goto-window-display-buffer-commands
-;;   '(occur-mode-goto-occurrence))
 (defvar goto-window-display-buffer-commands
   '())
 
@@ -649,9 +649,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     (condition &optional (reuse-visible goto-window-reuse-visible-default))
   `#'(lambda (buffer-nm actions)
        (when (string-match-p ,condition buffer-nm)
-         (let ((current-window (get-buffer-window
-                                (current-buffer)
-                                (selected-frame))))
+         (let ((current-window
+                ;; (or (goto-window-next-display-buffer-ref)
+                ;;     (get-buffer-window (current-buffer) (selected-frame)))
+                (frame-selected-window)))
+           ;; (setq goto-window-next-display-buffer-ref nil)
            (with-current-buffer buffer-nm
              (set (make-local-variable 'goto-window-ref)
                   current-window)
@@ -2008,10 +2010,18 @@ fields which we need."
                'rtags-select-and-remove-rtags-buffer)
   (add-to-list 'goto-window-display-buffer-commands
                'rtags-select-other-window)
+
   (add-to-list 'goto-window-display-buffer-commands
                'rtags-next-match)
   (add-to-list 'goto-window-display-buffer-commands
                'rtags-previous-match)
+
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-find-symbol-at-point)
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-references-tree)
+  (add-to-list 'goto-window-display-buffer-commands
+               'rtags-find-virtuals-at-point)
 
   (add-to-list 'display-buffer-alist
                '("*rdm*"
@@ -2047,7 +2057,16 @@ fields which we need."
   (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
+
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
+
+  ;; (define-key c-mode-base-map (kbd "M-.")
+  ;;   #'(lambda (&optional prefix)
+  ;;       (interactive "P")
+  ;;       (setq goto-window-next-display-buffer-ref
+  ;;             (get-buffer-window (current-buffer) (selected-frame)))
+  ;;       (rtags-find-symbol-at-point prefix)))
+
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
   ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
