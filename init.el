@@ -1382,13 +1382,13 @@ fields which we need."
 
 ;; /b/{ == company ==
 
-(defun rh-test ()
-  (interactive)
-  (if (company-tooltip-visible-p)
-      (message "visible")
-    (message "invisible")))
+;; (defun rh-test ()
+;;   (interactive)
+;;   (if (company-tooltip-visible-p)
+;;       (message "visible")
+;;     (message "invisible")))
 
-(global-set-key (kbd "C-t") 'rh-test)
+;; (global-set-key (kbd "C-t") 'rh-test)
 
 (use-package company
   :config
@@ -1400,10 +1400,6 @@ fields which we need."
       (t (if (company-explicit-action-p)
              (company-pseudo-tooltip-frontend command)
            (company-preview-frontend command)))))
-
-  ;; (defun rh-company-echo-metadata-toggle ()
-  ;;   (interactive)
-  ;;   (company-echo-hide))
 
   (defmacro rh-company-tooltip-key (default-key cmd)
     `#'(lambda ()
@@ -1459,15 +1455,13 @@ fields which we need."
   (define-key company-active-map (kbd "C-s")
     (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
 
-  ;; (define-key company-active-map (kbd "M-h")
-  ;;   (rh-company-tooltip-key (kbd "M-h") #'company-show-doc-buffer))
+  (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
+  (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
 
   (define-key company-active-map [remap scroll-up-command]
     (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
   (define-key company-active-map [remap scroll-down-command]
     (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
-
-  (define-key company-active-map (kbd "M-i") #'rh-company-echo-metadata-toggle)
 
   (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
   (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
@@ -1523,6 +1517,29 @@ fields which we need."
   :ensure t)
 
 ;; /b/} == flycheck ==
+
+;; /b/{ == Common Functions ==
+
+(defvar rh-echo-metadata-enabled t)
+
+(defun rh-echo-metadata-enabled-toggle ()
+  (interactive)
+  (if company-mode
+      (if (memq 'company-echo-metadata-frontend company-frontends)
+          (progn
+            (setq company-frontends
+                  (delete 'company-echo-metadata-frontend company-frontends))
+            (setq rh-echo-metadata-enabled nil)
+            (message "echo-metadata disabled"))
+        (progn
+          (add-to-list 'company-frontends 'company-echo-metadata-frontend)
+          (setq rh-echo-metadata-enabled t)
+          (message "echo-metadata enabled")))
+    (setq rh-echo-metadata-enabled (not rh-echo-metadata-enabled))))
+
+(global-set-key (kbd "M-i") #'rh-echo-metadata-enabled-toggle)
+
+;; /b/} == Common Functions ==
 
 ;; -------------------------------------------------------------------
 ;;; Smart Autocompletion and IntelliSense Tools
