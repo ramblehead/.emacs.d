@@ -622,7 +622,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;; (defvar goto-window-next-display-buffer-ref nil)
 
 (defvar goto-window-display-buffer-fallback
-  'display-buffer-reuse-window)
+  'display-buffer-same-window)
 
 (defvar goto-window-display-buffer-commands
   '())
@@ -643,7 +643,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                                    'reuse alist
                                    display-buffer-mark-dedicated))
        (funcall goto-window-display-buffer-fallback buffer alist)))
-   (inhibit-same-window . t)))
+   (inhibit-same-window . nil)))
 
 (cl-defmacro goto-window-condition
     (condition &optional (reuse-visible goto-window-reuse-visible-default))
