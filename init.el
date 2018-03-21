@@ -842,6 +842,23 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :demand t)
 
+(use-package replace
+  :init
+  (add-to-list 'display-buffer-alist
+               `(,(goto-window-condition "*Occur*")
+                 (display-buffer-in-side-window)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'goto-window-display-buffer-commands
+               'occur-mode-goto-occurrence)
+
+  :config
+  (define-key grep-mode-map (kbd "q") #'rh-quit-window-kill)
+
+  :demand t)
+
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
