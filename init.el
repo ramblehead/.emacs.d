@@ -1465,6 +1465,9 @@ fields which we need."
   (define-key company-active-map [remap scroll-down-command]
     (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
 
+  (define-key company-active-map (kbd "<tab>") #'company-complete-selection)
+  (define-key company-active-map (kbd "TAB") #'company-complete-selection)
+
   (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
   (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
   (define-key company-active-map
@@ -2507,6 +2510,23 @@ continuing (not first) item"
 
 ;; /b/} == C++ ==
 
+;; /b/{ == js-mode ==
+
+(use-package js-mode
+  :mode "\\.js\\'"
+  :init
+  ;; Indentation style ajustments
+  (setq js-indent-level 2)
+  (setq js-switch-indent-offset 2)
+
+  (add-hook
+   'js-mode-hook
+   #'(lambda ()
+       (vr-programming-minor-modes)
+       (rh-project-setup))))
+
+;; /b/} == js-mode ==
+
 ;; /b/{ == js2-mode ==
 
 ;; (defun vr-js2-scratch-config ()
@@ -3145,11 +3165,12 @@ continuing (not first) item"
 
 (defun rh-javascript-setup ()
   (interactive)
+  (auto-complete-mode -1)
   (company-mode 1)
   (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
-  (tern-mode 1)
+  ;; (tern-mode 1)
   (tide-setup)
   (tide-hl-identifier-mode 1)
   (eldoc-mode 1))
