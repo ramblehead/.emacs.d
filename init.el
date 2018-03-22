@@ -628,6 +628,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (defvar goto-window-display-buffer-commands
   '())
 
+(defun rh-quit-window-kill ()
+  (interactive)
+  (when (local-variable-p 'goto-window-quit-restore-parameter)
+    (set-window-parameter
+     (frame-selected-window) 'quit-restore goto-window-quit-restore-parameter))
+  (quit-window t))
+
 (add-to-list
  'display-buffer-alist
  '((lambda (buffer actions)
@@ -646,6 +653,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
        (funcall goto-window-display-buffer-fallback buffer alist)))
    ;; (inhibit-same-window . t)))
    (inhibit-same-window . nil)))
+
+(cl-defmacro goto-window-quit-restore (display-buffer-func)
+  `#'(lambda (buffer alist)
+       (let ((win (funcall ,display-buffer-func buffer alist)))
+         (when win
+           (with-current-buffer buffer
+             (set (make-local-variable 'goto-window-quit-restore-parameter)
+                  (window-parameter win 'quit-restore))
+             (put 'goto-window-quit-restore-parameter 'permanent-local t)))
+         win)))
 
 (cl-defmacro goto-window-condition
     (condition &optional (reuse-visible goto-window-reuse-visible-default))
@@ -789,13 +806,39 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package help-mode
   :init
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*Help*"
+  ;;                (display-buffer-in-side-window)
+  ;;                ;; (side . bottom)
+  ;;                ;; (slot . 1)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
   (add-to-list 'display-buffer-alist
-               '("*Help*"
-                 (display-buffer-in-side-window)
-                 ;; (side . bottom)
-                 ;; (slot . 1)
+               `("*Help*"
+                 ,(goto-window-quit-restore #'display-buffer-in-side-window)
+                 (side . bottom)
+                 (slot . 0)
                  (inhibit-same-window . t)
-                 (window-height . 0.3)))
+                 (window-height . 15)))
+
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '((lambda (buffer-nm actions)
+  ;;                  (when (string-match-p "*Help*" buffer-nm)
+  ;;                    t))
+  ;;                (lambda (buffer alist)
+  ;;                  (let ((win (display-buffer-in-side-window buffer alist))
+  ;;                        qtrs)
+  ;;                    (when win
+  ;;                      (with-current-buffer buffer
+  ;;                        (setq qtrs (window-parameter win 'quit-restore))
+  ;;                        (set (make-local-variable 'goto-window-quit-restore-parameter) qtrs)
+  ;;                        (put 'goto-window-quit-restore-parameter 'permanent-local t)))))
+  ;;                ;; (side . bottom)
+  ;;                ;; (slot . 1)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
   :config
   (setq help-window-select t)
   (define-key help-mode-map (kbd "q") #'rh-quit-window-kill)
@@ -854,7 +897,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                'occur-mode-goto-occurrence)
 
   :config
-  (define-key grep-mode-map (kbd "q") #'rh-quit-window-kill)
+  (define-key occur-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :demand t)
 
