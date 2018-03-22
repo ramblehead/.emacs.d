@@ -617,105 +617,105 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 ;; /b/{ == goto-window ==
 
-(defvar goto-window-reuse-visible-default t)
+(defvar g2w-reuse-visible-default t)
 
-;; (defvar goto-window-next-display-buffer-ref nil)
+;; (defvar g2w-next-display-buffer-ref nil)
 
-(defvar goto-window-display-buffer-fallback
+(defvar g2w-fallback-display-buffer-func
   ;; 'display-buffer-reuse-window)
   'display-buffer-same-window)
 
-(defvar goto-window-display-buffer-commands
+(defvar g2w-display-buffer-commands
   '())
 
-(defun goto-window-quit-window ()
+(defun g2w-quit-window ()
   (interactive)
-  (when (and (local-variable-p 'goto-window-quit-restore-parameter)
-             (local-variable-p 'goto-window-kill-on-quit))
+  (when (and (local-variable-p 'g2w-quit-restore-parameter)
+             (local-variable-p 'g2w-kill-on-quit))
     (set-window-parameter
-     (frame-selected-window) 'quit-restore goto-window-quit-restore-parameter)
-    (quit-window goto-window-kill-on-quit)))
+     (frame-selected-window) 'quit-restore g2w-quit-restore-parameter)
+    (quit-window g2w-kill-on-quit)))
 
 (add-to-list
  'display-buffer-alist
  '((lambda (buffer actions)
-     (memq this-command goto-window-display-buffer-commands))
+     (memq this-command g2w-display-buffer-commands))
    (lambda (buffer alist)
-     (if (and (boundp 'goto-window-ref)
-              (memq goto-window-ref (window-list)))
-         (let ((win goto-window-ref))
-           (when (bound-and-true-p goto-window-reuse-visible)
+     (if (and (boundp 'g2w-ref-window)
+              (memq g2w-ref-window (window-list)))
+         (let ((win g2w-ref-window))
+           (when (bound-and-true-p g2w-reuse-visible)
              (let ((win-reuse
                     (get-buffer-window buffer (selected-frame))))
                (when win-reuse (setq win win-reuse))))
            (window--display-buffer buffer win
                                    'reuse alist
                                    display-buffer-mark-dedicated))
-       (funcall goto-window-display-buffer-fallback buffer alist)))
+       (funcall g2w-fallback-display-buffer-func buffer alist)))
    ;; (inhibit-same-window . t)))
    (inhibit-same-window . nil)))
 
-(cl-defmacro goto-window-quit-restore (display-buffer-func
-                                       &optional (kill-on-quit nil))
+(cl-defmacro g2w-quit-restore (display-buffer-func
+                               &optional (kill-on-quit nil))
   `#'(lambda (buffer alist)
        (let ((win (funcall ,display-buffer-func buffer alist)))
          (when win
            (with-current-buffer buffer
-             (set (make-local-variable 'goto-window-quit-restore-parameter)
+             (set (make-local-variable 'g2w-quit-restore-parameter)
                   (window-parameter win 'quit-restore))
-             (put 'goto-window-quit-restore-parameter 'permanent-local t)
-             (set (make-local-variable 'goto-window-kill-on-quit)
+             (put 'g2w-quit-restore-parameter 'permanent-local t)
+             (set (make-local-variable 'g2w-kill-on-quit)
                   ,kill-on-quit)
-             (put 'goto-window-kill-on-quit 'permanent-local t)))
+             (put 'g2w-kill-on-quit 'permanent-local t)))
          win)))
 
-(cl-defmacro goto-window-condition
-    (condition &optional (reuse-visible goto-window-reuse-visible-default))
+(cl-defmacro g2w-condition
+    (condition &optional (reuse-visible g2w-reuse-visible-default))
   `#'(lambda (buffer-nm actions)
        (when (string-match-p ,condition buffer-nm)
          (let ((current-window
-                ;; (or (goto-window-next-display-buffer-ref)
+                ;; (or (g2w-next-display-buffer-ref)
                 ;;     (get-buffer-window (current-buffer) (selected-frame)))
                 (frame-selected-window)))
-           ;; (setq goto-window-next-display-buffer-ref nil)
+           ;; (setq g2w-next-display-buffer-ref nil)
            (with-current-buffer buffer-nm
-             (set (make-local-variable 'goto-window-ref)
+             (set (make-local-variable 'g2w-ref-window)
                   current-window)
-             (put 'goto-window-ref 'permanent-local t)
-             (set (make-local-variable 'goto-window-reuse-visible)
+             (put 'g2w-ref-window 'permanent-local t)
+             (set (make-local-variable 'g2w-reuse-visible)
                   ,reuse-visible)
-             (put 'goto-window-reuse-visible 'permanent-local t))
+             (put 'g2w-reuse-visible 'permanent-local t))
            t))))
 
-(defun goto-window-set-ref (choice)
+(defun g2w-set-ref (choice)
   (interactive
-   (if (local-variable-p 'goto-window-ref)
+   (if (local-variable-p 'g2w-ref-window)
      (let* (value
             (choices (mapcar (lambda (w)
                                (list (format "%s" w) w))
                              (window-list)))
             (completion-ignore-case  t))
-       (setq value (list (completing-read "goto-window-ref: " choices nil t)))
+       (setq value (list (completing-read "g2w-ref-window: " choices nil t)))
        (cdr (assoc (car value) choices 'string=)))
      '(nil)))
-  (if (local-variable-p 'goto-window-ref)
+  (if (local-variable-p 'g2w-ref-window)
       (progn
-        (setq goto-window-ref choice)
+        (setq g2w-ref-window choice)
         (select-window choice)
-        (message "goto-window-ref: %s" choice)
+        (message "g2w-ref-window: %s" choice)
         choice)
     (progn
-      (message "current buffer has no associated `goto-window-ref'")
+      (message "current buffer has no associated `g2w-ref-window'")
       nil)))
 
-(defun goto-window-select-ref ()
+(defun g2w-select-ref ()
   (interactive)
-  (if (local-variable-p 'goto-window-ref)
-      (if (member goto-window-ref (window-list))
-          (select-window goto-window-ref)
-        (message "`goto-window-ref' window has been killed"))
+  (if (local-variable-p 'g2w-ref-window)
+      (if (member g2w-ref-window (window-list))
+          (select-window g2w-ref-window)
+        (message "`g2w-ref-window' window has been killed"))
     (progn
-      (message "current buffer has no associated `goto-window-ref'")
+      (message "current buffer has no associated `g2w-ref-window'")
       nil)))
 
 ;; /b/} == goto-window ==
@@ -821,7 +821,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (add-to-list 'display-buffer-alist
                `("*Help*"
-                 ,(goto-window-quit-restore #'display-buffer-in-side-window t)
+                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
                  (side . bottom)
                  (slot . 0)
                  (inhibit-same-window . t)
@@ -837,8 +837,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                    (when win
   ;;                      (with-current-buffer buffer
   ;;                        (setq qtrs (window-parameter win 'quit-restore))
-  ;;                        (set (make-local-variable 'goto-window-quit-restore-parameter) qtrs)
-  ;;                        (put 'goto-window-quit-restore-parameter 'permanent-local t)))))
+  ;;                        (set (make-local-variable 'g2w-quit-restore-parameter) qtrs)
+  ;;                        (put 'g2w-quit-restore-parameter 'permanent-local t)))))
   ;;                ;; (side . bottom)
   ;;                ;; (slot . 1)
   ;;                (inhibit-same-window . t)
@@ -846,7 +846,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :config
   (setq help-window-select t)
-  (define-key help-mode-map (kbd "q") #'goto-window-quit-window)
+  (define-key help-mode-map (kbd "q") #'g2w-quit-window)
 
   :demand t)
 
@@ -865,7 +865,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                                           (current-buffer)
   ;;                                           (selected-frame))))
   ;;                      (with-current-buffer buffer
-  ;;                        (set (make-local-variable 'goto-window-ref)
+  ;;                        (set (make-local-variable 'g2w-ref-window)
   ;;                             current-window)))
   ;;                    t))
   ;;                (display-buffer-below-selected)
@@ -873,15 +873,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                (window-height . 0.3)))
 
   (add-to-list 'display-buffer-alist
-               `(,(goto-window-condition "*grep*")
-                 ,(goto-window-quit-restore #'display-buffer-in-side-window t)
+               `(,(g2w-condition "*grep*")
+                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'goto-window-display-buffer-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
   :config
-  (define-key grep-mode-map (kbd "q") #'goto-window-quit-window)
+  (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
 
   (add-hook
    'grep-mode-hook
@@ -893,16 +893,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (use-package replace
   :init
   (add-to-list 'display-buffer-alist
-               `(,(goto-window-condition "*Occur*")
-                 ,(goto-window-quit-restore #'display-buffer-in-side-window t)
+               `(,(g2w-condition "*Occur*")
+                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'occur-mode-goto-occurrence)
 
   :config
-  (define-key occur-mode-map (kbd "q") #'goto-window-quit-window)
+  (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
   :demand t)
 
@@ -1638,7 +1638,7 @@ fields which we need."
   ;;                                           (current-buffer)
   ;;                                           (selected-frame))))
   ;;                      (with-current-buffer buffer-nm
-  ;;                        (set (make-local-variable 'goto-window-ref)
+  ;;                        (set (make-local-variable 'g2w-ref-window)
   ;;                             current-window)))
   ;;                    t))
   ;;                (display-buffer-in-side-window)
@@ -1646,15 +1646,15 @@ fields which we need."
   ;;                (window-height . 15)))
 
   (add-to-list 'display-buffer-alist
-               `(,(goto-window-condition "*compilation*")
-                 ,(goto-window-quit-restore #'display-buffer-in-side-window)
+               `(,(g2w-condition "*compilation*")
+                 ,(g2w-quit-restore #'display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'goto-window-display-buffer-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
   :config
-  (define-key compilation-mode-map (kbd "q") #'goto-window-quit-window))
+  (define-key compilation-mode-map (kbd "q") #'g2w-quit-window))
 
 ;; /b/} == compile ==
 
@@ -2091,26 +2091,26 @@ fields which we need."
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 0.3)))
   (add-to-list 'display-buffer-alist
-               `(,(goto-window-condition "*RTags*" nil)
+               `(,(g2w-condition "*RTags*" nil)
                  (display-buffer-below-selected)
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
 
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-select-and-remove-rtags-buffer)
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-select-other-window)
 
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-next-match)
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-previous-match)
 
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-find-symbol-at-point)
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-references-tree)
-  (add-to-list 'goto-window-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-commands
                'rtags-find-virtuals-at-point)
 
   (add-to-list 'display-buffer-alist
@@ -2153,7 +2153,7 @@ fields which we need."
   ;; (define-key c-mode-base-map (kbd "M-.")
   ;;   #'(lambda (&optional prefix)
   ;;       (interactive "P")
-  ;;       (setq goto-window-next-display-buffer-ref
+  ;;       (setq g2w-next-display-buffer-ref
   ;;             (get-buffer-window (current-buffer) (selected-frame)))
   ;;       (rtags-find-symbol-at-point prefix)))
 
