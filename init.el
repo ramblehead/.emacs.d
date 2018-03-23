@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1582,8 +1582,16 @@ fields which we need."
   (require 'web-mode)
   (require 'tide)
   (flycheck-add-mode 'typescript-tslint 'web-mode)
-  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+  ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
+  :ensure t)
+
+(use-package flycheck-popup-tip
+  :config
+  (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
+  (setq flycheck-popup-tip-error-prefix "> ")
+
+  :after flycheck
   :ensure t)
 
 ;; /b/} == flycheck ==
@@ -3136,7 +3144,7 @@ continuing (not first) item"
                '("*tide-references*"
                  (display-buffer-below-selected)
                  (inhibit-same-window . t)
-                 (window-height . 0.3)))
+                 (window-height . 15)))
 
   :config
   ;; (setq tide-tsserver-executable
