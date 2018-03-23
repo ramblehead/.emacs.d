@@ -628,6 +628,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (defvar g2w-display-buffer-commands
   '())
 
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (buffer actions)
+     (memq this-command g2w-display-buffer-commands))
+   (lambda (buffer alist)
+     (if (and (boundp 'g2w-destination-window)
+              (memq g2w-destination-window (window-list)))
+         (let ((win g2w-destination-window))
+           (when (and (bound-and-true-p g2w-reuse-visible)
+                      (not (eq (window-buffer win) buffer)))
+             (let ((win-reuse
+                    (get-buffer-window buffer (selected-frame))))
+               (when win-reuse (setq win win-reuse))))
+           (window--display-buffer buffer win
+                                   'reuse alist
+                                   display-buffer-mark-dedicated))
+       (funcall g2w-fallback-display-buffer-func buffer alist)))
+   (inhibit-same-window . nil)))
+
 (cl-defmacro g2w-display (display-buffer-func
                           &optional (kill-on-quit nil))
   `#'(lambda (buf alist)
@@ -670,30 +689,12 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defun g2w-quit-window ()
   (interactive)
-  (when (and (local-variable-p 'g2w-quit-restore-parameter)
-             (local-variable-p 'g2w-kill-on-quit))
-    (set-window-parameter (frame-selected-window) 'window-preserved-size nil)
+  (when (local-variable-p 'g2w-quit-restore-parameter)
     (set-window-parameter (frame-selected-window)
-                          'quit-restore g2w-quit-restore-parameter)
-    (quit-window g2w-kill-on-quit)))
-
-(add-to-list
- 'display-buffer-alist
- '((lambda (buffer actions)
-     (memq this-command g2w-display-buffer-commands))
-   (lambda (buffer alist)
-     (if (and (boundp 'g2w-destination-window)
-              (memq g2w-destination-window (window-list)))
-         (let ((win g2w-destination-window))
-           (when (bound-and-true-p g2w-reuse-visible)
-             (let ((win-reuse
-                    (get-buffer-window buffer (selected-frame))))
-               (when win-reuse (setq win win-reuse))))
-           (window--display-buffer buffer win
-                                   'reuse alist
-                                   display-buffer-mark-dedicated))
-       (funcall g2w-fallback-display-buffer-func buffer alist)))
-   (inhibit-same-window . nil)))
+                          'quit-restore g2w-quit-restore-parameter))
+  (if (local-variable-p 'g2w-kill-on-quit)
+      (quit-window g2w-kill-on-quit)
+    (quit-window)))
 
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
