@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (iflipb yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -628,39 +628,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (defvar g2w-display-buffer-commands
   '())
 
-(defun g2w-quit-window ()
-  (interactive)
-  (when (and (local-variable-p 'g2w-quit-restore-parameter)
-             (local-variable-p 'g2w-kill-on-quit))
-    (set-window-parameter
-     (frame-selected-window) 'quit-restore g2w-quit-restore-parameter)
-    (quit-window g2w-kill-on-quit)))
-
-(add-to-list
- 'display-buffer-alist
- '((lambda (buffer actions)
-     (memq this-command g2w-display-buffer-commands))
-   (lambda (buffer alist)
-     (if (and (boundp 'g2w-ref-window)
-              (memq g2w-ref-window (window-list)))
-         (let ((win g2w-ref-window))
-           (when (bound-and-true-p g2w-reuse-visible)
-             (let ((win-reuse
-                    (get-buffer-window buffer (selected-frame))))
-               (when win-reuse (setq win win-reuse))))
-           (window--display-buffer buffer win
-                                   'reuse alist
-                                   display-buffer-mark-dedicated))
-       (funcall g2w-fallback-display-buffer-func buffer alist)))
-   ;; (inhibit-same-window . t)))
-   (inhibit-same-window . nil)))
-
-(cl-defmacro g2w-quit-restore (display-buffer-func
-                               &optional (kill-on-quit nil))
-  `#'(lambda (buffer alist)
-       (let ((win (funcall ,display-buffer-func buffer alist)))
+(cl-defmacro g2w-display (display-buffer-func
+                          &optional (kill-on-quit nil))
+  `#'(lambda (buf alist)
+       (let ((win (funcall ,display-buffer-func buf alist)))
          (when win
-           (with-current-buffer buffer
+           (with-current-buffer buf
+             (set (make-local-variable 'g2w-window-side)
+                  (window-parameter win 'window-side))
+             (put 'g2w-window-side 'permanent-local t)
+             (set (make-local-variable 'g2w-window-slot)
+                  (window-parameter win 'window-slot))
+             (put 'g2w-window-slot 'permanent-local t)
              (set (make-local-variable 'g2w-quit-restore-parameter)
                   (window-parameter win 'quit-restore))
              (put 'g2w-quit-restore-parameter 'permanent-local t)
@@ -669,53 +648,105 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
              (put 'g2w-kill-on-quit 'permanent-local t)))
          win)))
 
+(defun g2w-same-side-and-slot-buffers (buf)
+  (with-current-buffer buf
+    (let ((buf-side (if (local-variable-p 'g2w-window-side)
+                        g2w-window-side nil))
+          (buf-slot (if (local-variable-p 'g2w-window-slot)
+                        g2w-window-slot nil))
+          (same '()) (different '()))
+      (mapc #'(lambda (tbuf)
+                (with-current-buffer tbuf
+                  (let ((tbuf-side (if (local-variable-p 'g2w-window-side)
+                                       g2w-window-side nil))
+                        (tbuf-slot (if (local-variable-p 'g2w-window-slot)
+                                       g2w-window-slot nil)))
+                    (if (and (eq tbuf-side buf-side)
+                             (eq tbuf-slot buf-slot))
+                        (push (buffer-name tbuf) same)
+                      (push (buffer-name tbuf) different)))))
+            (buffer-list))
+      `[,same ,different])))
+
+(defun g2w-quit-window ()
+  (interactive)
+  (when (and (local-variable-p 'g2w-quit-restore-parameter)
+             (local-variable-p 'g2w-kill-on-quit))
+    (set-window-parameter (frame-selected-window) 'window-preserved-size nil)
+    (set-window-parameter (frame-selected-window)
+                          'quit-restore g2w-quit-restore-parameter)
+    (quit-window g2w-kill-on-quit)))
+
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (buffer actions)
+     (memq this-command g2w-display-buffer-commands))
+   (lambda (buffer alist)
+     (if (and (boundp 'g2w-destination-window)
+              (memq g2w-destination-window (window-list)))
+         (let ((win g2w-destination-window))
+           (when (bound-and-true-p g2w-reuse-visible)
+             (let ((win-reuse
+                    (get-buffer-window buffer (selected-frame))))
+               (when win-reuse (setq win win-reuse))))
+           (window--display-buffer buffer win
+                                   'reuse alist
+                                   display-buffer-mark-dedicated))
+       (funcall g2w-fallback-display-buffer-func buffer alist)))
+   (inhibit-same-window . nil)))
+
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
   `#'(lambda (buffer-nm actions)
-       (when (string-match-p ,condition buffer-nm)
-         (let ((current-window
-                ;; (or (g2w-next-display-buffer-ref)
-                ;;     (get-buffer-window (current-buffer) (selected-frame)))
-                (frame-selected-window)))
-           ;; (setq g2w-next-display-buffer-ref nil)
+       ;; (when (or (and (stringp ,condition)
+       ;;                (string-match-p ,condition buffer-nm))
+       ;;           (funcall ,condition buffer-nm actions))
+
+       ;; (when (string-match-p ,condition buffer-nm)
+
+       (when (if (stringp ,condition)
+                 (string-match-p ,condition buffer-nm)
+               (funcall ,condition buffer-nm actions))
+         (let ((current-window (frame-selected-window)))
            (with-current-buffer buffer-nm
-             (set (make-local-variable 'g2w-ref-window)
+             (set (make-local-variable 'g2w-destination-window)
                   current-window)
-             (put 'g2w-ref-window 'permanent-local t)
+             (put 'g2w-destination-window 'permanent-local t)
              (set (make-local-variable 'g2w-reuse-visible)
                   ,reuse-visible)
              (put 'g2w-reuse-visible 'permanent-local t))
            t))))
 
-(defun g2w-set-ref (choice)
+(defun g2w-set-destination-window (choice)
   (interactive
-   (if (local-variable-p 'g2w-ref-window)
+   (if (local-variable-p 'g2w-destination-window)
      (let* (value
             (choices (mapcar (lambda (w)
                                (list (format "%s" w) w))
                              (window-list)))
             (completion-ignore-case  t))
-       (setq value (list (completing-read "g2w-ref-window: " choices nil t)))
+       (setq value (list (completing-read
+                          "destination-window: " choices nil t)))
        (cdr (assoc (car value) choices 'string=)))
      '(nil)))
-  (if (local-variable-p 'g2w-ref-window)
+  (if (local-variable-p 'g2w-destination-window)
       (progn
-        (setq g2w-ref-window choice)
+        (setq g2w-destination-window choice)
         (select-window choice)
-        (message "g2w-ref-window: %s" choice)
+        (message "destination-window: %s" choice)
         choice)
     (progn
-      (message "current buffer has no associated `g2w-ref-window'")
+      (message "current buffer has no associated `destination-window'")
       nil)))
 
-(defun g2w-select-ref ()
+(defun g2w-select-destination-window ()
   (interactive)
-  (if (local-variable-p 'g2w-ref-window)
-      (if (member g2w-ref-window (window-list))
-          (select-window g2w-ref-window)
-        (message "`g2w-ref-window' window has been killed"))
+  (if (local-variable-p 'g2w-destination-window)
+      (if (member g2w-destination-window (window-list))
+          (select-window g2w-destination-window)
+        (message "`destination-window' window has been killed"))
     (progn
-      (message "current buffer has no associated `g2w-ref-window'")
+      (message "current buffer has no associated `destination-window'")
       nil)))
 
 ;; /b/} == goto-window ==
@@ -821,7 +852,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (add-to-list 'display-buffer-alist
                `("*Help*"
-                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
+                 ,(g2w-display #'display-buffer-in-side-window t)
                  (side . bottom)
                  (slot . 0)
                  (inhibit-same-window . t)
@@ -865,7 +896,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                                           (current-buffer)
   ;;                                           (selected-frame))))
   ;;                      (with-current-buffer buffer
-  ;;                        (set (make-local-variable 'g2w-ref-window)
+  ;;                        (set (make-local-variable 'g2w-destination-window)
   ;;                             current-window)))
   ;;                    t))
   ;;                (display-buffer-below-selected)
@@ -874,7 +905,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*grep*")
-                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
+                 ,(g2w-display #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -894,7 +925,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   :init
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*Occur*")
-                 ,(g2w-quit-restore #'display-buffer-in-side-window t)
+                 ,(g2w-display #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -920,6 +951,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;   (unicode-fonts-setup)
 
 ;;   :ensure t)
+
+(setq undo-limit (* 1024 1024))
+(setq undo-strong-limit (* undo-limit 2))
+(setq undo-outer-limit (* undo-limit 100))
 
 ;; /b/} == unicode-fonts ==
 
@@ -1027,13 +1062,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 ;; == Mouse Operations ==
 
-(defadvice mouse-yank-at-click (around vr-mouse-yank-at-click ())
-  (progn
-    (if (use-region-p)
-        (delete-region (region-beginning) (region-end)))
-    ad-do-it))
+(defadvice mouse-yank-at-click (around vr-mouse-yank-at-click () activate)
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end)))
+  ad-do-it)
 
-(ad-activate 'mouse-yank-at-click)
+(global-set-key (kbd "<mouse-2>") #'mouse-yank-at-click)
+(global-set-key (kbd "<mouse-3>") #'kill-ring-save)
+
+;; (ad-activate 'mouse-yank-at-click)
 
 (setq mouse-wheel-scroll-amount '(5 ((shift) . 1)))
 (setq mouse-wheel-progressive-speed nil)
@@ -1638,7 +1675,7 @@ fields which we need."
   ;;                                           (current-buffer)
   ;;                                           (selected-frame))))
   ;;                      (with-current-buffer buffer-nm
-  ;;                        (set (make-local-variable 'g2w-ref-window)
+  ;;                        (set (make-local-variable 'g2w-destination-window)
   ;;                             current-window)))
   ;;                    t))
   ;;                (display-buffer-in-side-window)
@@ -1647,7 +1684,7 @@ fields which we need."
 
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*")
-                 ,(g2w-quit-restore #'display-buffer-in-side-window)
+                 ,(g2w-display #'display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -3689,7 +3726,6 @@ with very limited support for special characters."
                           "^\\*httpd\\*$"
                           ;; compile/script outputs
                           "^\\*skewer-error\\*$"
-                          "^\\*compilation\\*$"
                           "^\\*tide-server\\*$"
                           ;; rtags buffers
                           "^\\*rdm\\*$"
@@ -3779,12 +3815,14 @@ with very limited support for special characters."
   (flx-ido-mode 1)
   :ensure t)
 
-;; == ivy mode ==
+;; /b/{ == ivy mode ==
 
 ;; (use-package ivy
 ;;   :ensure t)
 
-;; == helm mode ==
+;; /b/} == ivy mode ==
+
+;; /b/{ == helm mode ==
 
 ;; (defun vr-helm-toggle-header-line ()
 ;;   (if (= (length helm-sources) 1)
@@ -3804,18 +3842,54 @@ with very limited support for special characters."
 ;;   (add-hook 'helm-before-initialize-hook 'vr-helm-toggle-header-line)
 ;;   :ensure t)
 
-;; == ifilipb mode ==
+;; /b/} == helm mode ==
 
-(require 'iflipb)
-(setq iflipb-ignore-buffers vr-ignore-buffers)
-(setq iflipb-wrap-around t)
+;; /b/{ == ifilipb mode ==
 
-(global-set-key (kbd "C-<next>") 'iflipb-next-buffer)
-(global-set-key (kbd "C-<kp-next>") 'iflipb-next-buffer)
-(global-set-key (kbd "C-<prior>") 'iflipb-previous-buffer)
-(global-set-key (kbd "C-<kp-prior>") 'iflipb-previous-buffer)
+;; (require 'iflipb)
+;; (setq iflipb-ignore-buffers vr-ignore-buffers)
+;; (setq iflipb-wrap-around t)
 
-;; == bs mode ==
+;; (global-set-key (kbd "C-<next>") 'iflipb-next-buffer)
+;; (global-set-key (kbd "C-<kp-next>") 'iflipb-next-buffer)
+;; (global-set-key (kbd "C-<prior>") 'iflipb-previous-buffer)
+;; (global-set-key (kbd "C-<kp-prior>") 'iflipb-previous-buffer)
+
+(use-package iflipb
+  :init
+  (defadvice iflipb-next-buffer
+      (around g2w-iflipb-next-buffer () activate)
+    (let ((iflipb-ignore-buffers
+           (append iflipb-ignore-buffers
+                   (aref (g2w-same-side-and-slot-buffers
+                          (current-buffer))
+                         1))))
+      ad-do-it))
+
+  (defadvice iflipb-previous-buffer
+      (around g2w-iflipb-previous-buffer () activate)
+    (let ((iflipb-ignore-buffers
+           (append iflipb-ignore-buffers
+                   (aref (g2w-same-side-and-slot-buffers
+                          (current-buffer))
+                         1))))
+      ad-do-it))
+
+  :config
+  (setq iflipb-ignore-buffers vr-ignore-buffers)
+  (setq iflipb-wrap-around t)
+
+  (global-set-key (kbd "C-<next>") #'iflipb-next-buffer)
+  (global-set-key (kbd "C-<kp-next>") #'iflipb-next-buffer)
+  (global-set-key (kbd "C-<prior>") #'iflipb-previous-buffer)
+  (global-set-key (kbd "C-<kp-prior>") #'iflipb-previous-buffer)
+
+  :demand
+  :ensure t)
+
+;; /b/} == ifilipb mode ==
+
+;; /b/{ == bs mode ==
 
 ;; ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
 ;; (setq bs-configurations
@@ -3979,6 +4053,8 @@ with very limited support for special characters."
 (use-package bs-ext
   :demand t
   :ensure t)
+
+;; /b/} == bs mode ==
 
 ;; == popwin mode ==
 
