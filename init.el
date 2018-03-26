@@ -18,7 +18,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (iflipb flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (indium iflipb flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1733,7 +1733,7 @@ fields which we need."
 
 ;; /b/} == eshell mode ==
 
-;; == Line numbering ==
+;; /b/{ == Line numbering ==
 
 (use-package linum
   :init
@@ -1761,6 +1761,8 @@ fields which we need."
 
 (use-package nlinum-hl
   :ensure t)
+
+;; /b/} == Line numbering ==
 
 ;; == Exporting buffers to other formats (html, pdf etc.)
 
@@ -2658,7 +2660,7 @@ continuing (not first) item"
 ;; (ad-activate 'js2-enter-key)
 
 (use-package js2-mode
-  :mode "\\.jse?\\'"
+  ;; :mode "\\.jse?\\'"
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2729,6 +2731,8 @@ continuing (not first) item"
      ;; (local-set-key (kbd "S-<f5>") 'skewer-repl)
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
      ))
+
+  :disabled
   :ensure t)
 
 ;; /b/} == js2-mode ==
@@ -2755,6 +2759,8 @@ continuing (not first) item"
   :commands (ac-js2-mode)
   :init
   ;; (setq ac-js2-evaluate-calls t)
+
+  :disabled
   :ensure t)
 
 ;; /b/} == ac-js2 ==
@@ -2769,11 +2775,6 @@ continuing (not first) item"
 ;; /b/} == moz-minor-mode ==
 
 ;; /b/{ == skewer-mode ==
-
-(use-package skewer-mode
-  :commands (skewer-mode skewer-css-mode skewer-html-mode)
-  :config (httpd-start)
-  :ensure t)
 
 (defun vr-skewer-eval-last-expression-or-region (start end)
   (interactive (vr-point-or-region))
@@ -2823,7 +2824,20 @@ continuing (not first) item"
                (pos (cons (current-buffer) (point))))
           (setf (cache-table-get id skewer-eval-print-map) pos))))))
 
+(use-package skewer-mode
+  :commands (skewer-mode skewer-css-mode skewer-html-mode)
+  :config (httpd-start)
+  :ensure t)
+
 ;; /b/} == skewer-mode ==
+
+;; /b/{ == indium ==
+
+(use-package indium
+  ;; :commands (skewer-mode skewer-css-mode skewer-html-mode)
+  :ensure t)
+
+;; /b/} == indium ==
 
 ;; /b/{ == css-mode ==
 
@@ -2934,9 +2948,7 @@ continuing (not first) item"
   (add-hook
    'python-mode-hook
    (lambda ()
-     (vr-programming-minor-modes)
-     ;; (vr-python-code-folding-setup)
-     )))
+     (vr-programming-minor-modes))))
 
 ;; /b/} == python-mode ==
 
