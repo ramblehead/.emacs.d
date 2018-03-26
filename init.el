@@ -1583,7 +1583,6 @@ fields which we need."
 
   (define-key company-search-map (kbd "<tab>") #'company-complete-selection)
   (define-key company-search-map (kbd "TAB") #'company-complete-selection)
-
   (define-key company-search-map (kbd "C-n") #'company-select-next)
   (define-key company-search-map (kbd "C-p") #'company-select-previous)
   (define-key company-search-map (kbd "<down>") #'company-select-next)
@@ -3189,6 +3188,7 @@ continuing (not first) item"
   ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
   ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
   (setq tide-completion-ignore-case t)
+  (setq tide-always-show-documentation t)
   ;; (setq tide-jump-to-definition-reuse-window nil)
 
   (define-key tide-mode-map (kbd "M-.") #'tide-jump-to-definition)
