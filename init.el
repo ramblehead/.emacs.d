@@ -2186,6 +2186,7 @@ fields which we need."
 
   (setq rtags-other-window-function #'(lambda () (other-window -1)))
   (setq rtags-results-buffer-other-window t)
+  (setq rtags-bury-buffer-function #'(lambda () (quit-window t)))
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
