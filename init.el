@@ -1496,6 +1496,9 @@ fields which we need."
 ;; (global-set-key (kbd "C-t") 'rh-test)
 
 (use-package company
+  :init
+  (defvar rh-company-display-permanent-doc-buffer nil)
+
   :config
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
@@ -1560,8 +1563,15 @@ fields which we need."
   (define-key company-active-map (kbd "C-s")
     (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
 
-  (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
-  (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
+  (define-key company-active-map (kbd "M-h")
+    #'(lambda ()
+        (interactive)
+        (when (fboundp rh-company-display-permanent-doc-buffer)
+          (funcall rh-company-display-permanent-doc-buffer))
+        (company-show-doc-buffer)))
+
+  ;; (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
+  ;; (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
 
   (define-key company-active-map [remap scroll-up-command]
     (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
@@ -1576,8 +1586,8 @@ fields which we need."
   (define-key company-active-map
     (kbd "C-S-<iso-lefttab>") #'company-select-previous)
 
-  (define-key company-search-map (kbd "M-n") 'nil)
-  (define-key company-search-map (kbd "M-p") 'nil)
+  ;; (define-key company-search-map (kbd "M-n") 'nil)
+  ;; (define-key company-search-map (kbd "M-p") 'nil)
 
   (define-key company-search-map (kbd "<escape>") #'company-search-abort)
 
@@ -3169,7 +3179,7 @@ continuing (not first) item"
 
   (add-hook
    'web-mode-hook
-   (lambda ()
+   #'(lambda ()
      (vr-programming-minor-modes t)
      (auto-complete-mode -1)
      (rh-project-setup)
@@ -3196,7 +3206,26 @@ continuing (not first) item"
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
+  (add-to-list 'display-buffer-alist
+               `("*tide-documentation*"
+                 ;; (lambda (buf alist)
+                 ;;   (let ((g2w-display-func
+                 ;;          (g2w-display #'display-buffer-in-side-window t)))
+                 ;;     (funcall g2w-display-func buf alist)))
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (defun rh-tide-company-display-permanent-doc-buffer ()
+    (display-buffer (get-buffer-create "*tide-documentation*")))
+
   :config
+  (defadvice tide-doc-buffer (around rh-tide-doc-buffer activate)
+    (with-current-buffer ad-do-it
+      (local-set-key "q" #'g2w-quit-window)))
+
+  ;; (define-key fundamental-mode (kbd "q") #'g2w-quit-window)
+
   ;; (setq tide-tsserver-executable
   ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
   ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
@@ -3208,9 +3237,17 @@ continuing (not first) item"
   (define-key tide-mode-map (kbd "M-/") #'tide-jump-to-implementation)
   (define-key tide-mode-map (kbd "M-,") #'tide-references)
   (define-key tide-mode-map (kbd "M-[") #'tide-jump-back)
+  (define-key tide-mode-map (kbd "M-h") #'tide-documentation-at-point)
 
   (define-key tide-references-mode-map (kbd "q") #'rh-quit-window-kill)
 
+  (add-hook
+   'tide-mode-hook
+   #'(lambda ()
+       (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+            #'rh-tide-company-display-permanent-doc-buffer)))
+
+  :after company
   :ensure t)
 
 ;; /b/} == tide ==
