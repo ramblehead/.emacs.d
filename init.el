@@ -2757,8 +2757,11 @@ continuing (not first) item"
    'typescript-mode-hook
    (lambda ()
      (vr-programming-minor-modes t)
-     (rh-project-setup)))
+     (rh-project-setup)
 
+     (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))
+
+  :after indium
   :ensure t)
 
 ;; /b/} == typescript-mode ==
@@ -2853,14 +2856,14 @@ continuing (not first) item"
         (indium-eval
          (buffer-substring-no-properties start end)
          `(lambda (value _error)
-            (let ((description (indium-render-value-to-string value)))
+            (let ((result (indium-render-value-to-string value)))
               (save-excursion
                 (goto-char ,(if (< start end) end start))
                 (when (> (current-column) 0) (next-line))
                 (move-beginning-of-line 1)
                 (newline)
                 (previous-line)
-                (insert (substring-no-properties description))))))
+                (insert (substring-no-properties result))))))
       (message "No active region to evaluate")))
 
   (defun rh-indium-eval-region (start end)
@@ -2874,6 +2877,13 @@ area."
              (let ((result (indium-render-value-to-string value)))
                (message result))))
       (message "No active region to evaluate")))
+
+  (defun rh-indium-interaction-and-run ()
+    (interactive)
+    (indium-interaction-mode 1)
+    (split-window)
+    (other-window 1)
+    (indium-run-node "node"))
 
   (add-hook
    'indium-interaction-mode-hook
