@@ -153,7 +153,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-(setq package-check-signature nil)
+(setq package-check-signature t)
 
 (package-initialize)
 
@@ -174,8 +174,6 @@
 (use-package async
   :demand
   :ensure t)
-
-;; == Modules ==
 
 (use-package cl
   :demand
@@ -953,13 +951,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 ;;   :ensure t)
 
-(setq undo-limit (* 1024 1024))
-(setq undo-strong-limit (* undo-limit 2))
-(setq undo-outer-limit (* undo-limit 100))
-
 ;; /b/} == unicode-fonts ==
 
 ;; == Basic Functionality ==
+
+(setq undo-limit (* 1024 1024))
+(setq undo-strong-limit (* undo-limit 2))
+(setq undo-outer-limit (* undo-limit 100))
 
 (prefer-coding-system 'utf-8-unix)
 ;; (setq coding-system-for-read 'utf-8-unix)
@@ -1182,7 +1180,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :ensure t)
 
-
 ;; -------------------------------------------------------------------
 ;;; File Management
 ;; -------------------------------------------------------------------
@@ -1363,11 +1360,10 @@ fields which we need."
 (use-package yasnippet
   :config
   (yas-reload-all)
-
   :ensure t)
 
 (use-package yasnippet-snippets
-  :requires yasnippet
+  :after yasnippet
   :ensure t)
 
 ;; /b/} == yasnippet ==
@@ -1406,7 +1402,10 @@ fields which we need."
 
 (use-package auto-complete
   :config
+  (setq ac-modes (delq 'js2-mode ac-modes))
+
   (ac-config-default)
+
   (setq ac-fuzzy-enable t)
   (setq ac-use-quick-help nil)
   (setq ac-auto-show-menu nil)
@@ -2640,7 +2639,7 @@ continuing (not first) item"
 
 (use-package js-mode
   :mode "\\.js\\'"
-  :init
+  :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
@@ -2670,7 +2669,7 @@ continuing (not first) item"
 ;; (ad-activate 'js2-enter-key)
 
 (use-package js2-mode
-  ;; :mode "\\.jse?\\'"
+  :mode "\\.js\\'"
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2683,6 +2682,7 @@ continuing (not first) item"
   ;; (remove any ":true" to make it look like a plain decl, and any ':false' are
   ;; left behind so they'll effectively be ignored as you can;t have a symbol
   ;; called "someName:false"
+
   (add-hook
    'js2-post-parse-callbacks
    (lambda ()
@@ -2844,7 +2844,43 @@ continuing (not first) item"
 ;; /b/{ == indium ==
 
 (use-package indium
-  ;; :commands (skewer-mode skewer-css-mode skewer-html-mode)
+  :config
+
+  (defun rh-indium-eval-print-region (start end)
+    "Evaluate the region between START and END; and print result below region."
+    (interactive "r")
+    (if (use-region-p)
+        (indium-eval
+         (buffer-substring-no-properties start end)
+         `(lambda (value _error)
+            (let ((description (indium-render-value-to-string value)))
+              (save-excursion
+                (goto-char ,(if (< start end) end start))
+                (when (> (current-column) 0) (next-line))
+                (move-beginning-of-line 1)
+                (newline)
+                (previous-line)
+                (insert (substring-no-properties description))))))
+      (message "No active region to evaluate")))
+
+  (defun rh-indium-eval-region (start end)
+    "Evaluate the region between START and END; and print result in the echo
+area."
+    (interactive "r")
+    (if (use-region-p)
+        (indium-eval
+         (buffer-substring-no-properties start end)
+         #'(lambda (value _error)
+             (let ((result (indium-render-value-to-string value)))
+               (message result))))
+      (message "No active region to evaluate")))
+
+  (add-hook
+   'indium-interaction-mode-hook
+   #'(lambda ()
+       (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
+       (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
+
   :ensure t)
 
 ;; /b/} == indium ==
