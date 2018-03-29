@@ -5,6 +5,9 @@
  ;; If there is more than one, they won't work right.
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
+ '(custom-safe-themes
+   (quote
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
  '(font-latex-fontify-script nil)
  '(font-latex-fontify-sectioning (quote color))
  '(font-latex-math-environments
@@ -18,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (indium iflipb flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (smart-mode-line indium iflipb flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -153,7 +156,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-(setq package-check-signature t)
+(setq package-check-signature nil)
 
 (package-initialize)
 
@@ -936,6 +939,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :demand t)
 
+(add-to-list 'display-buffer-alist
+             `("*Warnings*"
+               ,(g2w-display #'display-buffer-in-side-window t)
+               (side . bottom)
+               (slot . 0)
+               (inhibit-same-window . t)
+               (window-height . 15)))
+
+(use-package powerline
+  :ensure t
+  :demand t)
+
+(use-package smart-mode-line
+  :config
+  (setq sml/theme 'light)
+  (sml/setup)
+
+  :ensure t
+  :demand t)
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
