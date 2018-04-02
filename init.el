@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (smart-mode-line indium iflipb flycheck-popup-tip flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -947,12 +947,19 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                (inhibit-same-window . t)
                (window-height . 15)))
 
-(use-package powerline
-  :ensure t
-  :demand t)
-
 (use-package smart-mode-line
   :config
+  (add-to-list ' rm-blacklist " hs")
+  (add-to-list ' rm-blacklist " Undo-Tree")
+  (add-to-list ' rm-blacklist " yas")
+
+  (add-to-list ' rm-blacklist " ElDoc")
+
+  (add-to-list ' rm-blacklist " SliNav")
+
+  (add-to-list ' rm-blacklist " tide")
+  (add-to-list ' rm-blacklist " js-interaction")
+
   (setq sml/theme 'light)
   (sml/setup)
 
@@ -1654,13 +1661,22 @@ fields which we need."
 
   :ensure t)
 
-(use-package flycheck-popup-tip
+(use-package flycheck-pos-tip
   :config
-  (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
-  (setq flycheck-popup-tip-error-prefix "> ")
+  (setq flycheck-pos-tip-timeout -1)
+  (flycheck-pos-tip-mode)
 
   :after flycheck
   :ensure t)
+
+;; (use-package flycheck-popup-tip
+;;   :config
+;;   (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
+;;   (setq flycheck-popup-tip-error-prefix "> ")
+
+;;   :after flycheck
+;;   :ensure t
+;;   :disabled)
 
 ;; /b/} == flycheck ==
 
@@ -2163,11 +2179,6 @@ fields which we need."
   :init
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*RTags*"
-  ;;                (display-buffer-below-selected)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*RTags*" nil)
                  (display-buffer-below-selected)
@@ -2869,6 +2880,13 @@ continuing (not first) item"
 ;; /b/{ == indium ==
 
 (use-package indium
+  :init
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*JS REPL*"
+  ;;                (display-buffer-below-selected)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
   :config
 
   (defun rh-indium-eval-print-region (start end)
@@ -2906,12 +2924,27 @@ area."
     (split-window)
     (other-window 1)
     (indium-run-node "node"))
+  ;; (defun rh-indium-interaction-and-run ()
+  ;;   (interactive)
+  ;;   (let ((buf (current-buffer)))
+  ;;     (indium-interaction-mode 1)
+  ;;     (indium-run-node "node ")
+  ;;     (split-window)
+  ;;     (set-window-buffer (current-window) buf)))
 
   (add-hook
    'indium-interaction-mode-hook
    #'(lambda ()
        (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
        (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
+
+  (add-hook
+   'indium-repl-mode-hook
+   #'(lambda ()
+       (define-key indium-repl-mode-map (kbd "C-<kp-up>")
+         #'indium-repl-previous-input)
+       (define-key indium-repl-mode-map (kbd "C-<kp-down>")
+         #'indium-repl-next-input)))
 
   :ensure t)
 
@@ -3276,10 +3309,6 @@ area."
 
   (add-to-list 'display-buffer-alist
                `("*tide-documentation*"
-                 ;; (lambda (buf alist)
-                 ;;   (let ((g2w-display-func
-                 ;;          (g2w-display #'display-buffer-in-side-window t)))
-                 ;;     (funcall g2w-display-func buf alist)))
                  ,(g2w-display #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
@@ -3292,14 +3321,8 @@ area."
     (with-current-buffer ad-do-it
       (local-set-key "q" #'g2w-quit-window)))
 
-  ;; (define-key fundamental-mode (kbd "q") #'g2w-quit-window)
-
-  ;; (setq tide-tsserver-executable
-  ;; "/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tsserver")
-  ;; (setq tide-tsserver-process-environment '("TSS_LOG=-level verbose -file /home/rh/tss.log"))
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
-  ;; (setq tide-jump-to-definition-reuse-window nil)
 
   (define-key tide-mode-map (kbd "M-.") #'tide-jump-to-definition)
   (define-key tide-mode-map (kbd "M-/") #'tide-jump-to-implementation)
