@@ -844,14 +844,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package help-mode
   :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*Help*"
-  ;;                (display-buffer-in-side-window)
-  ;;                ;; (side . bottom)
-  ;;                ;; (slot . 1)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
   (add-to-list 'display-buffer-alist
                `("*Help*"
                  ,(g2w-display #'display-buffer-in-side-window t)
@@ -859,23 +851,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                  (slot . 0)
                  (inhibit-same-window . t)
                  (window-height . 15)))
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '((lambda (buffer-nm actions)
-  ;;                  (when (string-match-p "*Help*" buffer-nm)
-  ;;                    t))
-  ;;                (lambda (buffer alist)
-  ;;                  (let ((win (display-buffer-in-side-window buffer alist))
-  ;;                        qtrs)
-  ;;                    (when win
-  ;;                      (with-current-buffer buffer
-  ;;                        (setq qtrs (window-parameter win 'quit-restore))
-  ;;                        (set (make-local-variable 'g2w-quit-restore-parameter) qtrs)
-  ;;                        (put 'g2w-quit-restore-parameter 'permanent-local t)))))
-  ;;                ;; (side . bottom)
-  ;;                ;; (slot . 1)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
 
   :config
   (setq help-window-select t)
@@ -885,26 +860,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package grep
   :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*grep*"
-  ;;                (display-buffer-below-selected)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '((lambda (buffer actions)
-  ;;                  (when (string-match-p "*grep*" buffer)
-  ;;                    (let ((current-window (get-buffer-window
-  ;;                                           (current-buffer)
-  ;;                                           (selected-frame))))
-  ;;                      (with-current-buffer buffer
-  ;;                        (set (make-local-variable 'g2w-destination-window)
-  ;;                             current-window)))
-  ;;                    t))
-  ;;                (display-buffer-below-selected)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*grep*")
                  ,(g2w-display #'display-buffer-in-side-window t)
@@ -949,21 +904,33 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package smart-mode-line
   :config
+  ;; Common minor modes
   (add-to-list ' rm-blacklist " hs")
-  (add-to-list ' rm-blacklist " Undo-Tree")
-  (add-to-list ' rm-blacklist " yas")
+  (add-to-list 'rm-blacklist " Undo-Tree")
+  (add-to-list 'rm-blacklist " yas")
+  (add-to-list 'rm-blacklist " ElDoc")
 
-  (add-to-list ' rm-blacklist " ElDoc")
+  ;; Lisp minor modes
+  (add-to-list 'rm-blacklist " SliNav")
 
-  (add-to-list ' rm-blacklist " SliNav")
+  ;; JavaScript minor modes
+  (add-to-list 'rm-blacklist " tide")
+  (add-to-list 'rm-blacklist " js-interaction")
 
-  (add-to-list ' rm-blacklist " tide")
-  (add-to-list ' rm-blacklist " js-interaction")
+  ;; C++ minor modes
+  (add-to-list 'rm-blacklist " mc++fl")
 
   (setq sml/theme 'light)
   (sml/setup)
 
-  :ensure t
+  :demand t
+  :ensure t)
+
+(use-package autorevert
+  :config
+  (setq auto-revert-mode-text " ⭯")
+  (setq auto-revert-tail-mode-text " ⭳")
+
   :demand t)
 
 ;; -------------------------------------------------------------------
@@ -1528,6 +1495,8 @@ fields which we need."
   (defvar rh-company-display-permanent-doc-buffer nil)
 
   :config
+  (setq company-lighter-base "CA")
+
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
     (cl-case command
@@ -2786,9 +2755,12 @@ continuing (not first) item"
   :config
   (setq typescript-indent-level 2)
 
+  (put 'major-mode 'display "xxx")
+
   (add-hook
    'typescript-mode-hook
    (lambda ()
+     (set (make-local-variable 'mode-name) "ts")
      (vr-programming-minor-modes t)
      (rh-project-setup)
 
