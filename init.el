@@ -84,7 +84,7 @@
     (defun vr-getenv (VARIABLE &optional FRAME)
       (replace-regexp-in-string "\\\\" "/" (getenv VARIABLE FRAME)))
 
-    (setq vr-recent-files-file-path
+    (setq rh-recent-files-file-path
           (concat (vr-getenv "APPDATA") "/.local-emacs.d/recent-files"))
     (setq vr-saved-places-file-path
           (concat (vr-getenv "APPDATA") "/.local-emacs.d/saved-places"))
@@ -101,7 +101,7 @@
     (if (not (file-exists-p
              (concat vr-user-data "emacs")))
        (make-directory (concat vr-user-data "emacs") t))
-    (setq vr-recent-files-file-path
+    (setq rh-recent-files-file-path
           (concat vr-user-data "emacs/recent-files"))
     (setq vr-saved-places-file-path
           (concat vr-user-data "emacs/saved-places"))
@@ -183,6 +183,16 @@
   :ensure t)
 
 ;; == Auxiliary functions ==
+
+(defvar rh-interactively-selected-window nil)
+
+(add-hook
+ 'buffer-list-update-hook
+ #'(lambda ()
+     (setq rh-interactively-selected-window (frame-selected-window))))
+
+(defun rh-window-selected-interactively-p ()
+  (eq (selected-window) rh-interactively-selected-window))
 
 (defun vr-point-or-region ()
   (if (use-region-p)
@@ -1239,80 +1249,95 @@ filename associated with it."
 
 (global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
 
-;; == recentf mode ==
+;; /b/{ == recentf ==
 
-(setq recentf-save-file vr-recent-files-file-path)
-(setq recentf-kill-buffer-on-open t)
-(setq recentf-max-saved-items 100)
 (require 'recentf)
-(recentf-mode 1)
 
-(defun vr-recentf-open-edit ()
-  (interactive)
-  (if (not (local-variable-p 'recentf-edit-list))
-      (progn
-        ;; (recentf-cancel-dialog)
-        (kill-buffer)
-        (recentf-edit-list))))
+(defun recentf-open-files-item (menu-element)
+  "Return a widget to display MENU-ELEMENT in a dialog buffer."
+  (if (consp (cdr menu-element))
+      ;; Represent a sub-menu with a tree widget
+      `(tree-widget
+        :open t
+        :match ignore
+        :node (item :tag ,(car menu-element)
+                    :sample-face bold
+                    :format "%{%t%}:\n")
+        ,@(mapcar 'recentf-open-files-item
+                  (cdr menu-element)))
+    ;; Represent a single file with a link widget
+    `(link :tag ,(car menu-element)
+           :button-prefix ""
+           :button-suffix ""
+           :button-face default
+           ;; :button-face highlight
+           ;; TODO: I corrected format string to show right mouse hovering
+           ;;       highlight. Find how to send patch/bug report
+           ;;       to recenff maintainer after more testing.
+           :format "%[%t%]\n"
+           :help-echo ,(concat "Open " (cdr menu-element))
+           :action recentf-open-files-action
+           ;; Override the (problematic) follow-link property of the
+           ;; `link' widget (bug#22434).
+           :follow-link nil
+           ,(cdr menu-element))))
 
-(defun vr-recentf-nil-if-recentf-edit ()
-  (interactive)
-  (if (local-variable-p 'recentf-edit-list) nil
-    (vr-recentf-open-edit)))
-
-(add-hook 'recentf-dialog-mode-hook 'set-cursor-according-to-mode)
-
-;; (defadvice mouse-yank-at-click (around vr-mouse-yank-at-click ())
-;;   (progn
-;;     (if (use-region-p)
-;;         (delete-region (region-beginning) (region-end)))
-;;     ad-do-it))
-
-;; (ad-activate 'mouse-yank-at-click)
-
-(global-set-key (kbd "<f4>") 'recentf-open-files)
-;; (global-set-key (kbd "<f4>") (lambda ()
-;;                                (interactive)
-;;                                (prog1
-;;                                    (recentf-open-files)
-;;                                  (menu-bar-mode -1)
-;;                                  (menu-bar-mode 1))))
-(define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
-(define-key recentf-dialog-mode-map (kbd "<SPC>") 'widget-button-press)
-(define-key recentf-dialog-mode-map (kbd "<f4>") 'vr-recentf-nil-if-recentf-edit)
-
-(setq vr-ignore-recentf '(;; AUCTeX output files
+(setq rh-ignore-recentf '(;; AUCTeX output files
                           "\\.aux\\'"
                           "\\.bbl\\'"
                           "\\.blg\\'"
                           " output\\*$"))
 
-(defsubst file-was-visible-p (file)
+(setq recentf-save-file rh-recent-files-file-path)
+(setq recentf-kill-buffer-on-open t)
+(setq recentf-max-saved-items 100)
+
+(recentf-mode 1)
+
+(defun rh-recentf-open-edit ()
+  (interactive)
+  (when (not (local-variable-p 'recentf-edit-list))
+    (kill-buffer)
+    (recentf-edit-list)))
+
+(defun rh-recentf-nil-if-recentf-edit ()
+  (interactive)
+  (if (local-variable-p 'recentf-edit-list) nil
+    (rh-recentf-open-edit)))
+
+(defsubst rh-file-was-visible-p (file)
   "Return non-nil if FILE's buffer exists and has been displayed."
   (let ((buf (find-buffer-visiting file)))
     (if buf
       (let ((display-count (buffer-local-value 'buffer-display-count buf)))
         (if (> display-count 0) display-count nil)))))
 
-(defsubst keep-default-and-visible-recentf-p (file)
+(defsubst rh-keep-default-and-visible-recentf-p (file)
   "Return non-nil if recentf would, by default, keep FILE, and
-FILE has been displayed, and FILE does not mach vr-ignore-recentf
+FILE has been displayed, and FILE does not mach rh-ignore-recentf
 regexp-list."
   (if (and (recentf-keep-default-predicate file)
-           (not (vr-string-match-regexp-list vr-ignore-recentf file)))
-      (file-was-visible-p file)))
-
-;; (defsubst keep-default-and-visible-recentf-p (file)
-;;   "Return non-nil if recentf would, by default, keep FILE, and
-;; FILE has been displayed."
-;;   (if (recentf-keep-default-predicate file)
-;;       (file-was-visible-p file)))
+           (not (rh-string-match-regexp-list rh-ignore-recentf file)))
+      (rh-file-was-visible-p file)))
 
 ;; When a buffer is closed, remove the associated file from the recentf
 ;; list if (1) recentf would have, by default, removed the file, or
 ;; (2) the buffer was never displayed.
 ;; see http://www.emacswiki.org/RecentFiles#toc16
-(setq recentf-keep '(keep-default-and-visible-recentf-p))
+(setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
+
+(global-set-key (kbd "<f4>") 'recentf-open-files)
+(define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
+(define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
+(define-key recentf-dialog-mode-map (kbd "<f4>")
+  'rh-recentf-nil-if-recentf-edit)
+
+(defun rh-recentf-dialog-mode-hook-function ()
+  (setq cursor-type normal-cursor-type))
+
+(add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
+
+;; /b/} == recentf ==
 
 ;; == Internal ls (ls-lisp) ==
 
@@ -2125,20 +2150,34 @@ fields which we need."
       'vr-c++-compilation-toggle-display)))
 
 (cl-defun vr-c++-header-line (&optional
-                              (header-line-trim-indicator "\x203a")
+                              (header-line-trim-indicator "›")
                               (header-line-beginning-indicator " "))
-  (propertize
-   (let* ((header-string (concat header-line-beginning-indicator
-                                 rtags-cached-current-container))
-          (header-string-width (string-width header-string))
-          (header-filler-width (- (window-total-width) header-string-width)))
-     (if (< header-filler-width 0)
-         (concat (substring header-string
-                            0 (- (window-total-width)
-                                 (string-width header-line-trim-indicator)))
-                 header-line-trim-indicator)
-       (concat header-string (make-string header-filler-width ?\ ))))
-   'face 'mode-line-inactive))
+  (when (not (local-variable-p 'rh-window-current-container-alist))
+    (set (make-local-variable 'rh-window-current-container-alist) nil))
+  (let* ((current-container
+          (if (null rtags-cached-current-container) ""
+            rtags-cached-current-container))
+         (win (selected-window))
+         (win-container (alist-get win rh-window-current-container-alist)))
+    (if (null win-container)
+        (add-to-list 'rh-window-current-container-alist
+                     `(,win . ,current-container))
+      (setf (alist-get win rh-window-current-container-alist)
+            (copy-sequence current-container)))
+    (propertize
+     (let* ((header-string (concat header-line-beginning-indicator
+                                   current-container))
+            (header-string-width (string-width header-string))
+            (header-filler-width (- (window-total-width) header-string-width)))
+       (if (< header-filler-width 0)
+           (concat (substring header-string
+                              0 (- (window-total-width)
+                                   (string-width header-line-trim-indicator)))
+                   header-line-trim-indicator)
+         (concat header-string (make-string header-filler-width ?\ ))))
+     'face (if (rh-window-selected-interactively-p)
+               'mode-line
+             'mode-line-inactive))))
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
@@ -2244,9 +2283,9 @@ fields which we need."
 
   (add-hook
    'find-file-hook
-   (lambda ()
-     (set (make-local-variable 'header-line-format)
-          '(:eval (vr-c++-header-line))))
+   #'(lambda ()
+       (set (make-local-variable 'header-line-format)
+            '(:eval (vr-c++-header-line))))
    nil t))
 
 (defun vr-c++-auto-complete-clang ()
