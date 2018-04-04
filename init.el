@@ -188,8 +188,8 @@
 
 (add-hook
  'buffer-list-update-hook
- #'(lambda ()
-     (setq rh-interactively-selected-window (frame-selected-window))))
+ (lambda ()
+   (setq rh-interactively-selected-window (frame-selected-window))))
 
 (defun rh-window-selected-interactively-p ()
   (eq (selected-window) rh-interactively-selected-window))
@@ -685,16 +685,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
           (buf-slot (if (local-variable-p 'g2w-window-slot)
                         g2w-window-slot nil))
           (same '()) (different '()))
-      (mapc #'(lambda (tbuf)
-                (with-current-buffer tbuf
-                  (let ((tbuf-side (if (local-variable-p 'g2w-window-side)
-                                       g2w-window-side nil))
-                        (tbuf-slot (if (local-variable-p 'g2w-window-slot)
-                                       g2w-window-slot nil)))
-                    (if (and (eq tbuf-side buf-side)
-                             (eq tbuf-slot buf-slot))
-                        (push (buffer-name tbuf) same)
-                      (push (buffer-name tbuf) different)))))
+      (mapc (lambda (tbuf)
+              (with-current-buffer tbuf
+                (let ((tbuf-side (if (local-variable-p 'g2w-window-side)
+                                     g2w-window-side nil))
+                      (tbuf-slot (if (local-variable-p 'g2w-window-slot)
+                                     g2w-window-slot nil)))
+                  (if (and (eq tbuf-side buf-side)
+                           (eq tbuf-slot buf-slot))
+                      (push (buffer-name tbuf) same)
+                    (push (buffer-name tbuf) different)))))
             (buffer-list))
       `[,same ,different])))
 
@@ -710,12 +710,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
   `#'(lambda (buffer-nm actions)
-       ;; (when (or (and (stringp ,condition)
-       ;;                (string-match-p ,condition buffer-nm))
-       ;;           (funcall ,condition buffer-nm actions))
-
-       ;; (when (string-match-p ,condition buffer-nm)
-
        (when (if (stringp ,condition)
                  (string-match-p ,condition buffer-nm)
                (funcall ,condition buffer-nm actions))
@@ -883,8 +877,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (add-hook
    'grep-mode-hook
-   #'(lambda ()
-       (setq truncate-lines t)))
+   (lambda ()
+     (setq truncate-lines t)))
 
   :demand t)
 
@@ -1586,11 +1580,11 @@ fields which we need."
     (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
 
   (define-key company-active-map (kbd "M-h")
-    #'(lambda ()
-        (interactive)
-        (when (fboundp rh-company-display-permanent-doc-buffer)
-          (funcall rh-company-display-permanent-doc-buffer))
-        (company-show-doc-buffer)))
+    (lambda ()
+      (interactive)
+      (when (fboundp rh-company-display-permanent-doc-buffer)
+        (funcall rh-company-display-permanent-doc-buffer))
+      (company-show-doc-buffer)))
 
   ;; (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
   ;; (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
@@ -1757,7 +1751,7 @@ fields which we need."
 
   (add-hook
    'eshell-mode-hook
-   #'(lambda ()
+   (lambda ()
      (define-key eshell-mode-map (kbd "<up>") #'previous-line)
      (define-key eshell-mode-map (kbd "<down>") #'next-line)
 
@@ -1793,11 +1787,11 @@ fields which we need."
 
   :config
   (require 'nlinum-hl)
-  ;; (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
+
   (global-set-key (kbd "C-<f12>")
-                  #'(lambda ()
-                      (interactive)
-                      (nlinum--flush)))
+                  (lambda ()
+                    (interactive)
+                    (nlinum--flush)))
   :ensure t)
 
 (use-package nlinum-hl
@@ -2236,9 +2230,9 @@ fields which we need."
    '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
    '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
 
-  (setq rtags-other-window-function #'(lambda () (other-window -1)))
+  (setq rtags-other-window-function (lambda () (other-window -1)))
   (setq rtags-results-buffer-other-window t)
-  (setq rtags-bury-buffer-function #'(lambda () (quit-window t)))
+  (setq rtags-bury-buffer-function (lambda () (quit-window t)))
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
@@ -2247,13 +2241,6 @@ fields which we need."
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
 
   (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
-
-  ;; (define-key c-mode-base-map (kbd "M-.")
-  ;;   #'(lambda (&optional prefix)
-  ;;       (interactive "P")
-  ;;       (setq g2w-next-display-buffer-ref
-  ;;             (get-buffer-window (current-buffer) (selected-frame)))
-  ;;       (rtags-find-symbol-at-point prefix)))
 
   (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
   (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
@@ -2283,9 +2270,9 @@ fields which we need."
 
   (add-hook
    'find-file-hook
-   #'(lambda ()
-       (set (make-local-variable 'header-line-format)
-            '(:eval (vr-c++-header-line))))
+   (lambda ()
+     (set (make-local-variable 'header-line-format)
+          '(:eval (vr-c++-header-line))))
    nil t))
 
 (defun vr-c++-auto-complete-clang ()
@@ -2551,23 +2538,6 @@ continuing (not first) item"
        0)
       (t '(nil c-lineup-assignments +)))))
 
-  ;; (c-set-offset
-  ;;  'defun-block-intro
-  ;;  (lambda (langelem)
-  ;;    (let ((syntax (if (boundp 'c-syntactic-context)
-  ;;       	       c-syntactic-context
-  ;;       	     (c-save-buffer-state nil
-  ;;       	       (c-guess-basic-syntax)))))
-  ;;      (if (member '(inlambda) syntax)
-  ;;          #'(lambda (langelem)
-  ;;              (let ((indent nil))
-  ;;                (save-excursion
-  ;;                  (when langelem
-  ;;                    (goto-char (c-langelem-pos langelem))
-  ;;                    (setq indent (current-column)))
-  ;;                  `(add [,indent] +))))
-  ;;        nil))))
-
   (c-set-offset
    'defun-block-intro
    (lambda (langelem)
@@ -2576,28 +2546,11 @@ continuing (not first) item"
 		     (c-save-buffer-state nil
 		       (c-guess-basic-syntax)))))
        (if (member '(inlambda) syntax)
-           #'(lambda (langelem)
-               (save-excursion
-                 (goto-char (c-langelem-pos langelem))
-                 `(add [,(current-column)] +)))
+           (lambda (langelem)
+             (save-excursion
+               (goto-char (c-langelem-pos langelem))
+               `(add [,(current-column)] +)))
          '+))))
-
-  ;; (c-set-offset
-  ;;  'inline-close
-  ;;  (lambda (langelem)
-  ;;    (let ((syntax (if (boundp 'c-syntactic-context)
-  ;;       	       c-syntactic-context
-  ;;       	     (c-save-buffer-state nil
-  ;;       	       (c-guess-basic-syntax)))))
-  ;;      (if (member '(inlambda) syntax)
-  ;;          #'(lambda (langelem)
-  ;;              (let ((indent nil))
-  ;;                (save-excursion
-  ;;                  (when langelem
-  ;;                    (goto-char (c-langelem-pos langelem))
-  ;;                    (setq indent (current-column)))
-  ;;                  `[,indent])))
-  ;;        nil))))
 
   (c-set-offset
    'inline-close
@@ -2607,10 +2560,10 @@ continuing (not first) item"
 		     (c-save-buffer-state nil
 		       (c-guess-basic-syntax)))))
        (if (member '(inlambda) syntax)
-           #'(lambda (langelem)
-               (save-excursion
-                 (goto-char (c-langelem-pos langelem))
-                 `[,(current-column)]))
+           (lambda (langelem)
+             (save-excursion
+               (goto-char (c-langelem-pos langelem))
+               `[,(current-column)]))
          nil))))
 
   ;; (c-set-offset
@@ -2687,9 +2640,9 @@ continuing (not first) item"
 
   (add-hook
    'js-mode-hook
-   #'(lambda ()
-       (vr-programming-minor-modes)
-       (rh-project-setup))))
+   (lambda ()
+     (vr-programming-minor-modes)
+     (rh-project-setup))))
 
 ;; /b/} == js-mode ==
 
@@ -2924,9 +2877,9 @@ area."
     (if (use-region-p)
         (indium-eval
          (buffer-substring-no-properties start end)
-         #'(lambda (value _error)
-             (let ((result (indium-render-value-to-string value)))
-               (message result))))
+         (lambda (value _error)
+           (let ((result (indium-render-value-to-string value)))
+             (message result))))
       (message "No active region to evaluate")))
 
   (defun rh-indium-interaction-and-run ()
@@ -2945,17 +2898,17 @@ area."
 
   (add-hook
    'indium-interaction-mode-hook
-   #'(lambda ()
-       (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
-       (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
+   (lambda ()
+     (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
+     (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
 
   (add-hook
    'indium-repl-mode-hook
-   #'(lambda ()
-       (define-key indium-repl-mode-map (kbd "C-<kp-up>")
-         #'indium-repl-previous-input)
-       (define-key indium-repl-mode-map (kbd "C-<kp-down>")
-         #'indium-repl-next-input)))
+   (lambda ()
+     (define-key indium-repl-mode-map (kbd "C-<kp-up>")
+       #'indium-repl-previous-input)
+     (define-key indium-repl-mode-map (kbd "C-<kp-down>")
+       #'indium-repl-next-input)))
 
   :ensure t)
 
@@ -3291,7 +3244,7 @@ area."
 
   (add-hook
    'web-mode-hook
-   #'(lambda ()
+   (lambda ()
      (vr-programming-minor-modes t)
      (auto-complete-mode -1)
      (rh-project-setup)
@@ -3345,9 +3298,9 @@ area."
 
   (add-hook
    'tide-mode-hook
-   #'(lambda ()
-       (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
-            #'rh-tide-company-display-permanent-doc-buffer)))
+   (lambda ()
+     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+          #'rh-tide-company-display-permanent-doc-buffer)))
 
   :after company
   :ensure t)
@@ -4017,7 +3970,7 @@ with very limited support for special characters."
 ;; (global-set-key (kbd "C-<kp-prior>") 'iflipb-previous-buffer)
 
 (use-package iflipb
-  :init
+  :config
   (defadvice iflipb-next-buffer
       (around g2w-iflipb-next-buffer () activate)
     (let ((iflipb-ignore-buffers
@@ -4036,7 +3989,6 @@ with very limited support for special characters."
                          1))))
       ad-do-it))
 
-  :config
   (setq iflipb-ignore-buffers vr-ignore-buffers)
   (setq iflipb-wrap-around t)
 
@@ -4290,9 +4242,9 @@ with very limited support for special characters."
   ;; must save all bookmarks first.
   (add-hook
    'kill-emacs-hook
-   #'(lambda ()
-       (bm-buffer-save-all)
-       (bm-repository-save)))
+   (lambda ()
+     (bm-buffer-save-all)
+     (bm-repository-save)))
 
   ;; The `after-save-hook' is not necessary to use to achieve persistence,
   ;; but it makes the bookmark data in repository more in sync with the file
