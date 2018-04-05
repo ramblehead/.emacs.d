@@ -929,6 +929,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (sml/setup)
   (size-indication-mode -1)
+
   (setq-default mode-line-front-space
                 (add-to-list
                  'mode-line-front-space
