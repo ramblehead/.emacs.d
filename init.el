@@ -2148,16 +2148,20 @@ fields which we need."
                               (header-line-beginning-indicator " "))
   (when (not (local-variable-p 'rh-window-current-container-alist))
     (set (make-local-variable 'rh-window-current-container-alist) nil))
-  (let* ((current-container
-          (if (null rtags-cached-current-container) ""
-            rtags-cached-current-container))
+  (cl-delete-if (lambda (win-cont)
+                  (not (window-live-p (car win-cont))))
+                rh-window-current-container-alist)
+  (let* ((current-container (if (null rtags-cached-current-container)
+                                "" rtags-cached-current-container))
          (win (selected-window))
-         (win-container (alist-get win rh-window-current-container-alist)))
-    (if (null win-container)
-        (add-to-list 'rh-window-current-container-alist
-                     `(,win . ,current-container))
-      (setf (alist-get win rh-window-current-container-alist)
-            (copy-sequence current-container)))
+         (win-cont (assoc win rh-window-current-container-alist)))
+    (if (rh-window-selected-interactively-p)
+        (if (null win-cont)
+            (add-to-list 'rh-window-current-container-alist
+                         `(,win . ,current-container))
+          (setf (cdr win-cont) (copy-sequence current-container)))
+      (when (not (null win-cont))
+        (setq current-container (cdr win-cont))))
     (propertize
      (let* ((header-string (concat header-line-beginning-indicator
                                    current-container))
