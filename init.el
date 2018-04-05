@@ -925,8 +925,14 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   (add-to-list 'rm-blacklist " mc++fl")
 
   (setq sml/theme 'light)
-  (sml/setup)
+  (setq sml/show-eol t)
 
+  (sml/setup)
+  (size-indication-mode -1)
+  (setq-default mode-line-front-space
+                (add-to-list
+                 'mode-line-front-space
+                 '((:eval (format "%4d " (line-number-at-pos (point-max)))))))
   :demand t
   :ensure t)
 
@@ -1245,91 +1251,179 @@ filename associated with it."
 
 ;; /b/{ == recentf ==
 
-(require 'recentf)
+(use-package recentf
+  :config
+  (defun recentf-open-files-item (menu-element)
+    "Return a widget to display MENU-ELEMENT in a dialog buffer."
+    (if (consp (cdr menu-element))
+        ;; Represent a sub-menu with a tree widget
+        `(tree-widget
+          :open t
+          :match ignore
+          :node (item :tag ,(car menu-element)
+                      :sample-face bold
+                      :format "%{%t%}:\n")
+          ,@(mapcar 'recentf-open-files-item
+                    (cdr menu-element)))
+      ;; Represent a single file with a link widget
+      `(link :tag ,(car menu-element)
+             :button-prefix ""
+             :button-suffix ""
+             :button-face default
+             ;; :button-face highlight
+             ;; TODO: I corrected format string to show right mouse hovering
+             ;;       highlight. Find how to send patch/bug report
+             ;;       to recenff maintainer after more testing.
+             :format "%[%t%]\n"
+             :help-echo ,(concat "Open " (cdr menu-element))
+             :action recentf-open-files-action
+             ;; Override the (problematic) follow-link property of the
+             ;; `link' widget (bug#22434).
+             :follow-link nil
+             ,(cdr menu-element))))
 
-(defun recentf-open-files-item (menu-element)
-  "Return a widget to display MENU-ELEMENT in a dialog buffer."
-  (if (consp (cdr menu-element))
-      ;; Represent a sub-menu with a tree widget
-      `(tree-widget
-        :open t
-        :match ignore
-        :node (item :tag ,(car menu-element)
-                    :sample-face bold
-                    :format "%{%t%}:\n")
-        ,@(mapcar 'recentf-open-files-item
-                  (cdr menu-element)))
-    ;; Represent a single file with a link widget
-    `(link :tag ,(car menu-element)
-           :button-prefix ""
-           :button-suffix ""
-           :button-face default
-           ;; :button-face highlight
-           ;; TODO: I corrected format string to show right mouse hovering
-           ;;       highlight. Find how to send patch/bug report
-           ;;       to recenff maintainer after more testing.
-           :format "%[%t%]\n"
-           :help-echo ,(concat "Open " (cdr menu-element))
-           :action recentf-open-files-action
-           ;; Override the (problematic) follow-link property of the
-           ;; `link' widget (bug#22434).
-           :follow-link nil
-           ,(cdr menu-element))))
+  (setq rh-ignore-recentf '(;; AUCTeX output files
+                            "\\.aux\\'"
+                            "\\.bbl\\'"
+                            "\\.blg\\'"
+                            " output\\*$"))
 
-(setq rh-ignore-recentf '(;; AUCTeX output files
-                          "\\.aux\\'"
-                          "\\.bbl\\'"
-                          "\\.blg\\'"
-                          " output\\*$"))
+  (setq recentf-save-file rh-recent-files-file-path)
+  (setq recentf-kill-buffer-on-open t)
+  (setq recentf-max-saved-items 100)
 
-(setq recentf-save-file rh-recent-files-file-path)
-(setq recentf-kill-buffer-on-open t)
-(setq recentf-max-saved-items 100)
+  (recentf-mode 1)
 
-(recentf-mode 1)
+  (defun rh-recentf-open-edit ()
+    (interactive)
+    (when (not (local-variable-p 'recentf-edit-list))
+      (kill-buffer)
+      (recentf-edit-list)))
 
-(defun rh-recentf-open-edit ()
-  (interactive)
-  (when (not (local-variable-p 'recentf-edit-list))
-    (kill-buffer)
-    (recentf-edit-list)))
+  (defun rh-recentf-nil-if-recentf-edit ()
+    (interactive)
+    (if (local-variable-p 'recentf-edit-list) nil
+      (rh-recentf-open-edit)))
 
-(defun rh-recentf-nil-if-recentf-edit ()
-  (interactive)
-  (if (local-variable-p 'recentf-edit-list) nil
-    (rh-recentf-open-edit)))
+  (defsubst rh-file-was-visible-p (file)
+    "Return non-nil if FILE's buffer exists and has been displayed."
+    (let ((buf (find-buffer-visiting file)))
+      (if buf
+          (let ((display-count (buffer-local-value 'buffer-display-count buf)))
+            (if (> display-count 0) display-count nil)))))
 
-(defsubst rh-file-was-visible-p (file)
-  "Return non-nil if FILE's buffer exists and has been displayed."
-  (let ((buf (find-buffer-visiting file)))
-    (if buf
-      (let ((display-count (buffer-local-value 'buffer-display-count buf)))
-        (if (> display-count 0) display-count nil)))))
-
-(defsubst rh-keep-default-and-visible-recentf-p (file)
-  "Return non-nil if recentf would, by default, keep FILE, and
+  (defsubst rh-keep-default-and-visible-recentf-p (file)
+    "Return non-nil if recentf would, by default, keep FILE, and
 FILE has been displayed, and FILE does not mach rh-ignore-recentf
 regexp-list."
-  (if (and (recentf-keep-default-predicate file)
-           (not (rh-string-match-regexp-list rh-ignore-recentf file)))
-      (rh-file-was-visible-p file)))
+    (if (and (recentf-keep-default-predicate file)
+             (not (rh-string-match-regexp-list rh-ignore-recentf file)))
+        (rh-file-was-visible-p file)))
 
-;; When a buffer is closed, remove the associated file from the recentf
-;; list if (1) recentf would have, by default, removed the file, or
-;; (2) the buffer was never displayed.
-;; see http://www.emacswiki.org/RecentFiles#toc16
-(setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
+  ;; When a buffer is closed, remove the associated file from the recentf
+  ;; list if (1) recentf would have, by default, removed the file, or
+  ;; (2) the buffer was never displayed.
+  ;; see http://www.emacswiki.org/RecentFiles#toc16
+  (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
 
-(global-set-key (kbd "<f4>") 'recentf-open-files)
-(define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
-(define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
-(define-key recentf-dialog-mode-map (kbd "<f4>")
-  'rh-recentf-nil-if-recentf-edit)
+  (global-set-key (kbd "<f4>") 'recentf-open-files)
+  (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
+  (define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
+  (define-key recentf-dialog-mode-map (kbd "<f4>")
+    'rh-recentf-nil-if-recentf-edit)
 
-(defun rh-recentf-dialog-mode-hook-function ()
-  (setq cursor-type normal-cursor-type))
+  (defun rh-recentf-dialog-mode-hook-function ()
+    (setq cursor-type normal-cursor-type))
 
-(add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
+  (add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
+
+  :demand t)
+
+;; (require 'recentf)
+
+;; (defun recentf-open-files-item (menu-element)
+;;   "Return a widget to display MENU-ELEMENT in a dialog buffer."
+;;   (if (consp (cdr menu-element))
+;;       ;; Represent a sub-menu with a tree widget
+;;       `(tree-widget
+;;         :open t
+;;         :match ignore
+;;         :node (item :tag ,(car menu-element)
+;;                     :sample-face bold
+;;                     :format "%{%t%}:\n")
+;;         ,@(mapcar 'recentf-open-files-item
+;;                   (cdr menu-element)))
+;;     ;; Represent a single file with a link widget
+;;     `(link :tag ,(car menu-element)
+;;            :button-prefix ""
+;;            :button-suffix ""
+;;            :button-face default
+;;            ;; :button-face highlight
+;;            ;; TODO: I corrected format string to show right mouse hovering
+;;            ;;       highlight. Find how to send patch/bug report
+;;            ;;       to recenff maintainer after more testing.
+;;            :format "%[%t%]\n"
+;;            :help-echo ,(concat "Open " (cdr menu-element))
+;;            :action recentf-open-files-action
+;;            ;; Override the (problematic) follow-link property of the
+;;            ;; `link' widget (bug#22434).
+;;            :follow-link nil
+;;            ,(cdr menu-element))))
+
+;; (setq rh-ignore-recentf '(;; AUCTeX output files
+;;                           "\\.aux\\'"
+;;                           "\\.bbl\\'"
+;;                           "\\.blg\\'"
+;;                           " output\\*$"))
+
+;; (setq recentf-save-file rh-recent-files-file-path)
+;; (setq recentf-kill-buffer-on-open t)
+;; (setq recentf-max-saved-items 100)
+
+;; (recentf-mode 1)
+
+;; (defun rh-recentf-open-edit ()
+;;   (interactive)
+;;   (when (not (local-variable-p 'recentf-edit-list))
+;;     (kill-buffer)
+;;     (recentf-edit-list)))
+
+;; (defun rh-recentf-nil-if-recentf-edit ()
+;;   (interactive)
+;;   (if (local-variable-p 'recentf-edit-list) nil
+;;     (rh-recentf-open-edit)))
+
+;; (defsubst rh-file-was-visible-p (file)
+;;   "Return non-nil if FILE's buffer exists and has been displayed."
+;;   (let ((buf (find-buffer-visiting file)))
+;;     (if buf
+;;       (let ((display-count (buffer-local-value 'buffer-display-count buf)))
+;;         (if (> display-count 0) display-count nil)))))
+
+;; (defsubst rh-keep-default-and-visible-recentf-p (file)
+;;   "Return non-nil if recentf would, by default, keep FILE, and
+;; FILE has been displayed, and FILE does not mach rh-ignore-recentf
+;; regexp-list."
+;;   (if (and (recentf-keep-default-predicate file)
+;;            (not (rh-string-match-regexp-list rh-ignore-recentf file)))
+;;       (rh-file-was-visible-p file)))
+
+;; ;; When a buffer is closed, remove the associated file from the recentf
+;; ;; list if (1) recentf would have, by default, removed the file, or
+;; ;; (2) the buffer was never displayed.
+;; ;; see http://www.emacswiki.org/RecentFiles#toc16
+;; (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
+
+;; (global-set-key (kbd "<f4>") 'recentf-open-files)
+;; (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
+;; (define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
+;; (define-key recentf-dialog-mode-map (kbd "<f4>")
+;;   'rh-recentf-nil-if-recentf-edit)
+
+;; (defun rh-recentf-dialog-mode-hook-function ()
+;;   (setq cursor-type normal-cursor-type))
+
+;; (add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
 
 ;; /b/} == recentf ==
 
