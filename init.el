@@ -931,6 +931,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :demand t)
 
+
+
 (use-package smart-mode-line
   :config
   (defun sml/compile-position-construct (&optional symbol value)
@@ -939,27 +941,66 @@ Also sets SYMBOL to VALUE."
     (when (and symbol value) (set symbol value))
     (sml/generate-position-help)
     (setq sml/position-construct
-          `((line-number-mode
-              ,(propertize sml/line-number-format
-                           'face 'sml/line-number
-                           'help-echo 'sml/position-help-text
-                           'mouse-face 'mode-line-highlight
-                           'local-map mode-line-column-line-number-mode-map))
+          `((total-lines-mode
+             (:propertize
+              (:eval (format
+                      (let ((width (max (length (number-to-string total-lines))
+                                        rh-linum-min-digits)))
+                        (concat "%" (number-to-string width) "d"))
+                      total-lines))
+              face 'sml/col-number
+              help-echo (concat "Total lines mode\n"
+                                 "mouse-1: Display Line "
+                                 "and Column Mode Menu")
+              mouse-face 'mode-line-highlight
+              local-map ,mode-line-column-line-number-mode-map))
+
+            (total-lines-mode
+             ,(propertize (concat rh-linum-right-space "/")
+                          'face 'sml/numbers-separator
+                          'help-echo (concat "Total lines mode\n"
+                                            "mouse-1: Display Line "
+                                            "and Column Mode Menu")
+                          'mouse-face 'mode-line-highlight
+                          'local-map mode-line-column-line-number-mode-map))
+
+            (line-number-mode
+             (:propertize
+              (:eval (let ((width (max (length (number-to-string total-lines))
+                                       rh-linum-min-digits)))
+                       (concat "%" (number-to-string width) "l")))
+              face 'sml/line-number
+              help-echo (concat "Line number mode\n"
+                                "mouse-1: Display Line "
+                                "and Column Mode Menu")
+              mouse-face 'mode-line-highlight
+              local-map ,mode-line-column-line-number-mode-map))
+
+            ;; (line-number-mode
+            ;;   ,(propertize sml/line-number-format
+            ;;                'face 'sml/line-number
+            ;;                'help-echo 'sml/position-help-text
+            ;;                'mouse-face 'mode-line-highlight
+            ;;                'local-map mode-line-column-line-number-mode-map))
+
             (column-number-mode
-             (line-number-mode
-              ,(propertize "," ;;sml/numbers-separator
-                           'face 'sml/numbers-separator
-                           'help-echo 'sml/position-help-text
-                           'mouse-face 'mode-line-highlight
-                           'local-map mode-line-column-line-number-mode-map)))
-            (column-number-mode
-             ,(propertize sml/col-number-format
-                          'face 'sml/col-number
-                          'help-echo (concat "Column number\n"
-                                             "\nmouse-1: Display Line"
+             ,(propertize ","
+                          'face 'sml/numbers-separator
+                          'help-echo (concat "Column number mode\n"
+                                             "mouse-1: Display Line "
                                              "and Column Mode Menu")
                           'mouse-face 'mode-line-highlight
                           'local-map mode-line-column-line-number-mode-map))
+
+            (column-number-mode
+             ,(propertize sml/col-number-format
+                          'face 'sml/col-number
+                          'help-echo (concat "Column number mode\n"
+                                             "nmouse-1: Display Line "
+                                             "and Column Mode Menu")
+                          'mouse-face 'mode-line-highlight
+                          'local-map mode-line-column-line-number-mode-map))
+
             (size-indication-mode
              ,(propertize sml/size-indication-format
                           'face 'sml/col-number
@@ -981,13 +1022,13 @@ Also sets SYMBOL to VALUE."
 
   (sml/setup)
 
-  (setq mode-line-front-space
-        (add-to-list
-         'mode-line-front-space
-         '(:eval (propertize
-                  ;; (format "%4d " (line-number-at-pos (point-max)))
-                  (format "%4d" total-lines)
-                  'face 'sml/col-number))))
+  ;; (setq mode-line-front-space
+  ;;       (add-to-list
+  ;;        'mode-line-front-space
+  ;;        '(:eval (propertize
+  ;;                 ;; (format "%4d " (line-number-at-pos (point-max)))
+  ;;                 (format "%4d" total-lines)
+  ;;                 'face 'sml/col-number))))
 
 ;;   (setq mode-line-position `(:propertize(-2 (:eval "%p"))))
 ;;   (setq mode-line-position
@@ -1055,7 +1096,7 @@ Also sets SYMBOL to VALUE."
   (column-number-mode 1)
   (size-indication-mode -1)
 
-  :after total-lines
+  :after (linum total-lines)
   :demand t
   :ensure t)
 
@@ -2016,7 +2057,12 @@ fields which we need."
 
 (use-package linum
   :init
-  (setq linum-format "%4d ")
+  (setq rh-linum-right-space " ")
+  (setq rh-linum-min-digits 4)
+
+  (setq linum-format (concat "%" (number-to-string 4) "d"
+                             rh-linum-right-space))
+  :demand t
   :ensure t)
 
 (use-package hlinum
@@ -2026,7 +2072,8 @@ fields which we need."
 
 (use-package nlinum
   :init
-  (setq nlinum-format "%4d ")
+  (setq nlinum-format (concat "%" (number-to-string 4) "d"
+                              rh-linum-right-space))
   ;; (setq nlinum-highlight-current-line t)
 
   :config
@@ -2036,9 +2083,14 @@ fields which we need."
                   (lambda ()
                     (interactive)
                     (nlinum--flush)))
+
+  :after linum
+  :demand t
   :ensure t)
 
 (use-package nlinum-hl
+  :after nlinum
+  :demand t
   :ensure t)
 
 ;; /b/} == Line numbering ==
