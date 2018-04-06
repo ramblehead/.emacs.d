@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -906,7 +906,12 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                (inhibit-same-window . t)
                (window-height . 15)))
 
-(use-package smart-mode-line
+(use-package total-lines
+  :config (global-total-lines-mode 1)
+  :ensure t
+  :demand t)
+
+(use-package rich-minority
   :config
   ;; Common minor modes
   (add-to-list 'rm-blacklist " hs")
@@ -924,6 +929,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; C++ minor modes
   (add-to-list 'rm-blacklist " mc++fl")
 
+  :demand t)
+
+(use-package smart-mode-line
+  :config
   (defun sml/compile-position-construct (&optional symbol value)
     "Recompile the `sml/position-construct' after one of the formats was edited.
 Also sets SYMBOL to VALUE."
@@ -938,7 +947,7 @@ Also sets SYMBOL to VALUE."
                            'local-map mode-line-column-line-number-mode-map))
             (column-number-mode
              (line-number-mode
-              ,(propertize "|" ;;sml/numbers-separator
+              ,(propertize "," ;;sml/numbers-separator
                            'face 'sml/numbers-separator
                            'help-echo 'sml/position-help-text
                            'mouse-face 'mode-line-highlight
@@ -958,6 +967,7 @@ Also sets SYMBOL to VALUE."
 
   (setq sml/theme 'light)
   (setq sml/show-eol t)
+  (setq sml/line-number-format " %3l")
   (setq sml/size-indication-format " %I")
 
   (sml/setup)
@@ -965,15 +975,46 @@ Also sets SYMBOL to VALUE."
   (setq mode-line-front-space
         (add-to-list
          'mode-line-front-space
-         '(:eval (propertize (format "%4d " (line-number-at-pos (point-max)))
-                             'face 'sml/col-number))))
+         '(:eval (propertize
+                  ;; (format "%4d " (line-number-at-pos (point-max)))
+                  (format "%4d" total-lines)
+                  'face 'sml/col-number)
+                 )))
 
   (column-number-mode 1)
   (size-indication-mode -1)
 
-
+  :after total-lines
   :demand t
   :ensure t)
+
+;; (defvar rh-filtered-line-number-at-pos-interval 0.2)
+;; (defvar rh-filtered-line-number-at-pos-waiting nil)
+;; (defvar rh-filtered-line-number-at-pos-waiting-cached 0)
+;; (defvar rh-filtered-line-number-at-pos-waiting-pos 0)
+;; (defvar rh-filtered-line-number-at-pos-waiting-absolute nil)
+
+;; (defun rh-filtered-line-number-at-pos-wait (&optional pos absolute)
+;;   (when (not rh-line-number-at-pos-waiting)
+;;     (setq rh-line-number-at-pos-waiting t)
+;;     (run-at-time
+;;      rh-filtered-line-number-at-pos-interval nil
+;;      (lambda (pos absolute)
+;;        (setq rh-line-number-at-pos-waiting nil)
+;;        (setq rh-line-number-at-pos-waiting-cached
+;;              (line-number-at-pos (pos absolute))))
+;;      pos absolute)))
+
+;; (defun rh-filtered-line-number-at-pos (&optional pos absolute)
+;;   (setq rh-line-number-at-pos-waiting-pos pos)
+;;   (setq rh-line-number-at-pos-waiting-absolute absolute)
+;;   (if rh-line-number-at-pos-waiting
+;;       rh-line-number-at-pos-waiting-cached
+;;     (progn
+;;       (setq rh-line-number-at-pos-waiting-cached
+;;             (line-number-at-pos (pos absolute)))
+;;       (rh-line-number-at-pos-wait)
+;;       rh-line-number-at-pos-waiting-cached)))
 
 (use-package autorevert
   :config
@@ -1771,10 +1812,11 @@ fields which we need."
 
 (use-package flycheck
   :config
+  (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
 
-  (require 'web-mode)
-  (require 'tide)
+  ;; (require 'web-mode)
+  ;; (require 'tide)
   (flycheck-add-mode 'typescript-tslint 'web-mode)
   ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
