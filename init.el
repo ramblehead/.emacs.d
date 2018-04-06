@@ -199,7 +199,7 @@
       (list (region-beginning) (region-end))
     (list (point) (point))))
 
-(defun vr-string-match-regexp-list (regexp-list str)
+(defun rh-string-match-regexp-list (regexp-list str)
   "Return non-nil if str matches anything in regexp-list."
   (let ((case-fold-search nil))
     (catch 'done
@@ -909,7 +909,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (use-package smart-mode-line
   :config
   ;; Common minor modes
-  (add-to-list ' rm-blacklist " hs")
+  (add-to-list 'rm-blacklist " hs")
   (add-to-list 'rm-blacklist " Undo-Tree")
   (add-to-list 'rm-blacklist " yas")
   (add-to-list 'rm-blacklist " ElDoc")
@@ -924,16 +924,54 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; C++ minor modes
   (add-to-list 'rm-blacklist " mc++fl")
 
+  (defun sml/compile-position-construct (&optional symbol value)
+    "Recompile the `sml/position-construct' after one of the formats was edited.
+Also sets SYMBOL to VALUE."
+    (when (and symbol value) (set symbol value))
+    (sml/generate-position-help)
+    (setq sml/position-construct
+          `((line-number-mode
+              ,(propertize sml/line-number-format
+                           'face 'sml/line-number
+                           'help-echo 'sml/position-help-text
+                           'mouse-face 'mode-line-highlight
+                           'local-map mode-line-column-line-number-mode-map))
+            (column-number-mode
+             (line-number-mode
+              ,(propertize "|" ;;sml/numbers-separator
+                           'face 'sml/numbers-separator
+                           'help-echo 'sml/position-help-text
+                           'mouse-face 'mode-line-highlight
+                           'local-map mode-line-column-line-number-mode-map)))
+            (column-number-mode
+             ,(propertize sml/col-number-format
+                          'face 'sml/col-number
+                          'help-echo 'sml/position-help-text
+                          'mouse-face 'mode-line-highlight
+                          'local-map mode-line-column-line-number-mode-map))
+            (size-indication-mode
+             ,(propertize sml/size-indication-format
+                          'face 'sml/col-number
+                          'help-echo 'sml/position-help-text
+                          'mouse-face 'mode-line-highlight
+                          'local-map mode-line-column-line-number-mode-map)))))
+
   (setq sml/theme 'light)
   (setq sml/show-eol t)
+  (setq sml/size-indication-format " %I")
 
   (sml/setup)
+
+  (setq mode-line-front-space
+        (add-to-list
+         'mode-line-front-space
+         '(:eval (propertize (format "%4d " (line-number-at-pos (point-max)))
+                             'face 'sml/col-number))))
+
+  (column-number-mode 1)
   (size-indication-mode -1)
 
-  (setq-default mode-line-front-space
-                (add-to-list
-                 'mode-line-front-space
-                 '((:eval (format "%4d " (line-number-at-pos (point-max)))))))
+
   :demand t
   :ensure t)
 
@@ -986,9 +1024,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (setq standard-indent 2)
 (setq-default fill-column 80)
 
-(setq column-number-mode t)
 (setq visible-bell t)
-(size-indication-mode t)
 ;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
 (setq isearch-allow-scroll t)
 (require 'fill-column-indicator)
@@ -1283,17 +1319,15 @@ filename associated with it."
              :follow-link nil
              ,(cdr menu-element))))
 
+  (setq recentf-save-file rh-recent-files-file-path)
+  (setq recentf-kill-buffer-on-open t)
+  (setq recentf-max-saved-items 100)
+
   (setq rh-ignore-recentf '(;; AUCTeX output files
                             "\\.aux\\'"
                             "\\.bbl\\'"
                             "\\.blg\\'"
                             " output\\*$"))
-
-  (setq recentf-save-file rh-recent-files-file-path)
-  (setq recentf-kill-buffer-on-open t)
-  (setq recentf-max-saved-items 100)
-
-  (recentf-mode 1)
 
   (defun rh-recentf-open-edit ()
     (interactive)
@@ -1309,9 +1343,9 @@ filename associated with it."
   (defsubst rh-file-was-visible-p (file)
     "Return non-nil if FILE's buffer exists and has been displayed."
     (let ((buf (find-buffer-visiting file)))
-      (if buf
-          (let ((display-count (buffer-local-value 'buffer-display-count buf)))
-            (if (> display-count 0) display-count nil)))))
+      (when buf
+        (let ((display-count (buffer-local-value 'buffer-display-count buf)))
+          (if (> display-count 0) display-count nil)))))
 
   (defsubst rh-keep-default-and-visible-recentf-p (file)
     "Return non-nil if recentf would, by default, keep FILE, and
@@ -1321,22 +1355,24 @@ regexp-list."
              (not (rh-string-match-regexp-list rh-ignore-recentf file)))
         (rh-file-was-visible-p file)))
 
-  ;; When a buffer is closed, remove the associated file from the recentf
-  ;; list if (1) recentf would have, by default, removed the file, or
-  ;; (2) the buffer was never displayed.
-  ;; see http://www.emacswiki.org/RecentFiles#toc16
-  (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
-
   (global-set-key (kbd "<f4>") 'recentf-open-files)
   (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
   (define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
   (define-key recentf-dialog-mode-map (kbd "<f4>")
     'rh-recentf-nil-if-recentf-edit)
 
-  (defun rh-recentf-dialog-mode-hook-function ()
-    (setq cursor-type normal-cursor-type))
+  (add-hook
+   'recentf-dialog-mode-hook
+   (lambda ()
+     (setq cursor-type normal-cursor-type)))
 
-  (add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
+  (recentf-mode 1)
+
+  ;; When a buffer is closed, remove the associated file from the recentf
+  ;; list if (1) recentf would have, by default, removed the file, or
+  ;; (2) the buffer was never displayed.
+  ;; see http://www.emacswiki.org/RecentFiles#toc16
+  (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
 
   :demand t)
 
@@ -4108,7 +4144,7 @@ with very limited support for special characters."
 ;;       '(("all" nil nil nil nil nil)
 ;;         ("files" nil nil nil
 ;;          (lambda (buf)
-;;            (vr-string-match-regexp-list
+;;            (rh-string-match-regexp-list
 ;;             vr-ignore-buffers
 ;;             (buffer-name buf)))
 ;;          nil)))
@@ -4169,7 +4205,7 @@ with very limited support for special characters."
    '(("all" nil nil nil nil nil)
      ("files" nil nil nil
       (lambda (buf)
-        (vr-string-match-regexp-list
+        (rh-string-match-regexp-list
          vr-ignore-buffers
          (buffer-name buf)))
       nil)))

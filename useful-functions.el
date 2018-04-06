@@ -20,8 +20,8 @@
   "Print number of lines words and characters in the region."
   (interactive "r")
   (message "Region has %d lines, %d words, %d characters"
-           (count-lines start end) 
-           (count-words-region start end) 
+           (count-lines start end)
+           (count-words-region start end)
            (- end start)))
 
 (defun latex-word-count ()
