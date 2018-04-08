@@ -139,6 +139,11 @@
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
 
+;; see https://www.quicklisp.org/beta/ for lisp libraries
+;; Can then do magic like this:
+;; (ql:quickload "alexandria")
+;; (alexandria:flatten list)
+
 ;; == Package initialisation and 'use-package' bootstrap ==
 ;; see http://www.lunaryorn.com/2015/01/06/my-emacs-configuration-with-use-package.html
 
@@ -931,10 +936,28 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   :demand t)
 
-
-
 (use-package smart-mode-line
   :config
+  (define-key-after
+    (lookup-key mode-line-column-line-number-mode-map
+                [mode-line down-mouse-1])
+    [total-lines-mode]
+    '(menu-item "Display Total Number of Lines" total-lines-mode
+		:help
+                "Toggle displaying a total number of lines in the mode-line"
+		:button (:toggle . total-lines-mode))
+    'line-number-mode)
+
+  (defun sml/is-%p-p (x)
+    "Non-nil if X matches \"%p\" in a very subjective sense."
+    (or (and (listp x)
+             (or (memq 'mode-line-percent-position x)
+                 (cl-remove-if-not
+                  (lambda (y) (string-match ".*%p.*" y))
+                  (cl-remove-if-not #'stringp x))))
+        (and (stringp x)
+             (string-match ".*%p.*" x))))
+
   (defun sml/compile-position-construct (&optional symbol value)
     "Recompile the `sml/position-construct' after one of the formats was edited.
 Also sets SYMBOL to VALUE."
@@ -956,18 +979,18 @@ Also sets SYMBOL to VALUE."
               local-map ,mode-line-column-line-number-mode-map))
 
             (total-lines-mode
-             ,(propertize (concat rh-linum-right-space "/")
-                          'face 'sml/numbers-separator
-                          'help-echo (concat "Total lines mode\n"
-                                            "mouse-1: Display Line "
-                                            "and Column Mode Menu")
-                          'mouse-face 'mode-line-highlight
-                          'local-map mode-line-column-line-number-mode-map))
+             ,(propertize " " 'face 'sml/numbers-separator))
+
+            (line-number-mode
+             ,(propertize "[" 'face 'sml/numbers-separator))
 
             (line-number-mode
              (:propertize
-              (:eval (let ((width (max (length (number-to-string total-lines))
-                                       rh-linum-min-digits)))
+              (:eval (let ((width
+                            (if total-lines-mode
+                                (max (length (number-to-string total-lines))
+                                     rh-linum-min-digits)
+                              rh-linum-min-digits)))
                        (concat "%" (number-to-string width) "l")))
               face 'sml/line-number
               help-echo (concat "Line number mode\n"
@@ -976,21 +999,10 @@ Also sets SYMBOL to VALUE."
               mouse-face 'mode-line-highlight
               local-map ,mode-line-column-line-number-mode-map))
 
-            ;; (line-number-mode
-            ;;   ,(propertize sml/line-number-format
-            ;;                'face 'sml/line-number
-            ;;                'help-echo 'sml/position-help-text
-            ;;                'mouse-face 'mode-line-highlight
-            ;;                'local-map mode-line-column-line-number-mode-map))
-
             (column-number-mode
-             ,(propertize ","
-                          'face 'sml/numbers-separator
-                          'help-echo (concat "Column number mode\n"
-                                             "mouse-1: Display Line "
-                                             "and Column Mode Menu")
-                          'mouse-face 'mode-line-highlight
-                          'local-map mode-line-column-line-number-mode-map))
+             (:propertize
+              (:eval (if line-number-mode "," ""))
+              face 'sml/numbers-separator))
 
             (column-number-mode
              ,(propertize sml/col-number-format
@@ -1001,100 +1013,56 @@ Also sets SYMBOL to VALUE."
                           'mouse-face 'mode-line-highlight
                           'local-map mode-line-column-line-number-mode-map))
 
+            (line-number-mode
+             ,(propertize "]" 'face 'sml/numbers-separator))
+
+            ;; (,(or line-number-mode column-number-mode)
+            ;;  (:propertize " " face 'sml/numbers-separator))
+
+            ;; (t
+            ;;  (:propertize
+            ;;   (:eval (if (or line-number-mode column-number-mode) " " ""))
+            ;;   face 'sml/numbers-separator))
+
+            (:propertize
+             (:eval (if (or line-number-mode column-number-mode) " " ""))
+             face 'sml/numbers-separator)
+
             (size-indication-mode
              ,(propertize sml/size-indication-format
                           'face 'sml/col-number
-                          'help-echo 'sml/position-help-text
+                          'help-echo (concat "Size indication mode\n"
+                                             "nmouse-1: Display Line "
+                                             "and Column Mode Menu")
                           'mouse-face 'mode-line-highlight
-                          'local-map mode-line-column-line-number-mode-map)))))
+                          'local-map mode-line-column-line-number-mode-map))
 
-  ;; (setq sml/position-percentage-format "* %p *")
-  ;; (format-mode-line "%c")
+            (size-indication-mode
+             ,(propertize " " 'face 'sml/numbers-separator))
+
+            (rh-sml/position-percentage-format
+             (-3 (:propertize (:eval rh-sml/position-percentage-format)
+                              local-map ,mode-line-column-line-number-mode-map
+                              mouse-face mode-line-highlight
+                              face sml/position-percentage
+                              help-echo ,(concat "Buffer Relative Position\n"
+                                                 "mouse-1: Display Line and "
+                                                 "Column Mode Menu"))))
+
+            (rh-sml/position-percentage-format
+             ,(propertize " " 'face 'sml/numbers-separator)))))
 
   (setq sml/theme 'light)
   (setq sml/show-eol t)
-  (setq sml/line-number-format " %4l")
   (setq sml/col-number-format "%3c")
-  (setq sml/size-indication-format " %I")
+  (setq sml/size-indication-format "%I")
 
-;; ((sml/buffer-identification-filling sml/buffer-identification-filling (:eval (setq sml/buffer-identification-filling (sml/fill-for-buffer-identification)))) (:propertize mode-line-percent-position local-map (keymap (mode-line keymap (down-mouse-1 keymap (column-number-mode menu-item "Display Column Numbers" column-number-mode :help "Toggle displaying column numbers in the mode-line" :button (:toggle . column-number-mode)) (line-number-mode menu-item "Display Line Numbers" line-number-mode :help "Toggle displaying line numbers in the mode-line" :button (:toggle . line-number-mode)) (size-indication-mode menu-item "Display Size Indication" size-indication-mode :help "Toggle displaying a size indication in the mode-line" :button (:toggle . size-indication-mode)) "Toggle Line and Column Number Display"))) mouse-face mode-line-highlight help-echo "Size indication mode
-;; mouse-1: Display Line and Column Mode Menu"))
-
-  (sml/setup)
-
-  ;; (setq mode-line-front-space
-  ;;       (add-to-list
-  ;;        'mode-line-front-space
-  ;;        '(:eval (propertize
-  ;;                 ;; (format "%4d " (line-number-at-pos (point-max)))
-  ;;                 (format "%4d" total-lines)
-  ;;                 'face 'sml/col-number))))
-
-;;   (setq mode-line-position `(:propertize(-2 (:eval "%p"))))
-;;   (setq mode-line-position
-;;     `((:propertize
-;;        mode-line-percent-position
-;;        local-map ,mode-line-column-line-number-mode-map
-;;        mouse-face mode-line-highlight
-;;        ;; XXX needs better description
-;;        help-echo "Size indication mode\n\
-;; mouse-1: Display Line and Column Mode Menu")
-;;       (size-indication-mode
-;;        (8 ,(propertize
-;; 	    " of %I"
-;; 	    'local-map mode-line-column-line-number-mode-map
-;; 	    'mouse-face 'mode-line-highlight
-;; 	    ;; XXX needs better description
-;; 	    'help-echo "Size indication mode\n\
-;; mouse-1: Display Line and Column Mode Menu")))
-;;       (line-number-mode
-;;        ((column-number-mode
-;;          (column-number-indicator-zero-based
-;;           (10 ,(propertize
-;;                 " (%l,%c)"
-;;                 'local-map mode-line-column-line-number-mode-map
-;;                 'mouse-face 'mode-line-highlight
-;;                 'help-echo "Line number and Column number\n\
-;; mouse-1: Display Line and Column Mode Menu"))
-;;           (10 ,(propertize
-;;                 " (%l,%C)"
-;;                 'local-map mode-line-column-line-number-mode-map
-;;                 'mouse-face 'mode-line-highlight
-;;                 'help-echo "Line number and Column number\n\
-;; mouse-1: Display Line and Column Mode Menu")))
-;;          (6 ,(propertize
-;; 	      " L%l"
-;; 	      'local-map mode-line-column-line-number-mode-map
-;; 	      'mouse-face 'mode-line-highlight
-;; 	      'help-echo "Line Number\n\
-;; mouse-1: Display Line and Column Mode Menu"))))
-;;        ((column-number-mode
-;;          (column-number-indicator-zero-based
-;;           (5 ,(propertize
-;;                " C%c"
-;;                'local-map mode-line-column-line-number-mode-map
-;;                'mouse-face 'mode-line-highlight
-;;                'help-echo "Column number\n\
-;; mouse-1: Display Line and Column Mode Menu"))
-;;           (5 ,(propertize
-;;                " C%C"
-;;                'local-map mode-line-column-line-number-mode-map
-;;                'mouse-face 'mode-line-highlight
-;;                'help-echo "Column number\n\
-;; mouse-1: Display Line and Column Mode Menu"))))))))
-
-  ;; (setq mode-line-front-space
-  ;;       (add-to-list
-  ;;        'mode-line-front-space
-  ;;        '((:propertize (:eval " %p")
-  ;;                       mouse-face mode-line-highlight
-  ;;                       ;; face 'sml/col-number
-  ;;                       face sml/position-percentage
-  ;;                       help-echo "Buffer Relative Position"))
-  ;;        t))
+  (setq rh-sml/position-percentage-format sml/position-percentage-format)
+  (setq sml/position-percentage-format nil)
 
   (column-number-mode 1)
   (size-indication-mode -1)
+  (sml/setup)
 
   :after (linum total-lines)
   :demand t
