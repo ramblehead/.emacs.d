@@ -971,11 +971,11 @@ Also sets SYMBOL to VALUE."
                                         rh-linum-min-digits)))
                         (concat "%" (number-to-string width) "d"))
                       total-lines))
-              face 'sml/col-number
-              help-echo (concat "Total lines mode\n"
+              face sml/col-number
+              help-echo ,(concat "Total lines mode\n"
                                  "mouse-1: Display Line "
                                  "and Column Mode Menu")
-              mouse-face 'mode-line-highlight
+              mouse-face mode-line-highlight
               local-map ,mode-line-column-line-number-mode-map))
 
             (total-lines-mode
@@ -992,17 +992,17 @@ Also sets SYMBOL to VALUE."
                                      rh-linum-min-digits)
                               rh-linum-min-digits)))
                        (concat "%" (number-to-string width) "l")))
-              face 'sml/line-number
-              help-echo (concat "Line number mode\n"
-                                "mouse-1: Display Line "
-                                "and Column Mode Menu")
-              mouse-face 'mode-line-highlight
+              face sml/line-number
+              help-echo ,(concat "Line number mode\n"
+                                 "mouse-1: Display Line "
+                                 "and Column Mode Menu")
+              mouse-face mode-line-highlight
               local-map ,mode-line-column-line-number-mode-map))
 
             (column-number-mode
              (:propertize
               (:eval (if line-number-mode "," ""))
-              face 'sml/numbers-separator))
+              face sml/numbers-separator))
 
             (column-number-mode
              ,(propertize sml/col-number-format
@@ -1026,7 +1026,7 @@ Also sets SYMBOL to VALUE."
 
             (:propertize
              (:eval (if (or line-number-mode column-number-mode) " " ""))
-             face 'sml/numbers-separator)
+             face sml/numbers-separator)
 
             (size-indication-mode
              ,(propertize sml/size-indication-format
