@@ -1664,8 +1664,8 @@ fields which we need."
 (use-package pos-tip
   :ensure t)
 
-(use-package ac-html
-  :ensure t)
+;; (use-package ac-html
+;;   :ensure t)
 
 (use-package auto-complete
   :config
@@ -1677,6 +1677,7 @@ fields which we need."
   (setq ac-use-quick-help nil)
   (setq ac-auto-show-menu nil)
   (setq ac-use-menu-map t)
+  (setq ac-quick-help-prefer-pos-tip t)
 
   (setq ac-user-dictionary-files
         (delete "~/.dict" ac-user-dictionary-files))
@@ -1717,6 +1718,7 @@ fields which we need."
   (define-key ac-mode-map (kbd "M-h") 'ac-last-quick-help)
   (define-key ac-mode-map (kbd "M-H") 'ac-last-persist-help)
 
+  :after (fuzzy pos-tip)
   :ensure t)
 
 (defun vr-ac-start-if-ac-mode ()
@@ -1907,8 +1909,8 @@ fields which we need."
   (setq flycheck-pos-tip-timeout -1)
   (flycheck-pos-tip-mode)
 
-  :after flycheck
-  :ensure t)
+  :ensure t
+  :disabled)
 
 ;; (use-package flycheck-popup-tip
 ;;   :config
