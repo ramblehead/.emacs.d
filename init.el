@@ -1712,6 +1712,7 @@ fields which we need."
   (define-key ac-menu-map (kbd "<return>") 'ac-complete)
   (define-key ac-menu-map (kbd "<kp-enter>") 'ac-complete)
 
+  ;; (define-key ac-completing-map (kbd "M-h") (lambda () (interactive) (ac-quick-help t)))
   (define-key ac-completing-map (kbd "M-h") 'ac-quick-help)
   (define-key ac-completing-map (kbd "M-H") 'ac-persist-help)
 
@@ -1906,11 +1907,14 @@ fields which we need."
 
 (use-package flycheck-pos-tip
   :config
+  (defun flycheck-pos-tip-hide-messages ()
+    "Hide messages currently being shown if any."
+    (flycheck-hide-error-buffer))
+
   (setq flycheck-pos-tip-timeout -1)
   (flycheck-pos-tip-mode)
 
-  :ensure t
-  :disabled)
+  :ensure t)
 
 ;; (use-package flycheck-popup-tip
 ;;   :config
