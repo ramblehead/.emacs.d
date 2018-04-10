@@ -1794,7 +1794,9 @@ fields which we need."
              (funcall ,cmd)
            (let ((default-cmd (or (local-key-binding ,default-key)
                                   (global-key-binding ,default-key))))
-             (when (fboundp default-cmd) (funcall default-cmd))))))
+             (when (fboundp default-cmd)
+               (funcall default-cmd)
+               (company-abort))))))
 
   (defmacro rh-company-tooltip-cmd (default-cmd cmd)
     `#'(lambda ()
@@ -1823,6 +1825,8 @@ fields which we need."
   (define-key company-active-map (kbd "C-w") nil)
 
   (define-key company-active-map (kbd "<escape>") #'company-abort)
+  (define-key company-active-map (kbd "<delete>") #'company-abort)
+  (define-key company-active-map (kbd "<kp-delete>") #'company-abort)
 
   (define-key company-active-map (kbd "C-n")
     (rh-company-tooltip-key (kbd "C-n") #'company-select-next))
