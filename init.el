@@ -1662,6 +1662,13 @@ fields which we need."
   :ensure t)
 
 (use-package pos-tip
+  :config
+  ;; (defvar pos-tip-foreground-color "#839496"
+  ;;   "Default foreground color of pos-tip's tooltip.")
+
+  ;; (defvar pos-tip-background-color "#073642"
+  ;;   "Default background color of pos-tip's tooltip.")
+
   :ensure t)
 
 ;; (use-package ac-html
@@ -1914,6 +1921,7 @@ fields which we need."
   (setq flycheck-pos-tip-timeout -1)
   (flycheck-pos-tip-mode)
 
+  :after (flycheck pos-tip)
   :ensure t)
 
 ;; (use-package flycheck-popup-tip
