@@ -174,6 +174,9 @@
   (setq paradox-automatically-star nil)
   (paradox-enable)
 
+  (when (boundp 'rh-paradox-github-token)
+    (setq paradox-github-token rh-paradox-github-token))
+
   (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
 
   :demand
