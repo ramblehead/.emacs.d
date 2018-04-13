@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1280,25 +1280,6 @@ Also sets SYMBOL to VALUE."
 (use-package sr-speedbar
   :ensure t)
 
-;; == visual-regexp ==
-
-(use-package visual-regexp
-  :config
-  (setq vr/match-separator-use-custom-face t)
-  (custom-set-variables '(vr/match-separator-string " -> "))
-
-  (define-key vr/minibuffer-keymap (kbd "C-j") 'newline)
-  (define-key vr/minibuffer-keymap (kbd "C-<return>") 'newline)
-
-  (global-set-key (kbd "C-c v") 'vr/replace)
-  (global-set-key (kbd "C-c q") 'vr/query-replace)
-  ;; (define-key global-map (kbd "C-c v") 'vr/replace)
-  ;; (define-key global-map (kbd "C-c q") 'vr/query-replace)
-  ;; (define-key global-map (kbd "M-%") 'vr/replace)
-  ;; (define-key global-map (kbd "C-M-%") 'vr/query-replace)
-
-  :ensure t)
-
 ;; == picture ==
 
 (use-package picture
@@ -1622,8 +1603,33 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; -------------------------------------------------------------------
-;;; Smart Autocompletion and IntelliSense Tools
+;;; Smart Auto-completion and Auto-text Tools
 ;; /b/{ +++++++++ ----------------------------------------------------
+
+;; /b/{ == visual-regexp ==
+
+(use-package pcre2el
+  :demand t
+  :ensure t)
+
+;; /b/} == visual-regexp ==
+
+;; /b/{ == visual-regexp ==
+
+(use-package visual-regexp
+  :config
+  (setq vr/match-separator-use-custom-face t)
+  (custom-set-variables '(vr/match-separator-string " -> "))
+
+  (define-key vr/minibuffer-keymap (kbd "C-j") #'newline)
+  (define-key vr/minibuffer-keymap (kbd "C-<return>") #'newline)
+
+  (global-set-key (kbd "C-c v") #'vr/replace)
+  (global-set-key (kbd "C-c q") #'vr/query-replace)
+
+  :ensure t)
+
+;; /b/} == visual-regexp ==
 
 ;; /b/{ == yasnippet ==
 
