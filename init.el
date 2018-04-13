@@ -713,7 +713,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                           'quit-restore g2w-quit-restore-parameter))
   (if (local-variable-p 'g2w-kill-on-quit)
       (quit-window g2w-kill-on-quit)
-    (quit-window)))
+    (quit-window nil)))
 
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
@@ -768,6 +768,12 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;; -------------------------------------------------------------------
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
+
+;; (add-to-list 'default-frame-alist
+;;              '(font . "DejaVu Sans Mono"))
+
+(add-to-list 'default-frame-alist
+             '(font . "Hack-10.5"))
 
 (add-to-list 'load-path vr-user-lisp-directory-path)
 (load vr-user-site-start-file-path nil t t)
@@ -1395,34 +1401,35 @@ filename associated with it."
 
 (use-package recentf
   :config
-  (defun recentf-open-files-item (menu-element)
-    "Return a widget to display MENU-ELEMENT in a dialog buffer."
-    (if (consp (cdr menu-element))
-        ;; Represent a sub-menu with a tree widget
-        `(tree-widget
-          :open t
-          :match ignore
-          :node (item :tag ,(car menu-element)
-                      :sample-face bold
-                      :format "%{%t%}:\n")
-          ,@(mapcar 'recentf-open-files-item
-                    (cdr menu-element)))
-      ;; Represent a single file with a link widget
-      `(link :tag ,(car menu-element)
-             :button-prefix ""
-             :button-suffix ""
-             :button-face default
-             ;; :button-face highlight
-             ;; TODO: I corrected format string to show right mouse hovering
-             ;;       highlight. Find how to send patch/bug report
-             ;;       to recenff maintainer after more testing.
-             :format "%[%t%]\n"
-             :help-echo ,(concat "Open " (cdr menu-element))
-             :action recentf-open-files-action
-             ;; Override the (problematic) follow-link property of the
-             ;; `link' widget (bug#22434).
-             :follow-link nil
-             ,(cdr menu-element))))
+  ;; (defun recentf-open-files-item (menu-element)
+  ;;   "Return a widget to display MENU-ELEMENT in a dialog buffer."
+  ;;   (if (consp (cdr menu-element))
+  ;;       ;; Represent a sub-menu with a tree widget
+  ;;       `(tree-widget
+  ;;         :open t
+  ;;         :match ignore
+  ;;         :node (item :tag ,(car menu-element)
+  ;;                     :sample-face bold
+  ;;                     :format "%{%t%}:\n")
+  ;;         ,@(mapcar 'recentf-open-files-item
+  ;;                   (cdr menu-element)))
+  ;;     ;; Represent a single file with a link widget
+  ;;     `(link :tag ,(car menu-element)
+  ;;            :button-prefix ""
+  ;;            :button-suffix ""
+  ;;            :button-face default
+  ;;            ;; :button-face highlight
+  ;;            ;; TODO: I corrected format string to show right mouse hovering
+  ;;            ;;       highlight. Find how to send patch/bug report
+  ;;            ;;       to recenff maintainer after more testing.
+  ;;            :format "%[%t%]\n"
+  ;;            :size 50
+  ;;            :help-echo ,(concat "Open " (cdr menu-element))
+  ;;            :action recentf-open-files-action
+  ;;            ;; Override the (problematic) follow-link property of the
+  ;;            ;; `link' widget (bug#22434).
+  ;;            :follow-link nil
+  ;;            ,(cdr menu-element))))
 
   (setq recentf-save-file rh-recent-files-file-path)
   (setq recentf-kill-buffer-on-open t)
@@ -2931,18 +2938,25 @@ continuing (not first) item"
 
 ;; /b/{ == js-mode ==
 
-(use-package js-mode
-  :mode "\\.js\\'"
+(use-package js
+  ;; :mode ("\\.js\\'" . js-mode)
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
+  (setq js-mode-map (make-sparse-keymap))
 
-  (add-hook
-   'js-mode-hook
-   (lambda ()
-     (vr-programming-minor-modes)
-     (rh-project-setup))))
+  ;; Keep js mode hook-free and Indium-mode keeps enabling/disabling it in REPL
+  ;; TODO: Investigate why Indium-mode REPL does that
+  ;; (add-hook
+  ;;  'js-mode-hook
+  ;;  (lambda ()
+  ;;    (setq mode-name "js")
+  ;;    (vr-programming-minor-modes 1)
+  ;;    (rh-project-setup)
+
+  ;;    (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))
+  )
 
 ;; /b/} == js-mode ==
 
@@ -2974,9 +2988,8 @@ continuing (not first) item"
   ;; add any symbols to a buffer-local var of acceptable global vars Note that
   ;; we also support the "symbol: true" way of specifying names via a hack
   ;; (remove any ":true" to make it look like a plain decl, and any ':false' are
-  ;; left behind so they'll effectively be ignored as you can;t have a symbol
+  ;; left behind so they'll effectively be ignored as you can't have a symbol
   ;; called "someName:false"
-
   (add-hook
    'js2-post-parse-callbacks
    (lambda ()
@@ -3006,8 +3019,12 @@ continuing (not first) item"
   (add-hook
    'js2-mode-hook
    (lambda ()
-     (vr-programming-minor-modes)
+     (setq mode-name "js2")
+     (vr-programming-minor-modes 1)
      (rh-project-setup)
+
+     (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)
+
      ;; (skewer-mode 1)
      ;; (moz-minor-mode -1)
      ;; (abbrev-mode -1)
@@ -3036,7 +3053,6 @@ continuing (not first) item"
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
      ))
 
-  :disabled
   :ensure t)
 
 ;; /b/} == js2-mode ==
@@ -3046,8 +3062,6 @@ continuing (not first) item"
 (use-package typescript-mode
   :config
   (setq typescript-indent-level 2)
-
-  (put 'major-mode 'display "xxx")
 
   (add-hook
    'typescript-mode-hook
@@ -3565,6 +3579,8 @@ area."
 
 (use-package tide
   :init
+  (setq tide-documentation-buffer-name "*tide-documentation*")
+
   (add-to-list 'display-buffer-alist
                '("*tide-references*"
                  (display-buffer-below-selected)
@@ -3580,6 +3596,16 @@ area."
   (defun rh-tide-company-display-permanent-doc-buffer ()
     (display-buffer (get-buffer-create "*tide-documentation*")))
 
+  (defun rh-tide-documentation-quit ()
+    (interactive)
+    (let ((bufwin (get-buffer-window "*tide-documentation*"))
+          (selwin (selected-window)))
+      (when bufwin
+        (select-window bufwin)
+        (g2w-quit-window)
+        (select-window selwin)
+        t)))
+
   :config
   (defadvice tide-doc-buffer (around rh-tide-doc-buffer activate)
     (with-current-buffer ad-do-it
@@ -3593,12 +3619,14 @@ area."
   (define-key tide-mode-map (kbd "M-,") #'tide-references)
   (define-key tide-mode-map (kbd "M-[") #'tide-jump-back)
   (define-key tide-mode-map (kbd "M-h") #'tide-documentation-at-point)
+  (define-key tide-mode-map (kbd "C-x M-h") #'rh-tide-documentation-quit)
 
   (define-key tide-references-mode-map (kbd "q") #'rh-quit-window-kill)
 
   (add-hook
    'tide-mode-hook
    (lambda ()
+     ;; rh-company-kill-permanent-doc-buffer
      (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
           #'rh-tide-company-display-permanent-doc-buffer)))
 
