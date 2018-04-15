@@ -316,7 +316,15 @@ when only symbol face names are needed."
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
-(defun rh-project-get-root ()
+;; (defun rh-project-get-root (&optional abbreviate)
+;;   (let ((rh-project (rh-project-get-path)))
+;;     (when rh-project
+;;       (if abbreviate
+;;           (abbreviate-file-name
+;;            (expand-file-name (concat rh-project "../")))
+;;         (expand-file-name (concat rh-project "../"))))))
+
+(defun rh-project-get-root (&optional abbreviate)
   (let ((rh-project (rh-project-get-path)))
     (when rh-project
       (abbreviate-file-name
@@ -1928,11 +1936,10 @@ fields which we need."
   (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
 
-  ;; (require 'web-mode)
-  ;; (require 'tide)
   (flycheck-add-mode 'typescript-tslint 'web-mode)
-  ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
+  :after tide
   :ensure t)
 
 (use-package flycheck-pos-tip
@@ -2953,7 +2960,6 @@ continuing (not first) item"
      ;; Indium-mode keeps enabling/disabling it in REPL
      ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
      (when (not (equal "*indium-fontification*" (buffer-name)))
-       (message "%s" (buffer-name))
        (setq mode-name "js")
        (vr-programming-minor-modes 1)
        (rh-project-setup)
@@ -3668,6 +3674,11 @@ area."
   (define-key tern-mode-keymap (kbd "M-.") #'tern-find-definition)
   (define-key tern-mode-keymap (kbd "M-[") #'tern-pop-find-definition)
 
+  (add-hook
+   'tern-mode-hook
+   (lambda ()
+     (require 'company-tern)))
+
   :ensure t)
 
 ;; /b/} == tern ==
@@ -3681,6 +3692,7 @@ area."
 ;; 'p' for anything else."
 ;;     (if (company-tern-function-p candidate) "f trn" "p trn"))
 
+  :after (company tern)
   :ensure t)
 
 ;; /b/} == company-tern ==
@@ -3708,26 +3720,23 @@ area."
 
 (defun rh-typescript-setup ()
   (interactive)
+  (tide-setup)
   (company-mode 1)
   (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
   (eldoc-mode 1)
-  ;; (tern-mode 1)
-  (tide-setup)
   (tide-hl-identifier-mode 1))
 
 (defun rh-javascript-setup ()
   (interactive)
+  (tide-setup)
   (company-mode 1)
-  ;; (flycheck-mode 1)
+  (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
   (eldoc-mode 1)
-  (tern-mode 1)
-  ;; (tide-setup)
-  ;; (tide-hl-identifier-mode 1)
-  )
+  (tide-hl-identifier-mode 1))
 
 ;; /b/} == JavaScript Environments Setup ==
 
