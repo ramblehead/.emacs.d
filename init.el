@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp bs-ext popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -773,7 +773,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;              '(font . "DejaVu Sans Mono"))
 
 (add-to-list 'default-frame-alist
-             '(font . "Hack-10.5"))
+             '(font . "Hack-11"))
 
 (add-to-list 'load-path vr-user-lisp-directory-path)
 (load vr-user-site-start-file-path nil t t)
@@ -943,7 +943,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; C++ minor modes
   (add-to-list 'rm-blacklist " mc++fl")
 
-  :ensure t
   :demand t)
 
 (use-package smart-mode-line
@@ -1694,6 +1693,8 @@ fields which we need."
 (use-package auto-complete
   :config
   (setq ac-modes (delq 'js2-mode ac-modes))
+  (setq ac-modes (delq 'js-mode ac-modes))
+  (setq ac-modes (delq 'javascript-mode ac-modes))
 
   (ac-config-default)
 
@@ -2945,17 +2946,18 @@ continuing (not first) item"
   (setq js-switch-indent-offset 2)
   (setq js-mode-map (make-sparse-keymap))
 
-  ;; Keep js mode hook-free and Indium-mode keeps enabling/disabling it in REPL
-  ;; TODO: Investigate why Indium-mode REPL does that
-  ;; (add-hook
-  ;;  'js-mode-hook
-  ;;  (lambda ()
-  ;;    (setq mode-name "js")
-  ;;    (vr-programming-minor-modes 1)
-  ;;    (rh-project-setup)
+  (add-hook
+   'js-mode-hook
+   (lambda ()
+     ;; Indium-mode keeps enabling/disabling it in REPL
+     ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
+     (when (not (equal "*indium-fontification*" (buffer-name)))
+       (message "%s" (buffer-name))
+       (setq mode-name "js")
+       (vr-programming-minor-modes 1)
+       (rh-project-setup)
 
-  ;;    (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))
-  )
+       (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))))
 
 ;; /b/} == js-mode ==
 
@@ -2976,6 +2978,7 @@ continuing (not first) item"
 ;; (ad-activate 'js2-enter-key)
 
 (use-package js2-mode
+  :disabled t
   :mode "\\.js\\'"
   :config
   ;; Indentation style ajustments
@@ -3021,7 +3024,6 @@ continuing (not first) item"
      (setq mode-name "js2")
      (vr-programming-minor-modes 1)
      (rh-project-setup)
-
      (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)
 
      ;; (skewer-mode 1)
@@ -3641,24 +3643,29 @@ area."
   ;; (setq tern-command
   ;;       '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
 
-  (defvar rh-tern-argument-hints-enabled t)
+  ;; (defvar rh-tern-argument-hints-enabled t)
 
-  (defun tern-argument-hint-at-point ()
-    (interactive)
-    (tern-update-argument-hints-async))
+  ;; (defun tern-argument-hint-at-point ()
+  ;;   (interactive)
+  ;;   (tern-update-argument-hints-async))
 
-  (defun tern-post-command ()
-    (unless (eq (point) tern-last-point-pos)
-      (setf tern-last-point-pos (point))
-      (setf tern-activity-since-command tern-command-generation)
-      (when rh-tern-argument-hints-enabled
-        (tern-update-argument-hints-async))))
+  ;; (defun tern-post-command ()
+  ;;   (unless (eq (point) tern-last-point-pos)
+  ;;     (setf tern-last-point-pos (point))
+  ;;     (setf tern-activity-since-command tern-command-generation)
+  ;;     (when rh-tern-argument-hints-enabled
+  ;;       (tern-update-argument-hints-async))))
+
+  ;; (define-key tern-mode-keymap (kbd "M-.") nil)
+  ;; (define-key tern-mode-keymap (kbd "M-,") nil)
+  ;; (define-key tern-mode-keymap (kbd "C-c M-.") #'tern-find-definition)
+  ;; (define-key tern-mode-keymap (kbd "C-c M-[") #'tern-pop-find-definition)
+  ;; (define-key tern-mode-keymap (kbd "C-c M-i") #'tern-argument-hint-at-point)
 
   (define-key tern-mode-keymap (kbd "M-.") nil)
   (define-key tern-mode-keymap (kbd "M-,") nil)
-  (define-key tern-mode-keymap (kbd "C-c M-.") #'tern-find-definition)
-  (define-key tern-mode-keymap (kbd "C-c M-[") #'tern-pop-find-definition)
-  (define-key tern-mode-keymap (kbd "C-c M-i") #'tern-argument-hint-at-point)
+  (define-key tern-mode-keymap (kbd "M-.") #'tern-find-definition)
+  (define-key tern-mode-keymap (kbd "M-[") #'tern-pop-find-definition)
 
   :ensure t)
 
@@ -3668,10 +3675,10 @@ area."
 
 (use-package company-tern
   :config
-  (defun company-tern-annotation (candidate)
-    "Return simplified type annotation. 'f' for functions and
-'p' for anything else."
-    (if (company-tern-function-p candidate) "f trn" "p trn"))
+;;   (defun company-tern-annotation (candidate)
+;;     "Return simplified type annotation. 'f' for functions and
+;; 'p' for anything else."
+;;     (if (company-tern-function-p candidate) "f trn" "p trn"))
 
   :ensure t)
 
@@ -3704,22 +3711,22 @@ area."
   (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
+  (eldoc-mode 1)
   ;; (tern-mode 1)
   (tide-setup)
-  (tide-hl-identifier-mode 1)
-  (eldoc-mode 1))
+  (tide-hl-identifier-mode 1))
 
 (defun rh-javascript-setup ()
   (interactive)
-  (auto-complete-mode -1)
   (company-mode 1)
-  (flycheck-mode 1)
+  ;; (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
-  ;; (tern-mode 1)
-  (tide-setup)
-  (tide-hl-identifier-mode 1)
-  (eldoc-mode 1))
+  (eldoc-mode 1)
+  (tern-mode 1)
+  ;; (tide-setup)
+  ;; (tide-hl-identifier-mode 1)
+  )
 
 ;; /b/} == JavaScript Environments Setup ==
 
@@ -4487,10 +4494,6 @@ with very limited support for special characters."
   ;; (define-key bs-mode-map (kbd "<escape>") 'bs-kill)
   (global-set-key (kbd "C-x C-b") 'vr-bs-show)
 
-  :demand t
-  :ensure t)
-
-(use-package bs-ext
   :demand t
   :ensure t)
 
