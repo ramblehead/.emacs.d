@@ -943,6 +943,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; C++ minor modes
   (add-to-list 'rm-blacklist " mc++fl")
 
+  :ensure t
   :demand t)
 
 (use-package smart-mode-line
