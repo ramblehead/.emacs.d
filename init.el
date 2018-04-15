@@ -1619,16 +1619,16 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; -------------------------------------------------------------------
-;;; Smart Auto-completion and Auto-text Tools
+;;; Auto-completion and Auto-text Tools
 ;; /b/{ +++++++++ ----------------------------------------------------
 
-;; /b/{ == visual-regexp ==
+;; /b/{ == pcre2el ==
 
 (use-package pcre2el
   :demand t
   :ensure t)
 
-;; /b/} == visual-regexp ==
+;; /b/} == pcre2el ==
 
 ;; /b/{ == visual-regexp ==
 
@@ -1695,9 +1695,6 @@ fields which we need."
   ;;   "Default background color of pos-tip's tooltip.")
 
   :ensure t)
-
-;; (use-package ac-html
-;;   :ensure t)
 
 (use-package auto-complete
   :config
@@ -1789,14 +1786,6 @@ fields which we need."
 ;; /b/} == auto-complete ==
 
 ;; /b/{ == company ==
-
-;; (defun rh-test ()
-;;   (interactive)
-;;   (if (company-tooltip-visible-p)
-;;       (message "visible")
-;;     (message "invisible")))
-
-;; (global-set-key (kbd "C-t") 'rh-test)
 
 (use-package company
   :init
@@ -1965,31 +1954,8 @@ fields which we need."
 
 ;; /b/} == flycheck ==
 
-;; /b/{ == Common Functions ==
-
-(defvar rh-echo-metadata-enabled t)
-
-(defun rh-echo-metadata-enabled-toggle ()
-  (interactive)
-  (if company-mode
-      (if (memq 'company-echo-metadata-frontend company-frontends)
-          (progn
-            (setq company-frontends
-                  (delete 'company-echo-metadata-frontend company-frontends))
-            (setq rh-echo-metadata-enabled nil)
-            (message "echo-metadata disabled"))
-        (progn
-          (add-to-list 'company-frontends 'company-echo-metadata-frontend)
-          (setq rh-echo-metadata-enabled t)
-          (message "echo-metadata enabled")))
-    (setq rh-echo-metadata-enabled (not rh-echo-metadata-enabled))))
-
-(global-set-key (kbd "M-i") #'rh-echo-metadata-enabled-toggle)
-
-;; /b/} == Common Functions ==
-
 ;; -------------------------------------------------------------------
-;;; Smart Autocompletion and IntelliSense Tools
+;;; Autocompletion and IntelliSense Tools
 ;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
@@ -2000,28 +1966,6 @@ fields which we need."
 
 (use-package compile
   :init
-  ;; Idea is taken from:
-  ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*compilation*"
-  ;;                (display-buffer-in-side-window)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '((lambda (buffer-nm actions)
-  ;;                  (when (string-match-p "*compilation*" buffer-nm)
-  ;;                    (let ((current-window (get-buffer-window
-  ;;                                           (current-buffer)
-  ;;                                           (selected-frame))))
-  ;;                      (with-current-buffer buffer-nm
-  ;;                        (set (make-local-variable 'g2w-destination-window)
-  ;;                             current-window)))
-  ;;                    t))
-  ;;                (display-buffer-in-side-window)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
-
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*")
                  ,(g2w-display #'display-buffer-in-side-window)
@@ -2035,7 +1979,7 @@ fields which we need."
 
 ;; /b/} == compile ==
 
-;; /b/{ == eshell mode ==
+;; /b/{ == eshell ==
 
 (use-package eshell
   :config
@@ -2063,9 +2007,9 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} == eshell mode ==
+;; /b/} == eshell ==
 
-;; /b/{ == Line numbering ==
+;; /b/{ == linum and nlinum ==
 
 (use-package linum
   :init
@@ -2103,7 +2047,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;; /b/} == Line numbering ==
+;; /b/} == linum and nlinum ==
 
 ;; == Exporting buffers to other formats (html, pdf etc.)
 
@@ -2134,7 +2078,7 @@ fields which we need."
 
 (cl-defun show-paren-local-mode (&optional (value nil value-supplied-p))
   (interactive)
-  ;; The value of show-paren-mode will be local to this buffer.
+  ;; The value of show-paren-mode should be local to this buffer.
   (if (not (local-variable-p 'show-paren-mode))
       (make-local-variable 'show-paren-mode))
   (let ((show))
