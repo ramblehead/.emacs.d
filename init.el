@@ -943,6 +943,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; C++ minor modes
   (add-to-list 'rm-blacklist " mc++fl")
 
+  :ensure t
   :demand t)
 
 (use-package smart-mode-line
@@ -2079,8 +2080,6 @@ fields which we need."
   ;; (setq nlinum-highlight-current-line t)
 
   :config
-  (require 'nlinum-hl)
-
   (global-set-key (kbd "C-<f12>")
                   (lambda ()
                     (interactive)
