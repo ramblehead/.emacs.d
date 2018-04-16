@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -781,7 +781,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;              '(font . "DejaVu Sans Mono"))
 
 (add-to-list 'default-frame-alist
-             '(font . "Hack-11"))
+             '(font . "Hack-10.5"))
 
 (add-to-list 'load-path vr-user-lisp-directory-path)
 (load vr-user-site-start-file-path nil t t)
@@ -916,6 +916,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                'occur-mode-goto-occurrence)
 
   :config
+  ;; C++-mode ocasionally fails when occur-excluded-properties is nil.
+  ;; Need to investigate or wait until modern font lock is more reliable.
+  (setq occur-excluded-properties t)
+
+  (add-hook
+   'occur-mode-hook
+   (lambda ()
+     (setq rh-interactively-selected-window (frame-selected-window))))
+
   (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
   :demand t)
@@ -1120,6 +1129,23 @@ Also sets SYMBOL to VALUE."
   (setq auto-revert-tail-mode-text " ⭳")
 
   :demand t)
+
+(use-package avy
+  :config
+  ;; (global-set-key (kbd "M-/") 'avy-goto-subword-1)
+  (global-set-key (kbd "<f7>") 'avy-goto-subword-1)
+  (global-set-key (kbd "<f6>") 'avy-goto-line)
+
+  :demand t
+  :ensure t)
+
+(use-package ace-window
+  :config
+  (global-set-key (kbd "C-c o") 'ace-window)
+  (global-set-key (kbd "C-c s") 'ace-swap-window)
+
+  :demand t
+  :ensure t)
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -2033,16 +2059,47 @@ fields which we need."
   ;; (setq nlinum-highlight-current-line t)
 
   :config
-  (global-set-key (kbd "C-<f12>")
-                  (lambda ()
-                    (interactive)
-                    (nlinum--flush)))
+  (global-set-key (kbd "C-<f12>") (lambda ()
+                                    (interactive)
+                                    (nlinum--flush)))
+
+  ;; For some reason (bug?) when a new frame is open (e.g. C-x 5 2)
+  ;; nlinum numbers become invisible. The following hook makes
+  ;; them visible again.
+  (defun rh-nlinum-flush-if-enabled ()
+    (when (bound-and-true-p nlinum-mode) (nlinum--flush)))
+
+  (add-hook 'focus-in-hook  #'rh-nlinum-flush-if-enabled)
+
+  ;; For some reason (bug?) edebug hides nlinum after each operation.
+  ;; This hook makes nlinum numbers visible again. It does cause
+  ;; some flickering, in long term it worth finding why
+  ;; edebug/nlinum behave this way.
+  (defun rh-nlinum-flush-if-enabled-and-edebug ()
+    (when (bound-and-true-p nlinum-mode)
+      (run-at-time 0 nil (lambda ()
+                           (when (and (bound-and-true-p edebug-mode)
+                                      (bound-and-true-p nlinum-mode))
+                             (nlinum--flush))))))
+
+  (add-hook 'buffer-list-update-hook #'rh-nlinum-flush-if-enabled-and-edebug)
 
   :after linum
   :demand t
   :ensure t)
 
 (use-package nlinum-hl
+  :disabled t
+  :config
+  ;; Update linum when
+  ;; whenever Emacs loses/gains focus
+  ;; ...or switches windows
+  ;; (advice-add #'select-window :before #'nlinum-hl-do-select-window-flush)
+  ;; (advice-add #'select-window :after  #'nlinum-hl-do-select-window-flush)
+
+  ;; (run-with-idle-timer 5 t #'nlinum-hl-flush-window)
+  ;; (run-with-idle-timer 30 t #'nlinum-hl-flush-all-windows)
+
   :after nlinum
   :demand t
   :ensure t)
@@ -2864,6 +2921,7 @@ continuing (not first) item"
        (progn
          (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
          (vr-programming-minor-modes t)
+         ;; (subword-mode +1)
          (vr-c++-font-lock-setup)
          (vr-c++-indentation-setup)
          (vr-c++-yas-setup)
@@ -4613,7 +4671,6 @@ with very limited support for special characters."
 (global-set-key (kbd "C-x <kp-right>") 'windmove-right)
 (global-set-key (kbd "C-x <left>") 'windmove-left)
 (global-set-key (kbd "C-x <kp-left>") 'windmove-left)
-(global-set-key (kbd "C-x o") 'other-frame)
 
 ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
 ;; for keybindings aliases. Can also be used with (current-local-map)
