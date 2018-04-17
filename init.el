@@ -162,7 +162,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-(setq package-check-signature nil)
+;; (setq package-check-signature nil)
 
 (package-initialize)
 
