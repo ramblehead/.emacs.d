@@ -148,6 +148,7 @@
 ;; see https://swsnr.de/posts/my-emacs-configuration-with-use-package
 (require 'package)
 (setq package-enable-at-startup nil)
+
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/")
              'append)
@@ -161,7 +162,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-;; (setq package-check-signature nil)
+(setq package-check-signature nil)
 
 (package-initialize)
 
@@ -1692,6 +1693,7 @@ fields which we need."
   :ensure t)
 
 (use-package auto-complete
+  :delight (auto-complete-mode " A")
   :config
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
@@ -1787,7 +1789,7 @@ fields which we need."
   (defvar rh-company-display-permanent-doc-buffer nil)
 
   :config
-  (setq company-lighter-base "CA")
+  (setq company-lighter-base "C")
 
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
@@ -3174,7 +3176,7 @@ area."
 (use-package lisp-mode
   :delight
   (emacs-lisp-mode "ξ")
-  (lisp-interaction-mode "λ")
+  (lisp-interaction-mode "ξλ")
 
   :config
   (defun rh-lisp-eval-region-or-last-sexp ()
