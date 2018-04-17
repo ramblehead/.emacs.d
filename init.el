@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -145,12 +145,12 @@
 ;; (alexandria:flatten list)
 
 ;; == Package initialisation and 'use-package' bootstrap ==
-;; see http://www.lunaryorn.com/2015/01/06/my-emacs-configuration-with-use-package.html
-
+;; see https://swsnr.de/posts/my-emacs-configuration-with-use-package
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/"))
+             '("melpa" . "https://melpa.org/packages/")
+             'append)
 ;; (add-to-list 'package-archives
 ;;              '("melpa" . "http://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
@@ -161,7 +161,7 @@
 ;; Temporary Emacs bug patch.
 ;; Should be removed after Emacs update (>25.1.50.1)
 ;; see http://stackoverflow.com/questions/26108655/error-updating-emacs-packages-failed-to-download-gnu-archive
-(setq package-check-signature nil)
+;; (setq package-check-signature nil)
 
 (package-initialize)
 
@@ -179,15 +179,15 @@
 
   (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
 
-  :demand
+  :demand t
   :ensure t)
 
 (use-package async
-  :demand
+  :demand t
   :ensure t)
 
 (use-package cl
-  :demand
+  :demand t
   :ensure t)
 
 ;; == Auxiliary functions ==
@@ -823,16 +823,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
       (concat "%b - emacs@" system-name))
 
 ;; Zoom as in Firefox (almost)
-(require 'zoom-frm)
+;; (require 'zoom-frm)
 
-(global-set-key (kbd "C--") 'zoom-frm-out)
-(global-set-key (kbd "C-=") 'zoom-frm-in)
-(global-set-key (kbd "C-0") 'zoom-frm-unzoom)
-(global-set-key (kbd "C-<kp-subtract>") 'zoom-frm-out)
-(global-set-key (kbd "C-<kp-add>") 'zoom-frm-in)
-(global-set-key (kbd "C-<kp-0>") 'zoom-frm-unzoom)
-(global-set-key (kbd "C-<wheel-up>") 'zoom-frm-in)
-(global-set-key (kbd "C-<wheel-down>") 'zoom-frm-out)
+;; (global-set-key (kbd "C--") 'zoom-frm-out)
+;; (global-set-key (kbd "C-=") 'zoom-frm-in)
+;; (global-set-key (kbd "C-0") 'zoom-frm-unzoom)
+;; (global-set-key (kbd "C-<kp-subtract>") 'zoom-frm-out)
+;; (global-set-key (kbd "C-<kp-add>") 'zoom-frm-in)
+;; (global-set-key (kbd "C-<kp-0>") 'zoom-frm-unzoom)
+;; (global-set-key (kbd "C-<wheel-up>") 'zoom-frm-in)
+;; (global-set-key (kbd "C-<wheel-down>") 'zoom-frm-out)
 
 ;; http://www.emacswiki.org/emacs/SaveHist
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2011-11/msg00213.html
@@ -868,98 +868,30 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 (setq yank-excluded-properties (append '(font face font-lock-face)
                                        yank-excluded-properties))
 
-(use-package help-mode
-  :init
-  (add-to-list 'display-buffer-alist
-               `("*Help*"
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (side . bottom)
-                 (slot . 0)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-
-  :config
-  (setq help-window-select t)
-  (define-key help-mode-map (kbd "q") #'g2w-quit-window)
-
-  :demand t)
-
-(use-package grep
-  :init
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*grep*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-
-  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
-
-  :config
-  (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
-
-  (add-hook
-   'grep-mode-hook
-   (lambda ()
-     (setq truncate-lines t)))
-
-  :demand t)
-
-(use-package replace
-  :init
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*Occur*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-
-  (add-to-list 'g2w-display-buffer-commands
-               'occur-mode-goto-occurrence)
-
-  :config
-  ;; C++-mode ocasionally fails when occur-excluded-properties is nil.
-  ;; Need to investigate or wait until modern font lock is more reliable.
-  (setq occur-excluded-properties t)
-
-  (add-hook
-   'occur-mode-hook
-   (lambda ()
-     (setq rh-interactively-selected-window (frame-selected-window))))
-
-  (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
-
-  :demand t)
-
-(add-to-list 'display-buffer-alist
-             `("*Warnings*"
-               ,(g2w-display #'display-buffer-in-side-window t)
-               (side . bottom)
-               (slot . 0)
-               (inhibit-same-window . t)
-               (window-height . 15)))
-
 (use-package total-lines
   :config (global-total-lines-mode 1)
   :ensure t
   :demand t)
 
 (use-package rich-minority
-  :config
-  ;; Common minor modes
-  (add-to-list 'rm-blacklist " hs")
-  (add-to-list 'rm-blacklist " Undo-Tree")
-  (add-to-list 'rm-blacklist " yas")
-  (add-to-list 'rm-blacklist " ElDoc")
+  ;; :config
+  ;; ;; Common minor modes
+  ;; (add-to-list 'rm-blacklist " yas")
 
-  ;; Lisp minor modes
-  (add-to-list 'rm-blacklist " SliNav")
+  ;; ;; JavaScript minor modes
+  ;; (add-to-list 'rm-blacklist " js-interaction")
 
-  ;; JavaScript minor modes
-  (add-to-list 'rm-blacklist " tide")
-  (add-to-list 'rm-blacklist " js-interaction")
+  ;; ;; C++ minor modes
+  ;; (add-to-list 'rm-blacklist " mc++fl")
 
-  ;; C++ minor modes
-  (add-to-list 'rm-blacklist " mc++fl")
+  :ensure t
+  :demand t)
 
+(use-package diminish
+  :ensure t
+  :demand t)
+
+(use-package delight
   :ensure t
   :demand t)
 
@@ -1095,33 +1027,74 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
-;; (defvar rh-filtered-line-number-at-pos-interval 0.2)
-;; (defvar rh-filtered-line-number-at-pos-waiting nil)
-;; (defvar rh-filtered-line-number-at-pos-waiting-cached 0)
-;; (defvar rh-filtered-line-number-at-pos-waiting-pos 0)
-;; (defvar rh-filtered-line-number-at-pos-waiting-absolute nil)
+(use-package help-mode
+  :init
+  (add-to-list 'display-buffer-alist
+               `("*Help*"
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (side . bottom)
+                 (slot . 0)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
 
-;; (defun rh-filtered-line-number-at-pos-wait (&optional pos absolute)
-;;   (when (not rh-line-number-at-pos-waiting)
-;;     (setq rh-line-number-at-pos-waiting t)
-;;     (run-at-time
-;;      rh-filtered-line-number-at-pos-interval nil
-;;      (lambda (pos absolute)
-;;        (setq rh-line-number-at-pos-waiting nil)
-;;        (setq rh-line-number-at-pos-waiting-cached
-;;              (line-number-at-pos (pos absolute))))
-;;      pos absolute)))
+  :config
+  (setq help-window-select t)
+  (define-key help-mode-map (kbd "q") #'g2w-quit-window)
 
-;; (defun rh-filtered-line-number-at-pos (&optional pos absolute)
-;;   (setq rh-line-number-at-pos-waiting-pos pos)
-;;   (setq rh-line-number-at-pos-waiting-absolute absolute)
-;;   (if rh-line-number-at-pos-waiting
-;;       rh-line-number-at-pos-waiting-cached
-;;     (progn
-;;       (setq rh-line-number-at-pos-waiting-cached
-;;             (line-number-at-pos (pos absolute)))
-;;       (rh-line-number-at-pos-wait)
-;;       rh-line-number-at-pos-waiting-cached)))
+  :demand t)
+
+(use-package grep
+  :init
+  (add-to-list 'display-buffer-alist
+               `(,(g2w-condition "*grep*")
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
+
+  :config
+  (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
+
+  (add-hook
+   'grep-mode-hook
+   (lambda ()
+     (setq truncate-lines t)))
+
+  :demand t)
+
+(use-package replace
+  :init
+  (add-to-list 'display-buffer-alist
+               `(,(g2w-condition "*Occur*")
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'g2w-display-buffer-commands
+               'occur-mode-goto-occurrence)
+
+  :config
+  ;; C++-mode ocasionally fails when occur-excluded-properties is nil.
+  ;; Need to investigate or wait until modern font lock is more reliable.
+  (setq occur-excluded-properties t)
+
+  (add-hook
+   'occur-mode-hook
+   (lambda ()
+     (setq rh-interactively-selected-window (frame-selected-window))))
+
+  (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
+
+  :demand t)
+
+(add-to-list 'display-buffer-alist
+             `("*Warnings*"
+               ,(g2w-display #'display-buffer-in-side-window t)
+               (side . bottom)
+               (slot . 0)
+               (inhibit-same-window . t)
+               (window-height . 15)))
 
 (use-package autorevert
   :config
@@ -1134,7 +1107,7 @@ Also sets SYMBOL to VALUE."
   :config
   ;; (global-set-key (kbd "M-/") 'avy-goto-subword-1)
   (global-set-key (kbd "<f7>") 'avy-goto-subword-1)
-  (global-set-key (kbd "<f6>") 'avy-goto-line)
+  (global-set-key (kbd "s-<f7>") 'avy-goto-line)
 
   :demand t
   :ensure t)
@@ -1143,6 +1116,7 @@ Also sets SYMBOL to VALUE."
   :config
   (global-set-key (kbd "C-c o") 'ace-window)
   (global-set-key (kbd "C-c s") 'ace-swap-window)
+  (global-set-key (kbd "C-c d") 'ace-delete-window)
 
   :demand t
   :ensure t)
@@ -1341,31 +1315,22 @@ Also sets SYMBOL to VALUE."
 
 (use-package undo-tree
   :config
-  ;; (global-undo-tree-mode)
-  ;; (global-set-key (kbd "C-z") #'undo-tree-undo)
-  ;; (global-set-key (kbd "C-S-z") #'undo-tree-redo)
-  ;; (global-set-key (kbd "C-M-z") #'undo-tree-visualize)
+  (add-to-list 'rm-blacklist " Undo-Tree")
 
   (define-key undo-tree-map (kbd "C-z") #'undo-tree-undo)
   (define-key undo-tree-map (kbd "C-S-z") #'undo-tree-redo)
   (define-key undo-tree-map (kbd "C-M-z") #'undo-tree-visualize)
 
-  ;; (add-hook
-  ;;  'undo-tree-mode-hook
-  ;;  (lambda ()
-  ;;    (global-set-key (kbd "C-z") #'undo-tree-undo)
-  ;;    (global-set-key (kbd "C-z") #'undo-tree-mode)
-  ;;    (global-set-key (kbd "C-S-z") #'undo-tree-redo)
-  ;;    (global-set-key (kbd "C-M-z") #'undo-tree-visualize))
-
-  ;;  (define-key c-mode-base-map (kbd "C-c r d") #'vr-c++-rtags-toggle-rdm-display)
-  ;;  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
-
   :ensure t)
 
 (use-package which-key
   :init
-  (setq which-key-side-window-max-height 0.2)
+  (setq which-key-side-window-max-height 15)
+
+  :config
+  (add-to-list 'rm-blacklist " WK")
+
+  (which-key-mode 1)
 
   :ensure t)
 
@@ -1676,8 +1641,12 @@ fields which we need."
 ;; /b/{ == yasnippet ==
 
 (use-package yasnippet
+  :delight (yas-minor-mode " ⵙ")
   :config
+  (add-to-list 'rm-blacklist " ⵙ")
+
   (yas-reload-all)
+
   :ensure t)
 
 (use-package yasnippet-snippets
@@ -1726,7 +1695,7 @@ fields which we need."
   :config
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
-  (setq ac-modes (delq 'javascript-mode ac-modes))
+  (setq ac-modes(delq 'javascript-mode ac-modes))
 
   (ac-config-default)
 
@@ -1807,7 +1776,7 @@ fields which we need."
   )
 
 (global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
-(global-set-key (kbd "<f7>") 'auto-complete-mode)
+;; (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; /b/} == auto-complete ==
 
@@ -2035,7 +2004,7 @@ fields which we need."
 
 ;; /b/} == eshell ==
 
-;; /b/{ == linum and nlinum ==
+;; /b/{ == Line Numbers ==
 
 (use-package linum
   :init
@@ -2104,84 +2073,55 @@ fields which we need."
   :demand t
   :ensure t)
 
-;; /b/} == linum and nlinum ==
+;; /b/} == Line Numbers ==
 
-;; == Exporting buffers to other formats (html, pdf etc.)
+(use-package eldoc
+  :delight (eldoc-mode " ε")
+  :config
+  (add-to-list 'rm-blacklist " ε")
+
+  :defer t)
 
 (use-package htmlize
+  :defer t
   :ensure t)
-
-;; == Indentation highlighting ==
 
 (use-package highlight-indent-guides
+  :defer t
   :ensure t)
 
-;; == Code folding ==
+(use-package hideshow
+  :config
+  (add-to-list 'rm-blacklist " hs")
 
-(require 'hideshow)
-(setq hs-allow-nesting t)
-(setq hs-isearch-open t)
+  (setq hs-allow-nesting t)
+  (setq hs-isearch-open t)
 
-(global-set-key (kbd "C-S-j") 'hs-toggle-hiding)
-(global-set-key (kbd "C-S-e") 'hs-show-all)
-;; (define-key hs-minor-mode-map (kbd "C-S-e") 'hs-show-all)
-;; (define-key hs-minor-mode-map (kbd "C-S-j") 'hs-toggle-hiding)
+  ;; This should be uncommented when cg becomes a mode which overrides
+  ;; this key map
+  ;; (define-key hs-minor-mode-map (kbd "C-S-j") #'hs-toggle-hiding)
+  (define-key hs-minor-mode-map (kbd "C-S-e") #'hs-show-all)
 
-;; Activate the needed timer.
-(show-paren-mode)
+  :demand t
+  :ensure t)
 
-;; The timer will do nothing if this is nil.
-(setq show-paren-mode nil)
+(use-package paren
+  :config
+  ;; Activate the needed timer.
+  (show-paren-mode)
 
-(cl-defun show-paren-local-mode (&optional (value nil value-supplied-p))
-  (interactive)
-  ;; The value of show-paren-mode should be local to this buffer.
-  (if (not (local-variable-p 'show-paren-mode))
-      (make-local-variable 'show-paren-mode))
-  (let ((show))
-    (if (null value-supplied-p)
-        (setq show (if (null show-paren-mode) t nil))
-      (setq show value))
-    (setq show-paren-mode show)))
+  ;; The timer will do nothing if this is nil.
+  (setq show-paren-mode nil)
 
-;; (cl-defun vr-programming-minor-modes (&optional (value nil value-supplied-p))
-;;   "Enables some minor modes, useful for programming."
-;;   (interactive)
-;;   (if (null value-supplied-p)
-;;       (progn
-;;         ;; (message "*** in vr-programming-minor-modes")
-;;         (if (local-variable-p 'vr-prog-mode)
-;;             (progn
-;;               ;; (message "*** killing vr-prog-mode")
-;;               (kill-local-variable 'vr-prog-mode)
-;;               (linum-mode -1)
-;;               (show-paren-local-mode -1)
-;;               (hs-minor-mode -1))
-;;           (progn
-;;             ;; (message "*** setting vr-prog-mode")
-;;             (set (make-local-variable 'vr-prog-mode) t)
-;;             (linum-mode 1)
-;;             (show-paren-local-mode 1)
-;;             (hs-minor-mode 1)
-;;             ;; ;; Use case-sensitive search (buffer-local)
-;;             ;; (setq case-fold-search nil)
-;;             )))
-;;     (progn
-;;       (if value
-;;           (progn
-;;             (set (make-local-variable 'vr-prog-mode) t)
-;;             (linum-mode 1)
-;;             (show-paren-local-mode 1)
-;;             (hs-minor-mode 1)
-;;             ;; ;; Use case-sensitive search (buffer-local)
-;;             ;; (setq case-fold-search nil)
-;;             )
-;;         (progn
-;;           (if (local-variable-p 'vr-prog-mode)
-;;               (kill-local-variable 'vr-prog-mode))
-;;           (linum-mode -1)
-;;           (show-paren-local-mode nil)
-;;           (hs-minor-mode -1))))))
+  (cl-defun rh-show-paren-local-mode (&optional (value nil value-supplied-p))
+    (interactive)
+    (if (not (local-variable-p 'show-paren-mode))
+        (make-local-variable 'show-paren-mode))
+    (let ((show nil))
+      (if (not value-supplied-p)
+          (setq show (if show-paren-mode nil t))
+        (setq show (not (eq value -1))))
+      (setq show-paren-mode show))))
 
 (cl-defun vr-programming-minor-modes (&optional (enable nil enable-supplied-p))
   "Enables some minor modes, useful for programming."
@@ -2195,7 +2135,7 @@ fields which we need."
           (set (make-local-variable 'vr-prog-modes) t)
           ;; (linum-mode 1)
           (nlinum-mode 1)
-          (show-paren-local-mode 1)
+          (rh-show-paren-local-mode 1)
           (hs-minor-mode 1)
           (undo-tree-mode 1)
           (code-groups-minor-mode 1)
@@ -2210,7 +2150,7 @@ fields which we need."
         (kill-local-variable 'vr-prog-modes)
         ;; (linum-mode -1)
         (nlinum-mode -1)
-        (show-paren-local-mode -1)
+        (rh-show-paren-local-mode -1)
         (hs-minor-mode -1)
         (undo-tree-mode -1)
         (code-groups-minor-mode -1)
@@ -2220,72 +2160,8 @@ fields which we need."
         ;; (message "Disabling programming modes")
         ))))
 
-;; == Magit Mode ==
-
 (use-package magit
-  :config
-  ;; (magit-auto-revert-mode -1)
   :ensure t)
-
-;; == GUD Mode ==
-
-;; TODO: move the following function into a separate section for gud-mode
-;; see http://stackoverflow.com/questions/3473134/emacs-23-1-1-with-gdb-forcing-source-windows
-;; see http://stackoverflow.com/questions/24386672/use-gdb-within-emacs-always-show-the-source-code
-;; see http://nurpax.github.io/posts/2014-10-12-fixing-gdb-many-windows-source-buffer.html
-
-;; (defadvice gud-display-line (before one-source-window activate)
-;;   "Always use the same window to show source code."
-;;   (let ((buf (get-file-buffer true-file)))
-;;     (when (and buf gdb-source-window)
-;;       (set-window-buffer gdb-source-window buf))))
-
-;; (defadvice gud-display-line (around vr-gud-display-line activate)
-;;   (let* ((last-nonmenu-event t)         ; Prevent use of dialog box for questions.
-;;          (buffer
-;;           (with-current-buffer gud-comint-buffer
-;;             (gud-find-file true-file)))
-;;          (window (and buffer
-;;                       (or (get-buffer-window buffer)
-;;                           (display-buffer buffer '(nil (inhibit-same-window . t))))))
-;;          ;; (window (and buffer
-;;          ;;              (or (if (eq gud-minor-mode 'gdbmi)
-;;          ;;                      (unless (gdb-display-source-buffer buffer)
-;;          ;;                        (gdb-display-buffer buffer)))
-;;          ;;                  (get-buffer-window buffer)
-;;          ;;                  (display-buffer buffer))))
-;;          (pos))
-;;     (when buffer
-;;       (with-current-buffer buffer
-;;         (unless (or (verify-visited-file-modtime buffer) gud-keep-buffer)
-;;           (if (yes-or-no-p
-;;                (format "File %s changed on disk.  Reread from disk? "
-;;                        (buffer-name)))
-;;               (revert-buffer t t)
-;;             (setq gud-keep-buffer t)))
-;;         (save-restriction
-;;           (widen)
-;;           (goto-char (point-min))
-;;           (forward-line (1- line))
-;;           (setq pos (point))
-;;           (or gud-overlay-arrow-position
-;;               (setq gud-overlay-arrow-position (make-marker)))
-;;           (set-marker gud-overlay-arrow-position (point) (current-buffer))
-;;           ;; If they turned on hl-line, move the hl-line highlight to
-;;           ;; the arrow's line.
-;;           (when (featurep 'hl-line)
-;;             (cond
-;;              (global-hl-line-mode
-;;               (global-hl-line-highlight))
-;;              ((and hl-line-mode hl-line-sticky-flag)
-;;               (hl-line-highlight)))))
-;;         (cond ((or (< pos (point-min)) (> pos (point-max)))
-;;                (widen)
-;;                (goto-char pos))))
-;;       (when window
-;;         (set-window-point window gud-overlay-arrow-position)
-;;         (if (eq gud-minor-mode 'gdbmi)
-;;             (setq gdb-source-window window))))))
 
 (use-package gud
   :config
@@ -2389,7 +2265,6 @@ fields which we need."
 ;; == RealGUD Mode ==
 
 (use-package realgud
-  ;; :disabled
   :ensure t)
 
 ;; /b/{ == C++ ==
@@ -2777,7 +2652,7 @@ continuing (not first) item"
   :pin manual)
 
 (use-package google-c-style
-  :ensure)
+  :ensure t)
 
 (defun vr-c++-indentation-setup ()
   (setq tab-width 2)
@@ -3283,39 +3158,58 @@ area."
 
 ;; /b/{ == Emacs Lisp ==
 
-(setq eval-expression-print-length nil)
-(setq eval-expression-print-level nil)
+(use-package ielm
+  :config
+  (setq eval-expression-print-length nil)
+  (setq eval-expression-print-level nil)
 
-(defun el-eval-region-or-last-sexp ()
-  (interactive)
-  (if (use-region-p)
-      (progn
-        (message "eval-region")
-        (eval-region (region-beginning) (region-end)))
-    (eval-last-sexp current-prefix-arg)))
+  (defun rh-ielm-split-window ()
+    (interactive)
+    (split-window)
+    (other-window 1)
+    (ielm))
 
-(defun ielm-split-window ()
-  (interactive)
-  (split-window)
-  (other-window 1)
-  (ielm))
+  :demand t)
 
-(defun vr-elisp-slime-nav-setup ()
-  (require 'elisp-slime-nav)
+(use-package lisp-mode
+  :delight
+  (emacs-lisp-mode "ξ")
+  (lisp-interaction-mode "λ")
+
+  :config
+  (defun rh-lisp-eval-region-or-last-sexp ()
+    (interactive)
+    (if (use-region-p)
+        (progn
+          (message "eval-region")
+          (eval-region (region-beginning) (region-end)))
+      (eval-last-sexp current-prefix-arg)))
+
+  (define-key lisp-mode-shared-map (kbd "<f5>") 'rh-lisp-eval-region-or-last-sexp)
+  (define-key lisp-mode-shared-map (kbd "M-<f5>") 'eval-print-last-sexp)
+  (define-key lisp-mode-shared-map (kbd "S-<f5>") 'rh-ielm-split-window)
+
+  (add-hook
+   'emacs-lisp-mode-hook
+   (lambda ()
+     (vr-programming-minor-modes 1)
+     (eldoc-mode 1)
+     (set (make-local-variable 'vr-elisp-mode) t)))
+
+  :after ielm
+  :demand t)
+
+(use-package elisp-slime-nav
+  :config
+  (add-to-list 'rm-blacklist " SliNav")
+
   (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
     (add-hook hook 'elisp-slime-nav-mode))
-  (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark))
+  (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark)
 
-(add-hook
- 'emacs-lisp-mode-hook
- (lambda ()
-   (vr-programming-minor-modes)
-   (eldoc-mode 1)
-   (vr-elisp-slime-nav-setup)
-   (set (make-local-variable 'vr-elisp-mode) t)
-   (local-set-key (kbd "<f5>") 'el-eval-region-or-last-sexp)
-   (local-set-key (kbd "M-<f5>") 'eval-print-last-sexp)
-   (local-set-key (kbd "S-<f5>") 'ielm-split-window)))
+  :after (lisp-mode ielm)
+  :ensure t
+  :demand t)
 
 ;; /b/} == Emacs Lisp ==
 
@@ -3588,6 +3482,7 @@ area."
 ;; /b/{ == tide ==
 
 (use-package tide
+  :delight (tide-mode " τ")
   :init
   (setq tide-documentation-buffer-name "*tide-documentation*")
 
@@ -4343,7 +4238,7 @@ with very limited support for special characters."
   (global-set-key (kbd "C-<prior>") #'iflipb-previous-buffer)
   (global-set-key (kbd "C-<kp-prior>") #'iflipb-previous-buffer)
 
-  :demand
+  :demand t
   :ensure t)
 
 ;; /b/} == ifilipb mode ==
@@ -4511,43 +4406,6 @@ with very limited support for special characters."
 
 ;; /b/} == bs mode ==
 
-;; == popwin mode ==
-
-;; (use-package popwin
-;;   :config
-;;   ;; Find how to search and replace within lists in elisp and
-;;   ;; generalise the following functions
-;;   (delete 'help-mode popwin:special-display-config)
-;;   (delete '(compilation-mode :noselect t) popwin:special-display-config)
-;;   ;; (push '(help-mode :stick t) popwin:special-display-config)
-;;   ;; (push '(help-mode :dedicated t :stick t) popwin:special-display-config)
-;;   ;; (push '(compilation-mode :dedicated t :noselect t :stick t)
-;;   ;;       popwin:special-display-config)
-;;   (push '("*skewer-error*" :noselect t :stick t) popwin:special-display-config)
-;;   (push '("*skewer-repl*" :stick t) popwin:special-display-config)
-;;   ;; (push '("*RTags*" :noselect t :stick t) popwin:special-display-config)
-;;   ;; (push '("*rdm*" :noselect t :dedicated t :stick t :height 6 :position top)
-;;   ;;       popwin:special-display-config)
-
-;;   ;; see https://www.emacswiki.org/emacs/OneWindow
-;;   ;; (add-to-list 'same-window-buffer-names "*Help*")
-
-;;   ;; (defun vr-popwin:popup-smart ()
-;;   ;;   (interactive)
-;;   ;;   (if popwin:popup-window
-;;   ;;       (popwin:select-popup-window)
-;;   ;;     (if popwin:popup-last-config
-;;   ;;         (popwin:popup-last-buffer)
-;;   ;;       (popwin:messages))))
-
-;;   ;; (global-set-key (kbd "C-x SPC") 'vr-popwin:popup-smart)
-;;   ;; (global-set-key (kbd "C-x C-SPC") 'popwin:close-popup-window)
-;;   (global-set-key (kbd "C-x p") popwin:keymap)
-
-;;   (popwin-mode 1)
-;;   :demand t
-;;   :ensure t)
-
 ;; -------------------------------------------------------------------
 ;;; Bookmarks
 ;; -------------------------------------------------------------------
@@ -4610,7 +4468,6 @@ with very limited support for special characters."
   :bind (("<f2>" . bm-next)
          ("S-<f2>" . bm-previous)
          ("C-<f2>" . bm-toggle))
-  :demand t
   :ensure t)
 
 ;; -------------------------------------------------------------------
