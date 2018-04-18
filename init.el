@@ -778,12 +778,17 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
 
-;; (add-to-list 'default-frame-alist
-;;              '(font . "DejaVu Sans Mono"))
+(when (display-graphic-p)
+  ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+  ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+  ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
+  (set-face-attribute 'default nil
+                      :family "Hack"
+                      :height 105
+                      :width 'semi-condensed
+                      :weight 'normal))
 
-(add-to-list 'default-frame-alist
-             '(font . "Hack-10.5"))
-
+(setq load-prefer-newer t)
 (add-to-list 'load-path vr-user-lisp-directory-path)
 (load vr-user-site-start-file-path nil t t)
 
@@ -871,30 +876,27 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package total-lines
   :config (global-total-lines-mode 1)
-  :ensure t
-  :demand t)
+  :demand t
+  :ensure t)
 
 (use-package rich-minority
   ;; :config
-  ;; ;; Common minor modes
-  ;; (add-to-list 'rm-blacklist " yas")
-
   ;; ;; JavaScript minor modes
   ;; (add-to-list 'rm-blacklist " js-interaction")
 
   ;; ;; C++ minor modes
   ;; (add-to-list 'rm-blacklist " mc++fl")
 
-  :ensure t
-  :demand t)
+  :demand t
+  :ensure t)
 
 (use-package diminish
-  :ensure t
-  :demand t)
+  :demand t
+  :ensure t)
 
 (use-package delight
-  :ensure t
-  :demand t)
+  :demand t
+  :ensure t)
 
 (use-package smart-mode-line
   :config
@@ -1042,7 +1044,7 @@ Also sets SYMBOL to VALUE."
   (setq help-window-select t)
   (define-key help-mode-map (kbd "q") #'g2w-quit-window)
 
-  :demand t)
+  :defer t)
 
 (use-package grep
   :init
@@ -1062,7 +1064,7 @@ Also sets SYMBOL to VALUE."
    (lambda ()
      (setq truncate-lines t)))
 
-  :demand t)
+  :defer t)
 
 (use-package replace
   :init
@@ -1087,7 +1089,7 @@ Also sets SYMBOL to VALUE."
 
   (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
-  :demand t)
+  :defer t)
 
 (add-to-list 'display-buffer-alist
              `("*Warnings*"
@@ -1097,28 +1099,46 @@ Also sets SYMBOL to VALUE."
                (inhibit-same-window . t)
                (window-height . 15)))
 
+(use-package bind-key
+  :config
+  (add-to-list 'display-buffer-alist
+               `(,(g2w-condition "*Personal Keybindings*")
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  :ensure)
+
 (use-package autorevert
   :config
   (setq auto-revert-mode-text " ⭯")
   (setq auto-revert-tail-mode-text " ⭳")
 
-  :demand t)
+  :defer t)
 
 (use-package avy
   :config
-  ;; (global-set-key (kbd "M-/") 'avy-goto-subword-1)
-  (global-set-key (kbd "<f7>") 'avy-goto-subword-1)
-  (global-set-key (kbd "s-<f7>") 'avy-goto-line)
+  (defadvice avy-goto-subword-1 (around rh-avy-goto-subword-1 () activate)
+    ad-do-it
+    (font-lock-flush))
 
+  ;; (global-set-key (kbd "<f7>") #'avy-goto-subword-1)
+  ;; (global-set-key (kbd "S-<f7>") #'avy-goto-line)
+
+  :bind (("<f7>" . avy-goto-subword-1)
+         ("S-<f7>" . avy-goto-line))
   :demand t
   :ensure t)
 
 (use-package ace-window
-  :config
-  (global-set-key (kbd "C-c o") 'ace-window)
-  (global-set-key (kbd "C-c s") 'ace-swap-window)
-  (global-set-key (kbd "C-c d") 'ace-delete-window)
+  ;; :config
+  ;; (global-set-key (kbd "C-c o") #'ace-window)
+  ;; (global-set-key (kbd "C-c s") #'ace-swap-window)
+  ;; (global-set-key (kbd "C-c d") #'ace-delete-window)
 
+  :bind (("C-c o" . ace-window)
+         ("C-c s" . ace-swap-window)
+         ("C-c d" . ace-delete-window))
   :demand t
   :ensure t)
 
@@ -1322,17 +1342,21 @@ Also sets SYMBOL to VALUE."
   (define-key undo-tree-map (kbd "C-S-z") #'undo-tree-redo)
   (define-key undo-tree-map (kbd "C-M-z") #'undo-tree-visualize)
 
+  :defer t
   :ensure t)
 
 (use-package which-key
-  :init
-  (setq which-key-side-window-max-height 15)
-
   :config
   (add-to-list 'rm-blacklist " WK")
 
-  (which-key-mode 1)
+  (run-with-idle-timer
+   1 nil
+   (lambda ()
+     (which-key-mode 1)
+     ;; (setq which-key-side-window-slot 1)
+     (setq which-key-side-window-max-height 15)))
 
+  :demand t
   :ensure t)
 
 ;; -------------------------------------------------------------------
@@ -1952,7 +1976,7 @@ fields which we need."
 ;; /b/} == flycheck ==
 
 ;; -------------------------------------------------------------------
-;;; Autocompletion and IntelliSense Tools
+;;; Auto-completion and Auto-text Tools
 ;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
@@ -1962,6 +1986,7 @@ fields which we need."
 ;; /b/{ == compile ==
 
 (use-package compile
+  :delight (compilation-mode " ε")
   :init
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*")
@@ -2015,6 +2040,9 @@ fields which we need."
 
   (setq linum-format (concat "%" (number-to-string 4) "d"
                              rh-linum-right-space))
+  :config
+  (set-face-attribute 'linum nil :weight 'thin)
+
   :demand t
   :ensure t)
 
@@ -2163,6 +2191,20 @@ fields which we need."
         ))))
 
 (use-package magit
+  :config
+  ;; See https://github.com/magit/magit/issues/2541
+  (setq magit-display-buffer-function
+        (lambda (buffer)
+          (display-buffer
+           buffer (if (and (derived-mode-p 'magit-mode)
+                           (memq (with-current-buffer buffer major-mode)
+                                 '(magit-process-mode
+                                   magit-revision-mode
+                                   magit-diff-mode
+                                   magit-stash-mode
+                                   magit-status-mode)))
+                      nil
+                    '(display-buffer-same-window)))))
   :ensure t)
 
 (use-package gud
@@ -2278,6 +2320,9 @@ fields which we need."
 ; https://github.com/ludwigpacifici/modern-cpp-font-lock
 
 (use-package modern-cpp-font-lock
+  :config
+  (add-to-list 'rm-blacklist " mc++fl")
+
   :ensure t)
 
 ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
@@ -3207,6 +3252,7 @@ area."
 
   (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
     (add-hook hook 'elisp-slime-nav-mode))
+
   (define-key elisp-slime-nav-mode-map (kbd "M-[") 'pop-tag-mark)
 
   :after (lisp-mode ielm)
@@ -4143,6 +4189,7 @@ with very limited support for special characters."
 ;; (defvar ido-ubiquitous-debug-mode nil)
 (require 'ido-ubiquitous)
 (ido-ubiquitous-mode 1)
+(setq ido-ubiquitous-max-items 50000)
 
 ;; == smex mode ==
 
