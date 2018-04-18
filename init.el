@@ -778,15 +778,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
 
-(when (display-graphic-p)
-  ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-  ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
-  ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
-  (set-face-attribute 'default nil
-                      :family "Hack"
-                      :height 105
-                      :width 'semi-condensed
-                      :weight 'normal))
+;; (when (display-graphic-p)
+;;   ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+;;   ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+;;   ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
+;;   (set-face-attribute 'default nil
+;;                       :family "Hack"
+;;                       :height 105
+;;                       :width 'semi-condensed
+;;                       :weight 'normal))
 
 (setq load-prefer-newer t)
 (add-to-list 'load-path vr-user-lisp-directory-path)
