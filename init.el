@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -110,17 +110,15 @@
     (setq vr-ido-last-file-path
           (concat vr-user-data "emacs/ido-last"))
     ;; Paths for the site-start.el files, located in /usr/local/share/emacs/
-    ;; which can be maintained by users who are members of group "staff"
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
           (ver-file-path (concat "/usr/local/share/emacs/"
                                  vr-emacs-version-string
                                  "/site-lisp/site-start.el")))
       (progn
-       (if (file-exists-p file-path)
-           (add-to-list 'vr-site-start-file-paths file-path))
-       (if (file-exists-p ver-file-path)
-
-           (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
+       (when (file-exists-p file-path)
+         (add-to-list 'vr-site-start-file-paths file-path))
+       (when (file-exists-p ver-file-path)
+         (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
 
 (setq vr-smex-save-file
       (concat user-emacs-directory "smex-items"))
@@ -128,12 +126,6 @@
       (concat user-emacs-directory "lisp/"))
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
-
-;; ------------------------------------------------------------------
-;;; Load Emacs secret variables
-;; ------------------------------------------------------------------
-
-(load "~/.emacs.d/secret.el" t)
 
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
@@ -778,15 +770,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
 
-;; (when (display-graphic-p)
-;;   ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-;;   ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
-;;   ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
-;;   (set-face-attribute 'default nil
-;;                       :family "Hack"
-;;                       :height 105
-;;                       :width 'semi-condensed
-;;                       :weight 'normal))
+;; (use-package unicode-fonts
+;;   :config
+;;   (unicode-fonts-setup)
+
+;;   :ensure t)
+
+(use-package emacs
+  :config
+  (when (display-graphic-p)
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+    ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
+    (set-face-attribute 'default nil
+                        :family "Hack"
+                        :height 105
+                        :width 'semi-condensed
+                        :weight 'normal))
+
+  (load "~/.emacs.d/secret.el" t))
 
 (setq load-prefer-newer t)
 (add-to-list 'load-path vr-user-lisp-directory-path)
@@ -1146,18 +1148,6 @@ Also sets SYMBOL to VALUE."
 ;;; Text Editor
 ;; -------------------------------------------------------------------
 
-;; /b/{ == unicode-fonts ==
-
-;; see https://emacs.stackexchange.com/questions/251/line-height-with-unicode-characters
-;; Disabled due to very long startup time (> 30 sec)
-;; (use-package unicode-fonts
-;;   :config
-;;   (unicode-fonts-setup)
-
-;;   :ensure t)
-
-;; /b/} == unicode-fonts ==
-
 ;; == Basic Functionality ==
 
 (setq undo-limit (* 1024 1024))
@@ -1347,7 +1337,11 @@ Also sets SYMBOL to VALUE."
 
 (use-package which-key
   :config
+  (setq which-key-show-prefix 'mode-line)
   (add-to-list 'rm-blacklist " WK")
+
+  ;; This conflicts with which-key "C-h" popup
+  (global-unset-key (kbd "C-h C-h"))
 
   (run-with-idle-timer
    1 nil
