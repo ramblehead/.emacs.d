@@ -1013,6 +1013,8 @@ Also sets SYMBOL to VALUE."
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
   (setq sml/size-indication-format "%I")
+  (setq sml/shorten-mode-string "")
+  (setq sml/shorten-modes nil)
 
   (setq rh-sml/position-percentage-format sml/position-percentage-format)
   (setq sml/position-percentage-format nil)
@@ -1704,7 +1706,7 @@ fields which we need."
   :ensure t)
 
 (use-package auto-complete
-  :delight (auto-complete-mode " A")
+  ;; :delight (auto-complete-mode " A")
   :config
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
@@ -1800,7 +1802,7 @@ fields which we need."
   (defvar rh-company-display-permanent-doc-buffer nil)
 
   :config
-  (setq company-lighter-base "C")
+  (setq company-lighter-base "CA")
 
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
@@ -3084,6 +3086,41 @@ continuing (not first) item"
   ;; Use major mode highlighter to indicate interactive minor modes
   (add-to-list 'rm-blacklist " js-interaction")
 
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*node process*"
+  ;;                (display-buffer-below-selected)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
+  (add-to-list 'display-buffer-alist
+               '("*node process*"
+                 (display-buffer-use-some-window
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)))
+
+  (defun indium-run-node (command)
+    "Start a NodeJS process.
+
+Execute COMMAND, adding the `--inspect' flag.  When the process
+is ready, open an Indium connection on it.
+
+If `indium-nodejs-inspect-brk' is set to non-nil, break the
+execution at the first statement.
+
+If a connection is already open, close it."
+    (interactive (list (read-shell-command "Node command: "
+                                           (or (car indium-nodejs-commands-history) "node ")
+                                           'indium-nodejs-commands-history)))
+    (indium-maybe-quit)
+    (unless indium-current-connection
+      (let ((process (make-process :name "indium-nodejs-process"
+				   :buffer "*node process*"
+				   :filter #'indium-nodejs--process-filter
+				   :command (list shell-file-name
+						  shell-command-switch
+						  (indium-nodejs--add-flags command)))))
+        (select-window (display-buffer (process-buffer process))))))
+
   (defun rh-indium-eval-print-region (start end)
     "Evaluate the region between START and END; and print result below region."
     (interactive "r")
@@ -3116,16 +3153,7 @@ area."
   (defun rh-indium-interaction-and-run ()
     (interactive)
     (indium-interaction-mode 1)
-    (split-window)
-    (other-window 1)
     (indium-run-node "node"))
-  ;; (defun rh-indium-interaction-and-run ()
-  ;;   (interactive)
-  ;;   (let ((buf (current-buffer)))
-  ;;     (indium-interaction-mode 1)
-  ;;     (indium-run-node "node ")
-  ;;     (split-window)
-  ;;     (set-window-buffer (current-window) buf)))
 
   (add-hook
    'indium-interaction-mode-hook
