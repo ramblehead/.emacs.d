@@ -882,13 +882,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   :ensure t)
 
 (use-package rich-minority
-  ;; :config
-  ;; ;; JavaScript minor modes
-  ;; (add-to-list 'rm-blacklist " js-interaction")
-
-  ;; ;; C++ minor modes
-  ;; (add-to-list 'rm-blacklist " mc++fl")
-
   :demand t
   :ensure t)
 
@@ -1980,7 +1973,6 @@ fields which we need."
 ;; /b/{ == compile ==
 
 (use-package compile
-  :delight (compilation-mode " ε")
   :init
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*")
@@ -1991,6 +1983,8 @@ fields which we need."
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
   :config
+  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+
   (define-key compilation-mode-map (kbd "q") #'g2w-quit-window))
 
 ;; /b/} == compile ==
@@ -2865,7 +2859,10 @@ continuing (not first) item"
 ;; /b/{ == js-mode ==
 
 (use-package js
-  ;; :mode ("\\.js\\'" . js-mode)
+  :mode ("\\.js\\'" . js-mode)
+  :delight '((:eval (if (bound-and-true-p indium-interaction-mode) "jsλi" "js"))
+             :major)
+
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2878,7 +2875,6 @@ continuing (not first) item"
      ;; Indium-mode keeps enabling/disabling it in REPL
      ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
      (when (not (equal "*indium-fontification*" (buffer-name)))
-       (setq mode-name "js")
        (vr-programming-minor-modes 1)
        (rh-project-setup)
 
@@ -3084,14 +3080,9 @@ continuing (not first) item"
 ;; /b/{ == indium ==
 
 (use-package indium
-  :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*JS REPL*"
-  ;;                (display-buffer-below-selected)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
   :config
+  ;; Use major mode highlighter to indicate interactive minor modes
+  (add-to-list 'rm-blacklist " js-interaction")
 
   (defun rh-indium-eval-print-region (start end)
     "Evaluate the region between START and END; and print result below region."
