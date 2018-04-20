@@ -801,8 +801,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 ;; (setq split-height-threshold nil)
 ;; (setq split-width-threshold nil)
-(setq split-height-threshold 20)
-(setq split-width-threshold 90)
+;; (setq split-height-threshold 20)
+;; (setq split-width-threshold 90)
 
 ;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
 (setq save-place-file vr-saved-places-file-path)
@@ -3098,28 +3098,28 @@ continuing (not first) item"
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
 
-  (defun indium-run-node (command)
-    "Start a NodeJS process.
+;;   (defun indium-run-node (command)
+;;     "Start a NodeJS process.
 
-Execute COMMAND, adding the `--inspect' flag.  When the process
-is ready, open an Indium connection on it.
+;; Execute COMMAND, adding the `--inspect' flag.  When the process
+;; is ready, open an Indium connection on it.
 
-If `indium-nodejs-inspect-brk' is set to non-nil, break the
-execution at the first statement.
+;; If `indium-nodejs-inspect-brk' is set to non-nil, break the
+;; execution at the first statement.
 
-If a connection is already open, close it."
-    (interactive (list (read-shell-command "Node command: "
-                                           (or (car indium-nodejs-commands-history) "node ")
-                                           'indium-nodejs-commands-history)))
-    (indium-maybe-quit)
-    (unless indium-current-connection
-      (let ((process (make-process :name "indium-nodejs-process"
-				   :buffer "*node process*"
-				   :filter #'indium-nodejs--process-filter
-				   :command (list shell-file-name
-						  shell-command-switch
-						  (indium-nodejs--add-flags command)))))
-        (select-window (display-buffer (process-buffer process))))))
+;; If a connection is already open, close it."
+;;     (interactive (list (read-shell-command "Node command: "
+;;                                            (or (car indium-nodejs-commands-history) "node ")
+;;                                            'indium-nodejs-commands-history)))
+;;     (indium-maybe-quit)
+;;     (unless indium-current-connection
+;;       (let ((process (make-process :name "indium-nodejs-process"
+;; 				   :buffer "*node process*"
+;; 				   :filter #'indium-nodejs--process-filter
+;; 				   :command (list shell-file-name
+;; 						  shell-command-switch
+;; 						  (indium-nodejs--add-flags command)))))
+;;         (select-window (display-buffer (process-buffer process))))))
 
   (defun rh-indium-eval-print-region (start end)
     "Evaluate the region between START and END; and print result below region."
@@ -3153,6 +3153,8 @@ area."
   (defun rh-indium-interaction-and-run ()
     (interactive)
     (indium-interaction-mode 1)
+    (select-window (display-buffer
+                    (temp-buffer-window-setup "*node process*")))
     (indium-run-node "node"))
 
   (add-hook
