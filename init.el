@@ -2475,6 +2475,11 @@ fields which we need."
   (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
   (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
 
+  (add-hook
+   'rtags-references-tree-mode-hook
+   (lambda ()
+     (set (make-local-variable 'truncate-lines) t)))
+
   :pin manual)
 
 ;; see https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
