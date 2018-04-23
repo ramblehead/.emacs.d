@@ -1345,6 +1345,7 @@ Also sets SYMBOL to VALUE."
      ;; (setq which-key-side-window-slot 1)
      (setq which-key-side-window-max-height 15)))
 
+  :bind ("<f1>" . which-key-show-top-level)
   :demand t
   :ensure t)
 
@@ -1866,6 +1867,8 @@ fields which we need."
   (define-key company-active-map (kbd "<return>")
     (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
   (define-key company-active-map (kbd "<kp-return>")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+  (define-key company-active-map (kbd "<kp-enter>")
     (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
 
   (define-key company-active-map (kbd "C-s")
@@ -3082,6 +3085,7 @@ continuing (not first) item"
 ;; /b/{ == indium ==
 
 (use-package indium
+  :commands rh-indium-interaction-and-run
   :config
   ;; Use major mode highlighter to indicate interactive minor modes
   (add-to-list 'rm-blacklist " js-interaction")
@@ -3091,6 +3095,11 @@ continuing (not first) item"
   ;;                (display-buffer-below-selected)
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 0.3)))
+
+  (add-to-list 'display-buffer-alist
+               '("*JS Inspector*"
+                 (display-buffer-reuse-mode-window
+                  display-buffer-below-selected)))
 
   (add-to-list 'display-buffer-alist
                '("*node process*"
@@ -3157,20 +3166,28 @@ area."
                     (temp-buffer-window-setup "*node process*")))
     (indium-run-node "node"))
 
-  (add-hook
-   'indium-interaction-mode-hook
-   (lambda ()
-     (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
-     (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
+  ;; (add-hook
+  ;;  'indium-interaction-mode-hook
+  ;;  (lambda ()
+  ;;    (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
+  ;;    (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
 
-  (add-hook
-   'indium-repl-mode-hook
-   (lambda ()
-     (define-key indium-repl-mode-map (kbd "C-<kp-up>")
-       #'indium-repl-previous-input)
-     (define-key indium-repl-mode-map (kbd "C-<kp-down>")
-       #'indium-repl-next-input)))
+  ;; (add-hook
+  ;;  'indium-repl-mode-hook
+  ;;  (lambda ()
+  ;;    (define-key indium-repl-mode-map (kbd "C-<kp-up>")
+  ;;      #'indium-repl-previous-input)
+  ;;    (define-key indium-repl-mode-map (kbd "C-<kp-down>")
+  ;;      #'indium-repl-next-input)))
 
+  :bind (:map indium-inspector-mode-map
+         ("<backspace>" . indium-inspector-pop)
+         :map indium-repl-mode-map
+         ("C-<kp-up>" . indium-repl-previous-input)
+         ("C-<kp-down>" . indium-repl-next-input)
+         :map indium-interaction-mode-hook
+         ("<f5>" . rh-indium-eval-region)
+         ("M-<f5>" . rh-indium-eval-print-region))
   :ensure t)
 
 ;; /b/} == indium ==
