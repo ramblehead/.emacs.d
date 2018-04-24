@@ -2869,8 +2869,10 @@ continuing (not first) item"
 ;; /b/{ == js-mode ==
 
 (use-package js
-  :mode ("\\.js\\'" . js-mode)
-  :delight '((:eval (if (bound-and-true-p indium-interaction-mode) "jsλi" "js"))
+  ;; :mode ("\\.js\\'" . js-mode)
+  :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
+                        "jsλi"
+                      "js"))
              :major)
 
   :config
@@ -2887,7 +2889,6 @@ continuing (not first) item"
      (when (not (equal "*indium-fontification*" (buffer-name)))
        (vr-programming-minor-modes 1)
        (rh-project-setup)
-
        (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))))
 
 ;; /b/} == js-mode ==
@@ -2909,8 +2910,12 @@ continuing (not first) item"
 ;; (ad-activate 'js2-enter-key)
 
 (use-package js2-mode
-  :disabled t
   :mode "\\.js\\'"
+  :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
+                        "js2λi"
+                      "js2"))
+             :major)
+
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2952,7 +2957,6 @@ continuing (not first) item"
   (add-hook
    'js2-mode-hook
    (lambda ()
-     (setq mode-name "js2")
      (vr-programming-minor-modes 1)
      (rh-project-setup)
      (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)
