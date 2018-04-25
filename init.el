@@ -1331,8 +1331,18 @@ Also sets SYMBOL to VALUE."
   :ensure t)
 
 (use-package which-key
+  :init
+  (setq which-key-is-verbose t)
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `(,(g2w-condition "*compilation*")
+  ;;                ,(g2w-display #'display-buffer-in-side-window)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
   :config
   (setq which-key-show-prefix 'mode-line)
+  (setq which-key-max-description-length 35)
+  ;; (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
 
   ;; This conflicts with which-key "C-h" popup
