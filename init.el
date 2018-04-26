@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -162,6 +162,9 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+(use-package use-package-ensure-system-package
+  :ensure t)
+
 (use-package paradox
   :config
   (setq paradox-automatically-star nil)
@@ -208,7 +211,7 @@
         (when (string-match regexp str)
           (throw 'done t))))))
 
-(cl-defun vr-toggle-display (buffer-name &optional (dedicated nil))
+(cl-defun rh-toggle-display (buffer-name &optional (dedicated nil))
   (let* ((buffer (get-buffer buffer-name))
          (buffer-window (get-buffer-window buffer-name)))
     (if buffer
@@ -1119,23 +1122,15 @@ Also sets SYMBOL to VALUE."
     ad-do-it
     (font-lock-flush))
 
-  ;; (global-set-key (kbd "<f7>") #'avy-goto-subword-1)
-  ;; (global-set-key (kbd "S-<f7>") #'avy-goto-line)
-
-  :bind (("<f7>" . avy-goto-subword-1)
-         ("S-<f7>" . avy-goto-line))
+  :bind (("C-c a w" . avy-goto-subword-1)
+         ("C-c a l" . avy-goto-line))
   :demand t
   :ensure t)
 
 (use-package ace-window
-  ;; :config
-  ;; (global-set-key (kbd "C-c o") #'ace-window)
-  ;; (global-set-key (kbd "C-c s") #'ace-swap-window)
-  ;; (global-set-key (kbd "C-c d") #'ace-delete-window)
-
-  :bind (("C-c o" . ace-window)
-         ("C-c s" . ace-swap-window)
-         ("C-c d" . ace-delete-window))
+  :bind (("C-c a o" . ace-window)
+         ("C-c a s" . ace-swap-window)
+         ("C-c a d" . ace-delete-window))
   :demand t
   :ensure t)
 
@@ -1332,21 +1327,24 @@ Also sets SYMBOL to VALUE."
 
 (use-package which-key
   :init
+  ;; (setq echo-keystrokes 0)
   (setq which-key-is-verbose t)
+  (setq which-key-enable-extended-define-key t)
+
   ;; (add-to-list 'display-buffer-alist
   ;;              `(,(g2w-condition "*compilation*")
   ;;                ,(g2w-display #'display-buffer-in-side-window)
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 15)))
 
+  ;; This conflicts with which-key "C-h" popup
+  (global-unset-key (kbd "C-h C-h"))
+
   :config
-  (setq which-key-show-prefix 'mode-line)
+  ;; (setq which-key-show-prefix 'mode-line)
   (setq which-key-max-description-length 35)
   ;; (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
-
-  ;; This conflicts with which-key "C-h" popup
-  (global-unset-key (kbd "C-h C-h"))
 
   (run-with-idle-timer
    1 nil
@@ -2156,7 +2154,7 @@ fields which we need."
         (setq show (not (eq value -1))))
       (setq show-paren-mode show))))
 
-(cl-defun vr-programming-minor-modes (&optional (enable nil enable-supplied-p))
+(cl-defun rh-programming-minor-modes (&optional (enable nil enable-supplied-p))
   "Enables some minor modes, useful for programming."
   (interactive)
   (let* ((toggle (not enable-supplied-p))
@@ -2316,19 +2314,11 @@ fields which we need."
 
 ;; /b/{ == C++ ==
 
-;; (use-package cc-mode
-;;   :load-path "/home/ramblehead/cc-mode"
-;;   :pin manual)
-
-; https://github.com/ludwigpacifici/modern-cpp-font-lock
-
 (use-package modern-cpp-font-lock
   :config
   (add-to-list 'rm-blacklist " mc++fl")
 
   :ensure t)
-
-;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
 (setq vr-c++std "-std=c++1z")
 
@@ -2362,7 +2352,7 @@ fields which we need."
 
 (defun vr-c++-compilation-toggle-display ()
   (interactive)
-  (vr-toggle-display "*compilation*"))
+  (rh-toggle-display "*compilation*"))
 
 (defun vr-c++-compilation-setup ()
   (setq compilation-scroll-output t)
@@ -2411,7 +2401,7 @@ fields which we need."
 
 (defun vr-c++-rtags-toggle-rdm-display ()
   (interactive)
-  (vr-toggle-display "*rdm*" t))
+  (rh-toggle-display "*rdm*" t))
 
 (use-package rtags
   :init
@@ -2837,42 +2827,49 @@ continuing (not first) item"
 (defun vr-c++-font-lock-setup ()
   (modern-c++-font-lock-mode 1))
 
-(add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
+;; (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
 
-(add-hook
- 'c++-mode-hook
- (lambda ()
-   ;; For some reason c++-mode-hook is getting executed twice.
-   ;; The following if-condition is preventing the
-   ;; second execution.
-   ;; (message "c++-mode-hook call")
+(use-package cc-mode
+  :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
+  :config
+  (add-hook
+   'c++-mode-hook
+   (lambda ()
+     (message "***** c++-mode-hook call")
 
-   (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
-       (progn
-         (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
-         (vr-programming-minor-modes t)
-         ;; (subword-mode +1)
-         (vr-c++-font-lock-setup)
-         (vr-c++-indentation-setup)
-         (vr-c++-yas-setup)
-         (vr-c++-compilation-setup)
-         (vr-c++-rtags-setup)
-         (vr-c++-ac-setup)
-         (vr-c++-code-folding-setup)
-         ;; (vr-c++-debug-setup)
+     (rh-programming-minor-modes t)
+     (vr-c++-font-lock-setup)
+     (vr-c++-indentation-setup)
+     (vr-c++-yas-setup)
+     (vr-c++-compilation-setup)
+     (vr-c++-rtags-setup)
+     (vr-c++-ac-setup)
+     (vr-c++-code-folding-setup)
 
-         ;; (setq hs-special-modes-alist
-         ;;       (delete '(c-mode "{" "}" "/[*/]" nil nil)
-         ;;               hs-special-modes-alist))
-         ;; (setq hs-special-modes-alist
-         ;;       (delete '(c++-mode "{" "}" "/[*/]" nil nil)
-         ;;               hs-special-modes-alist))
-         ;; (add-to-list 'hs-special-modes-alist
-         ;;              '(c++-mode
-         ;;                "///@{\\|{" "///@}\\|}" "##" nil nil))
+     ;; (local-set-key (kbd "C-S-b") 'recompile)
 
-         ;; Build Solution - just like MSVS ;)
-         (local-set-key (kbd "C-S-b") 'recompile)))))
+     ;; ;; For some reason c++-mode-hook is getting executed twice.
+     ;; ;; The following if-condition is preventing the
+     ;; ;; second execution.
+     ;; (message "***** c++-mode-hook call")
+
+     ;; (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
+     ;;     (progn
+     ;;       (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
+     ;;       (rh-programming-minor-modes t)
+     ;;       (vr-c++-font-lock-setup)
+     ;;       (vr-c++-indentation-setup)
+     ;;       (vr-c++-yas-setup)
+     ;;       (vr-c++-compilation-setup)
+     ;;       (vr-c++-rtags-setup)
+     ;;       (vr-c++-ac-setup)
+     ;;       (vr-c++-code-folding-setup)
+     ;;       (local-set-key (kbd "C-S-b") 'recompile)))
+
+     ))
+  :bind (:map c++-mode-map
+         ("C-S-b" . recompile))
+  :defer t)
 
 ;; /b/} == C++ ==
 
@@ -2897,7 +2894,7 @@ continuing (not first) item"
      ;; Indium-mode keeps enabling/disabling it in REPL
      ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
      (when (not (equal "*indium-fontification*" (buffer-name)))
-       (vr-programming-minor-modes 1)
+       (rh-programming-minor-modes 1)
        (rh-project-setup)
        (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))))
 
@@ -2967,7 +2964,7 @@ continuing (not first) item"
   (add-hook
    'js2-mode-hook
    (lambda ()
-     (vr-programming-minor-modes 1)
+     (rh-programming-minor-modes 1)
      (rh-project-setup)
      (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)
 
@@ -3013,12 +3010,13 @@ continuing (not first) item"
    'typescript-mode-hook
    (lambda ()
      (set (make-local-variable 'mode-name) "ts")
-     (vr-programming-minor-modes t)
+     (rh-programming-minor-modes t)
      (rh-project-setup)
 
      (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))
 
   :after indium
+  :defer t
   :ensure t)
 
 ;; /b/} == typescript-mode ==
@@ -3236,7 +3234,7 @@ area."
   (setq css-indent-offset 2)
   (add-hook 'css-mode-hook
             (lambda ()
-              (vr-programming-minor-modes)
+              (rh-programming-minor-modes)
               (skewer-css-mode 1)
               (abbrev-mode -1)
               (yas-minor-mode 1)
@@ -3290,7 +3288,7 @@ area."
   (add-hook
    'emacs-lisp-mode-hook
    (lambda ()
-     (vr-programming-minor-modes 1)
+     (rh-programming-minor-modes 1)
      (eldoc-mode 1)
      (set (make-local-variable 'vr-elisp-mode) t)))
 
@@ -3340,7 +3338,7 @@ area."
   (add-hook
    'python-mode-hook
    (lambda ()
-     (vr-programming-minor-modes))))
+     (rh-programming-minor-modes))))
 
 ;; /b/} == python-mode ==
 
@@ -3396,7 +3394,7 @@ area."
    'nxml-mode-hook
    (lambda ()
      (vr-nxml-code-folding-setup)
-     (vr-programming-minor-modes))))
+     (rh-programming-minor-modes))))
 
 ;; /b/} == nxml-mode ==
 
@@ -3562,7 +3560,7 @@ area."
   (add-hook
    'web-mode-hook
    (lambda ()
-     (vr-programming-minor-modes t)
+     (rh-programming-minor-modes t)
      (auto-complete-mode -1)
      (rh-project-setup)
      ;; (vr-web-ac-setup)
