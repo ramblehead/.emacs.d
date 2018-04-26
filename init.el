@@ -163,6 +163,7 @@
   (package-install 'use-package))
 
 (use-package use-package-ensure-system-package
+  :demand t
   :ensure t)
 
 (use-package paradox
@@ -1343,7 +1344,7 @@ Also sets SYMBOL to VALUE."
   :config
   ;; (setq which-key-show-prefix 'mode-line)
   (setq which-key-max-description-length 35)
-  ;; (setq which-key-show-transient-maps t)
+  (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
 
   (run-with-idle-timer
@@ -2893,10 +2894,10 @@ continuing (not first) item"
    (lambda ()
      ;; Indium-mode keeps enabling/disabling it in REPL
      ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
-     (when (not (equal "*indium-fontification*" (buffer-name)))
+     (unless (or (equal (buffer-name) "*indium-fontification*")
+                 (eq major-mode 'js2-mode))
        (rh-programming-minor-modes 1)
-       (rh-project-setup)
-       (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))))
+       (rh-project-setup)))))
 
 ;; /b/} == js-mode ==
 
@@ -2966,7 +2967,6 @@ continuing (not first) item"
    (lambda ()
      (rh-programming-minor-modes 1)
      (rh-project-setup)
-     (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)
 
      ;; (skewer-mode 1)
      ;; (moz-minor-mode -1)
@@ -3003,19 +3003,18 @@ continuing (not first) item"
 ;; /b/{ == typescript-mode ==
 
 (use-package typescript-mode
+  :delight (typescript-mode "ts")
   :config
   (setq typescript-indent-level 2)
 
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (set (make-local-variable 'mode-name) "ts")
      (rh-programming-minor-modes t)
-     (rh-project-setup)
+     (rh-project-setup)))
 
-     (local-set-key (kbd "<S-f5>") 'rh-indium-interaction-and-run)))
-
-  :after indium
+  ;; :bind (:map typescript-mode-map
+  ;;        ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t
   :ensure t)
 
@@ -3028,7 +3027,7 @@ continuing (not first) item"
   :init
   ;; (setq ac-js2-evaluate-calls t)
 
-  :disabled
+  :disabled t
   :ensure t)
 
 ;; /b/} == ac-js2 ==
@@ -3102,7 +3101,6 @@ continuing (not first) item"
 ;; /b/{ == indium ==
 
 (use-package indium
-  :commands rh-indium-interaction-and-run
   :config
   ;; Use major mode highlighter to indicate interactive minor modes
   (add-to-list 'rm-blacklist " js-interaction")
@@ -3205,6 +3203,7 @@ area."
          :map indium-interaction-mode-hook
          ("<f5>" . rh-indium-eval-region)
          ("M-<f5>" . rh-indium-eval-print-region))
+  :defer t
   :ensure t)
 
 ;; /b/} == indium ==
@@ -3711,6 +3710,11 @@ area."
 ;; /b/} == xref-js2 ==
 
 ;; /b/{ == JavaScript Environments Setup ==
+
+(defun rh-indium-setup ()
+  (interactive)
+  (require 'indium)
+  (local-set-key (kbd "S-<f5>") #'rh-indium-interaction-and-run))
 
 (defun rh-typescript-setup ()
   (interactive)
