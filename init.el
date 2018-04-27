@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el total-lines flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -774,14 +774,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
 
-;; (use-package unicode-fonts
-;;   :config
-;;   (unicode-fonts-setup)
-
-;;   :ensure t)
-
 (use-package emacs
   :config
+  (add-to-list 'display-buffer-alist
+               `("*Warnings*"
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (side . bottom)
+                 (slot . 0)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
   (when (display-graphic-p)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
     ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
@@ -1092,23 +1094,16 @@ Also sets SYMBOL to VALUE."
 
   :defer t)
 
-(add-to-list 'display-buffer-alist
-             `("*Warnings*"
-               ,(g2w-display #'display-buffer-in-side-window t)
-               (side . bottom)
-               (slot . 0)
-               (inhibit-same-window . t)
-               (window-height . 15)))
-
 (use-package bind-key
   :config
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*Personal Keybindings*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `(,(g2w-condition "*Personal Keybindings*")
+  ;;                ,(g2w-display #'display-buffer-in-side-window t)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
 
-  :ensure)
+  :demand t
+  :ensure t)
 
 (use-package autorevert
   :config
@@ -1987,7 +1982,9 @@ fields which we need."
 ;; /b/{ == compile ==
 
 (use-package compile
-  :init
+  :config
+  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*")
                  ,(g2w-display #'display-buffer-in-side-window)
@@ -1996,10 +1993,13 @@ fields which we need."
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
-  :config
-  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  (defun rh-compile-toggle-display ()
+    (interactive)
+    (rh-toggle-display "*compilation*"))
 
-  (define-key compilation-mode-map (kbd "q") #'g2w-quit-window))
+  :bind (:map compilation-mode-map
+         ("q" . g2w-quit-window))
+  :defer)
 
 ;; /b/} == compile ==
 
@@ -2319,13 +2319,14 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " mc++fl")
 
+  :defer t
   :ensure t)
 
 (setq vr-c++std "-std=c++1z")
 
 ;; TODO: Use rtags or .project to get current compiler
 ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
-(defun vr-get-g++-isystem-path ()
+(defun rh-get-g++-isystem-path ()
   (let* ((command-result (shell-command-to-string
                           "echo \"\" | g++ -v -x c++ -E -"))
          (start-string "#include <...> search starts here:\n")
@@ -2337,7 +2338,7 @@ fields which we need."
                                     end-pos)))
     (split-string include-string)))
 
-(defun vr-c++-get-project-include-path ()
+(defun rh-c++-get-project-include-path ()
   (let* ((project-path (rh-project-get-path))
          (src-tree-root (concat project-path "../"))
          (c++-include-path (concat project-path "c++-include-path")))
@@ -2351,22 +2352,7 @@ fields which we need."
                    (regexp-quote "../") src-tree-root item nil 'literal))
                 (split-string (buffer-string)))))))
 
-(defun vr-c++-compilation-toggle-display ()
-  (interactive)
-  (rh-toggle-display "*compilation*"))
-
-(defun vr-c++-compilation-setup ()
-  (setq compilation-scroll-output t)
-  (let ((path (rh-project-get-path)))
-    (if path
-        (progn
-          (set (make-local-variable 'compile-command)
-               (concat path "make -k"))
-          (message (concat "vr-project: " path))))
-    (define-key c-mode-base-map (kbd "C-c b")
-      'vr-c++-compilation-toggle-display)))
-
-(cl-defun vr-c++-header-line (&optional
+(cl-defun rh-c++-header-line (&optional
                               (header-line-trim-indicator "›")
                               (header-line-beginning-indicator " "))
   (when (not (local-variable-p 'rh-window-current-container-alist))
@@ -2400,12 +2386,8 @@ fields which we need."
                'mode-line
              'mode-line-inactive))))
 
-(defun vr-c++-rtags-toggle-rdm-display ()
-  (interactive)
-  (rh-toggle-display "*rdm*" t))
-
 (use-package rtags
-  :init
+  :config
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
@@ -2438,7 +2420,10 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 6)))
 
-  :config
+  (defun rh-c++-rtags-toggle-rdm-display ()
+    (interactive)
+    (rh-toggle-display "*rdm*" t))
+
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'
   ;; (setq rtags-process-flags "-M")
@@ -2463,7 +2448,7 @@ fields which we need."
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
-  (define-key c-mode-base-map (kbd "C-c r d") 'vr-c++-rtags-toggle-rdm-display)
+  (define-key c-mode-base-map (kbd "C-c r d") 'rh-c++-rtags-toggle-rdm-display)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
 
@@ -2487,7 +2472,7 @@ fields which we need."
   :pin manual)
 
 ;; see https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
-(defun vr-c++-rtags-setup ()
+(defun rh-c++-rtags-setup ()
   (require 'rtags)
 
   (rtags-start-process-unless-running)
@@ -2504,22 +2489,22 @@ fields which we need."
    'find-file-hook
    (lambda ()
      (set (make-local-variable 'header-line-format)
-          '(:eval (vr-c++-header-line))))
+          '(:eval (rh-c++-header-line))))
    nil t))
 
-(defun vr-c++-auto-complete-clang ()
+(defun rh-c++-auto-complete-clang ()
   (interactive)
   (message "auto-completing with clang...")
   (auto-complete (append '(ac-source-clang) ac-sources)))
 
 ;; TODO: make all auto-complete settings buffer local
-(defun vr-c++-ac-setup ()
+(defun rh-c++-ac-setup ()
   ;; see https://github.com/mooz/auto-complete-c-headers
   (require 'auto-complete-c-headers)
   ;; #include auto-completion search paths
   (set (make-local-variable 'achead:include-directories)
-       (append (vr-c++-get-project-include-path)
-               (vr-get-g++-isystem-path)
+       (append (rh-c++-get-project-include-path)
+               (rh-get-g++-isystem-path)
                achead:include-directories))
 
   ;; 'rtags-ac' is not as polished as 'auto-complete-clang',
@@ -2536,9 +2521,9 @@ fields which we need."
   (set (make-local-variable 'ac-clang-flags)
        (append `(,vr-c++std)
                (mapcar (lambda (item) (concat "-I" item))
-                       (vr-c++-get-project-include-path))
+                       (rh-c++-get-project-include-path))
                (mapcar (lambda (item) (concat "-isystem" item))
-                       (vr-get-g++-isystem-path))))
+                       (rh-get-g++-isystem-path))))
 
   (set (make-local-variable 'ac-sources)
        (append '(ac-source-c-headers
@@ -2546,7 +2531,7 @@ fields which we need."
                  ;; whether it is 'c-source-clang' or 'ac-source-rtags',
                  ;; therefore it is only activated on 'C-x C-<tab>' (see key
                  ;; definitions below in this function) in
-                 ;; 'vr-c++-auto-complete-clang' function.
+                 ;; 'rh-c++-auto-complete-clang' function.
                  ;; ac-source-clang
                  ;; ac-source-rtags
                  )
@@ -2566,10 +2551,10 @@ fields which we need."
     (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
 
   ;; <C-iso-lefttab> is C-S-<tab>
-  (define-key ac-completing-map (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang)
-  (local-set-key (kbd "C-x C-<tab>") 'vr-c++-auto-complete-clang))
+  (define-key ac-completing-map (kbd "C-x C-<tab>") 'rh-c++-auto-complete-clang)
+  (local-set-key (kbd "C-x C-<tab>") 'rh-c++-auto-complete-clang))
 
-(defun vr-c++-forward-list ()
+(defun rh-c++-forward-list ()
   (interactive)
   (if (cg-looking-at-any-group-head)
       ;; (unwind-protect
@@ -2582,116 +2567,17 @@ fields which we need."
       (cg-search-forward-group-balanced-tail)
     (forward-list)))
 
-(defun vr-c++-backward-list ()
+(defun rh-c++-backward-list ()
   (interactive)
   (if (cg-looking-at-any-group-tail)
       (cg-search-backward-group-balanced-head)
     (backward-list)))
 
-(defun vr-c++-code-folding-setup ()
+(defun rh-c++-code-folding-setup ()
   (hs-minor-mode 1)
   (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-  (local-set-key (kbd "C-M-n") 'vr-c++-forward-list)
-  (local-set-key (kbd "C-M-p") 'vr-c++-backward-list))
-
-(defun vr-c++-yas-setup ()
-  ;; Use yast instead of abbrev-mode
-  (abbrev-mode -1)
-  (let* ((project-path (rh-project-get-path))
-         (snippets-path (concat project-path "snippets")))
-    (if (and project-path (file-exists-p snippets-path))
-        (if (not (equal yas-snippet-dirs
-                        (add-to-list 'yas-snippet-dirs snippets-path)))
-            (yas-reload-all))))
-  (yas-minor-mode 1))
-
-(defun vr-c++-looking-at-lambda_as_param (langelem)
-  "Return t if text after point matches '[...](' or '[...]{'"
-  (looking-at ".*[,(][ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
-
-(defun vr-c++-looking-at-lambda_in_uniform_init (langelem)
-  "Return t if text after point matches '{[...](' or '{[...]{'"
-  (looking-at ".*{[ \t]*\\[[^]]*\\][ \t]*[({][^}]*?[ \t]*[({][^}]*?$"))
-
-(defun vr-c++-looking-at-guess-macro-definition (langelem)
-  "Return t if the guess is that we are looking at macro definition"
-  (let ((case-fold-search nil))
-    (or (looking-at "\\b[A-Z0-9_]+(.*)[ \t]*$")
-        (looking-at "\\b[A-Z0-9_]+[ \t]*$"))))
-
-(defun vr-c++-looking-at-return (langelem)
-  "Return t if looking at return statement"
-  (looking-at "return"))
-
-(defun vr-c++-get-offset-return (langelem)
-  "Returns offset for the next line after sptit return"
-  (ignore-errors
-    (save-excursion
-      (goto-char (c-langelem-pos langelem))
-      (save-match-data
-        (let ((line (thing-at-point 'line t)))
-          (if (string-match "\\(return[[:space:]]+\\)[^[:space:]]+.*\n" line)
-              ;; `(add ,(length (match-string 1 line)) +)
-
-              ;; e.g.
-              ;; return glowplugMeasurement > glowplugMin &&
-              ;;        glowplugMeasurement < glowplugMax;
-              (length (match-string 1 line))
-
-            '+))))))
-
-(defun vr-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
-  "Return t if cursor if looking at C++11 uniform init block T v {xxx}
-closing brace"
-  (back-to-indentation)
-  (looking-at "}"))
-
-(defun vr-c++-looking-at-uniform_init_block_cont_item (langelem)
-  "Return t if cursor if looking at C++11 uniform init block
-continuing (not first) item"
-  (back-to-indentation)
-  (c-backward-syntactic-ws)
-  (looking-back ","))
-
-(defun vr-c++-looking-at-class_in_namespace (langelem)
-  "Return t if looking at topmost-intro class in namespace"
-  (back-to-indentation)
-  (let* ((c-parsing-error nil)
-         (syntax (c-save-buffer-state nil
-                   (c-guess-basic-syntax))))
-    (and (equal (car (nth 0 syntax)) 'innamespace)
-         (equal (car (nth 1 syntax)) 'topmost-intro)
-         (looking-at "class"))))
-
-(defun vr-c++-looking-at-template (langelem)
-  "Return t if looking at class template"
-  (if (looking-at "template") t nil))
-
-(defun vr-c++-indentation-examine (langelem looking-at-p)
-  (and (equal major-mode 'c++-mode)
-       (ignore-errors
-         (save-excursion
-           (when langelem
-             (goto-char (c-langelem-pos langelem)))
-           (funcall looking-at-p langelem)))))
-
-;; Adapted from google-c-lineup-expression-plus-4
-(defun vr-c++-lineup-expression-plus-tab-width (langelem)
-  (save-excursion
-    (back-to-indentation)
-    ;; Go to beginning of *previous* line:
-    (c-backward-syntactic-ws)
-    (back-to-indentation)
-    (cond
-     ;; We are making a reasonable assumption that if there is a control
-     ;; structure to indent past, it has to be at the beginning of the line.
-     ((looking-at "\\(\\(if\\|for\\|while\\)\\s *(\\)")
-      (goto-char (match-end 1)))
-     ;; For constructor initializer lists, the reference point for line-up is
-     ;; the token after the initial colon.
-     ((looking-at ":\\s *")
-      (goto-char (match-end 0))))
-    (vector (+ tab-width (current-column)))))
+  (local-set-key (kbd "C-M-n") 'rh-c++-forward-list)
+  (local-set-key (kbd "C-M-p") 'rh-c++-backward-list))
 
 (use-package clang-format
   :load-path "/usr/share/emacs/site-lisp/clang-format-5.0"
@@ -2700,176 +2586,255 @@ continuing (not first) item"
 (use-package google-c-style
   :ensure t)
 
-(defun vr-c++-indentation-setup ()
-  (setq tab-width 2)
-  (require 'google-c-style)
-  (google-set-c-style)
-
-  ;; (c-set-offset 'statement-cont '(nil c-lineup-assignments +))
-  (c-set-offset 'arglist-intro 'vr-c++-lineup-expression-plus-tab-width)
-  ;; (c-set-offset 'inher-intro '+)
-  (c-set-offset 'func-decl-cont '+)
-  (c-set-offset 'inher-intro '++)
-  (c-set-offset 'member-init-intro '++)
-
-  (c-set-offset
-   'topmost-intro-cont
-   (lambda (langelem)
-     (cond
-      ((vr-c++-indentation-examine
-        langelem
-        #'vr-c++-looking-at-guess-macro-definition)
-       nil)
-      ((vr-c++-indentation-examine
-        langelem
-        #'vr-c++-looking-at-template)
-       0)
-      (t '+))))
-
-  ;; (c-set-offset 'topmost-intro-cont '+)
-
-  ;; (c-set-offset
-  ;;  'topmost-intro-cont
-  ;;  (lambda (langelem)
-  ;;    (if (vr-c++-indentation-examine
-  ;;         langelem
-  ;;         #'vr-c++-looking-at-guess-macro-definition)
-  ;;        nil
-  ;;      0)))
-
-  ;; (c-set-offset
-  ;;  'topmost-intro-cont
-  ;;  (lambda (langelem)
-  ;;    (message "%s" langelem)
-  ;;    (if (vr-c++-indentation-examine
-  ;;         langelem
-  ;;         #'vr-c++-looking-at-template)
-  ;;        nil
-  ;;      '+)))
-
-  ;; (c-set-offset
-  ;;  'inher-intro
-  ;;  (lambda (langelem)
-  ;;    (if (vr-c++-indentation-examine
-  ;;         langelem
-  ;;         #'vr-c++-looking-at-class_in_namespace)
-  ;;        '++
-  ;;      '++)))
-
-  (c-set-offset
-   'statement-cont
-   (lambda (langelem)
-     (cond
-      ((vr-c++-indentation-examine
-        langelem
-        #'vr-c++-looking-at-return)
-       (vr-c++-get-offset-return langelem))
-      ((vr-c++-indentation-examine
-        nil
-        ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
-        #'vr-c++-looking-at-uniform_init_block_closing_brace_line)
-       '-)
-      ((vr-c++-indentation-examine
-        nil
-        #'vr-c++-looking-at-uniform_init_block_cont_item)
-       0)
-      (t '(nil c-lineup-assignments +)))))
-
-  (c-set-offset
-   'defun-block-intro
-   (lambda (langelem)
-     (let ((syntax (if (boundp 'c-syntactic-context)
-		       c-syntactic-context
-		     (c-save-buffer-state nil
-		       (c-guess-basic-syntax)))))
-       (if (member '(inlambda) syntax)
-           (lambda (langelem)
-             (save-excursion
-               (goto-char (c-langelem-pos langelem))
-               `(add [,(current-column)] +)))
-         '+))))
-
-  (c-set-offset
-   'inline-close
-   (lambda (langelem)
-     (let ((syntax (if (boundp 'c-syntactic-context)
-		       c-syntactic-context
-		     (c-save-buffer-state nil
-		       (c-guess-basic-syntax)))))
-       (if (member '(inlambda) syntax)
-           (lambda (langelem)
-             (save-excursion
-               (goto-char (c-langelem-pos langelem))
-               `[,(current-column)]))
-         nil))))
-
-  ;; (c-set-offset
-  ;;  'statement-block-intro
-  ;;  (lambda (langelem)
-  ;;    (if (vr-c++-indentation-examine
-  ;;         langelem
-  ;;         #'vr-c++-looking-at-lambda_in_uniform_init)
-  ;;        0
-  ;;      '+)))
-
-  ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
-  ;; (defadvice c-lineup-arglist (around
-  ;;                              vr-c++-c-lineup-arglist (_langelem)
-  ;;                              activate)
-  ;;   "Improve indentation of continued C++11 lambda function opened as argument."
-  ;;   (setq ad-return-value
-  ;;         (if (vr-c++-indentation-examine
-  ;;              _langelem
-  ;;              #'vr-c++-looking-at-lambda_as_param)
-  ;;             0
-  ;;           ad-do-it)))
-  )
-
-(defun vr-c++-font-lock-setup ()
-  (modern-c++-font-lock-mode 1))
-
-;; (add-to-list 'auto-mode-alist '("/hpp\\'\\|\\.ipp\\'\\|\\.h\\'" . c++-mode))
-
 (use-package cc-mode
   :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :config
+  (defun rh-c++-yas-setup ()
+    ;; Use yast instead of abbrev-mode
+    (abbrev-mode -1)
+    (let* ((project-path (rh-project-get-path))
+           (snippets-path (concat project-path "snippets")))
+      (if (and project-path (file-exists-p snippets-path))
+          (if (not (equal yas-snippet-dirs
+                          (add-to-list 'yas-snippet-dirs snippets-path)))
+              (yas-reload-all))))
+    (yas-minor-mode 1))
+
+  (defun rh-c++-looking-at-guess-macro-definition (langelem)
+    "Return t if the guess is that we are looking at macro definition"
+    (let ((case-fold-search nil))
+      (or (looking-at "\\b[A-Z0-9_]+(.*)[ \t]*$")
+          (looking-at "\\b[A-Z0-9_]+[ \t]*$"))))
+
+  (defun rh-c++-looking-at-return (langelem)
+    "Return t if looking at return statement"
+    (looking-at "return"))
+
+  (defun rh-c++-get-offset-return (langelem)
+    "Returns offset for the next line after sptit return"
+    (ignore-errors
+      (save-excursion
+        (goto-char (c-langelem-pos langelem))
+        (save-match-data
+          (let ((line (thing-at-point 'line t)))
+            (if (string-match "\\(return[[:space:]]+\\)[^[:space:]]+.*\n" line)
+                ;; `(add ,(length (match-string 1 line)) +)
+
+                ;; e.g.
+                ;; return glowplugMeasurement > glowplugMin &&
+                ;;        glowplugMeasurement < glowplugMax;
+                (length (match-string 1 line))
+
+              '+))))))
+
+  (defun rh-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
+    "Return t if cursor if looking at C++11 uniform init block T v {xxx}
+closing brace"
+    (back-to-indentation)
+    (looking-at "}"))
+
+  (defun rh-c++-looking-at-uniform_init_block_cont_item (langelem)
+    "Return t if cursor if looking at C++11 uniform init block
+continuing (not first) item"
+    (back-to-indentation)
+    (c-backward-syntactic-ws)
+    (looking-back ","))
+
+  (defun rh-c++-looking-at-class_in_namespace (langelem)
+    "Return t if looking at topmost-intro class in namespace"
+    (back-to-indentation)
+    (let* ((c-parsing-error nil)
+           (syntax (c-save-buffer-state nil
+                     (c-guess-basic-syntax))))
+      (and (equal (car (nth 0 syntax)) 'innamespace)
+           (equal (car (nth 1 syntax)) 'topmost-intro)
+           (looking-at "class"))))
+
+  (defun rh-c++-looking-at-template (langelem)
+    "Return t if looking at class template"
+    (if (looking-at "template") t nil))
+
+  (defun rh-c++-indentation-examine (langelem looking-at-p)
+    (and (equal major-mode 'c++-mode)
+         (ignore-errors
+           (save-excursion
+             (when langelem
+               (goto-char (c-langelem-pos langelem)))
+             (funcall looking-at-p langelem)))))
+  ;; Adapted from google-c-lineup-expression-plus-4
+
+  (defun rh-c++-lineup-expression-plus-tab-width (langelem)
+    (save-excursion
+      (back-to-indentation)
+      ;; Go to beginning of *previous* line:
+      (c-backward-syntactic-ws)
+      (back-to-indentation)
+      (cond
+       ;; We are making a reasonable assumption that if there is a control
+       ;; structure to indent past, it has to be at the beginning of the line.
+       ((looking-at "\\(\\(if\\|for\\|while\\)\\s *(\\)")
+        (goto-char (match-end 1)))
+       ;; For constructor initializer lists, the reference point for line-up is
+       ;; the token after the initial colon.
+       ((looking-at ":\\s *")
+        (goto-char (match-end 0))))
+      (vector (+ tab-width (current-column)))))
+
+  (defun rh-c++-indentation-setup ()
+    (setq tab-width 2)
+    (require 'google-c-style)
+    (google-set-c-style)
+
+    ;; (c-set-offset 'statement-cont '(nil c-lineup-assignments +))
+    (c-set-offset 'arglist-intro 'rh-c++-lineup-expression-plus-tab-width)
+    ;; (c-set-offset 'inher-intro '+)
+    (c-set-offset 'func-decl-cont '+)
+    (c-set-offset 'inher-intro '++)
+    (c-set-offset 'member-init-intro '++)
+
+    (c-set-offset
+     'topmost-intro-cont
+     (lambda (langelem)
+       (cond
+        ((rh-c++-indentation-examine
+          langelem
+          #'rh-c++-looking-at-guess-macro-definition)
+         nil)
+        ((rh-c++-indentation-examine
+          langelem
+          #'rh-c++-looking-at-template)
+         0)
+        (t '+))))
+
+    ;; (c-set-offset 'topmost-intro-cont '+)
+
+    ;; (c-set-offset
+    ;;  'topmost-intro-cont
+    ;;  (lambda (langelem)
+    ;;    (if (rh-c++-indentation-examine
+    ;;         langelem
+    ;;         #'rh-c++-looking-at-guess-macro-definition)
+    ;;        nil
+    ;;      0)))
+
+    ;; (c-set-offset
+    ;;  'topmost-intro-cont
+    ;;  (lambda (langelem)
+    ;;    (message "%s" langelem)
+    ;;    (if (rh-c++-indentation-examine
+    ;;         langelem
+    ;;         #'rh-c++-looking-at-template)
+    ;;        nil
+    ;;      '+)))
+
+    ;; (c-set-offset
+    ;;  'inher-intro
+    ;;  (lambda (langelem)
+    ;;    (if (rh-c++-indentation-examine
+    ;;         langelem
+    ;;         #'rh-c++-looking-at-class_in_namespace)
+    ;;        '++
+    ;;      '++)))
+
+    (c-set-offset
+     'statement-cont
+     (lambda (langelem)
+       (cond
+        ((rh-c++-indentation-examine
+          langelem
+          #'rh-c++-looking-at-return)
+         (rh-c++-get-offset-return langelem))
+        ((rh-c++-indentation-examine
+          nil
+          ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
+          #'rh-c++-looking-at-uniform_init_block_closing_brace_line)
+         '-)
+        ((rh-c++-indentation-examine
+          nil
+          #'rh-c++-looking-at-uniform_init_block_cont_item)
+         0)
+        (t '(nil c-lineup-assignments +)))))
+
+    (c-set-offset
+     'defun-block-intro
+     (lambda (langelem)
+       (let ((syntax (if (boundp 'c-syntactic-context)
+		         c-syntactic-context
+		       (c-save-buffer-state nil
+		         (c-guess-basic-syntax)))))
+         (if (member '(inlambda) syntax)
+             (lambda (langelem)
+               (save-excursion
+                 (goto-char (c-langelem-pos langelem))
+                 `(add [,(current-column)] +)))
+           '+))))
+
+    (c-set-offset
+     'inline-close
+     (lambda (langelem)
+       (let ((syntax (if (boundp 'c-syntactic-context)
+		         c-syntactic-context
+		       (c-save-buffer-state nil
+		         (c-guess-basic-syntax)))))
+         (if (member '(inlambda) syntax)
+             (lambda (langelem)
+               (save-excursion
+                 (goto-char (c-langelem-pos langelem))
+                 `[,(current-column)]))
+           nil))))
+
+    ;; (c-set-offset
+    ;;  'statement-block-intro
+    ;;  (lambda (langelem)
+    ;;    (if (rh-c++-indentation-examine
+    ;;         langelem
+    ;;         #'rh-c++-looking-at-lambda_in_uniform_init)
+    ;;        0
+    ;;      '+)))
+
+    ;; see http://stackoverflow.com/questions/23553881/emacs-indenting-of-c11-lambda-functions-cc-mode
+    ;; (defadvice c-lineup-arglist (around
+    ;;                              rh-c++-c-lineup-arglist (_langelem)
+    ;;                              activate)
+    ;;   "Improve indentation of continued C++11 lambda function opened as argument."
+    ;;   (setq ad-return-value
+    ;;         (if (rh-c++-indentation-examine
+    ;;              _langelem
+    ;;              #'rh-c++-looking-at-lambda_as_param)
+    ;;             0
+    ;;           ad-do-it)))
+    )
+
+  (defun rh-c++-compile-setup ()
+    (require 'compile)
+    (setq compilation-scroll-output t)
+    (let ((path (rh-project-get-path)))
+      (when path
+        (set (make-local-variable 'compile-command)
+             (concat path "make -k"))
+        (message (concat "vr-project: " path)))))
+
+  (defun rh-c++-compile-setup ()
+    (require 'modern-cpp-font-lock)
+    (modern-c++-font-lock-mode 1))
+
   (add-hook
    'c++-mode-hook
    (lambda ()
-     (message "***** c++-mode-hook call")
-
      (rh-programming-minor-modes t)
-     (vr-c++-font-lock-setup)
-     (vr-c++-indentation-setup)
-     (vr-c++-yas-setup)
-     (vr-c++-compilation-setup)
-     (vr-c++-rtags-setup)
-     (vr-c++-ac-setup)
-     (vr-c++-code-folding-setup)
+     (rh-c++-compile-setup)
+     (rh-c++-indentation-setup)
+     (rh-c++-yas-setup)
+     (rh-c++-compile-setup)
+     (rh-c++-rtags-setup)
+     (rh-c++-ac-setup)
+     (rh-c++-code-folding-setup)))
 
-     ;; (local-set-key (kbd "C-S-b") 'recompile)
-
-     ;; ;; For some reason c++-mode-hook is getting executed twice.
-     ;; ;; The following if-condition is preventing the
-     ;; ;; second execution.
-     ;; (message "***** c++-mode-hook call")
-
-     ;; (if (not (local-variable-p 'vr-c++-mode-hook-called-before))
-     ;;     (progn
-     ;;       (set (make-local-variable 'vr-c++-mode-hook-called-before) t)
-     ;;       (rh-programming-minor-modes t)
-     ;;       (vr-c++-font-lock-setup)
-     ;;       (vr-c++-indentation-setup)
-     ;;       (vr-c++-yas-setup)
-     ;;       (vr-c++-compilation-setup)
-     ;;       (vr-c++-rtags-setup)
-     ;;       (vr-c++-ac-setup)
-     ;;       (vr-c++-code-folding-setup)
-     ;;       (local-set-key (kbd "C-S-b") 'recompile)))
-
-     ))
   :bind (:map c++-mode-map
-         ("C-S-b" . recompile))
+         ("C-S-b" . recompile)
+         :map c-mode-base-map
+         ("C-c b" . rh-compile-toggle-display))
+  :after (compile)
   :defer t)
 
 ;; /b/} == C++ ==
