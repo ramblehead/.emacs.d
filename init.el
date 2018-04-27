@@ -794,7 +794,44 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                         :width 'semi-condensed
                         :weight 'normal))
 
-  (load "~/.emacs.d/secret.el" t))
+  (load "~/.emacs.d/secret.el" t)
+
+  ;; Disable annoying key binding for (suspend-frame) function and quit
+  (global-unset-key (kbd "C-x C-z"))
+  (global-unset-key (kbd "C-x C-c"))
+
+  ;; Prevent translation from <kp-bebin> to <begin>
+  (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
+
+  ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
+  ;; for keybindings aliases. Can also be used with (current-local-map)
+  (define-key (current-global-map) (kbd "C-<kp-up>")
+    (lookup-key (current-global-map) (kbd "C-<up>")))
+  (define-key (current-global-map) (kbd "C-<kp-down>")
+    (lookup-key (current-global-map) (kbd "C-<down>")))
+  (define-key (current-global-map) (kbd "C-<kp-left>")
+    (lookup-key (current-global-map) (kbd "C-<left>")))
+  (define-key (current-global-map) (kbd "C-<kp-right>")
+    (lookup-key (current-global-map) (kbd "C-<right>")))
+
+  :bind (("C-x r q" . 'save-buffers-kill-terminal)
+         ("C-v" . yank)
+         ("M-v" . yank-pop)
+         ("C-z" . undo)
+         ;; Move point between windows
+         ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
+         ("C-x <up>" . windmove-up)
+         ("C-x <kp-up>" . windmove-up)
+         ("C-x <down>" . windmove-down)
+         ("C-x <kp-down>" . windmove-down)
+         ("C-x <right>" . windmove-right)
+         ("C-x <kp-right>" . windmove-right)
+         ("C-x <left>" . windmove-left)
+         ("C-x <kp-left>" . windmove-left)
+
+
+         )
+  :demand t)
 
 (setq load-prefer-newer t)
 (add-to-list 'load-path vr-user-lisp-directory-path)
@@ -1339,7 +1376,7 @@ Also sets SYMBOL to VALUE."
   :config
   ;; (setq which-key-show-prefix 'mode-line)
   (setq which-key-max-description-length 35)
-  (setq which-key-show-transient-maps t)
+  ;; (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
 
   (run-with-idle-timer
@@ -2692,6 +2729,7 @@ fields which we need."
 
 (use-package js2-mode
   :mode "\\.js\\'"
+  ;; "λ" stands for interactive and "i" for indium mode
   :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
                         "js2λi"
                       "js2"))
@@ -4141,64 +4179,6 @@ with very limited support for special characters."
 
 ;; /b/{ == bs mode ==
 
-;; ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
-;; (setq bs-configurations
-;;       '(("all" nil nil nil nil nil)
-;;         ("files" nil nil nil
-;;          (lambda (buf)
-;;            (rh-string-match-regexp-list
-;;             vr-ignore-buffers
-;;             (buffer-name buf)))
-;;          nil)))
-
-;; (setq bs-cycle-configuration-name "files")
-
-;; (setq bs-mode-font-lock-keywords
-;;       '(;; Headers
-;;         ("^[ ]+\\([-M].*\\)$" 1 font-lock-keyword-face)
-;;         ;; Boring buffers
-;;         ("^\\(.*\\*.*\\*.*\\)$" 1 font-lock-comment-face)
-;;         ;; Dired buffers
-;;         ("^[ .*%]+\\(Dired.*\\)$" 1 font-lock-type-face)
-;;         ;; Modified buffers
-;;         ("^[ .]+\\(\\*\\)" 1 font-lock-warning-face)
-;;         ;; Read-only buffers
-;;         ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
-
-;; ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
-;; (defun vr-bs--get-size-string (&rest ignored)
-;;   (let* ((size (buffer-size))
-;;          (str (number-to-string size)))
-;;     (when (> (length str) 3)
-;;       (setq size (/ size 1024.0)
-;;             str (format "%.1fk" size)))
-;;     (when (> (length str) 6)
-;;       (setq size (/ size 1024.0)
-;;             str (format "%.1fM" size)))
-;;     (when (> (length str) 6)
-;;       (setq size (/ size 1024.0)
-;;             str (format "%.1fG" size)))
-;;     str))
-
-;; (setq bs-attributes-list
-;;       '(("" 2 2 left bs--get-marked-string)
-;;         ("M" 1 1 left bs--get-modified-string)
-;;         ("R" 2 2 left bs--get-readonly-string)
-;;         ("Size" 6 6 right vr-bs--get-size-string)
-;;         ("" 2 2 left "  ")
-;;         ("Mode" 16 16 left bs--get-mode-name)
-;;         ("" 2 2 left "  ")
-;;         ("Buffer" bs--get-name-length 100 left bs--get-name)
-;;         ("" 2 2 left "  ")
-;;         ("File" 1 255 left bs--get-file-name)))
-
-;; (add-hook 'bs-mode-hook
-;;           (lambda ()
-;;             (hl-line-mode 1)
-;;             (define-key bs-mode-map (kbd "<escape>") 'bs-kill)))
-
-;; (global-set-key (kbd "C-x C-b") 'bs-show)
-
 (use-package bs
   :config
   ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
@@ -4302,9 +4282,7 @@ with very limited support for special characters."
 
 ;; /b/} == bs mode ==
 
-;; -------------------------------------------------------------------
-;;; Bookmarks
-;; -------------------------------------------------------------------
+;; /b/{ == bm mode ==
 
 (use-package bm
   :init
@@ -4366,20 +4344,20 @@ with very limited support for special characters."
          ("C-<f2>" . bm-toggle))
   :ensure t)
 
+;; /b/} == bm mode ==
+
 ;; -------------------------------------------------------------------
 ;;; My key bindings
 ;; -------------------------------------------------------------------
 
-;; Disable annoying key binding for (suspend-frame) function
-(global-unset-key (kbd "C-x C-z"))
-(global-set-key (kbd "C-z") #'undo)
+;; (global-set-key (kbd "C-z") #'undo)
 
 ;; Re-map obsolete emacs exit key to "Really Quit"
-(global-unset-key (kbd "C-x C-c"))
-(global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
+;; (global-unset-key (kbd "C-x C-c"))
+;; (global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
 
-;; Prevent translation from <kp-bebin> to <begin>
-(global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
+;; ;; Prevent translation from <kp-bebin> to <begin>
+;; (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
 
 (global-set-key (kbd "C-<insert>") 'kill-ring-save)
 (global-set-key (kbd "C-<kp-insert>") 'kill-ring-save)
@@ -4399,8 +4377,8 @@ with very limited support for special characters."
 (global-set-key (kbd "C-<end>") 'end-of-buffer)
 (global-set-key (kbd "C-<kp-end>") 'end-of-buffer)
 
-(global-set-key (kbd "C-v") 'yank)
-(global-set-key (kbd "M-v") 'yank-pop)
+;; (global-set-key (kbd "C-v") 'yank)
+;; (global-set-key (kbd "M-v") 'yank-pop)
 
 (global-set-key (kbd "M-s-<up>") 'enlarge-window)
 (global-set-key (kbd "M-s-<kp-up>") 'enlarge-window)
@@ -4415,26 +4393,15 @@ with very limited support for special characters."
 (global-set-key (kbd "M-s-'") 'vr-balance-windows-horizontally)
 (global-set-key (kbd "M-s-\"") 'vr-balance-windows-vertically)
 
-;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
-(global-set-key (kbd "C-x <up>") 'windmove-up)
-(global-set-key (kbd "C-x <kp-up>") 'windmove-up)
-(global-set-key (kbd "C-x <down>") 'windmove-down)
-(global-set-key (kbd "C-x <kp-down>") 'windmove-down)
-(global-set-key (kbd "C-x <right>") 'windmove-right)
-(global-set-key (kbd "C-x <kp-right>") 'windmove-right)
-(global-set-key (kbd "C-x <left>") 'windmove-left)
-(global-set-key (kbd "C-x <kp-left>") 'windmove-left)
-
-;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
-;; for keybindings aliases. Can also be used with (current-local-map)
-(define-key (current-global-map) (kbd "C-<kp-up>")
-  (lookup-key (current-global-map) (kbd "C-<up>")))
-(define-key (current-global-map) (kbd "C-<kp-down>")
-  (lookup-key (current-global-map) (kbd "C-<down>")))
-(define-key (current-global-map) (kbd "C-<kp-left>")
-  (lookup-key (current-global-map) (kbd "C-<left>")))
-(define-key (current-global-map) (kbd "C-<kp-right>")
-  (lookup-key (current-global-map) (kbd "C-<right>")))
+;; ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
+;; (global-set-key (kbd "C-x <up>") 'windmove-up)
+;; (global-set-key (kbd "C-x <kp-up>") 'windmove-up)
+;; (global-set-key (kbd "C-x <down>") 'windmove-down)
+;; (global-set-key (kbd "C-x <kp-down>") 'windmove-down)
+;; (global-set-key (kbd "C-x <right>") 'windmove-right)
+;; (global-set-key (kbd "C-x <kp-right>") 'windmove-right)
+;; (global-set-key (kbd "C-x <left>") 'windmove-left)
+;; (global-set-key (kbd "C-x <kp-left>") 'windmove-left)
 
 ;; -------------------------------------------------------------------
 ;;; Load unscoped (e.g. without vr-) useful functions
