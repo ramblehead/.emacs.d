@@ -2896,8 +2896,13 @@ continuing (not first) item"
      ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
      (unless (or (equal (buffer-name) "*indium-fontification*")
                  (eq major-mode 'js2-mode))
+       (require 'indium)
        (rh-programming-minor-modes 1)
-       (rh-project-setup)))))
+       (rh-project-setup))))
+
+  :bind (:map js-mode-map
+         ("<S-f5>" . rh-indium-interaction-and-run))
+  :defer t)
 
 ;; /b/} == js-mode ==
 
@@ -2965,6 +2970,7 @@ continuing (not first) item"
   (add-hook
    'js2-mode-hook
    (lambda ()
+     (require 'indium)
      (rh-programming-minor-modes 1)
      (rh-project-setup)
 
@@ -2996,6 +3002,9 @@ continuing (not first) item"
      ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
      ))
 
+  :bind (:map js-mode-map
+          ("<S-f5>" . rh-indium-interaction-and-run))
+  :defer t
   :ensure t)
 
 ;; /b/} == js2-mode ==
@@ -3010,11 +3019,12 @@ continuing (not first) item"
   (add-hook
    'typescript-mode-hook
    (lambda ()
+     (require 'indium)
      (rh-programming-minor-modes t)
      (rh-project-setup)))
 
-  ;; :bind (:map typescript-mode-map
-  ;;        ("<S-f5>" . rh-indium-interaction-and-run))
+  :bind (:map typescript-mode-map
+         ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t
   :ensure t)
 
@@ -3181,6 +3191,26 @@ area."
                     (temp-buffer-window-setup "*node process*")))
     (indium-run-node "node"))
 
+  (defun rh-indium-quit-and-clean ()
+    (interactive)
+    (let ((process (indium-current-connection-process)))
+      (when process
+        (set-process-sentinel
+         process
+         (lambda (process event)
+           (when (string-match-p "killed" event)
+             (kill-buffer "*node process*")
+             (kill-buffer "*indium-fontification*"))))
+        (indium-quit)
+        (indium-interaction-mode -1))))
+
+  ;; (add-hook
+  ;;  'indium-connection-closed-hook
+  ;;  (lambda ()
+  ;;    (ignore-errors
+  ;;      (kill-buffer "*node process*")
+  ;;      (kill-buffer "*indium-fontification*"))))
+
   ;; (add-hook
   ;;  'indium-interaction-mode-hook
   ;;  (lambda ()
@@ -3200,6 +3230,7 @@ area."
          :map indium-repl-mode-map
          ("C-<kp-up>" . indium-repl-previous-input)
          ("C-<kp-down>" . indium-repl-next-input)
+         ("C-c C-q" . rh-indium-quit-and-clean)
          :map indium-interaction-mode-hook
          ("<f5>" . rh-indium-eval-region)
          ("M-<f5>" . rh-indium-eval-print-region))
@@ -3710,11 +3741,6 @@ area."
 ;; /b/} == xref-js2 ==
 
 ;; /b/{ == JavaScript Environments Setup ==
-
-(defun rh-indium-setup ()
-  (interactive)
-  (require 'indium)
-  (local-set-key (kbd "S-<f5>") #'rh-indium-interaction-and-run))
 
 (defun rh-typescript-setup ()
   (interactive)
