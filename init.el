@@ -4046,6 +4046,9 @@ with very limited support for special characters."
                           "^\\*Ido Completions\\*$"
                           "^\\*buffer-selection\\*$"
                           "^\\*httpd\\*$"
+                          ;; node.js/indium
+                          "^\\*node process\\*$"
+                          "^\\*indium-fontification\\*$"
                           ;; compile/script outputs
                           "^\\*skewer-error\\*$"
                           "^\\*tide-server\\*$"
