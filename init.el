@@ -776,13 +776,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package emacs
   :config
-  (add-to-list 'display-buffer-alist
-               `("*Warnings*"
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (side . bottom)
-                 (slot . 0)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `("*Warnings*"
+  ;;                ,(g2w-display #'display-buffer-in-side-window t)
+  ;;                (side . bottom)
+  ;;                (slot . 0)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
 
   (when (display-graphic-p)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
@@ -814,10 +814,43 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   (define-key (current-global-map) (kbd "C-<kp-right>")
     (lookup-key (current-global-map) (kbd "C-<right>")))
 
-  :bind (("C-x r q" . 'save-buffers-kill-terminal)
+  ;; Sort bindings to appropriate packages
+  :bind (;; Exit Emacs!
+         ("C-x r q" . 'save-buffers-kill-terminal)
+         ;; Editor
+         ("C-<insert>" . kill-ring-save)
+         ("C-<kp-insert>" . kill-ring-save)
+         ("S-<insert>" . yank)
+         ("S-<kp-insert>" . yank)
+         ("M-<insert>" . yank-pop)
+         ("M-Y" . yank-pop-forwards)
+         ("M-S-<insert>" . yank-pop-forwards)
+         ("M-S-<insert>" . yank-pop-forwards)
+         ("M-S-<kp-insert>" . yank-pop-forwards)
+         ("C-<delete>" . kill-word)
+         ("C-<kp-delete>" . kill-word)
+         ("S-<delete>" . kill-region)
+         ("S-<kp-delete>" . kill-region)
+         ("C-<home>" . beginning-of-buffer)
+         ("C-<kp-home>" . beginning-of-buffer)
+         ("C-<end>" . end-of-buffer)
+         ("C-<kp-end>" . end-of-buffer)
          ("C-v" . yank)
          ("M-v" . yank-pop)
          ("C-z" . undo)
+         ;; Resize windows
+         ("M-s-<up>" . enlarge-window)
+         ("M-s-<kp-up>" . enlarge-window)
+         ("M-s-<down>" . shrink-window)
+         ("M-s-<kp-down>" . shrink-window)
+         ("M-s-<left>" . shrink-window-horizontally)
+         ("M-s-<kp-left>" . shrink-window-horizontally)
+         ("M-s-<right>" . enlarge-window-horizontally)
+         ("M-s-<kp-right>" . enlarge-window-horizontally)
+         ("M-s-<kp-begin>" . vr-balance-windows-horizontally)
+         ("S-M-s-<kp-begin>" . vr-balance-windows-vertically)
+         ("M-s-'" . vr-balance-windows-horizontally)
+         ("M-s-\"" . vr-balance-windows-vertically)
          ;; Move point between windows
          ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
          ("C-x <up>" . windmove-up)
@@ -827,10 +860,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
          ("C-x <right>" . windmove-right)
          ("C-x <kp-right>" . windmove-right)
          ("C-x <left>" . windmove-left)
-         ("C-x <kp-left>" . windmove-left)
-
-
-         )
+         ("C-x <kp-left>" . windmove-left))
   :demand t)
 
 (setq load-prefer-newer t)
@@ -1138,6 +1168,10 @@ Also sets SYMBOL to VALUE."
   ;;                ,(g2w-display #'display-buffer-in-side-window t)
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 15)))
+
+  (add-to-list 'display-buffer-alist
+               `("*Personal Keybindings*"
+                 ,(g2w-display #'display-buffer-same-window t)))
 
   :demand t
   :ensure t)
@@ -4359,39 +4393,39 @@ with very limited support for special characters."
 ;; ;; Prevent translation from <kp-bebin> to <begin>
 ;; (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
 
-(global-set-key (kbd "C-<insert>") 'kill-ring-save)
-(global-set-key (kbd "C-<kp-insert>") 'kill-ring-save)
-(global-set-key (kbd "S-<insert>") 'yank)
-(global-set-key (kbd "S-<kp-insert>") 'yank)
-(global-set-key (kbd "M-<insert>") 'yank-pop)
-(global-set-key (kbd "M-Y") 'yank-pop-forwards)
-(global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
-(global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
-(global-set-key (kbd "M-S-<kp-insert>") 'yank-pop-forwards)
-(global-set-key (kbd "C-<delete>") 'kill-word)
-(global-set-key (kbd "C-<kp-delete>") 'kill-word)
-(global-set-key (kbd "S-<delete>") 'kill-region)
-(global-set-key (kbd "S-<kp-delete>") 'kill-region)
-(global-set-key (kbd "C-<home>") 'beginning-of-buffer)
-(global-set-key (kbd "C-<kp-home>") 'beginning-of-buffer)
-(global-set-key (kbd "C-<end>") 'end-of-buffer)
-(global-set-key (kbd "C-<kp-end>") 'end-of-buffer)
+;; (global-set-key (kbd "C-<insert>") 'kill-ring-save)
+;; (global-set-key (kbd "C-<kp-insert>") 'kill-ring-save)
+;; (global-set-key (kbd "S-<insert>") 'yank)
+;; (global-set-key (kbd "S-<kp-insert>") 'yank)
+;; (global-set-key (kbd "M-<insert>") 'yank-pop)
+;; (global-set-key (kbd "M-Y") 'yank-pop-forwards)
+;; (global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
+;; (global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
+;; (global-set-key (kbd "M-S-<kp-insert>") 'yank-pop-forwards)
+;; (global-set-key (kbd "C-<delete>") 'kill-word)
+;; (global-set-key (kbd "C-<kp-delete>") 'kill-word)
+;; (global-set-key (kbd "S-<delete>") 'kill-region)
+;; (global-set-key (kbd "S-<kp-delete>") 'kill-region)
+;; (global-set-key (kbd "C-<home>") 'beginning-of-buffer)
+;; (global-set-key (kbd "C-<kp-home>") 'beginning-of-buffer)
+;; (global-set-key (kbd "C-<end>") 'end-of-buffer)
+;; (global-set-key (kbd "C-<kp-end>") 'end-of-buffer)
 
 ;; (global-set-key (kbd "C-v") 'yank)
 ;; (global-set-key (kbd "M-v") 'yank-pop)
 
-(global-set-key (kbd "M-s-<up>") 'enlarge-window)
-(global-set-key (kbd "M-s-<kp-up>") 'enlarge-window)
-(global-set-key (kbd "M-s-<down>") 'shrink-window)
-(global-set-key (kbd "M-s-<kp-down>") 'shrink-window)
-(global-set-key (kbd "M-s-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "M-s-<kp-left>") 'shrink-window-horizontally)
-(global-set-key (kbd "M-s-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "M-s-<kp-right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "M-s-<kp-begin>") 'vr-balance-windows-horizontally)
-(global-set-key (kbd "S-M-s-<kp-begin>") 'vr-balance-windows-vertically)
-(global-set-key (kbd "M-s-'") 'vr-balance-windows-horizontally)
-(global-set-key (kbd "M-s-\"") 'vr-balance-windows-vertically)
+;; (global-set-key (kbd "M-s-<up>") 'enlarge-window)
+;; (global-set-key (kbd "M-s-<kp-up>") 'enlarge-window)
+;; (global-set-key (kbd "M-s-<down>") 'shrink-window)
+;; (global-set-key (kbd "M-s-<kp-down>") 'shrink-window)
+;; (global-set-key (kbd "M-s-<left>") 'shrink-window-horizontally)
+;; (global-set-key (kbd "M-s-<kp-left>") 'shrink-window-horizontally)
+;; (global-set-key (kbd "M-s-<right>") 'enlarge-window-horizontally)
+;; (global-set-key (kbd "M-s-<kp-right>") 'enlarge-window-horizontally)
+;; (global-set-key (kbd "M-s-<kp-begin>") 'vr-balance-windows-horizontally)
+;; (global-set-key (kbd "S-M-s-<kp-begin>") 'vr-balance-windows-vertically)
+;; (global-set-key (kbd "M-s-'") 'vr-balance-windows-horizontally)
+;; (global-set-key (kbd "M-s-\"") 'vr-balance-windows-vertically)
 
 ;; ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
 ;; (global-set-key (kbd "C-x <up>") 'windmove-up)
