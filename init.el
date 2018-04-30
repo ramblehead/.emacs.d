@@ -1152,10 +1152,10 @@ Also sets SYMBOL to VALUE."
   ;; Need to investigate or wait until modern font lock is more reliable.
   (setq occur-excluded-properties t)
 
-  (add-hook
-   'occur-mode-hook
-   (lambda ()
-     (setq rh-interactively-selected-window (frame-selected-window))))
+  ;; (add-hook
+  ;;  'occur-mode-hook
+  ;;  (lambda ()
+  ;;    (setq rh-interactively-selected-window (frame-selected-window))))
 
   (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
@@ -1420,7 +1420,8 @@ Also sets SYMBOL to VALUE."
      ;; (setq which-key-side-window-slot 1)
      (setq which-key-side-window-max-height 15)))
 
-  :bind ("<f1>" . which-key-show-top-level)
+  :bind (:map which-key-mode-map
+         ("<f1>" . which-key-show-top-level))
   :demand t
   :ensure t)
 
@@ -1702,6 +1703,13 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Auto-completion and Auto-text Tools
 ;; /b/{ +++++++++ ----------------------------------------------------
+
+;; /b/{ == hi-lock-mode ==
+
+(use-package hi-lock-mode
+  :defer t)
+
+;; /b/} == hi-lock-mode ==
 
 ;; /b/{ == pcre2el ==
 
@@ -2243,6 +2251,7 @@ fields which we need."
           (hs-minor-mode 1)
           (undo-tree-mode 1)
           (code-groups-minor-mode 1)
+          (hi-lock-mode 1)
           ;; (fci-mode 1)
           (set (make-local-variable 'show-trailing-whitespace) t)
           ;; (highlight-indent-guides-mode 1)
@@ -2258,6 +2267,7 @@ fields which we need."
         (hs-minor-mode -1)
         (undo-tree-mode -1)
         (code-groups-minor-mode -1)
+        (hi-lock-mode -1)
         ;; (fci-mode -1)
         (kill-local-variable 'show-trailing-whitespace)
         ;; (highlight-indent-guides-mode -1)
@@ -2424,40 +2434,6 @@ fields which we need."
                    (regexp-quote "../") src-tree-root item nil 'literal))
                 (split-string (buffer-string)))))))
 
-(cl-defun rh-c++-header-line (&optional
-                              (header-line-trim-indicator "›")
-                              (header-line-beginning-indicator " "))
-  (when (not (local-variable-p 'rh-window-current-container-alist))
-    (set (make-local-variable 'rh-window-current-container-alist) nil))
-  (cl-delete-if (lambda (win-cont)
-                  (not (window-live-p (car win-cont))))
-                rh-window-current-container-alist)
-  (let* ((current-container (if (null rtags-cached-current-container)
-                                "" rtags-cached-current-container))
-         (win (selected-window))
-         (win-cont (assoc win rh-window-current-container-alist)))
-    (if (rh-window-selected-interactively-p)
-        (if (null win-cont)
-            (add-to-list 'rh-window-current-container-alist
-                         `(,win . ,current-container))
-          (setf (cdr win-cont) (copy-sequence current-container)))
-      (when (not (null win-cont))
-        (setq current-container (cdr win-cont))))
-    (propertize
-     (let* ((header-string (concat header-line-beginning-indicator
-                                   current-container))
-            (header-string-width (string-width header-string))
-            (header-filler-width (- (window-total-width) header-string-width)))
-       (if (< header-filler-width 0)
-           (concat (substring header-string
-                              0 (- (window-total-width)
-                                   (string-width header-line-trim-indicator)))
-                   header-line-trim-indicator)
-         (concat header-string (make-string header-filler-width ?\ ))))
-     'face (if (rh-window-selected-interactively-p)
-               'mode-line
-             'mode-line-inactive))))
-
 (use-package rtags
   :config
   ;; Idea is taken from:
@@ -2519,7 +2495,6 @@ fields which we need."
   (setq rtags-bury-buffer-function (lambda () (quit-window t)))
 
   (rtags-enable-standard-keybindings)
-  ;; (define-key c-mode-base-map (kbd "<f6>") 'rtags-rename-symbol)
   (define-key c-mode-base-map (kbd "C-c r d") 'rh-c++-rtags-toggle-rdm-display)
   (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
   (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
@@ -2550,18 +2525,8 @@ fields which we need."
   ;; Does not work with my clang-auto-complete setting
   ;; (setq rtags-display-current-error-as-tooltip t)
 
-  ;; Display current function name at the top of the window (header-line).
-  ;; https://github.com/Andersbakken/rtags/issues/435
-  (set (make-local-variable 'rtags-cached-current-container) "")
-  ;; (setq rtags-track-container t)
-  (set (make-local-variable 'rtags-track-container) t)
-
-  (add-hook
-   'find-file-hook
-   (lambda ()
-     (set (make-local-variable 'header-line-format)
-          '(:eval (rh-c++-header-line))))
-   nil t))
+  (require 'rh-rtags-header-line)
+  (rh-rtags-header-line-setup))
 
 (defun rh-c++-auto-complete-clang ()
   (interactive)
@@ -3031,7 +2996,7 @@ area."
                     (temp-buffer-window-setup "*node process*")))
     (indium-run-node "node"))
 
-  (defun rh-indium-quit-and-clean ()
+  (defun rh-indium-repl-quit-and-clean ()
     (interactive)
     (let ((process (indium-current-connection-process)))
       (when process
@@ -3044,33 +3009,17 @@ area."
         (indium-quit)
         (indium-interaction-mode -1))))
 
-  ;; (add-hook
-  ;;  'indium-connection-closed-hook
-  ;;  (lambda ()
-  ;;    (ignore-errors
-  ;;      (kill-buffer "*node process*")
-  ;;      (kill-buffer "*indium-fontification*"))))
-
-  ;; (add-hook
-  ;;  'indium-interaction-mode-hook
-  ;;  (lambda ()
-  ;;    (local-set-key (kbd "<f5>") #'rh-indium-eval-region)
-  ;;    (local-set-key (kbd "M-<f5>") #'rh-indium-eval-print-region)))
-
-  ;; (add-hook
-  ;;  'indium-repl-mode-hook
-  ;;  (lambda ()
-  ;;    (define-key indium-repl-mode-map (kbd "C-<kp-up>")
-  ;;      #'indium-repl-previous-input)
-  ;;    (define-key indium-repl-mode-map (kbd "C-<kp-down>")
-  ;;      #'indium-repl-next-input)))
+  (defun indium-inspector-quit-window ()
+    (interactive)
+    (quit-window t))
 
   :bind (:map indium-inspector-mode-map
          ("<backspace>" . indium-inspector-pop)
+         ("q" . 'indium-inspector-quit-window)
          :map indium-repl-mode-map
          ("C-<kp-up>" . indium-repl-previous-input)
          ("C-<kp-down>" . indium-repl-next-input)
-         ("C-c C-q" . rh-indium-quit-and-clean)
+         ("C-c C-q" . rh-indium-repl-quit-and-clean)
          :map indium-interaction-mode-hook
          ("<f5>" . rh-indium-eval-region)
          ("M-<f5>" . rh-indium-eval-print-region))
@@ -3867,102 +3816,19 @@ with very limited support for special characters."
 ;;    (org-mode skip                       ; "skip" the following face(s):
 ;;              font-lock-comment-face)))
 
-;; == ispell mode ==
+;; == /b/{ ispell mode ==
 
-;; http://www.emacswiki.org/emacs/FlySpell
-(setq ispell-program-name "aspell")
-(setq ispell-silently-savep t)
-(setq ispell-use-framepop-p t)
-;; (setq ispell-personal-dictionary (expand-file-name "~/en.pws"))
-;(setq ispell-personal-dictionary vr-ispell-en-dictionary)
-;; (setq ispell-process-directory "~/.ispell/")
+(use-package ispell
+  :config
+  (setq ispell-program-name "aspell")
+  (setq ispell-silently-savep t)
+  (setq ispell-use-framepop-p t)
 
-(global-set-key (kbd "C-x w") 'ispell-word)
+  :bind (:map ispell-minor-keymap
+         ("C-x w" . 'ispell-word))
+  :demand t)
 
-;; Since discovering speck, I do not use flyspell any more.
-;; == flyspell mode ==
-
-;; (setq flyspell-always-use-popup t)
-
-;; ;; "flyspell-mode nil" is recognized as no parameters and toggles the
-;; ;; mode instead of deactivating it.  Thus "flyspell-mode 0" and
-;; ;; "flyspell-mode 1" are used instead.
-;; (cl-defun smart-flyspell-mode (&optional (value nil value-supplied-p))
-;;   (interactive)
-;;   (let ((prog-mode (if (local-variable-p 'vr-prog-mode) t nil))
-;;         (flyspell-on (if (and (boundp 'flyspell-mode) flyspell-mode) t nil)))
-;;     (if (null value-supplied-p)
-;;         (if prog-mode
-;;             (if flyspell-on
-;;                 (flyspell-mode 0)
-;;               (flyspell-prog-mode))
-;;           (if flyspell-on
-;;               (flyspell-mode 0)
-;;             (flyspell-mode 1)))
-;;       (if value
-;;           (if prog-mode
-;;               (flyspell-prog-mode)
-;;             (flyspell-mode 1))
-;;         (flyspell-mode 0)))))
-
-;; (defun smart-flyspell-buffer ()
-;;   (interactive)
-;;   (smart-flyspell-mode 1)
-;;   (flyspell-buffer))
-
-;; (defun ispell-word-or-smart-flyspell-region ()
-;;   (interactive)
-;;   (smart-flyspell-mode 1)
-;;   (if (use-region-p)
-;;       (flyspell-region (point) (mark))
-;;     (flyspell-auto-correct-word)))
-
-;; (defun flyspell-goto-previous-error (arg)
-;;   "Go to arg previous spelling error."
-;;   (interactive "p")
-;;   (while (not (= 0 arg))
-;;     (let ((pos (point))
-;;           (min (point-min)))
-;;       (if (and (eq (current-buffer) flyspell-old-buffer-error)
-;;                (eq pos flyspell-old-pos-error))
-;;           (progn
-;;             (if (= flyspell-old-pos-error min)
-;;                 ;; goto beginning of buffer
-;;                 (progn
-;;                   (message "Restarting from end of buffer")
-;;                   (goto-char (point-max)))
-;;               (backward-word 1))
-;;             (setq pos (point))))
-;;       ;; seek the next error
-;;       (while (and (> pos min)
-;;                   (let ((ovs (overlays-at pos))
-;;                         (r '()))
-;;                     (while (and (not r) (consp ovs))
-;;                       (if (flyspell-overlay-p (car ovs))
-;;                           (setq r t)
-;;                         (setq ovs (cdr ovs))))
-;;                     (not r)))
-;;         (backward-word 1)
-;;         (setq pos (point)))
-;;       ;; save the current location for next invocation
-;;       (setq arg (1- arg))
-;;       (setq flyspell-old-pos-error pos)
-;;       (setq flyspell-old-buffer-error (current-buffer))
-;;       (goto-char pos)
-;;       (if (= pos min)
-;;           (progn
-;;             (message "No more miss-spelled word!")
-;;             (setq arg 0))))))
-
-;; (global-set-key (kbd "<f7>") 'ispell-word-or-smart-flyspell-region)
-;; (global-set-key (kbd "<f6>") 'ispell-word)
-;; (global-set-key (kbd "<f6>") 'flyspell-correct-word-before-point)
-;; (global-set-key (kbd "<f6>") 'flyspell-auto-correct-word)
-;; (global-set-key (kbd "C-S-<f7>") 'smart-flyspell-mode)
-;; (global-set-key (kbd "C-M-<f7>") 'smart-flyspell-buffer)
-;; (global-set-key (kbd "C-<f7>") 'flyspell-goto-previous-error)
-;; (global-set-key (kbd "M-<f7>") 'flyspell-goto-next-error)
-;; (global-set-key (kbd "S-<f7>") 'ispell-word)
+;; == /b/} ispell mode ==
 
 ;; -------------------------------------------------------------------
 ;;; Windows system interaction
