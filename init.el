@@ -29,7 +29,6 @@
    (quote
     (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
- '(vr/match-separator-string " -> ")
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
@@ -1724,14 +1723,20 @@ fields which we need."
 (use-package visual-regexp
   :config
   (setq vr/match-separator-use-custom-face t)
-  (custom-set-variables '(vr/match-separator-string " -> "))
+  ;; (custom-set-variables '(vr/match-separator-string " -> "))
 
-  (define-key vr/minibuffer-keymap (kbd "C-j") #'newline)
-  (define-key vr/minibuffer-keymap (kbd "C-<return>") #'newline)
+  ;; (define-key vr/minibuffer-keymap (kbd "C-j") #'newline)
+  ;; (define-key vr/minibuffer-keymap (kbd "C-<return>") #'newline)
 
-  (global-set-key (kbd "C-c v") #'vr/replace)
-  (global-set-key (kbd "C-c q") #'vr/query-replace)
+  ;; (global-set-key (kbd "C-c v") #'vr/replace)
+  ;; (global-set-key (kbd "C-c q") #'vr/query-replace)
 
+  :bind (("C-c v" . vr/replace)
+         ("C-c q" . vr/query-replace)
+         :map vr/minibuffer-keymap
+         ("C-j" . newline)
+         ("C-<return>" . newline))
+  :defer t
   :ensure t)
 
 ;; /b/} == visual-regexp ==
@@ -1743,12 +1748,19 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " ⵙ")
 
-  (yas-reload-all)
+  (yasnippet-snippets-initialize)
 
+  :bind (:map yas-minor-mode-map
+         ("<tab>" . nil)
+         ("TAB" . nil)
+         ("C-`" . yas-expand)
+         ("C-~" . yas-prev-field))
+  :defer t
   :ensure t)
 
 (use-package yasnippet-snippets
-  :after yasnippet
+  :commands yasnippet-snippets-initialize
+  :defer t
   :ensure t)
 
 ;; /b/} == yasnippet ==
@@ -2468,7 +2480,7 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 6)))
 
-  (defun rh-c++-rtags-toggle-rdm-display ()
+  (defun rh-rtags-toggle-rdm-display ()
     (interactive)
     (rh-toggle-display "*rdm*" t))
 
@@ -2495,20 +2507,32 @@ fields which we need."
   (setq rtags-bury-buffer-function (lambda () (quit-window t)))
 
   (rtags-enable-standard-keybindings)
-  (define-key c-mode-base-map (kbd "C-c r d") 'rh-c++-rtags-toggle-rdm-display)
-  (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
-  (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
+  ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
+  ;; (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
+  ;; (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
 
-  (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
 
-  (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
-  (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
-  (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
-  (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
-  (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
-  (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
-  (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
+  ;; (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
+  ;; (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
+  ;; ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
+  ;; (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
+  ;; (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
+  ;; (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
+  ;; (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
+
+  (bind-key "C-c r d" #'rh-rtags-toggle-rdm-display c-mode-base-map)
+  (bind-key "M-[" #'rtags-location-stack-back c-mode-base-map)
+  (bind-key "M-]" #'rtags-location-stack-forward c-mode-base-map)
+  (bind-key "M-." #'rtags-find-symbol-at-point c-mode-base-map)
+  (bind-key "M->" #'rtags-next-match c-mode-base-map)
+  (bind-key "M-<" #'rtags-previous-match c-mode-base-map)
+  (bind-key "M-," #'rtags-references-tree c-mode-base-map)
+  (bind-key "C-M-," #'rtags-find-virtuals-at-point c-mode-base-map)
+  (bind-key "M-i" #'rtags-imenu c-mode-base-map)
+  (bind-key "C-." #'rtags-find-symbol c-mode-base-map)
+  (bind-key "C-," #'rtags-find-references c-mode-base-map)
 
   (add-hook
    'rtags-references-tree-mode-hook
@@ -2517,78 +2541,10 @@ fields which we need."
 
   :pin manual)
 
-;; see https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/
-(defun rh-c++-rtags-setup ()
-  (require 'rtags)
-
-  (rtags-start-process-unless-running)
-  ;; Does not work with my clang-auto-complete setting
-  ;; (setq rtags-display-current-error-as-tooltip t)
-
-  (require 'rh-rtags-header-line)
-  (rh-rtags-header-line-setup))
-
-(defun rh-c++-auto-complete-clang ()
-  (interactive)
-  (message "auto-completing with clang...")
-  (auto-complete (append '(ac-source-clang) ac-sources)))
-
-;; TODO: make all auto-complete settings buffer local
-(defun rh-c++-ac-setup ()
-  ;; see https://github.com/mooz/auto-complete-c-headers
-  (require 'auto-complete-c-headers)
-  ;; #include auto-completion search paths
-  (set (make-local-variable 'achead:include-directories)
-       (append (rh-c++-get-project-include-path)
-               (rh-get-g++-isystem-path)
-               achead:include-directories))
-
-  ;; 'rtags-ac' is not as polished as 'auto-complete-clang',
-  ;; so using 'auto-complete-clang'
-  ;; (require 'rtags-ac)
-  ;; (setq rtags-completions-enabled t)
-
-  ;; ;; see https://github.com/brianjcj/auto-complete-clang
-  (require 'auto-complete-clang)
-
-  ;; i.e. 'echo "" | g++ -v -x c++ -E -'
-  ;; (setq clang-completion-suppress-error 't)
-  ;; (setq ac-clang-executable (executable-find "clang-3.6"))
-  (set (make-local-variable 'ac-clang-flags)
-       (append `(,vr-c++std)
-               (mapcar (lambda (item) (concat "-I" item))
-                       (rh-c++-get-project-include-path))
-               (mapcar (lambda (item) (concat "-isystem" item))
-                       (rh-get-g++-isystem-path))))
-
-  (set (make-local-variable 'ac-sources)
-       (append '(ac-source-c-headers
-                 ;; Dynamic auto-completion is slow and interferes with typing,
-                 ;; whether it is 'c-source-clang' or 'ac-source-rtags',
-                 ;; therefore it is only activated on 'C-x C-<tab>' (see key
-                 ;; definitions below in this function) in
-                 ;; 'rh-c++-auto-complete-clang' function.
-                 ;; ac-source-clang
-                 ;; ac-source-rtags
-                 )
-               ac-sources))
-
-  (let ((local-yas-minor-mode-map (copy-keymap yas-minor-mode-map)))
-    (set (make-local-variable 'yas-minor-mode-map) local-yas-minor-mode-map))
-
-  ;; use ac for for yas-expand
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil)
-  ;; or another shortcut:
-  (define-key yas-minor-mode-map (kbd "C-`") 'yas-expand)
-  (define-key yas-minor-mode-map (kbd "C-~") 'yas-prev-field)
-
-  (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
-    (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
-
-  ;; <C-iso-lefttab> is C-S-<tab>
-  (define-key ac-completing-map (kbd "C-x C-<tab>") 'rh-c++-auto-complete-clang)
-  (local-set-key (kbd "C-x C-<tab>") 'rh-c++-auto-complete-clang))
+(use-package rh-rtags-header-line
+  :commands rh-rtags-header-line-setup
+  :defer t
+  :pin manual)
 
 (defun rh-c++-forward-list ()
   (interactive)
@@ -2630,16 +2586,10 @@ fields which we need."
 (use-package cc-mode
   :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :config
-  (defun rh-c++-yas-setup ()
-    ;; Use yast instead of abbrev-mode
-    (abbrev-mode -1)
-    (let* ((project-path (rh-project-get-path))
-           (snippets-path (concat project-path "snippets")))
-      (if (and project-path (file-exists-p snippets-path))
-          (if (not (equal yas-snippet-dirs
-                          (add-to-list 'yas-snippet-dirs snippets-path)))
-              (yas-reload-all))))
-    (yas-minor-mode 1))
+  (defun rh-c++-auto-complete-clang ()
+    (interactive)
+    (message "auto-completing with clang...")
+    (auto-complete (append '(ac-source-clang) ac-sources)))
 
   (defun rh-c++-compile-setup ()
     (require 'compile)
@@ -2650,6 +2600,16 @@ fields which we need."
              (concat path "make -k"))
         (message (concat "vr-project: " path)))))
 
+  (defun rh-c++-yas-setup ()
+    ;; Use yas instead of abbrev-mode
+    (abbrev-mode -1)
+    (yas-minor-mode 1)
+    (let* ((project-path (rh-project-get-path))
+           (snippets-path (concat project-path "snippets")))
+      (when (and project-path (file-exists-p snippets-path))
+        (add-to-list 'yas-snippet-dirs snippets-path)
+        (yas-reload-all))))
+
   (defun rh-c++-font-lock-setup ()
     (require 'modern-cpp-font-lock)
     (modern-c++-font-lock-mode 1))
@@ -2657,6 +2617,56 @@ fields which we need."
   (defun rh-c++-indentation-setup ()
     (require 'rh-c-style)
     (rh-c-style-setup))
+
+  (defun rh-c++-rtags-setup ()
+    (require 'rtags)
+    (rtags-start-process-unless-running)
+    ;; The following does not work with my clang-auto-complete setting
+    ;; (setq rtags-display-current-error-as-tooltip t)
+    (rh-rtags-header-line-setup))
+
+  (defun rh-c++-ac-setup ()
+    ;; see https://github.com/mooz/auto-complete-c-headers
+    (require 'auto-complete-c-headers)
+    ;; #include auto-completion search paths
+    (set (make-local-variable 'achead:include-directories)
+         (append (rh-c++-get-project-include-path)
+                 (rh-get-g++-isystem-path)
+                 achead:include-directories))
+
+    ;; 'rtags-ac' is not as good as 'auto-complete-clang',
+    ;; so using 'auto-complete-clang'
+    ;; (require 'rtags-ac)
+    ;; (setq rtags-completions-enabled t)
+
+    ;; ;; see https://github.com/brianjcj/auto-complete-clang
+    (require 'auto-complete-clang)
+
+    ;; i.e. 'echo "" | g++ -v -x c++ -E -'
+    ;; (setq clang-completion-suppress-error 't)
+    ;; (setq ac-clang-executable (executable-find "clang-3.6"))
+    (set (make-local-variable 'ac-clang-flags)
+         (append `(,vr-c++std)
+                 (mapcar (lambda (item) (concat "-I" item))
+                         (rh-c++-get-project-include-path))
+                 (mapcar (lambda (item) (concat "-isystem" item))
+                         (rh-get-g++-isystem-path))))
+
+    (set (make-local-variable 'ac-sources)
+         (append '(ac-source-c-headers
+                   ;; Dynamic auto-completion is slow and interferes with
+                   ;; typing, whether it is 'c-source-clang' or
+                   ;; 'ac-source-rtags', therefore it is only activated on 'C-x
+                   ;; C-<tab>' (see key definitions below in this function) in
+                   ;; 'rh-c++-auto-complete-clang' function.  ac-source-clang
+                   ;; ac-source-rtags
+                   )
+                 ac-sources))
+
+    (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
+      (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
+
+    (local-set-key (kbd "C-x C-<tab>") #'rh-c++-auto-complete-clang))
 
   (add-hook
    'c++-mode-hook
@@ -3825,8 +3835,8 @@ with very limited support for special characters."
   (setq ispell-silently-savep t)
   (setq ispell-use-framepop-p t)
 
-  :bind (:map ispell-minor-keymap
-         ("C-x w" . 'ispell-word))
+  ;; :bind (:map ispell-minor-keymap
+  ;;        ("C-x w" . 'ispell-word))
   :demand t)
 
 ;; == /b/} ispell mode ==
