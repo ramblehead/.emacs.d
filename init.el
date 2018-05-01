@@ -1706,6 +1706,9 @@ fields which we need."
 ;; /b/{ == hi-lock-mode ==
 
 (use-package hi-lock-mode
+  :init
+  (defvar hi-lock-map nil)
+
   :defer t)
 
 ;; /b/} == hi-lock-mode ==
@@ -3835,9 +3838,8 @@ with very limited support for special characters."
   (setq ispell-silently-savep t)
   (setq ispell-use-framepop-p t)
 
-  ;; :bind (:map ispell-minor-keymap
-  ;;        ("C-x w" . 'ispell-word))
-  :demand t)
+  :bind (("C-x w" . 'ispell-word))
+  :defer t)
 
 ;; == /b/} ispell mode ==
 
