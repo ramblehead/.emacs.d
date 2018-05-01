@@ -2808,7 +2808,8 @@ fields which we need."
      ))
 
   :bind (:map js-mode-map
-          ("<S-f5>" . rh-indium-interaction-and-run))
+        ("<S-f5>" . rh-indium-interaction-and-run))
+  :after js
   :defer t
   :ensure t)
 
