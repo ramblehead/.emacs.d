@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud bm web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -303,7 +303,9 @@ when only symbol face names are needed."
 
 ;; /b/{ == rh-project ==
 
-(setq rh-project-dir-name ".project")
+(defvar rh-project-dir-name ".project")
+(defvar rh-project-generators-relative-path "../gen/")
+(defvar rh-project-include-path-suffix "-include-path")
 
 (defun rh-project-get-path ()
   (let ((src-tree-root (locate-dominating-file
@@ -312,15 +314,7 @@ when only symbol face names are needed."
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
-;; (defun rh-project-get-root (&optional abbreviate)
-;;   (let ((rh-project (rh-project-get-path)))
-;;     (when rh-project
-;;       (if abbreviate
-;;           (abbreviate-file-name
-;;            (expand-file-name (concat rh-project "../")))
-;;         (expand-file-name (concat rh-project "../"))))))
-
-(defun rh-project-get-root (&optional abbreviate)
+(defun rh-project-get-root ()
   (let ((rh-project (rh-project-get-path)))
     (when rh-project
       (abbreviate-file-name
@@ -338,9 +332,23 @@ when only symbol face names are needed."
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
                           (rh-project-get-path)
-                          "../generators/")))
+                          rh-project-generators-relative-path)))
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
+
+(defun rh-project-get-include-path (language)
+  (let* ((project-path (rh-project-get-path))
+         (src-tree-root (concat project-path "../"))
+         (lang-include-path
+          (concat project-path language rh-project-include-path-suffix)))
+    (when (and project-path (file-exists-p lang-include-path))
+      (setq src-tree-root (expand-file-name src-tree-root))
+      (with-temp-buffer
+        (insert-file-contents lang-include-path)
+        (mapcar (lambda (item)
+                  (replace-regexp-in-string
+                   (regexp-quote "../") src-tree-root item nil 'literal))
+                (split-string (buffer-string)))))))
 
 ;; /b/} == rh-project ==
 
@@ -354,17 +362,17 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   "Original backward-list function used by the major mode before loading
 code-groups minor mode - i.e. the function usually bound to C-M-n")
 
-(setq cg-doxygen-group-open-token "///@{")
-(setq cg-doxygen-group-close-token "///@}")
+(defvar cg-doxygen-group-open-token "///@{")
+(defvar cg-doxygen-group-close-token "///@}")
 
-(setq cg-auto-code-group-open-token "/a/{")
-(setq cg-auto-code-group-close-token "/a/}")
+(defvar cg-auto-code-group-open-token "/a/{")
+(defvar cg-auto-code-group-close-token "/a/}")
 
-(setq cg-custom-code-group-open-token "/c/{")
-(setq cg-custom-code-group-close-token "/c/}")
+(defvar cg-custom-code-group-open-token "/c/{")
+(defvar cg-custom-code-group-close-token "/c/}")
 
-(setq cg-block-code-group-open-token "/b/{")
-(setq cg-block-code-group-close-token "/b/}")
+(defvar cg-block-code-group-open-token "/b/{")
+(defvar cg-block-code-group-close-token "/b/}")
 
 (defun cg-group-head-regexp (open-token)
   (concat "^.*" open-token ".*$"))
@@ -982,7 +990,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     (or (and (listp x)
              (or (memq 'mode-line-percent-position x)
                  (cl-remove-if-not
-                  (lambda (y) (string-match ".*%p.*" y))
+                  (lambda (y) (string-match-p ".*%p.*" y))
                   (cl-remove-if-not #'stringp x))))
         (and (stringp x)
              (string-match ".*%p.*" x))))
@@ -1913,22 +1921,22 @@ fields which we need."
            (company-preview-frontend command)))))
 
   (defmacro rh-company-tooltip-key (default-key cmd)
-    `#'(lambda ()
-         (interactive)
-         (if (company-tooltip-visible-p)
-             (funcall ,cmd)
-           (let ((default-cmd (or (local-key-binding ,default-key)
-                                  (global-key-binding ,default-key))))
-             (when (fboundp default-cmd)
-               (funcall default-cmd)
-               (company-abort))))))
+    `(lambda ()
+       (interactive)
+       (if (company-tooltip-visible-p)
+           (funcall ,cmd)
+         (let ((default-cmd (or (local-key-binding ,default-key)
+                                (global-key-binding ,default-key))))
+           (when (fboundp default-cmd)
+             (funcall default-cmd)
+             (company-abort))))))
 
   (defmacro rh-company-tooltip-cmd (default-cmd cmd)
-    `#'(lambda ()
-         (interactive)
-         (if (company-tooltip-visible-p)
-             (funcall ,cmd)
-           (funcall ,default-cmd))))
+    `(lambda ()
+       (interactive)
+       (if (company-tooltip-visible-p)
+           (funcall ,cmd)
+         (funcall ,default-cmd))))
 
   (setq company-tooltip-align-annotations t)
   (setq company-echo-truncate-lines nil)
@@ -2298,7 +2306,7 @@ fields which we need."
            buffer (if (and (derived-mode-p 'magit-mode)
                            (memq (with-current-buffer buffer major-mode)
                                  '(magit-process-mode
-                                   magit-revision-mode
+                                   ;; magit-revision-mode
                                    magit-diff-mode
                                    magit-stash-mode
                                    magit-status-mode)))
@@ -2412,44 +2420,8 @@ fields which we need."
 
 ;; /b/{ == C++ ==
 
-(use-package modern-cpp-font-lock
-  :config
-  (add-to-list 'rm-blacklist " mc++fl")
-
-  :defer t
-  :ensure t)
-
-(setq vr-c++std "-std=c++1z")
-
-;; TODO: Use rtags or .project to get current compiler
-;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
-(defun rh-get-g++-isystem-path ()
-  (let* ((command-result (shell-command-to-string
-                          "echo \"\" | g++ -v -x c++ -E -"))
-         (start-string "#include <...> search starts here:\n")
-         (end-string "End of search list.\n")
-         (start-pos (string-match start-string command-result))
-         (end-pos (string-match end-string command-result))
-         (include-string (substring command-result
-                                    (+ start-pos (length start-string))
-                                    end-pos)))
-    (split-string include-string)))
-
-(defun rh-c++-get-project-include-path ()
-  (let* ((project-path (rh-project-get-path))
-         (src-tree-root (concat project-path "../"))
-         (c++-include-path (concat project-path "c++-include-path")))
-    (when (and project-path (file-exists-p c++-include-path))
-      ;; (setq src-tree-root (file-truename src-tree-root))
-      (setq src-tree-root (expand-file-name src-tree-root))
-      (with-temp-buffer
-        (insert-file-contents c++-include-path)
-        (mapcar (lambda (item)
-                  (replace-regexp-in-string
-                   (regexp-quote "../") src-tree-root item nil 'literal))
-                (split-string (buffer-string)))))))
-
 (use-package rtags
+  :commands rtags-start-process-unless-running
   :config
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
@@ -2544,35 +2516,18 @@ fields which we need."
 
   :pin manual)
 
+(use-package modern-cpp-font-lock
+  :commands modern-c++-font-lock-mode
+  :config
+  (add-to-list 'rm-blacklist " mc++fl")
+
+  :defer t
+  :ensure t)
+
 (use-package rh-rtags-header-line
   :commands rh-rtags-header-line-setup
   :defer t
   :pin manual)
-
-(defun rh-c++-forward-list ()
-  (interactive)
-  (if (cg-looking-at-any-group-head)
-      ;; (unwind-protect
-      ;;     (let (result)
-      ;;       (condition-case ex
-      ;;           (setq result (cg-search-forward-group-balanced-tail))
-      ;;         ('error (message (format "Caught exception: [%s]" ex))))
-      ;;       result)
-      ;;   (message "Cleaning up..."))
-      (cg-search-forward-group-balanced-tail)
-    (forward-list)))
-
-(defun rh-c++-backward-list ()
-  (interactive)
-  (if (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head)
-    (backward-list)))
-
-(defun rh-c++-code-folding-setup ()
-  (hs-minor-mode 1)
-  (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-  (local-set-key (kbd "C-M-n") 'rh-c++-forward-list)
-  (local-set-key (kbd "C-M-p") 'rh-c++-backward-list))
 
 (use-package clang-format
   :load-path "/usr/share/emacs/site-lisp/clang-format-5.0"
@@ -2583,12 +2538,29 @@ fields which we need."
   :ensure t)
 
 (use-package rh-c-style
+  :commands rh-c-style-setup
   :defer t
   :pin manual)
 
 (use-package cc-mode
   :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :config
+  (defvar-local rh-c++-compiler "g++")
+  (defvar-local rh-c++-std "-std=c++1z")
+
+  ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
+  (defun rh-gcc-get-isystem-path (compiler)
+    (let* ((command-result (shell-command-to-string
+                            (concat "echo \"\" | " compiler " -v -x c++ -E -")))
+           (start-string "#include <...> search starts here:\n")
+           (end-string "End of search list.\n")
+           (start-pos (string-match start-string command-result))
+           (end-pos (string-match end-string command-result))
+           (include-string (substring command-result
+                                      (+ start-pos (length start-string))
+                                      end-pos)))
+      (split-string include-string)))
+
   (defun rh-c++-auto-complete-clang ()
     (interactive)
     (message "auto-completing with clang...")
@@ -2601,7 +2573,7 @@ fields which we need."
       (when path
         (set (make-local-variable 'compile-command)
              (concat path "make -k"))
-        (message (concat "vr-project: " path)))))
+        (message (concat "rh-project: " path)))))
 
   (defun rh-c++-yas-setup ()
     ;; Use yas instead of abbrev-mode
@@ -2614,15 +2586,12 @@ fields which we need."
         (yas-reload-all))))
 
   (defun rh-c++-font-lock-setup ()
-    (require 'modern-cpp-font-lock)
     (modern-c++-font-lock-mode 1))
 
   (defun rh-c++-indentation-setup ()
-    (require 'rh-c-style)
     (rh-c-style-setup))
 
   (defun rh-c++-rtags-setup ()
-    (require 'rtags)
     (rtags-start-process-unless-running)
     ;; The following does not work with my clang-auto-complete setting
     ;; (setq rtags-display-current-error-as-tooltip t)
@@ -2633,8 +2602,8 @@ fields which we need."
     (require 'auto-complete-c-headers)
     ;; #include auto-completion search paths
     (set (make-local-variable 'achead:include-directories)
-         (append (rh-c++-get-project-include-path)
-                 (rh-get-g++-isystem-path)
+         (append (rh-project-get-include-path "c++")
+                 (rh-gcc-get-isystem-path rh-c++-compiler)
                  achead:include-directories))
 
     ;; 'rtags-ac' is not as good as 'auto-complete-clang',
@@ -2649,11 +2618,11 @@ fields which we need."
     ;; (setq clang-completion-suppress-error 't)
     ;; (setq ac-clang-executable (executable-find "clang-3.6"))
     (set (make-local-variable 'ac-clang-flags)
-         (append `(,vr-c++std)
+         (append `(,rh-c++-std)
                  (mapcar (lambda (item) (concat "-I" item))
-                         (rh-c++-get-project-include-path))
+                         (rh-project-get-include-path "c++"))
                  (mapcar (lambda (item) (concat "-isystem" item))
-                         (rh-get-g++-isystem-path))))
+                         (rh-gcc-get-isystem-path rh-c++-compiler))))
 
     (set (make-local-variable 'ac-sources)
          (append '(ac-source-c-headers
@@ -2668,7 +2637,6 @@ fields which we need."
 
     (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
       (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
-
     (local-set-key (kbd "C-x C-<tab>") #'rh-c++-auto-complete-clang))
 
   (add-hook
@@ -2680,8 +2648,7 @@ fields which we need."
      (rh-c++-yas-setup)
      (rh-c++-compile-setup)
      (rh-c++-rtags-setup)
-     (rh-c++-ac-setup)
-     (rh-c++-code-folding-setup)))
+     (rh-c++-ac-setup)))
 
   :bind (:map c++-mode-map
          ("C-S-b" . recompile)
@@ -2700,11 +2667,19 @@ fields which we need."
                       "js"))
              :major)
 
+  :init
+  (defvar js-mode-map (make-sparse-keymap))
+
   :config
+  (setq interpreter-mode-alist
+        (cl-delete-if (lambda (pair)
+                        (or (equal pair '("node" . js-mode))
+                            (equal pair '("nodejs" . js-mode))))
+                      interpreter-mode-alist))
+
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
-  (setq js-mode-map (make-sparse-keymap))
 
   (add-hook
    'js-mode-hook
@@ -2741,16 +2716,17 @@ fields which we need."
 
 (use-package js2-mode
   :mode "\\.js\\'"
+  :interpreter "node"
   ;; "λ" stands for interactive and "i" for indium mode
   :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
                         "js2λi"
                       "js2"))
              :major)
-
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
+  (setq js2-skip-preprocessor-directives t)
 
   ;; see http://emacswiki.org/emacs/Js2Mode After js2 has parsed a js file, we
   ;; look for jslint globals decl comment ("/* global Fred, _, Harry */") and
@@ -2821,8 +2797,7 @@ fields which we need."
      ))
 
   :bind (:map js-mode-map
-        ("<S-f5>" . rh-indium-interaction-and-run))
-  :after js
+         ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t
   :ensure t)
 
@@ -3147,7 +3122,7 @@ area."
 
 (use-package python-mode
   :mode "\\.py\\'"
-  :init
+  :config
   (setq python-indent-offset 2)
 
   ;; (defun vr-python-forward-element (&optional arg)
@@ -3409,13 +3384,30 @@ area."
 
 ;; /b/} == web-mode ==
 
+;; /b/{ == graphql-mode ==
+
+(use-package graphql-mode
+  :config
+  (add-hook
+   'graphql-mode-hook
+   (lambda ()
+     ;; TODO: run-with-timer is a temporary workaround the following error
+     ;;       "Error during redisplay: (jit-lock-function 1) signaled (end-of-buffer)"
+     ;;       which occurs when graphql-mode is loaded.
+     (run-with-timer
+      0 nil
+      (lambda ()
+        (rh-programming-minor-modes t)))))
+
+  :ensure t)
+
+;; /b/} == graphql-mode ==
+
 ;; /b/{ == tide ==
 
 (use-package tide
   :delight (tide-mode " τ")
-  :init
-  (setq tide-documentation-buffer-name "*tide-documentation*")
-
+  :config
   (add-to-list 'display-buffer-alist
                '("*tide-references*"
                  (display-buffer-below-selected)
@@ -3427,6 +3419,14 @@ area."
                  ,(g2w-display #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
+
+  ;; (setq tide-documentation-buffer-name "*tide-documentation*")
+
+  (defadvice tide-buffer-file-name (after rh-tide-buffer-file-name () activate)
+    (when (string-match-p "^#!.*node" (save-excursion
+                                        (goto-char (point-min))
+                                        (thing-at-point 'line t)))
+      (setq ad-return-value (concat (buffer-file-name) ".js"))))
 
   (defun rh-tide-company-display-permanent-doc-buffer ()
     (display-buffer (get-buffer-create "*tide-documentation*")))
@@ -3441,7 +3441,6 @@ area."
         (select-window selwin)
         t)))
 
-  :config
   (defadvice tide-doc-buffer (around rh-tide-doc-buffer activate)
     (with-current-buffer ad-do-it
       (local-set-key "q" #'g2w-quit-window)))
