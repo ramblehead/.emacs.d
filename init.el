@@ -783,6 +783,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package emacs
   :config
+  ;; (set-face-bold-p 'bold t)
+
   ;; (add-to-list 'display-buffer-alist
   ;;              `("*Warnings*"
   ;;                ,(g2w-display #'display-buffer-in-side-window t)
@@ -1159,15 +1161,10 @@ Also sets SYMBOL to VALUE."
   ;; Need to investigate or wait until modern font lock is more reliable.
   (setq occur-excluded-properties t)
 
-  ;; (add-hook
-  ;;  'occur-mode-hook
-  ;;  (lambda ()
-  ;;    (setq rh-interactively-selected-window (frame-selected-window))))
-
   ;; (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
   :bind (:map occur-mode-map
-         ("q" .g2w-quit-window))
+         ("q" . g2w-quit-window))
   :defer t)
 
 (use-package xref
@@ -2326,7 +2323,7 @@ fields which we need."
                            (memq (with-current-buffer buffer major-mode)
                                  '(magit-process-mode
                                    ;; magit-revision-mode
-                                   magit-diff-mode
+                                   ;; magit-diff-mode
                                    magit-stash-mode
                                    magit-status-mode)))
                       nil
