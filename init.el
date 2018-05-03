@@ -1164,9 +1164,28 @@ Also sets SYMBOL to VALUE."
   ;;  (lambda ()
   ;;    (setq rh-interactively-selected-window (frame-selected-window))))
 
-  (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
+  ;; (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
 
+  :bind (:map occur-mode-map
+         ("q" .g2w-quit-window))
   :defer t)
+
+(use-package xref
+  :config
+  (add-to-list 'display-buffer-alist
+               `(,(g2w-condition "*xref*")
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'g2w-display-buffer-commands
+               'xref-goto-xref)
+  (add-to-list 'g2w-display-buffer-commands
+               'xref-show-location-at-point)
+
+  :bind (:map xref--xref-buffer-mode-map
+          ("q" . g2w-quit-window))
+  :demand t)
 
 (use-package bind-key
   :config
@@ -3120,33 +3139,15 @@ area."
 
 ;; /b/{ == python-mode ==
 
-(use-package python-mode
-  :mode "\\.py\\'"
+(use-package python
+  :mode ("\\.py\\'" . python-mode)
   :config
   (setq python-indent-offset 2)
-
-  ;; (defun vr-python-forward-element (&optional arg)
-  ;;   (interactive "^p")
-  ;;   (if (cg-looking-at-any-group-head)
-  ;;       (cg-search-forward-group-balanced-tail)
-  ;;     (forward-list arg)))
-
-  ;; (defun vr-python-backward-element (&optional arg)
-  ;;   (interactive "^p")
-  ;;   (if (cg-looking-at-any-group-tail)
-  ;;       (cg-search-backward-group-balanced-head)
-  ;;     (backward-list arg)))
-
-  ;; (defun vr-python-code-folding-setup ()
-  ;;   (hs-minor-mode 1)
-  ;;   (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-  ;;   (local-set-key (kbd "C-M-n") 'vr-python-forward-element)
-  ;;   (local-set-key (kbd "C-M-p") 'vr-python-backward-element))
 
   (add-hook
    'python-mode-hook
    (lambda ()
-     (rh-programming-minor-modes))))
+     (rh-programming-minor-modes 1))))
 
 ;; /b/} == python-mode ==
 
