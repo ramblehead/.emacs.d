@@ -803,7 +803,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                         :width 'semi-condensed
                         :weight 'normal))
 
+  ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
+
+  (column-number-mode 1)
+  (size-indication-mode -1)
 
   ;; Disable annoying key binding for (suspend-frame) function and quit
   (global-unset-key (kbd "C-x C-z"))
@@ -1101,8 +1105,6 @@ Also sets SYMBOL to VALUE."
   (setq rh-sml/position-percentage-format sml/position-percentage-format)
   (setq sml/position-percentage-format nil)
 
-  (column-number-mode 1)
-  (size-indication-mode -1)
   (sml/setup)
 
   :after (linum total-lines)
