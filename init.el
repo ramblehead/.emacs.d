@@ -2533,6 +2533,11 @@ fields which we need."
    (lambda ()
      (set (make-local-variable 'truncate-lines) t)))
 
+  (add-hook
+   'rtags-mode-hook
+   (lambda ()
+     (set (make-local-variable 'truncate-lines) t)))
+
   :pin manual)
 
 (use-package modern-cpp-font-lock
