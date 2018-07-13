@@ -690,9 +690,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
              (set (make-local-variable 'g2w-window-slot)
                   (window-parameter win 'window-slot))
              (put 'g2w-window-slot 'permanent-local t)
-             (set (make-local-variable 'g2w-quit-restore-parameter)
-                  (window-parameter win 'quit-restore))
-             (put 'g2w-quit-restore-parameter 'permanent-local t)
+             ;; (set (make-local-variable 'g2w-quit-restore-parameter)
+             ;;      (window-parameter win 'quit-restore))
+             ;; (put 'g2w-quit-restore-parameter 'permanent-local t)
              (set (make-local-variable 'g2w-kill-on-quit)
                   ,kill-on-quit)
              (put 'g2w-kill-on-quit 'permanent-local t)))
@@ -720,13 +720,36 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defun g2w-quit-window ()
   (interactive)
-  (when (and (local-variable-p 'g2w-quit-restore-parameter)
-             g2w-quit-restore-parameter)
-    (set-window-parameter (frame-selected-window)
-                          'quit-restore g2w-quit-restore-parameter))
-  (if (local-variable-p 'g2w-kill-on-quit)
-      (quit-window g2w-kill-on-quit)
-    (quit-window nil)))
+  ;; (when (and (local-variable-p 'g2w-quit-restore-parameter)
+  ;;            g2w-quit-restore-parameter)
+  ;;   (set-window-parameter (frame-selected-window)
+  ;;                         'quit-restore g2w-quit-restore-parameter))
+
+  ;; If g2w-window-side, g2w-window-side and window-side, window-slot
+  ;; are equal, kill or burry buffer; then if last side/slot window,
+  ;; delete window, else display next same side/slot window.
+  ;; If g2w side/slot are not equal to selected window, just call
+  ;; (quit-window)
+
+  (if (and (and (local-variable-p 'g2w-window-side)
+                (local-variable-p 'g2w-window-slot))
+           (and (eq (window-parameter (frame-selected-window) 'window-side)
+                    g2w-window-side)
+                (eq (window-parameter (frame-selected-window) 'window-slot)
+                    g2w-window-slot)))
+      (let ((same-side-and-slot-buffers
+             (aref (g2w-same-side-and-slot-buffers (current-buffer)) 0)))
+        (if (eq (length same-side-and-slot-buffers) 1)
+            (if (and (local-variable-p 'g2w-kill-on-quit)
+                     g2w-kill-on-quit)
+                (when (kill-buffer) (delete-window))
+              (delete-window))
+          (if (local-variable-p 'g2w-kill-on-quit)
+              (quit-window g2w-kill-on-quit)
+            (quit-window nil))))
+    (if (local-variable-p 'g2w-kill-on-quit)
+        (quit-window g2w-kill-on-quit)
+      (quit-window nil))))
 
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
@@ -2107,7 +2130,7 @@ fields which we need."
   (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*compilation*")
+               `(,(g2w-condition "*compilation*" nil)
                  ,(g2w-display #'display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
