@@ -744,9 +744,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
                      g2w-kill-on-quit)
                 (when (kill-buffer) (delete-window))
               (delete-window))
-          (if (local-variable-p 'g2w-kill-on-quit)
-              (quit-window g2w-kill-on-quit)
-            (quit-window nil))))
+          (progn
+            (setq same-side-and-slot-buffers
+                  (delete (buffer-name (current-buffer))
+                          same-side-and-slot-buffers))
+            (if (and (local-variable-p 'g2w-kill-on-quit)
+                     g2w-kill-on-quit)
+                (kill-buffer)
+              (bury-buffer))
+            (set-window-buffer (frame-selected-window)
+                               (car same-side-and-slot-buffers)))))
     (if (local-variable-p 'g2w-kill-on-quit)
         (quit-window g2w-kill-on-quit)
       (quit-window nil))))
@@ -1139,7 +1146,8 @@ Also sets SYMBOL to VALUE."
   :init
   (add-to-list 'display-buffer-alist
                `("*Help*"
-                 ,(g2w-display #'display-buffer-in-side-window t)
+                 ;; ,(g2w-display #'display-buffer-in-side-window t)
+                 ,(g2w-display #'display-buffer-in-side-window)
                  (side . bottom)
                  (slot . 0)
                  (inhibit-same-window . t)
