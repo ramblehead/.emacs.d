@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix realgud web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -49,8 +49,6 @@
 ;;; Emacs Version Variables
 ;; ------------------------------------------------------------------
 
-;; (setq source-directory "~/rhpm/dotfiles/ubuntu-16.04-desktop/scripts/emacs-snapshot-94060-b7dfd39-emacs")
-
 (setq vr-emacs-version-string
       (replace-regexp-in-string
        "GNU Emacs \\([0-9]+.[0-9]+.[0-9]+\\).*" "\\1"
@@ -58,11 +56,6 @@
 
 (setq vr-emacs-version
       (mapcar 'string-to-number (split-string vr-emacs-version-string "\\.")))
-
-;; (setq vr-emacs-version ())
-;; (dolist (num (split-string vr-emacs-version-string "\\.") vr-emacs-version)
-;;   (setq vr-emacs-version (cons (string-to-number num) vr-emacs-version)))
-;; (setq vr-emacs-version (reverse vr-emacs-version))
 
 ;; ------------------------------------------------------------------
 ;;; File Location Variables
@@ -135,14 +128,15 @@
 (require 'package)
 
 (add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/")
-             'append)
+             '("melpa" . "https://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
 ;;              '("melpa" . "http://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
 ;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
 ;; (add-to-list 'package-archives
 ;;              '("gnu" . "http://elpa.gnu.org/packages/"))
+
+;; (setq package-check-signature nil)
 
 (if (version< emacs-version "27.0")
     (progn
@@ -156,7 +150,6 @@
   (package-install 'use-package))
 
 (use-package use-package-ensure-system-package
-  :demand t
   :ensure t)
 
 ;; /b/} == Package initialisation and 'use-package' bootstrap ==
@@ -171,16 +164,22 @@
 
   (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
 
-  :demand t
   :ensure t)
 
 (use-package async
-  :demand t
+  :ensure t)
+
+(use-package cl-lib
   :ensure t)
 
 (use-package cl
-  :demand t
   :ensure t)
+
+(use-package list-utils
+  :ensure t)
+
+;; (use-package test-simple
+;;   :ensure t)
 
 ;; == Auxiliary functions ==
 
@@ -2462,10 +2461,15 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise))
 
-;; == RealGUD Mode ==
+;; /b/{ == RealGUD Mode ==
 
+;; Autoinstall from init is disabled until the following problem is solved:
+;; https://github.com/syl20bnr/spacemacs/issues/5917
 (use-package realgud
-  :ensure t)
+  :commands (realgud:gdb realgud:gdb-pid realgud:pdb realgud:ipdb)
+  :pin melpa)
+
+;; /b/} == RealGUD Mode ==
 
 ;; /b/{ == C++ ==
 
@@ -2856,6 +2860,14 @@ fields which we need."
   :ensure t)
 
 ;; /b/} == js2-mode ==
+
+;; /b/{ == js2-refactor ==
+
+(use-package js2-refactor
+  :defer t
+  :ensure t)
+
+;; /b/} == js2-refactor ==
 
 ;; /b/{ == typescript-mode ==
 
