@@ -846,6 +846,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
     )
 
+  ;; HiDPI
+  (when (> (display-pixel-width) 1920)
+    (fringe-mode '(16 . 16)))
+
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
 
