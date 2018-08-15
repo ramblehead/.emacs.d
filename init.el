@@ -123,7 +123,7 @@
 ;; (ql:quickload "alexandria")
 ;; (alexandria:flatten list)
 
-;; /b/{ == Package initialisation and 'use-package' bootstrap ==
+;; /b/{ == Package initialisation and `use-package' bootstrap ==
 
 (require 'package)
 
@@ -152,7 +152,7 @@
 (use-package use-package-ensure-system-package
   :ensure t)
 
-;; /b/} == Package initialisation and 'use-package' bootstrap ==
+;; /b/} == Package initialisation and `use-package' bootstrap ==
 
 (use-package paradox
   :config
