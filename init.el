@@ -842,6 +842,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
     ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
     )
 
   ;; Load secrets from outside of public SCM
