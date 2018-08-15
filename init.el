@@ -231,8 +231,10 @@
  'selective-display
  (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
    (vconcat (mapcar (lambda (c) (+ face-offset c))
-                    " ◦◦◦ "
-                    ;; " [...] "
+                    ;; " […] "
+                    ;; " ◦◦◦ "
+                    ;; " ••• "
+                    " [...] "
                     ))))
 
 ;; == Convenience interactive functions ==
@@ -296,7 +298,7 @@ when only symbol face names are needed."
   (quit-window t))
 
 ;; -------------------------------------------------------------------
-;;; Emacs Packages Tree (where packages grow)
+;;; Emacs Packages Tree (that is where ramblehead's packages grow)
 ;; -------------------------------------------------------------------
 
 ;; /b/{ == rh-project ==
@@ -828,16 +830,19 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
     (add-to-list 'default-frame-alist
                  '(font . "Hack-10.5"))
+
+    ;; face-font-family-alternatives
+
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
     ;; (set-face-attribute 'default nil
     ;;                     :family "Hack"
     ;;                     :height 105
     ;;                     :width 'semi-condensed
     ;;                     :weight 'normal)
-    )
 
-  ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
-  (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+    (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    )
 
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
