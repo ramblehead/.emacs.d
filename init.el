@@ -230,7 +230,10 @@
  standard-display-table
  'selective-display
  (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
-   (vconcat (mapcar (lambda (c) (+ face-offset c)) " [...] "))))
+   (vconcat (mapcar (lambda (c) (+ face-offset c))
+                    " ◦◦◦ "
+                    ;; " [...] "
+                    ))))
 
 ;; == Convenience interactive functions ==
 
@@ -1411,8 +1414,9 @@ Also sets SYMBOL to VALUE."
     (space-mark 3616 [3620] [95])
     (space-mark 3872 [3876] [95])
     (newline-mark 10 [182 10] [36 10])  ; newlne, ¶
-    (tab-mark 9 [187 9] [92 9])         ; tab, »
-    ;; (tab-mark 9 [9654 9] [92 9])        ; tab, ▶
+    ;; (tab-mark 9 [8594 9] [92 9])         ; tab, →
+    ;; (tab-mark 9 [187 9] [92 9])         ; tab, »
+    (tab-mark 9 [9654 9] [92 9])        ; tab, ▶
     ;; (tab-mark 9 [9655 9] [92 9])        ; tab, ▷
 ))
 
