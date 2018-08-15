@@ -141,7 +141,7 @@
 (if (version< emacs-version "27.0")
     (progn
       (setq package-enable-at-startup nil)
-      (package-initialize t))
+      (package-initialize))
   (unless package--initialized
     (package-initialize t)))
 
@@ -813,8 +813,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package emacs
   :config
-  ;; (set-face-bold-p 'bold t)
-
   ;; (add-to-list 'display-buffer-alist
   ;;              `("*Warnings*"
   ;;                ,(g2w-display #'display-buffer-in-side-window t)
@@ -825,13 +823,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
   (when (display-graphic-p)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-    ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+    (add-to-list 'default-frame-alist
+                 '(font . "Hack-10.5"))
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
-    (set-face-attribute 'default nil
-                        :family "Hack"
-                        :height 105
-                        :width 'semi-condensed
-                        :weight 'normal))
+    ;; (set-face-attribute 'default nil
+    ;;                     :family "Hack"
+    ;;                     :height 105
+    ;;                     :width 'semi-condensed
+    ;;                     :weight 'normal)
+    )
+
+  ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+  (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
 
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
