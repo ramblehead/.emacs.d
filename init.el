@@ -138,12 +138,12 @@
 
 ;; (setq package-check-signature nil)
 
-(if (version< emacs-version "27.0")
-    (progn
-      (setq package-enable-at-startup nil)
-      (package-initialize))
-  (unless package--initialized
-    (package-initialize t)))
+(if (version< "27.0" emacs-version)
+    (unless package--initialized
+      (package-initialize t))
+  (progn
+    (setq package-enable-at-startup nil)
+    (package-initialize)))
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
