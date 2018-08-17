@@ -1499,9 +1499,12 @@ Also sets SYMBOL to VALUE."
   ;; (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
 
+  (setq which-key-sort-order 'which-key-description-order)
+
   (which-key-add-key-based-replacements
-    "M-s"   "isearch-commands"
-    "M-g"   "goto-commands"
+    "M-s"   "interactive-search"
+    "M-s h" "highlight"
+    "M-g"   "goto"
     "C-x 8" "unicode-keys")
 
   (run-with-idle-timer
