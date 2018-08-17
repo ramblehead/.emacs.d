@@ -1194,6 +1194,10 @@ Also sets SYMBOL to VALUE."
 
   :defer t)
 
+(use-package wgrep
+  :defer t
+  :ensure t)
+
 (use-package replace
   :init
   (add-to-list 'display-buffer-alist
@@ -1210,11 +1214,13 @@ Also sets SYMBOL to VALUE."
   ;; Need to investigate or wait until modern font lock is more reliable.
   (setq occur-excluded-properties t)
 
-  ;; (define-key occur-mode-map (kbd "q") #'g2w-quit-window)
-
   :bind (:map occur-mode-map
          ("q" . g2w-quit-window))
   :defer t)
+
+(use-package iedit
+  :demand t
+  :ensure t)
 
 (use-package xref
   :config
