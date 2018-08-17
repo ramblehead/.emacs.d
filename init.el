@@ -1243,7 +1243,7 @@ Also sets SYMBOL to VALUE."
                'xref-show-location-at-point)
 
   :bind (:map xref--xref-buffer-mode-map
-          ("q" . g2w-quit-window))
+         ("q" . g2w-quit-window))
   :demand t)
 
 (use-package bind-key
@@ -1495,9 +1495,14 @@ Also sets SYMBOL to VALUE."
 
   :config
   ;; (setq which-key-show-prefix 'mode-line)
-  (setq which-key-max-description-length 35)
+  (setq which-key-max-description-length 31)
   ;; (setq which-key-show-transient-maps t)
   (add-to-list 'rm-blacklist " WK")
+
+  (which-key-add-key-based-replacements
+    "M-s"   "isearch-commands"
+    "M-g"   "goto-commands"
+    "C-x 8" "unicode-keys")
 
   (run-with-idle-timer
    1 nil
@@ -1507,7 +1512,7 @@ Also sets SYMBOL to VALUE."
      (setq which-key-side-window-max-height 15)))
 
   :bind (:map which-key-mode-map
-         ("<f1>" . which-key-show-top-level))
+          ("<f1>" . which-key-show-top-level))
   :demand t
   :ensure t)
 
