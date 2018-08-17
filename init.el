@@ -2556,10 +2556,14 @@ fields which we need."
   ;; (setq rtags-process-flags "-M")
   ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
   ;; for gcc-toolchain explanations
-  (setq rtags-process-flags
-        (concat "--default-argument \"--gcc-toolchain="
-                (expand-file-name "clang-gcc-toolchain" "~")
-                "/\""))
+  (let ((custom-gcc-toolchain
+         (file-name-as-directory
+          (expand-file-name "clang-gcc-toolchain" "~"))))
+    (when (file-directory-p custom-gcc-toolchain)
+      (setq rtags-process-flags
+            (concat "--default-argument \"--gcc-toolchain="
+                    custom-gcc-toolchain
+                    "\""))))
 
   (setq rtags-autostart-diagnostics t)
 
