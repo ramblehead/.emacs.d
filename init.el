@@ -6,24 +6,29 @@
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
  '(custom-safe-themes
-   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
+   (quote
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
  '(font-latex-fontify-script nil)
- '(font-latex-fontify-sectioning 'color)
+ '(font-latex-fontify-sectioning (quote color))
  '(font-latex-math-environments
-   '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
+   (quote
+    ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
  '(hfy-default-face-def
-   '((t :background "black" :foreground "white" :family "misc-fixed")))
+   (quote
+    ((t :background "black" :foreground "white" :family "misc-fixed"))))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   (quote
+    (wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
+ '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
  '(tab-stop-list
-   '(8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
- '(visual-line-fringe-indicators '(nil right-curly-arrow))
+   (quote
+    (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
+ '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
