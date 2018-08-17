@@ -852,8 +852,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     )
 
   ;; HiDPI
-  (when (> (display-pixel-width) 1920)
-    (fringe-mode '(16 . 16)))
+  (let ((pixel-width
+         (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
+    (when (> pixel-width 1920)
+      (fringe-mode '(16 . 16))))
 
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
