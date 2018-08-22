@@ -847,6 +847,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
     ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
     )
@@ -2576,10 +2577,14 @@ fields which we need."
   ;; (setq rtags-process-flags "-M")
   ;; see https://stackoverflow.com/questions/41962611/how-to-select-a-particular-gcc-toolchain-in-clang
   ;; for gcc-toolchain explanations
-  (setq rtags-process-flags
-        (concat "--default-argument \"--gcc-toolchain="
-                (expand-file-name "clang-gcc-toolchain" "~")
-                "/\""))
+  (let ((custom-gcc-toolchain
+         (file-name-as-directory
+          (expand-file-name "clang-gcc-toolchain" "~"))))
+    (when (file-directory-p custom-gcc-toolchain)
+      (setq rtags-process-flags
+            (concat "--default-argument \"--gcc-toolchain="
+                    custom-gcc-toolchain
+                    "\""))))
 
   (setq rtags-autostart-diagnostics t)
 
