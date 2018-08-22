@@ -1319,6 +1319,26 @@ Also sets SYMBOL to VALUE."
 (setq visible-bell t)
 ;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
 (setq isearch-allow-scroll t)
+
+;; Recentring screen on isearch
+;; see https://emacs.stackexchange.com/a/10432
+;; (defadvice isearch-update (before my-isearch-update activate)
+;;   (sit-for 0)
+;;   (if (and
+;;        ;; not the scrolling command
+;;        (not (eq this-command 'isearch-other-control-char))
+;;        ;; not the empty string
+;;        (> (length isearch-string) 0)
+;;        ;; not the first key (to lazy highlight all matches w/o recenter)
+;;        (> (length isearch-cmds) 2)
+;;        ;; the point in within the given window boundaries
+;;        (let ((line (count-screen-lines (point) (window-start))))
+;;          (or (> line (* (/ (window-height) 4) 3))
+;;              (< line (* (/ (window-height) 9) 1)))))
+;;       (let ((recenter-position 0.3))
+;;         (recenter '(4)))))
+
+
 (require 'fill-column-indicator)
 
 ;; Override text selection on typing
