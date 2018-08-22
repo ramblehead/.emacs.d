@@ -832,6 +832,20 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;;                (window-height . 15)))
 
   (when (display-graphic-p)
+    ;; Change cursor type according to mode
+    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+    (setq overwrite-cursor-type 'box)
+    (setq read-only-cursor-type 'hbar)
+    (setq normal-cursor-type 'bar)
+
+    ;; HiDPI
+    (let ((pixel-width
+           (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
+      (when (> pixel-width 1920)
+        (fringe-mode '(16 . 16))
+        (setq read-only-cursor-type '(hbar . 8))
+        (setq normal-cursor-type '(bar . 4))))
+
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
     (add-to-list 'default-frame-alist
                  '(font . "Hack-10.5"))
@@ -850,13 +864,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
-    )
 
-  ;; HiDPI
-  (let ((pixel-width
-         (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
-    (when (> pixel-width 1920)
-      (fringe-mode '(16 . 16))))
+    (defun set-cursor-according-to-mode ()
+      "Change cursor type according to some minor modes."
+      (cond
+       (buffer-read-only
+        (setq cursor-type read-only-cursor-type))
+       (overwrite-mode
+        (setq cursor-type overwrite-cursor-type))
+       (t
+        (setq cursor-type normal-cursor-type))))
+
+    (add-hook 'post-command-hook 'set-cursor-according-to-mode))
 
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
@@ -4002,24 +4021,6 @@ with very limited support for special characters."
 (global-set-key (kbd "<f11>") 'fullscreen)
 (global-set-key (kbd "M-<return>") 'vr-toggle-max-res-frame)
 (global-set-key (kbd "M-<kp-enter>") 'vr-toggle-max-res-frame)
-
-;; Change cursor type according to mode.
-;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-(setq read-only-cursor-type 'hbar)
-(setq overwrite-cursor-type 'box)
-(setq normal-cursor-type 'bar)
-
-(defun set-cursor-according-to-mode ()
-  "Change cursor type according to some minor modes."
-  (cond
-   (buffer-read-only
-    (setq cursor-type read-only-cursor-type))
-   (overwrite-mode
-    (setq cursor-type overwrite-cursor-type))
-   (t
-    (setq cursor-type normal-cursor-type))))
-
-(add-hook 'post-command-hook 'set-cursor-according-to-mode)
 
 ;; -------------------------------------------------------------------
 ;;; General Emacs enhancement modes
