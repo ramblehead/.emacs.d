@@ -843,7 +843,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
            (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
       (when (> pixel-width 1920)
         (fringe-mode '(16 . 16))
-        (setq read-only-cursor-type '(hbar . 8))
+        (setq read-only-cursor-type '(hbar . 4))
         (setq normal-cursor-type '(bar . 4))))
 
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
