@@ -2378,7 +2378,7 @@ fields which we need."
         (progn
           (set (make-local-variable 'vr-prog-modes) t)
           ;; (linum-mode 1)
-          (nlinum-mode 1)
+          ;; (nlinum-mode 1)
           (rh-show-paren-local-mode 1)
           (hs-minor-mode 1)
           (undo-tree-mode 1)
@@ -2394,7 +2394,7 @@ fields which we need."
       (when (and enabled disabling)
         (kill-local-variable 'vr-prog-modes)
         ;; (linum-mode -1)
-        (nlinum-mode -1)
+        ;; (nlinum-mode -1)
         (rh-show-paren-local-mode -1)
         (hs-minor-mode -1)
         (undo-tree-mode -1)
