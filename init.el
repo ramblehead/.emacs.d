@@ -2270,9 +2270,10 @@ fields which we need."
   ;; (setq nlinum-highlight-current-line t)
 
   :config
-  (global-set-key (kbd "C-<f12>") (lambda ()
-                                    (interactive)
-                                    (nlinum--flush)))
+  ;; (global-set-key (kbd "C-<f12>") (lambda ()
+  ;;                                   (interactive)
+  ;;                                   (nlinum--flush)))
+  (run-with-idle-timer 3 t #'nlinum--flush)
 
   ;; For some reason (bug?) when a new frame is open (e.g. C-x 5 2)
   ;; nlinum numbers become invisible. The following hook makes
@@ -2308,7 +2309,7 @@ fields which we need."
   ;; (advice-add #'select-window :before #'nlinum-hl-do-select-window-flush)
   ;; (advice-add #'select-window :after  #'nlinum-hl-do-select-window-flush)
 
-  ;; (run-with-idle-timer 5 t #'nlinum-hl-flush-window)
+  ;; (run-with-idle-timer 10 t #'nlinum-hl-flush-window)
   ;; (run-with-idle-timer 30 t #'nlinum-hl-flush-all-windows)
 
   :after nlinum
