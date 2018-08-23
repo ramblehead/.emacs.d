@@ -4073,33 +4073,12 @@ with very limited support for special characters."
 (setq ido-use-filename-at-point nil)
 (setq ido-use-url-at-point nil)
 (setq ido-save-directory-list-file vr-ido-last-file-path)
-;; (setq ido-auto-merge-work-directories-length -1)
 
 (setq ido-ignore-buffers vr-ignore-buffers)
 (ido-everywhere 1)
 
-;; (setq ido-work-directory-list '("~/" "~/Desktop" "~/Documents" "~src"))
-;; (setq ido-enable-last-directory-history t)
-;; (setq ido-max-work-directory-list 30)
-;; (setq ido-max-work-file-list 50)
-;; (setq ido-max-prospects 8)
 (setq ido-confirm-unique-completion t)
-;; When using ido, the confirmation is not needed.
 (setq confirm-nonexistent-file-or-buffer nil)
-
-;; (defun vr-ido-choose-from-recentf ()
-;;   "Use ido to select a recently opened file from the \"recentf-list\""
-;;   (interactive)
-;;   (find-file (ido-completing-read "Open file: " recentf-list nil t)))
-
-;; (defun vr-ido-keys ()
-;;   ;; (define-key ido-completion-map (kbd "C-<tab>") 'ido-next-match)
-;;   ;; (define-key ido-completion-map (kbd "C-S-<tab>") 'ido-prev-match))
-;;   ;; (define-key ido-completion-map (kbd "<escape>") 'minibuffer-keyboard-quit)
-;;   (define-key ido-completion-map (kbd "C-<next>") 'ido-next-match)
-;;   (define-key ido-completion-map (kbd "C-<kp-next>") 'ido-prev-match)
-;;   (define-key ido-completion-map (kbd "C-<prior>") 'ido-next-match)
-;;   (define-key ido-completion-map (kbd "C-<kp-prior>") 'ido-prev-match))
 
 ;; == ido-ubiquitous mode ==
 
@@ -4166,15 +4145,6 @@ with very limited support for special characters."
 ;; /b/} helm
 
 ;; /b/{ ifilipb
-
-;; (require 'iflipb)
-;; (setq iflipb-ignore-buffers vr-ignore-buffers)
-;; (setq iflipb-wrap-around t)
-
-;; (global-set-key (kbd "C-<next>") 'iflipb-next-buffer)
-;; (global-set-key (kbd "C-<kp-next>") 'iflipb-next-buffer)
-;; (global-set-key (kbd "C-<prior>") 'iflipb-previous-buffer)
-;; (global-set-key (kbd "C-<kp-prior>") 'iflipb-previous-buffer)
 
 (use-package iflipb
   :config
