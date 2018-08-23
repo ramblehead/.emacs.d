@@ -128,7 +128,7 @@
 ;; (ql:quickload "alexandria")
 ;; (alexandria:flatten list)
 
-;; /b/{ == Package initialisation and `use-package' bootstrap ==
+;; /b/{ Package initialisation and `use-package' bootstrap
 
 (require 'package)
 
@@ -157,7 +157,7 @@
 (use-package use-package-ensure-system-package
   :ensure t)
 
-;; /b/} == Package initialisation and `use-package' bootstrap ==
+;; /b/} Package initialisation and `use-package' bootstrap
 
 (use-package paradox
   :config
@@ -306,7 +306,7 @@ when only symbol face names are needed."
 ;;; Emacs Packages Tree (that is where ramblehead's packages grow)
 ;; -------------------------------------------------------------------
 
-;; /b/{ == rh-project ==
+;; /b/{ rh-project
 
 (defvar rh-project-dir-name ".project")
 (defvar rh-project-generators-relative-path "../gen/")
@@ -355,9 +355,9 @@ when only symbol face names are needed."
                    (regexp-quote "../") src-tree-root item nil 'literal))
                 (split-string (buffer-string)))))))
 
-;; /b/} == rh-project ==
+;; /b/} rh-project
 
-;; /b/{ == code-groups ==
+;; /b/{ code-groups
 
 (defvar-local cg-forward-list-original #'forward-list
   "Original forward-list function used by the major mode before loading
@@ -649,9 +649,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
         (code-groups-minor-mode-disable)
       (code-groups-minor-mode-enable))))
 
-;; /b/} == code-groups ==
+;; /b/} code-groups
 
-;; /b/{ == goto-window ==
+;; /b/{ goto-window
 
 (defvar g2w-reuse-visible-default t)
 
@@ -815,7 +815,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
       (message "current buffer has no associated `destination-window'")
       nil)))
 
-;; /b/} == goto-window ==
+;; /b/} goto-window
 
 ;; -------------------------------------------------------------------
 ;;; Basic System Setup
@@ -1622,7 +1622,7 @@ filename associated with it."
 
 (global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
 
-;; /b/{ == recentf ==
+;; /b/{ recentf
 
 (use-package recentf
   :config
@@ -1799,7 +1799,7 @@ regexp-list."
 
 ;; (add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
 
-;; /b/} == recentf ==
+;; /b/} recentf
 
 ;; == Internal ls (ls-lisp) ==
 
@@ -1835,10 +1835,10 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; -------------------------------------------------------------------
-;;; Auto-completion and Auto-text Tools
+;;; Completion, Regexps, Patterns and Errors Highlighting
 ;; /b/{ +++++++++ ----------------------------------------------------
 
-;; /b/{ == hi-lock-mode ==
+;; /b/{ hi-lock-mode
 
 (use-package hi-lock-mode
   :init
@@ -1846,17 +1846,17 @@ fields which we need."
 
   :defer t)
 
-;; /b/} == hi-lock-mode ==
+;; /b/} hi-lock-mode
 
-;; /b/{ == pcre2el ==
+;; /b/{ pcre2el
 
 (use-package pcre2el
   :demand t
   :ensure t)
 
-;; /b/} == pcre2el ==
+;; /b/} pcre2el
 
-;; /b/{ == visual-regexp ==
+;; /b/{ visual-regexp
 
 (use-package visual-regexp
   :config
@@ -1877,9 +1877,9 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} == visual-regexp ==
+;; /b/} visual-regexp
 
-;; /b/{ == yasnippet ==
+;; /b/{ yasnippet
 
 (use-package yasnippet
   :delight (yas-minor-mode " ⵙ")
@@ -1901,9 +1901,9 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} == yasnippet ==
+;; /b/} yasnippet
 
-;; /b/{ == auto-complete ==
+;; /b/{ auto-complete
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -2027,9 +2027,9 @@ fields which we need."
 (global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
 ;; (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
-;; /b/} == auto-complete ==
+;; /b/} auto-complete
 
-;; /b/{ == company ==
+;; /b/{ company
 
 (use-package company
   :init
@@ -2162,9 +2162,9 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} == company ==
+;; /b/} company
 
-;; /b/{ == flycheck ==
+;; /b/{ flycheck
 
 (use-package flycheck
   :config
@@ -2198,17 +2198,17 @@ fields which we need."
 ;;   :ensure t
 ;;   :disabled)
 
-;; /b/} == flycheck ==
+;; /b/} flycheck
 
 ;; -------------------------------------------------------------------
-;;; Auto-completion and Auto-text Tools
+;;; Completion, Regexps, Patterns and Errors Highlighting
 ;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
-;;; Programming Languages, Debuggers, Profilers, Shells etc.
-;; -------------------------------------------------------------------
+;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
+;; /b/{ +++++++++ ----------------------------------------------------
 
-;; /b/{ == compile ==
+;; /b/{ compile
 
 (use-package compile
   :config
@@ -2230,9 +2230,9 @@ fields which we need."
          ("q" . g2w-quit-window))
   :defer)
 
-;; /b/} == compile ==
+;; /b/} compile
 
-;; /b/{ == eshell ==
+;; /b/{ eshell
 
 (use-package eshell
   :config
@@ -2260,9 +2260,9 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} == eshell ==
+;; /b/} eshell
 
-;; /b/{ == Line Numbers ==
+;; /b/{ Line Numbers
 
 (use-package linum
   :init
@@ -2289,10 +2289,10 @@ fields which we need."
   ;; (setq nlinum-highlight-current-line t)
 
   :config
-  ;; (global-set-key (kbd "C-<f12>") (lambda ()
-  ;;                                   (interactive)
-  ;;                                   (nlinum--flush)))
-  (run-with-idle-timer 3 t #'nlinum--flush)
+  (global-set-key (kbd "C-<f12>") (lambda ()
+                                    (interactive)
+                                    (nlinum--flush)))
+  ;; (run-with-idle-timer 3 t #'nlinum--flush)
 
   ;; For some reason (bug?) when a new frame is open (e.g. C-x 5 2)
   ;; nlinum numbers become invisible. The following hook makes
@@ -2335,7 +2335,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;; /b/} == Line Numbers ==
+;; /b/} Line Numbers
 
 (use-package eldoc
   :delight (eldoc-mode " ε")
@@ -2541,7 +2541,7 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise))
 
-;; /b/{ == RealGUD Mode ==
+;; /b/{ RealGUD
 
 ;; Autoinstall from init is disabled until the following problem is solved:
 ;; https://github.com/syl20bnr/spacemacs/issues/5917
@@ -2549,9 +2549,9 @@ fields which we need."
   :commands (realgud:gdb realgud:gdb-pid realgud:pdb realgud:ipdb)
   :pin melpa)
 
-;; /b/} == RealGUD Mode ==
+;; /b/} RealGUD
 
-;; /b/{ == C++ ==
+;; /b/{ C++
 
 (use-package rtags
   :commands rtags-start-process-unless-running
@@ -2798,9 +2798,9 @@ fields which we need."
          ("C-c b" . rh-compile-toggle-display))
   :defer t)
 
-;; /b/} == C++ ==
+;; /b/} C++
 
-;; /b/{ == js-mode ==
+;; /b/{ js-mode
 
 (use-package js
   ;; :mode ("\\.js\\'" . js-mode)
@@ -2838,9 +2838,9 @@ fields which we need."
          ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t)
 
-;; /b/} == js-mode ==
+;; /b/} js-mode
 
-;; /b/{ == js2-mode ==
+;; /b/{ js2-mode
 
 ;; (defun vr-js2-scratch-config ()
 ;;   (interactive)
@@ -2943,17 +2943,17 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} == js2-mode ==
+;; /b/} js2-mode
 
-;; /b/{ == js2-refactor ==
+;; /b/{ js2-refactor
 
 (use-package js2-refactor
   :defer t
   :ensure t)
 
-;; /b/} == js2-refactor ==
+;; /b/} js2-refactor
 
-;; /b/{ == typescript-mode ==
+;; /b/{ typescript-mode
 
 (use-package typescript-mode
   :delight (typescript-mode "ts")
@@ -2972,9 +2972,9 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} == typescript-mode ==
+;; /b/} typescript-mode
 
-;; /b/{ == ac-js2 ==
+;; /b/{ ac-js2
 
 (use-package ac-js2
   :commands (ac-js2-mode)
@@ -2984,18 +2984,18 @@ fields which we need."
   :disabled t
   :ensure t)
 
-;; /b/} == ac-js2 ==
+;; /b/} ac-js2
 
-;; /b/{ == moz-minor-mode ==
+;; /b/{ moz-minor-mode
 
 ;; (use-package moz
 ;;   :commands moz-minor-mode
 ;;   :interpreter ("moz" . moz-minor-mode)
 ;;   :ensure t)
 
-;; /b/} == moz-minor-mode ==
+;; /b/} moz-minor-mode
 
-;; /b/{ == skewer-mode ==
+;; /b/{ skewer-mode
 
 (defun vr-skewer-eval-last-expression-or-region (start end)
   (interactive (vr-point-or-region))
@@ -3050,9 +3050,9 @@ fields which we need."
   :config (httpd-start)
   :ensure t)
 
-;; /b/} == skewer-mode ==
+;; /b/} skewer-mode
 
-;; /b/{ == indium ==
+;; /b/{ indium
 
 (use-package indium
   :config
@@ -3165,9 +3165,9 @@ area."
   :defer t
   :ensure t)
 
-;; /b/} == indium ==
+;; /b/} indium
 
-;; /b/{ == css-mode ==
+;; /b/{ css-mode
 
 (defun vr-skewer-css-clear-all ()
   (interactive)
@@ -3201,16 +3201,16 @@ area."
                              'vr-skewer-css-eval-current-declaration)))
   :ensure t)
 
-;; /b/} == css-mode ==
+;; /b/} css-mode
 
-;; /b/{ == web-beautify ==
+;; /b/{ web-beautify
 
 (use-package web-beautify
   :ensure t)
 
-;; /b/} == web-beautify ==
+;; /b/} web-beautify
 
-;; /b/{ == Emacs Lisp ==
+;; /b/{ Emacs Lisp
 
 (use-package ielm
   :config
@@ -3266,9 +3266,9 @@ area."
   :ensure t
   :demand t)
 
-;; /b/} == Emacs Lisp ==
+;; /b/} Emacs Lisp
 
-;; /b/{ == python-mode ==
+;; /b/{ python-mode
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
@@ -3280,16 +3280,16 @@ area."
    (lambda ()
      (rh-programming-minor-modes 1))))
 
-;; /b/} == python-mode ==
+;; /b/} python-mode
 
-;; /b/{ == visual-basic-mode ==
+;; /b/{ visual-basic-mode
 
 (autoload 'visual-basic-mode "visual-basic-mode" "Visual Basic mode." t)
 (add-to-list 'auto-mode-alist '("\\.vbs\\'" . visual-basic-mode))
 
-;; /b/} == visual-basic-mode ==
+;; /b/} visual-basic-mode
 
-;; /b/{ == nxml-mode ==
+;; /b/{ nxml-mode
 
 ;; (defun vr-nxml-forward-element (&optional arg)
 ;;   (interactive "^p")
@@ -3336,9 +3336,9 @@ area."
      (vr-nxml-code-folding-setup)
      (rh-programming-minor-modes))))
 
-;; /b/} == nxml-mode ==
+;; /b/} nxml-mode
 
-;; /b/{ == web-mode ==
+;; /b/{ web-mode
 
 (defun vr-web-hs-html ()
   ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
@@ -3514,9 +3514,9 @@ area."
 
   :ensure t)
 
-;; /b/} == web-mode ==
+;; /b/} web-mode
 
-;; /b/{ == graphql-mode ==
+;; /b/{ graphql-mode
 
 (use-package graphql-mode
   :config
@@ -3533,9 +3533,9 @@ area."
 
   :ensure t)
 
-;; /b/} == graphql-mode ==
+;; /b/} graphql-mode
 
-;; /b/{ == tide ==
+;; /b/{ tide
 
 (use-package tide
   :delight (tide-mode " τ")
@@ -3599,9 +3599,9 @@ area."
   :after company
   :ensure t)
 
-;; /b/} == tide ==
+;; /b/} tide
 
-;; /b/{ == tern ==
+;; /b/{ tern
 
 (use-package tern
   :config
@@ -3639,9 +3639,9 @@ area."
 
   :ensure t)
 
-;; /b/} == tern ==
+;; /b/} tern
 
-;; /b/{ == company-tern ==
+;; /b/{ company-tern
 
 (use-package company-tern
   :config
@@ -3653,9 +3653,9 @@ area."
   :after (company tern)
   :ensure t)
 
-;; /b/} == company-tern ==
+;; /b/} company-tern
 
-;; /b/{ == xref-js2 ==
+;; /b/{ xref-js2
 
 ;; (use-package xref-js2
 ;;   :config
@@ -3672,9 +3672,9 @@ area."
 
 ;;   :ensure t)
 
-;; /b/} == xref-js2 ==
+;; /b/} xref-js2
 
-;; /b/{ == JavaScript Environments Setup ==
+;; /b/{ JavaScript Environments Setup
 
 (defun rh-typescript-setup ()
   (interactive)
@@ -3696,7 +3696,10 @@ area."
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1))
 
-;; /b/} == JavaScript Environments Setup ==
+;; /b/} JavaScript Environments Setup
+
+;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
+;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
@@ -3849,7 +3852,7 @@ with very limited support for special characters."
                                    (visual-line-mode t)))))))
 
 ;; -------------------------------------------------------------------
-;;; Spell Checking and Natural Language Utilities
+;;; Natural Language Utilities and Spell Checking
 ;; -------------------------------------------------------------------
 
 ;; == speck mode ==
@@ -3961,7 +3964,7 @@ with very limited support for special characters."
 ;;    (org-mode skip                       ; "skip" the following face(s):
 ;;              font-lock-comment-face)))
 
-;; == /b/{ ispell mode ==
+;; == /b/{ ispell ==
 
 (use-package ispell
   :config
@@ -3972,7 +3975,7 @@ with very limited support for special characters."
   :bind (("C-x w" . 'ispell-word))
   :defer t)
 
-;; == /b/} ispell mode ==
+;; == /b/} ispell ==
 
 ;; -------------------------------------------------------------------
 ;;; Windows system interaction
@@ -4056,8 +4059,8 @@ with very limited support for special characters."
 ;; Makefile.am, Makefile.am<3> etc.  to
 ;; Makefile.am|path1, Makefile.am|path2
 ;; http://emacs-fu.blogspot.co.uk/2009/11/making-buffer-names-unique.html
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'post-forward)
+;; (require 'uniquify)
+;; (setq uniquify-buffer-name-style 'post-forward)
 
 ;; Provides additional help functions such as describe-keymap bound to C-h M-k
 (require 'help-fns+)
@@ -4133,14 +4136,14 @@ with very limited support for special characters."
   (flx-ido-mode 1)
   :ensure t)
 
-;; /b/{ == ivy mode ==
+;; /b/{ ivy
 
 ;; (use-package ivy
 ;;   :ensure t)
 
-;; /b/} == ivy mode ==
+;; /b/} ivy
 
-;; /b/{ == helm mode ==
+;; /b/{ helm
 
 ;; (defun vr-helm-toggle-header-line ()
 ;;   (if (= (length helm-sources) 1)
@@ -4160,9 +4163,9 @@ with very limited support for special characters."
 ;;   (add-hook 'helm-before-initialize-hook 'vr-helm-toggle-header-line)
 ;;   :ensure t)
 
-;; /b/} == helm mode ==
+;; /b/} helm
 
-;; /b/{ == ifilipb mode ==
+;; /b/{ ifilipb
 
 ;; (require 'iflipb)
 ;; (setq iflipb-ignore-buffers vr-ignore-buffers)
@@ -4204,9 +4207,9 @@ with very limited support for special characters."
   :demand t
   :ensure t)
 
-;; /b/} == ifilipb mode ==
+;; /b/} ifilipb
 
-;; /b/{ == bs mode ==
+;; /b/{ bs
 
 (use-package bs
   :config
@@ -4309,9 +4312,9 @@ with very limited support for special characters."
   :demand t
   :ensure t)
 
-;; /b/} == bs mode ==
+;; /b/} bs
 
-;; /b/{ == bm mode ==
+;; /b/{ bm
 
 (use-package bm
   :init
@@ -4373,64 +4376,7 @@ with very limited support for special characters."
          ("C-<f2>" . bm-toggle))
   :ensure t)
 
-;; /b/} == bm mode ==
-
-;; -------------------------------------------------------------------
-;;; My key bindings
-;; -------------------------------------------------------------------
-
-;; (global-set-key (kbd "C-z") #'undo)
-
-;; Re-map obsolete emacs exit key to "Really Quit"
-;; (global-unset-key (kbd "C-x C-c"))
-;; (global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
-
-;; ;; Prevent translation from <kp-bebin> to <begin>
-;; (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
-
-;; (global-set-key (kbd "C-<insert>") 'kill-ring-save)
-;; (global-set-key (kbd "C-<kp-insert>") 'kill-ring-save)
-;; (global-set-key (kbd "S-<insert>") 'yank)
-;; (global-set-key (kbd "S-<kp-insert>") 'yank)
-;; (global-set-key (kbd "M-<insert>") 'yank-pop)
-;; (global-set-key (kbd "M-Y") 'yank-pop-forwards)
-;; (global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
-;; (global-set-key (kbd "M-S-<insert>") 'yank-pop-forwards)
-;; (global-set-key (kbd "M-S-<kp-insert>") 'yank-pop-forwards)
-;; (global-set-key (kbd "C-<delete>") 'kill-word)
-;; (global-set-key (kbd "C-<kp-delete>") 'kill-word)
-;; (global-set-key (kbd "S-<delete>") 'kill-region)
-;; (global-set-key (kbd "S-<kp-delete>") 'kill-region)
-;; (global-set-key (kbd "C-<home>") 'beginning-of-buffer)
-;; (global-set-key (kbd "C-<kp-home>") 'beginning-of-buffer)
-;; (global-set-key (kbd "C-<end>") 'end-of-buffer)
-;; (global-set-key (kbd "C-<kp-end>") 'end-of-buffer)
-
-;; (global-set-key (kbd "C-v") 'yank)
-;; (global-set-key (kbd "M-v") 'yank-pop)
-
-;; (global-set-key (kbd "M-s-<up>") 'enlarge-window)
-;; (global-set-key (kbd "M-s-<kp-up>") 'enlarge-window)
-;; (global-set-key (kbd "M-s-<down>") 'shrink-window)
-;; (global-set-key (kbd "M-s-<kp-down>") 'shrink-window)
-;; (global-set-key (kbd "M-s-<left>") 'shrink-window-horizontally)
-;; (global-set-key (kbd "M-s-<kp-left>") 'shrink-window-horizontally)
-;; (global-set-key (kbd "M-s-<right>") 'enlarge-window-horizontally)
-;; (global-set-key (kbd "M-s-<kp-right>") 'enlarge-window-horizontally)
-;; (global-set-key (kbd "M-s-<kp-begin>") 'vr-balance-windows-horizontally)
-;; (global-set-key (kbd "S-M-s-<kp-begin>") 'vr-balance-windows-vertically)
-;; (global-set-key (kbd "M-s-'") 'vr-balance-windows-horizontally)
-;; (global-set-key (kbd "M-s-\"") 'vr-balance-windows-vertically)
-
-;; ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
-;; (global-set-key (kbd "C-x <up>") 'windmove-up)
-;; (global-set-key (kbd "C-x <kp-up>") 'windmove-up)
-;; (global-set-key (kbd "C-x <down>") 'windmove-down)
-;; (global-set-key (kbd "C-x <kp-down>") 'windmove-down)
-;; (global-set-key (kbd "C-x <right>") 'windmove-right)
-;; (global-set-key (kbd "C-x <kp-right>") 'windmove-right)
-;; (global-set-key (kbd "C-x <left>") 'windmove-left)
-;; (global-set-key (kbd "C-x <kp-left>") 'windmove-left)
+;; /b/} bm
 
 ;; -------------------------------------------------------------------
 ;;; Load unscoped (e.g. without vr-) useful functions
