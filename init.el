@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(counsel ivy wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(counsel-ag counsel ivy wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -1859,6 +1859,7 @@ fields which we need."
 (use-package swiper
   :bind (("C-s" . 'swiper)
          ("C-c s" . 'isearch-forward))
+
   :demand t
   :ensure t)
 
@@ -1868,8 +1869,14 @@ fields which we need."
   (setq smex-save-file vr-smex-save-file)
   (smex-initialize)
 
+  :config
+  (add-to-list 'rm-blacklist " counsel")
+
   :demand t
   :ensure t)
+
+(ivy-mode 1)
+(counsel-mode 1)
 
 ;; /b/} ivy/swiper/counsel
 
@@ -1878,6 +1885,9 @@ fields which we need."
 (use-package hi-lock-mode
   :init
   (defvar hi-lock-map nil)
+
+  :config
+  (add-to-list 'rm-blacklist " counsel")
 
   :defer t)
 
@@ -4056,9 +4066,9 @@ with very limited support for special characters."
       (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
                              '(2 "_NET_WM_STATE_MAXIMIZED_HORZ" 0))))))
 
-(global-set-key (kbd "<f11>") 'fullscreen)
-(global-set-key (kbd "M-<return>") 'vr-toggle-max-res-frame)
-(global-set-key (kbd "M-<kp-enter>") 'vr-toggle-max-res-frame)
+;; (global-set-key (kbd "<f11>") 'fullscreen)
+;; (global-set-key (kbd "M-<return>") 'vr-toggle-max-res-frame)
+;; (global-set-key (kbd "M-<kp-enter>") 'vr-toggle-max-res-frame)
 
 ;; -------------------------------------------------------------------
 ;;; General Emacs enhancement modes
