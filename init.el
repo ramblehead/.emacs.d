@@ -6,29 +6,24 @@
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
  '(custom-safe-themes
-   (quote
-    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
+   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
  '(font-latex-fontify-script nil)
- '(font-latex-fontify-sectioning (quote color))
+ '(font-latex-fontify-sectioning 'color)
  '(font-latex-math-environments
-   (quote
-    ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
+   '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
-   (quote
-    ((t :background "black" :foreground "white" :family "misc-fixed"))))
+   '((t :background "black" :foreground "white" :family "misc-fixed")))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   (quote
-    (wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+   '(counsel ivy wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
+ '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
  '(tab-stop-list
-   (quote
-    (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
- '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
+   '(8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+ '(visual-line-fringe-indicators '(nil right-curly-arrow))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
@@ -1534,10 +1529,11 @@ Also sets SYMBOL to VALUE."
   (global-unset-key (kbd "C-h C-h"))
 
   :config
-  ;; (setq which-key-show-prefix 'mode-line)
+  (add-to-list 'rm-blacklist " WK")
+
+  (setq which-key-show-prefix 'mode-line)
   (setq which-key-max-description-length 31)
   ;; (setq which-key-show-transient-maps t)
-  (add-to-list 'rm-blacklist " WK")
 
   (setq which-key-sort-order 'which-key-description-order)
 
@@ -1837,6 +1833,45 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Completion, Regexps, Patterns and Errors Highlighting
 ;; /b/{ +++++++++ ----------------------------------------------------
+
+;; /b/{ ivy/swiper/counsel
+
+;; See the following links on some ivy hints
+;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
+;; https://oremacs.com/2015/04/16/ivy-mode/
+
+(use-package ivy
+  :config
+  (add-to-list 'rm-blacklist " ivy")
+
+  (setq ivy-count-format "%d/%d ")
+  (setq ivy-height 8)
+
+  (setq ivy-mode-map
+        (let ((map (make-sparse-keymap)))
+          (define-key map [remap switch-to-buffer-other-window]
+            'ivy-switch-buffer-other-window)
+          map))
+
+  :demand t
+  :ensure t)
+
+(use-package swiper
+  :bind (("C-s" . 'swiper)
+         ("C-c s" . 'isearch-forward))
+  :demand t
+  :ensure t)
+
+(use-package counsel
+  :init
+  (require 'smex)
+  (setq smex-save-file vr-smex-save-file)
+  (smex-initialize)
+
+  :demand t
+  :ensure t)
+
+;; /b/} ivy/swiper/counsel
 
 ;; /b/{ hi-lock-mode
 
@@ -4065,62 +4100,53 @@ with very limited support for special characters."
 ;; Provides additional help functions such as describe-keymap bound to C-h M-k
 (require 'help-fns+)
 
-;; == ido mode ==
+;; /b/{ ido
 
-(ido-mode 1)
-(setq ido-enable-flex-matching t)
-(setq ido-case-fold t)
-(setq ido-use-filename-at-point nil)
-(setq ido-use-url-at-point nil)
-(setq ido-save-directory-list-file vr-ido-last-file-path)
+;; (ido-mode 1)
+;; (setq ido-enable-flex-matching t)
+;; (setq ido-case-fold t)
+;; (setq ido-use-filename-at-point nil)
+;; (setq ido-use-url-at-point nil)
+;; (setq ido-save-directory-list-file vr-ido-last-file-path)
+;; (setq ido-ignore-buffers vr-ignore-buffers)
 
-(setq ido-ignore-buffers vr-ignore-buffers)
-(ido-everywhere 1)
+;; (ido-everywhere 1)
 
-(setq ido-confirm-unique-completion t)
-(setq confirm-nonexistent-file-or-buffer nil)
+;; (setq ido-confirm-unique-completion t)
+;; (setq confirm-nonexistent-file-or-buffer nil)
 
-;; == ido-ubiquitous mode ==
+;; ido-ubiquitous mode
 
 ;; (defvar ido-ubiquitous-debug-mode nil)
-(require 'ido-ubiquitous)
-(ido-ubiquitous-mode 1)
-(setq ido-ubiquitous-max-items 50000)
 
-;; == smex mode ==
+;; (require 'ido-ubiquitous)
+;; (ido-ubiquitous-mode 1)
+;; (setq ido-ubiquitous-max-items 50000)
 
-(setq smex-save-file vr-smex-save-file)
-(require 'smex)
-(smex-initialize)
+;; smex mode
 
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;; Default M-x command
-(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+;; (setq smex-save-file vr-smex-save-file)
+;; (require 'smex)
+;; (smex-initialize)
 
-;; == ido-vertical mode ==
+;; (global-set-key (kbd "M-x") 'smex)
+;; (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+;; (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
 
 ;; (use-package ido-vertical-mode
 ;;   :config
 ;;   (ido-vertical-mode 1)
 ;;   :ensure t)
 
-;; == flx-ido mode ==
-
-(use-package flx-ido
-  :init
-  (setq ido-enable-flex-matching t)
-  (setq ido-use-faces nil)
-  :config
-  (flx-ido-mode 1)
-  :ensure t)
-
-;; /b/{ ivy
-
-;; (use-package ivy
+;; (use-package flx-ido
+;;   :init
+;;   (setq ido-enable-flex-matching t)
+;;   (setq ido-use-faces nil)
+;;   :config
+;;   (flx-ido-mode 1)
 ;;   :ensure t)
 
-;; /b/} ivy
+;; /b/} ido
 
 ;; /b/{ helm
 
