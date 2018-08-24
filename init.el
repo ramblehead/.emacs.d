@@ -6,24 +6,29 @@
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
  '(custom-safe-themes
-   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
+   (quote
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
  '(font-latex-fontify-script nil)
- '(font-latex-fontify-sectioning 'color)
+ '(font-latex-fontify-sectioning (quote color))
  '(font-latex-math-environments
-   '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
+   (quote
+    ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
  '(hfy-default-face-def
-   '((t :background "black" :foreground "white" :family "misc-fixed")))
+   (quote
+    ((t :background "black" :foreground "white" :family "misc-fixed"))))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(counsel-ag counsel ivy wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   (quote
+    (ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
+ '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
  '(tab-stop-list
-   '(8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
- '(visual-line-fringe-indicators '(nil right-curly-arrow))
+   (quote
+    (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
+ '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
@@ -905,8 +910,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
          ("S-<insert>" . yank)
          ("S-<kp-insert>" . yank)
          ("M-<insert>" . yank-pop)
-         ("M-Y" . yank-pop-forwards)
-         ("M-S-<insert>" . yank-pop-forwards)
+         ;; ("M-Y" . yank-pop-forwards)
          ("M-S-<insert>" . yank-pop-forwards)
          ("M-S-<kp-insert>" . yank-pop-forwards)
          ("C-<delete>" . kill-word)
@@ -1447,7 +1451,7 @@ Also sets SYMBOL to VALUE."
 (setq mouse-drag-copy-region nil)
 (setq mouse-yank-at-point t)
 
-;; == whitespace mode ==
+;; /b/{ whitespace
 
 (setq whitespace-style
       '(face
@@ -1466,25 +1470,28 @@ Also sets SYMBOL to VALUE."
 ;; together with the rest of its defaults
 (setq whitespace-display-mappings
   '((space-mark 32 [183] [46])          ; normal space, ·
-    ;; (space-mark 32 [32] [32])           ; visual-line-mode friendly space
     (space-mark 160 [164] [95])
     (space-mark 2208 [2212] [95])
     (space-mark 2336 [2340] [95])
     (space-mark 3616 [3620] [95])
     (space-mark 3872 [3876] [95])
     (newline-mark 10 [182 10] [36 10])  ; newlne, ¶
-    ;; (tab-mark 9 [8594 9] [92 9])         ; tab, →
+    ;; (tab-mark 9 [8594 9] [92 9])        ; tab, →
     ;; (tab-mark 9 [187 9] [92 9])         ; tab, »
     (tab-mark 9 [9654 9] [92 9])        ; tab, ▶
     ;; (tab-mark 9 [9655 9] [92 9])        ; tab, ▷
 ))
 
-;; == SrSpeedbar Mode ==
+;; /b/} whitespace
+
+;; /b/{ sr-speedbar
 
 (use-package sr-speedbar
   :ensure t)
 
-;; == picture ==
+;; /b/} sr-speedbar
+
+;; /b/{ picture
 
 (use-package picture
   :config
@@ -1500,9 +1507,21 @@ Also sets SYMBOL to VALUE."
      (defvar vr-picture-show-trailing-whitespace)
      (setq show-trailing-whitespace vr-picture-show-trailing-whitespace))))
 
-;; == undo operations ==
+;; /b/} picture
 
+;; /b/{ undo-tree
+
+;; TODO: Adjust how mode-line looks in "*undo-tree*" buffer window
 (use-package undo-tree
+  :init
+  ;; undo-tree-visualizer
+  (add-to-list 'display-buffer-alist
+               '("*undo-tree*"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 0)
+                 (window-width . 30)))
+
   :config
   (add-to-list 'rm-blacklist " Undo-Tree")
 
@@ -1512,6 +1531,8 @@ Also sets SYMBOL to VALUE."
 
   :defer t
   :ensure t)
+
+;; /b/} undo-tree
 
 (use-package which-key
   :init
@@ -1853,6 +1874,13 @@ fields which we need."
             'ivy-switch-buffer-other-window)
           map))
 
+  :bind (:map ivy-minibuffer-map
+         ("C-v" . nil)
+         ("M-v" . nil))
+  :demand t
+  :ensure t)
+
+(use-package ivy-hydra
   :demand t
   :ensure t)
 
@@ -1872,6 +1900,10 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " counsel")
 
+  (define-key counsel-mode-map [remap yank-pop] nil)
+
+  :bind (:map counsel-mode-map
+         ("M-y" . counsel-yank-pop))
   :demand t
   :ensure t)
 
