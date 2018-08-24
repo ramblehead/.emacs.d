@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -1244,6 +1244,10 @@ Also sets SYMBOL to VALUE."
          ("q" . g2w-quit-window))
   :defer t)
 
+(use-package findr
+  :demand t
+  :ensure t)
+
 (use-package iedit
   :demand t
   :ensure t)
@@ -1337,7 +1341,14 @@ Also sets SYMBOL to VALUE."
 
 (setq visible-bell t)
 ;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
-(setq isearch-allow-scroll t)
+
+(use-package isearch
+  :config
+  (setq isearch-allow-scroll t)
+
+  ;; :bind (:map isearch-mode-map
+  ;;         ("<f1>" . nil))
+  :demand t)
 
 ;; Recentring screen on isearch
 ;; see https://emacs.stackexchange.com/a/10432
@@ -1534,17 +1545,12 @@ Also sets SYMBOL to VALUE."
 
 ;; /b/} undo-tree
 
+;; /b/{ which-key
+
 (use-package which-key
   :init
-  ;; (setq echo-keystrokes 0)
   (setq which-key-is-verbose t)
   (setq which-key-enable-extended-define-key t)
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              `(,(g2w-condition "*compilation*")
-  ;;                ,(g2w-display #'display-buffer-in-side-window)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
 
   ;; This conflicts with which-key "C-h" popup
   (global-unset-key (kbd "C-h C-h"))
@@ -1553,7 +1559,7 @@ Also sets SYMBOL to VALUE."
   (add-to-list 'rm-blacklist " WK")
 
   (setq which-key-show-prefix 'mode-line)
-  (setq which-key-max-description-length 31)
+  (setq which-key-max-description-length 30)
   ;; (setq which-key-show-transient-maps t)
 
   (setq which-key-sort-order 'which-key-description-order)
@@ -1575,6 +1581,8 @@ Also sets SYMBOL to VALUE."
           ("<f1>" . which-key-show-top-level))
   :demand t
   :ensure t)
+
+;; /b/} which-key
 
 ;; -------------------------------------------------------------------
 ;;; File Management
