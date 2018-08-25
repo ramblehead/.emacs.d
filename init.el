@@ -1342,32 +1342,34 @@ Also sets SYMBOL to VALUE."
 (setq visible-bell t)
 ;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
 
+;; /b/{ isearch
+
 (use-package isearch
   :config
   (setq isearch-allow-scroll t)
 
-  ;; :bind (:map isearch-mode-map
-  ;;         ("<f1>" . nil))
+  ;; Recentring screen on isearch
+  ;; see https://emacs.stackexchange.com/a/10432
+  ;; (defadvice isearch-update (before my-isearch-update activate)
+  ;;   (sit-for 0)
+  ;;   (if (and
+  ;;        ;; not the scrolling command
+  ;;        (not (eq this-command 'isearch-other-control-char))
+  ;;        ;; not the empty string
+  ;;        (> (length isearch-string) 0)
+  ;;        ;; not the first key (to lazy highlight all matches w/o recenter)
+  ;;        (> (length isearch-cmds) 2)
+  ;;        ;; the point in within the given window boundaries
+  ;;        (let ((line (count-screen-lines (point) (window-start))))
+  ;;          (or (> line (* (/ (window-height) 4) 3))
+  ;;              (< line (* (/ (window-height) 9) 1)))))
+  ;;       (let ((recenter-position 0.3))
+  ;;         (recenter '(4)))))
   :demand t)
 
-;; Recentring screen on isearch
-;; see https://emacs.stackexchange.com/a/10432
-;; (defadvice isearch-update (before my-isearch-update activate)
-;;   (sit-for 0)
-;;   (if (and
-;;        ;; not the scrolling command
-;;        (not (eq this-command 'isearch-other-control-char))
-;;        ;; not the empty string
-;;        (> (length isearch-string) 0)
-;;        ;; not the first key (to lazy highlight all matches w/o recenter)
-;;        (> (length isearch-cmds) 2)
-;;        ;; the point in within the given window boundaries
-;;        (let ((line (count-screen-lines (point) (window-start))))
-;;          (or (> line (* (/ (window-height) 4) 3))
-;;              (< line (* (/ (window-height) 9) 1)))))
-;;       (let ((recenter-position 0.3))
-;;         (recenter '(4)))))
+;; /b/} isearch
 
+;; == smooth scrolling ==
 
 (require 'fill-column-indicator)
 
@@ -1588,7 +1590,7 @@ Also sets SYMBOL to VALUE."
 ;;; File Management
 ;; -------------------------------------------------------------------
 
-;; == dired ==
+;; /b/{ dired
 
 (put 'dired-find-alternate-file 'disabled nil)
 
@@ -1646,6 +1648,8 @@ filename associated with it."
 (add-hook 'dired-mode-hook 'vr-dired-mode-setup)
 
 (global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
+
+;; /b/} dired
 
 ;; /b/{ recentf
 
@@ -1717,6 +1721,10 @@ regexp-list."
              (not (rh-string-match-regexp-list rh-ignore-recentf file)))
         (rh-file-was-visible-p file)))
 
+  ;; If Emacs exits abruptly for some reason the recent file list will be lost.
+  ;; Therefore call `recentf-save-list` periodically every 5 minutes.
+  (run-at-time nil (* 5 60) 'recentf-save-list)
+
   (global-set-key (kbd "<f4>") 'recentf-open-files)
   (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
   (define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
@@ -1738,95 +1746,9 @@ regexp-list."
 
   :demand t)
 
-;; (require 'recentf)
-
-;; (defun recentf-open-files-item (menu-element)
-;;   "Return a widget to display MENU-ELEMENT in a dialog buffer."
-;;   (if (consp (cdr menu-element))
-;;       ;; Represent a sub-menu with a tree widget
-;;       `(tree-widget
-;;         :open t
-;;         :match ignore
-;;         :node (item :tag ,(car menu-element)
-;;                     :sample-face bold
-;;                     :format "%{%t%}:\n")
-;;         ,@(mapcar 'recentf-open-files-item
-;;                   (cdr menu-element)))
-;;     ;; Represent a single file with a link widget
-;;     `(link :tag ,(car menu-element)
-;;            :button-prefix ""
-;;            :button-suffix ""
-;;            :button-face default
-;;            ;; :button-face highlight
-;;            ;; TODO: I corrected format string to show right mouse hovering
-;;            ;;       highlight. Find how to send patch/bug report
-;;            ;;       to recenff maintainer after more testing.
-;;            :format "%[%t%]\n"
-;;            :help-echo ,(concat "Open " (cdr menu-element))
-;;            :action recentf-open-files-action
-;;            ;; Override the (problematic) follow-link property of the
-;;            ;; `link' widget (bug#22434).
-;;            :follow-link nil
-;;            ,(cdr menu-element))))
-
-;; (setq rh-ignore-recentf '(;; AUCTeX output files
-;;                           "\\.aux\\'"
-;;                           "\\.bbl\\'"
-;;                           "\\.blg\\'"
-;;                           " output\\*$"))
-
-;; (setq recentf-save-file rh-recent-files-file-path)
-;; (setq recentf-kill-buffer-on-open t)
-;; (setq recentf-max-saved-items 100)
-
-;; (recentf-mode 1)
-
-;; (defun rh-recentf-open-edit ()
-;;   (interactive)
-;;   (when (not (local-variable-p 'recentf-edit-list))
-;;     (kill-buffer)
-;;     (recentf-edit-list)))
-
-;; (defun rh-recentf-nil-if-recentf-edit ()
-;;   (interactive)
-;;   (if (local-variable-p 'recentf-edit-list) nil
-;;     (rh-recentf-open-edit)))
-
-;; (defsubst rh-file-was-visible-p (file)
-;;   "Return non-nil if FILE's buffer exists and has been displayed."
-;;   (let ((buf (find-buffer-visiting file)))
-;;     (if buf
-;;       (let ((display-count (buffer-local-value 'buffer-display-count buf)))
-;;         (if (> display-count 0) display-count nil)))))
-
-;; (defsubst rh-keep-default-and-visible-recentf-p (file)
-;;   "Return non-nil if recentf would, by default, keep FILE, and
-;; FILE has been displayed, and FILE does not mach rh-ignore-recentf
-;; regexp-list."
-;;   (if (and (recentf-keep-default-predicate file)
-;;            (not (rh-string-match-regexp-list rh-ignore-recentf file)))
-;;       (rh-file-was-visible-p file)))
-
-;; ;; When a buffer is closed, remove the associated file from the recentf
-;; ;; list if (1) recentf would have, by default, removed the file, or
-;; ;; (2) the buffer was never displayed.
-;; ;; see http://www.emacswiki.org/RecentFiles#toc16
-;; (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
-
-;; (global-set-key (kbd "<f4>") 'recentf-open-files)
-;; (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
-;; (define-key recentf-dialog-mode-map (kbd "<space>") 'widget-button-press)
-;; (define-key recentf-dialog-mode-map (kbd "<f4>")
-;;   'rh-recentf-nil-if-recentf-edit)
-
-;; (defun rh-recentf-dialog-mode-hook-function ()
-;;   (setq cursor-type normal-cursor-type))
-
-;; (add-hook 'recentf-dialog-mode-hook 'rh-recentf-dialog-mode-hook-function)
-
 ;; /b/} recentf
 
-;; == Internal ls (ls-lisp) ==
+;; /b/{ Internal ls (ls-lisp - used in Windows)
 
 ;; ls-lisp is mainly set for windows
 
@@ -1859,11 +1781,13 @@ fields which we need."
 
 (ad-activate 'ls-lisp-format)
 
+;; /b/} Internal ls (ls-lisp - used in Windows)
+
 ;; -------------------------------------------------------------------
 ;;; Completion, Regexps, Patterns and Errors Highlighting
 ;; /b/{ +++++++++ ----------------------------------------------------
 
-;; /b/{ ivy/swiper/counsel
+;; /b/{ ivy/swiper/counsel/etc.
 
 ;; See the following links on some ivy hints
 ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
@@ -1915,10 +1839,14 @@ fields which we need."
   :demand t
   :ensure t)
 
+(use-package lacarte
+  :bind ("s-x" . lacarte-execute-menu-command)
+  :demand t)
+
 (ivy-mode 1)
 (counsel-mode 1)
 
-;; /b/} ivy/swiper/counsel
+;; /b/} ivy/swiper/counsel/etc.
 
 ;; /b/{ hi-lock-mode
 
