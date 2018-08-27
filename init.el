@@ -1784,7 +1784,7 @@ fields which we need."
 ;; /b/} Internal ls (ls-lisp - used in Windows)
 
 ;; -------------------------------------------------------------------
-;;; Completion, Regexps, Patterns and Errors Highlighting
+;;; Completion, Regexps, Patterns and Highlighting
 ;; /b/{ +++++++++ ----------------------------------------------------
 
 ;; /b/{ ivy/swiper/counsel/etc.
@@ -2214,7 +2214,7 @@ fields which we need."
 ;; /b/} flycheck
 
 ;; -------------------------------------------------------------------
-;;; Completion, Regexps, Patterns and Errors Highlighting
+;;; Completion, Regexps, Patterns and Highlighting
 ;; ++++++++++ /b/} ---------------------------------------------------
 
 ;; -------------------------------------------------------------------
