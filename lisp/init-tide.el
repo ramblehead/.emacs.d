@@ -33,8 +33,7 @@
                    (with-current-buffer buffer-nm
                      (eq major-mode 'tide-project-errors-mode)))
                  ,(g2w-display #'display-buffer-below-selected t)
-                 (inhibit-same-window . t)
-                 (window-height . shrink-window-if-larger-than-buffer)))
+                 (inhibit-same-window . t)))
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)

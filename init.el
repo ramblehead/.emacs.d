@@ -2820,6 +2820,8 @@ fields which we need."
   (add-hook
    'c++-mode-hook
    (lambda ()
+     ;; Using yas instead
+     (abbrev-mode -1)
      (rh-programming-minor-modes t)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
@@ -3511,7 +3513,7 @@ area."
 
 ;; /b/{ JavaScript Environments Setup
 
-(defun rh-typescript-setup ()
+(defun rh-setup-typescript-tide ()
   (interactive)
   (tide-setup)
   (company-mode 1)
@@ -3519,7 +3521,7 @@ area."
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1))
 
-(defun rh-javascript-setup ()
+(defun rh-setup-javascript-tide ()
   (interactive)
   (tide-setup)
   (company-mode 1)
