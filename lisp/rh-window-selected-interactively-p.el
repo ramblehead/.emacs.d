@@ -31,7 +31,7 @@
 ;;; Commentary:
 ;;
 ;; This module provides (rh-window-selected-interactively-p) - windows selected
-;; interactively predicate function predicate function.
+;; interactively predicate function.
 ;;
 ;;; Code:
 

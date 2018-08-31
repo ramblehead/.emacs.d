@@ -238,8 +238,8 @@
    (vconcat (mapcar (lambda (c) (+ face-offset c))
                     ;; " […] "
                     ;; " ◦◦◦ "
-                    ;; " ••• "
-                    " [...] "
+                    " [•••] "
+                    ;; " [...] "
                     ))))
 
 ;; == Convenience interactive functions ==
@@ -1800,6 +1800,10 @@ fields which we need."
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
 
+  (defun rh-ivy-alt-done-t ()
+    (interactive)
+    (ivy-alt-done t))
+
   (setq ivy-mode-map
         (let ((map (make-sparse-keymap)))
           (define-key map [remap switch-to-buffer-other-window]
@@ -1807,6 +1811,7 @@ fields which we need."
           map))
 
   :bind (:map ivy-minibuffer-map
+         ("C-j" . rh-ivy-alt-done-t)
          ("C-v" . nil)
          ("M-v" . nil))
   :demand t
@@ -1823,11 +1828,17 @@ fields which we need."
   :demand t
   :ensure t)
 
+(use-package smex
+  :config
+  (setq smex-save-file vr-smex-save-file)
+  (smex-initialize)
+
+  :demand t
+  :ensure t)
+
 (use-package counsel
   :init
   (require 'smex)
-  (setq smex-save-file vr-smex-save-file)
-  (smex-initialize)
 
   :config
   (add-to-list 'rm-blacklist " counsel")
@@ -1853,9 +1864,6 @@ fields which we need."
 (use-package hi-lock-mode
   :init
   (defvar hi-lock-map nil)
-
-  :config
-  (add-to-list 'rm-blacklist " counsel")
 
   :defer t)
 
@@ -3556,77 +3564,17 @@ area."
 
 (use-package tide
   :delight (tide-mode " τ")
-  :config
-  (add-to-list 'display-buffer-alist
-               `("*tide-references*"
-                 ;; (display-buffer-below-selected)
-                 ,(g2w-display #'display-buffer-below-selected t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-
-  (add-to-list 'display-buffer-alist
-               `("*tide-documentation*"
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
-
-  (add-to-list 'display-buffer-alist
-               `((lambda (buffer-nm actions)
-                   (with-current-buffer buffer-nm
-                     (eq major-mode 'tide-project-errors-mode)))
-                 ;; (display-buffer-below-selected)
-                 ,(g2w-display #'display-buffer-below-selected t)
-                 (inhibit-same-window . t)
-                 (window-height . 0.3)))
-
-  ;; (add-to-list 'g2w-display-buffer-commands
-  ;;              'tide-goto-reference)
-  ;; (add-to-list 'g2w-display-buffer-commands
-  ;;              'tide-goto-error)
-
-  ;; (defadvice tide-buffer-file-name (after rh-tide-buffer-file-name () activate)
-  ;;   (when (string-match-p "^#!.*node" (save-excursion
-  ;;                                       (goto-char (point-min))
-  ;;                                       (thing-at-point 'line t)))
-  ;;     (setq ad-return-value (concat (buffer-file-name) ".js"))))
-
-  (defun rh-tide-company-display-permanent-doc-buffer ()
-    (display-buffer (get-buffer-create "*tide-documentation*")))
-
-  (defun rh-tide-documentation-quit ()
-    (interactive)
-    (let ((bufwin (get-buffer-window "*tide-documentation*"))
-          (selwin (selected-window)))
-      (when bufwin
-        (select-window bufwin)
-        (g2w-quit-window)
-        (select-window selwin)
-        t)))
-
-  (defadvice tide-doc-buffer (around rh-tide-doc-buffer activate)
-    (with-current-buffer ad-do-it
-      (local-set-key "q" #'g2w-quit-window)))
-
-  (setq tide-completion-ignore-case t)
-  (setq tide-always-show-documentation t)
-
-  (define-key tide-mode-map (kbd "M-.") #'tide-jump-to-definition)
-  (define-key tide-mode-map (kbd "M-/") #'tide-jump-to-implementation)
-  (define-key tide-mode-map (kbd "M-,") #'tide-references)
-  (define-key tide-mode-map (kbd "M-[") #'tide-jump-back)
-  (define-key tide-mode-map (kbd "M-h") #'tide-documentation-at-point)
-  (define-key tide-mode-map (kbd "C-x M-h") #'rh-tide-documentation-quit)
-
-  (define-key tide-references-mode-map (kbd "q") #'rh-quit-window-kill)
-
-  (add-hook
-   'tide-mode-hook
-   (lambda ()
-     ;; rh-company-kill-permanent-doc-buffer
-     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
-          #'rh-tide-company-display-permanent-doc-buffer)))
-
-  :after company
+  :init (require 'tide-init)
+  :config (rh-tide-config)
+  :bind (:map tide-mode-map
+         ("M-." . tide-jump-to-definition)
+         ("M-/" . tide-jump-to-implementation)
+         ("M-," . tide-references)
+         ("M-[" . tide-jump-back)
+         ("M-h" . tide-documentation-at-point)
+         ("C-x M-h" . rh-tide-documentation-quit)
+         :map tide-references-mode-map
+         ("q" . rh-quit-window-kill))
   :ensure t)
 
 ;; /b/} tide
@@ -3720,13 +3668,11 @@ area."
   (interactive)
   (abbrev-mode -1)
   (yas-minor-mode 1)
-  (setq tide-require-manual-setup t)
   (tide-setup)
-  ;; (company-mode 1)
-  ;; (flycheck-mode 1)
-  ;; (eldoc-mode 1)
-  ;; (tide-hl-identifier-mode 1)
-  )
+  (company-mode 1)
+  (flycheck-mode 1)
+  (eldoc-mode 1)
+  (tide-hl-identifier-mode 1))
 
 ;; /b/} JavaScript Environments Setup
 
@@ -3887,7 +3833,7 @@ with very limited support for special characters."
 ;;; Natural Language Utilities and Spell Checking
 ;; -------------------------------------------------------------------
 
-;; == speck mode ==
+;; == /b/{ speck ==
 
 (autoload 'speck-mode "speck"
   "Toggle speck-mode." t)
@@ -3937,64 +3883,7 @@ with very limited support for special characters."
 
 (global-set-key (kbd "<f8>") 'vr-smart-speck-mode)
 
-;; (global-set-key (kbd "S-<f8>") 'speck-add-next)
-;; (global-set-key (kbd "M-S-<f8>") 'speck-add-previous)
-;; (global-set-key (kbd "C-<f8>") 'speck-replace-previous)
-;; (global-set-key (kbd "M-<f8>") 'speck-replace-next)
-
-;; It would be nice to have wcheck mode instead of speck,
-;; however, I could not make it work under windows.
-;; == wcheck mode ==
-
-;; Could not make it work with Aspell on Windows 7.
-;; Might try to fix it in future.
-;; Folling back to the speck-mode for the time being.
-
-;; (autoload 'wcheck-mode "wcheck-mode"
-;;   "Toggle wcheck-mode." t)
-;; (autoload 'wcheck-change-language "wcheck-mode"
-;;   "Switch wcheck-mode languages." t)
-;; (autoload 'wcheck-actions "wcheck-mode"
-;;   "Open actions menu." t)
-;; (autoload 'wcheck-jump-forward "wcheck-mode"
-;;   "Move point forward to next marked text area." t)
-;; (autoload 'wcheck-jump-backward "wcheck-mode"
-;;   "Move point backward to previous marked text area." t)
-
-;; (setq-default wcheck-language "British English")
-
-;; (setq wcheck-language-data
-;;       '(("British English"
-;;          (program . "c:/Program Files (x86)/Aspell/bin/aspell.exe")
-;;          (args "-l" "-d" "british"))
-;;          ;; (action-program . "c:/Program Files (x86)/Aspell/bin/aspell.exe")
-;;          ;; (action-args "-a" "-d" "british")
-;;          ;; (action-parser . wcheck-parser-ispell-suggestions))
-;;         ("Highlight FIXMEs"
-;;          (program . (lambda (strings)
-;;                       (when (member "FIXME" strings)
-;;                         (list "FIXME"))))
-;;          (face . highlight)
-;;          (read-or-skip-faces
-;;           ((emacs-lisp-mode c-mode) read font-lock-comment-face)
-;;           (nil)))
-;;         ))
-
-;; (setq
-;;  wcheck-read-or-skip-faces
-;;  '((emacs-lisp-mode read font-lock-comment-face font-lock-doc-face)
-;;    (message-mode read nil message-header-subject message-cited-text)
-;;    (latex-mode read                     ; "read" the following faces
-;;                nil                      ; nil means normal text
-;;                font-latex-sectioning-1-face
-;;                font-latex-sectioning-2-face
-;;                font-latex-sectioning-3-face
-;;                font-latex-sectioning-4-face
-;;                font-latex-bold-face
-;;                font-latex-italic-face
-;;                font-lock-constant-face)
-;;    (org-mode skip                       ; "skip" the following face(s):
-;;              font-lock-comment-face)))
+;; == /b/} speck ==
 
 ;; == /b/{ ispell ==
 
@@ -4010,7 +3899,7 @@ with very limited support for special characters."
 ;; == /b/} ispell ==
 
 ;; -------------------------------------------------------------------
-;;; Windows system interaction
+;;; MS Windows interaction
 ;; -------------------------------------------------------------------
 
 (cond
@@ -4096,76 +3985,6 @@ with very limited support for special characters."
 
 ;; Provides additional help functions such as describe-keymap bound to C-h M-k
 (require 'help-fns+)
-
-;; /b/{ ido
-
-;; (ido-mode 1)
-;; (setq ido-enable-flex-matching t)
-;; (setq ido-case-fold t)
-;; (setq ido-use-filename-at-point nil)
-;; (setq ido-use-url-at-point nil)
-;; (setq ido-save-directory-list-file vr-ido-last-file-path)
-;; (setq ido-ignore-buffers vr-ignore-buffers)
-
-;; (ido-everywhere 1)
-
-;; (setq ido-confirm-unique-completion t)
-;; (setq confirm-nonexistent-file-or-buffer nil)
-
-;; ido-ubiquitous mode
-
-;; (defvar ido-ubiquitous-debug-mode nil)
-
-;; (require 'ido-ubiquitous)
-;; (ido-ubiquitous-mode 1)
-;; (setq ido-ubiquitous-max-items 50000)
-
-;; smex mode
-
-;; (setq smex-save-file vr-smex-save-file)
-;; (require 'smex)
-;; (smex-initialize)
-
-;; (global-set-key (kbd "M-x") 'smex)
-;; (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;; (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
-
-;; (use-package ido-vertical-mode
-;;   :config
-;;   (ido-vertical-mode 1)
-;;   :ensure t)
-
-;; (use-package flx-ido
-;;   :init
-;;   (setq ido-enable-flex-matching t)
-;;   (setq ido-use-faces nil)
-;;   :config
-;;   (flx-ido-mode 1)
-;;   :ensure t)
-
-;; /b/} ido
-
-;; /b/{ helm
-
-;; (defun vr-helm-toggle-header-line ()
-;;   (if (= (length helm-sources) 1)
-;;       (set-face-attribute 'helm-source-header nil :height 0.1)
-;;     (set-face-attribute 'helm-source-header nil :height 1.0)))
-
-;; (use-package helm
-;;   :init
-;;   (add-to-list 'display-buffer-alist
-;;                `(,(rx bos "*helm" (* not-newline) "*" eos)
-;;                  (display-buffer-in-side-window)
-;;                  (inhibit-same-window . t)
-;;                  (window-height . 0.2)))
-
-;;   (setq helm-display-header-line nil)
-
-;;   (add-hook 'helm-before-initialize-hook 'vr-helm-toggle-header-line)
-;;   :ensure t)
-
-;; /b/} helm
 
 ;; /b/{ ifilipb
 
