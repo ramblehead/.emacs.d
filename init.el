@@ -2923,7 +2923,7 @@ fields which we need."
   (add-hook
    'js2-mode-hook
    (lambda ()
-     (require 'indium)
+     ;; (require 'indium)
      (rh-programming-minor-modes 1)
      (rh-project-setup)
 
@@ -3558,8 +3558,9 @@ area."
   :delight (tide-mode " τ")
   :config
   (add-to-list 'display-buffer-alist
-               '("*tide-references*"
-                 (display-buffer-below-selected)
+               `("*tide-references*"
+                 ;; (display-buffer-below-selected)
+                 ,(g2w-display #'display-buffer-below-selected t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -3569,13 +3570,25 @@ area."
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  ;; (setq tide-documentation-buffer-name "*tide-documentation*")
+  (add-to-list 'display-buffer-alist
+               `((lambda (buffer-nm actions)
+                   (with-current-buffer buffer-nm
+                     (eq major-mode 'tide-project-errors-mode)))
+                 ;; (display-buffer-below-selected)
+                 ,(g2w-display #'display-buffer-below-selected t)
+                 (inhibit-same-window . t)
+                 (window-height . 0.3)))
 
-  (defadvice tide-buffer-file-name (after rh-tide-buffer-file-name () activate)
-    (when (string-match-p "^#!.*node" (save-excursion
-                                        (goto-char (point-min))
-                                        (thing-at-point 'line t)))
-      (setq ad-return-value (concat (buffer-file-name) ".js"))))
+  ;; (add-to-list 'g2w-display-buffer-commands
+  ;;              'tide-goto-reference)
+  ;; (add-to-list 'g2w-display-buffer-commands
+  ;;              'tide-goto-error)
+
+  ;; (defadvice tide-buffer-file-name (after rh-tide-buffer-file-name () activate)
+  ;;   (when (string-match-p "^#!.*node" (save-excursion
+  ;;                                       (goto-char (point-min))
+  ;;                                       (thing-at-point 'line t)))
+  ;;     (setq ad-return-value (concat (buffer-file-name) ".js"))))
 
   (defun rh-tide-company-display-permanent-doc-buffer ()
     (display-buffer (get-buffer-create "*tide-documentation*")))
@@ -3695,23 +3708,25 @@ area."
 
 (defun rh-typescript-setup ()
   (interactive)
+  (abbrev-mode -1)
+  (yas-minor-mode 1)
   (tide-setup)
   (company-mode 1)
   (flycheck-mode 1)
-  (abbrev-mode -1)
-  (yas-minor-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1))
 
 (defun rh-javascript-setup ()
   (interactive)
-  (tide-setup)
-  (company-mode 1)
-  (flycheck-mode 1)
   (abbrev-mode -1)
   (yas-minor-mode 1)
-  (eldoc-mode 1)
-  (tide-hl-identifier-mode 1))
+  (setq tide-require-manual-setup t)
+  (tide-setup)
+  ;; (company-mode 1)
+  ;; (flycheck-mode 1)
+  ;; (eldoc-mode 1)
+  ;; (tide-hl-identifier-mode 1)
+  )
 
 ;; /b/} JavaScript Environments Setup
 
