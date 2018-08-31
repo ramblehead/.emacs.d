@@ -1,4 +1,4 @@
-;;; tide-init.el --- ramblehead's tide configuration
+;;; init-tide.el --- ramblehead's tide configuration
 
 (require 'company)
 
@@ -15,7 +15,7 @@
       (select-window selwin)
       t)))
 
-(defun rh-tide-config ()
+(defun rh-config-tide ()
   (add-to-list 'display-buffer-alist
                `("*tide-references*"
                  ,(g2w-display #'display-buffer-below-selected t)
@@ -45,4 +45,4 @@
      (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
           #'rh-tide-company-display-permanent-doc-buffer))))
 
-(provide 'tide-init)
+(provide 'init-tide)

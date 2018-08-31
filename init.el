@@ -21,7 +21,7 @@
  '(make-backup-files nil)
  '(package-selected-packages
    (quote
-    (findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+    (fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
@@ -238,8 +238,8 @@
    (vconcat (mapcar (lambda (c) (+ face-offset c))
                     ;; " […] "
                     ;; " ◦◦◦ "
-                    " [•••] "
-                    ;; " [...] "
+                    ;; " [•••] "
+                    " [...] "
                     ))))
 
 ;; == Convenience interactive functions ==
@@ -883,6 +883,12 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   (column-number-mode 1)
   (size-indication-mode -1)
 
+  (ivy-mode 1)
+  (counsel-mode 1)
+
+  (abbrev-mode -1)
+  (yas-global-mode 1)
+
   ;; Disable annoying key binding for (suspend-frame) function and quit
   (global-unset-key (kbd "C-x C-z"))
   (global-unset-key (kbd "C-x C-c"))
@@ -1293,11 +1299,12 @@ Also sets SYMBOL to VALUE."
 
 (use-package avy
   :config
-  (defadvice avy-goto-subword-1 (around rh-avy-goto-subword-1 () activate)
-    ad-do-it
-    (font-lock-flush))
+  ;; (defadvice avy-goto-subword-1 (around rh-avy-goto-subword-1 () activate)
+  ;;   ad-do-it
+  ;;   (font-lock-flush))
 
   :bind (("C-c a w" . avy-goto-subword-1)
+         ("M-q" . avy-goto-word-0)
          ("C-c a l" . avy-goto-line))
   :demand t
   :ensure t)
@@ -1814,6 +1821,7 @@ fields which we need."
          ("C-j" . rh-ivy-alt-done-t)
          ("C-v" . nil)
          ("M-v" . nil))
+
   :demand t
   :ensure t)
 
@@ -1823,7 +1831,9 @@ fields which we need."
 
 (use-package swiper
   :bind (("C-s" . 'swiper)
-         ("C-c s" . 'isearch-forward))
+         ("C-c s" . 'isearch-forward)
+         :map swiper-map
+         ("M-y" . yank-pop))
 
   :demand t
   :ensure t)
@@ -1845,17 +1855,22 @@ fields which we need."
 
   (define-key counsel-mode-map [remap yank-pop] nil)
 
+  (defun rh-counsel-yank-pop (&optional arg)
+    (interactive "P")
+    (if (minibufferp)
+        (if (eq last-command 'yank)
+            (yank-pop arg)
+          (yank arg))
+      (counsel-yank-pop)))
+
   :bind (:map counsel-mode-map
-         ("M-y" . counsel-yank-pop))
+         ("M-y" . rh-counsel-yank-pop))
   :demand t
   :ensure t)
 
 (use-package lacarte
   :bind ("s-x" . lacarte-execute-menu-command)
   :demand t)
-
-(ivy-mode 1)
-(counsel-mode 1)
 
 ;; /b/} ivy/swiper/counsel/etc.
 
@@ -2358,6 +2373,9 @@ fields which we need."
 
 ;; /b/} Line Numbers
 
+(use-package fill-column-indicator
+  :ensure)
+
 (use-package eldoc
   :delight (eldoc-mode " ε")
   :config
@@ -2739,9 +2757,6 @@ fields which we need."
         (message (concat "rh-project: " path)))))
 
   (defun rh-c++-yas-setup ()
-    ;; Use yas instead of abbrev-mode
-    (abbrev-mode -1)
-    (yas-minor-mode 1)
     (let* ((project-path (rh-project-get-path))
            (snippets-path (concat project-path "snippets")))
       (when (and project-path (file-exists-p snippets-path))
@@ -2825,11 +2840,9 @@ fields which we need."
 
 (use-package js
   ;; :mode ("\\.js\\'" . js-mode)
-  :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
-                        "jsλi"
-                      "js"))
-             :major)
-
+  ;; :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
+  ;;                       "jsλi"
+  ;;                     "js"))
   :init
   (defvar js-mode-map (make-sparse-keymap))
 
@@ -2863,28 +2876,15 @@ fields which we need."
 
 ;; /b/{ js2-mode
 
-;; (defun vr-js2-scratch-config ()
-;;   (interactive)
-;;   (set (make-local-variable
-;;         'js2-highlight-external-variables)
-;;        nil)
-;;   (ac-js2-mode 1))
-
-;; (defadvice js2-enter-key (around vr-js2-enter-key ())
-;;   (progn
-;;     (if (use-region-p)
-;;         (delete-region (region-beginning) (region-end)))
-;;     ad-do-it))
-;; (ad-activate 'js2-enter-key)
-
 (use-package js2-mode
   :mode "\\.js\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "i" for indium mode
-  :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
-                        "js2λi"
-                      "js2"))
-             :major)
+  ;; :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
+  ;;                       "js2λi"
+  ;;                     "js2"))
+  ;;            :major)
+  :delight '("js2" :major)
   :config
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -2920,48 +2920,11 @@ fields which we need."
                      (match-string-no-properties 1 btext) "")
                  " *, *" t)))))))
 
-  ;; (defun js2-moz-send-region-or-defun ()
-  ;;   (interactive)
-  ;;   (if (use-region-p)
-  ;;       (progn
-  ;;         (message "moz-send-region")
-  ;;         (moz-send-region (region-beginning) (region-end)))
-  ;;     (moz-send-defun)))
-
   (add-hook
    'js2-mode-hook
    (lambda ()
-     ;; (require 'indium)
      (rh-programming-minor-modes 1)
-     (rh-project-setup)
-
-     ;; (skewer-mode 1)
-     ;; (moz-minor-mode -1)
-     ;; (abbrev-mode -1)
-     ;; (yas-minor-mode 1)
-     ;; (ac-js2-mode 1)
-     ;; (js2-refactor-mode 1)
-
-     ;; (setq ac-sources
-     ;;       (remove 'ac-source-abbrev ac-sources))
-     ;; (add-to-list 'ac-sources 'ac-source-yasnippet)
-     ;; (vr-ac-add-buffer-dict "js-mode")
-
-     ;; (when (or (string-suffix-p ".scratch.js" (buffer-name))
-     ;;           (string-equal "scratch.js" (buffer-name)))
-     ;;   (vr-js2-scratch-config))
-
-     ;; (vr-ac-add-buffer-dict "js-mode")
-
-     ;; (local-set-key (kbd "<f6>") 'vr-js2r-rename-var-start/stop)
-     ;; (local-set-key (kbd "M-[") 'pop-tag-mark)
-     ;; (local-set-key (kbd "<f5>") #'vr-skewer-eval-last-expression-or-region)
-     ;; (local-set-key (kbd "M-<f5>")
-     ;;                #'vr-skewer-eval-print-last-expression-or-region)
-     ;; (local-set-key (kbd "<f5>") 'moz-send-region)
-     ;; (local-set-key (kbd "S-<f5>") 'skewer-repl)
-     ;; (local-set-key (kbd "S-<f5>") 'inferior-moz-switch-to-mozilla)
-     ))
+     (rh-project-setup)))
 
   :bind (:map js-mode-map
          ("<S-f5>" . rh-indium-interaction-and-run))
@@ -2989,7 +2952,7 @@ fields which we need."
    'typescript-mode-hook
    (lambda ()
      (require 'indium)
-     (rh-programming-minor-modes t)
+     (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
   :bind (:map typescript-mode-map
@@ -3010,15 +2973,6 @@ fields which we need."
   :ensure t)
 
 ;; /b/} ac-js2
-
-;; /b/{ moz-minor-mode
-
-;; (use-package moz
-;;   :commands moz-minor-mode
-;;   :interpreter ("moz" . moz-minor-mode)
-;;   :ensure t)
-
-;; /b/} moz-minor-mode
 
 ;; /b/{ skewer-mode
 
@@ -3071,8 +3025,8 @@ fields which we need."
           (setf (cache-table-get id skewer-eval-print-map) pos))))))
 
 (use-package skewer-mode
-  :commands (skewer-mode skewer-css-mode skewer-html-mode)
   :config (httpd-start)
+  :defer t
   :ensure t)
 
 ;; /b/} skewer-mode
@@ -3194,36 +3148,15 @@ area."
 
 ;; /b/{ css-mode
 
-(defun vr-skewer-css-clear-all ()
-  (interactive)
-  (skewer-css-clear-all)
-  (message "All skewer CSS modifications are cleared"))
-
-(defun vr-skewer-css-eval-current-declaration ()
-  (interactive)
-  (if (not (looking-back "}[\n\r\t\s]*"))
-      (skewer-css-eval-current-declaration)
-    (skewer-css-eval-current-rule)))
-
-;; (defun vr-skewer-css-eval-current-declaration ()
-;;   (interactive)
-;;   (if (not (looking-back "}[\n\r\t\s]*"))
-;;       (message "looking at declaration")
-;;     (message "looking at rule")))
-
 (use-package css-mode
   :mode "\\.css\\'"
   :config
+  (require 'envr-css)
   (setq css-indent-offset 2)
-  (add-hook 'css-mode-hook
-            (lambda ()
-              (rh-programming-minor-modes)
-              (skewer-css-mode 1)
-              (abbrev-mode -1)
-              (yas-minor-mode 1)
-              (local-set-key (kbd "<f6>") 'vr-skewer-css-clear-all)
-              (local-set-key (kbd "<f5>")
-                             'vr-skewer-css-eval-current-declaration)))
+  (add-hook
+   'css-mode-hook (lambda ()
+                    (rh-programming-minor-modes 1)
+                    (rh-project-setup)))
   :ensure t)
 
 ;; /b/} css-mode
@@ -3235,7 +3168,7 @@ area."
 
 ;; /b/} web-beautify
 
-;; /b/{ Emacs Lisp
+;; /b/{ lisp-mode
 
 (use-package ielm
   :config
@@ -3291,7 +3224,7 @@ area."
   :ensure t
   :demand t)
 
-;; /b/} Emacs Lisp
+;; /b/} lisp-mode
 
 ;; /b/{ python-mode
 
@@ -3397,7 +3330,7 @@ area."
       (progn
         (cond
          ((string-equal web-mode-cur-language "css")
-          (vr-skewer-css-eval-current-declaration))
+          (rh-skewer-css-eval-current-declaration))
          (t (message "Can't evaluate last expression in browser")))))))
 
 (defun vr-web-skewer-eval-print-region (start end)
@@ -3529,8 +3462,6 @@ area."
      (auto-complete-mode -1)
      (rh-project-setup)
      ;; (vr-web-ac-setup)
-     ;; (abbrev-mode -1)
-     ;; (yas-minor-mode 1)
 
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
@@ -3564,8 +3495,7 @@ area."
 
 (use-package tide
   :delight (tide-mode " τ")
-  :init (require 'tide-init)
-  :config (rh-tide-config)
+  :config (require 'init-tide) (rh-config-tide)
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
          ("M-/" . tide-jump-to-implementation)
@@ -3579,85 +3509,10 @@ area."
 
 ;; /b/} tide
 
-;; /b/{ tern
-
-(use-package tern
-  :config
-  ;; (setq tern-command
-  ;;       '("/home/rh/artizanya/arango/arangodb-typescript-setup/node_modules/.bin/tern"))
-
-  ;; (defvar rh-tern-argument-hints-enabled t)
-
-  ;; (defun tern-argument-hint-at-point ()
-  ;;   (interactive)
-  ;;   (tern-update-argument-hints-async))
-
-  ;; (defun tern-post-command ()
-  ;;   (unless (eq (point) tern-last-point-pos)
-  ;;     (setf tern-last-point-pos (point))
-  ;;     (setf tern-activity-since-command tern-command-generation)
-  ;;     (when rh-tern-argument-hints-enabled
-  ;;       (tern-update-argument-hints-async))))
-
-  ;; (define-key tern-mode-keymap (kbd "M-.") nil)
-  ;; (define-key tern-mode-keymap (kbd "M-,") nil)
-  ;; (define-key tern-mode-keymap (kbd "C-c M-.") #'tern-find-definition)
-  ;; (define-key tern-mode-keymap (kbd "C-c M-[") #'tern-pop-find-definition)
-  ;; (define-key tern-mode-keymap (kbd "C-c M-i") #'tern-argument-hint-at-point)
-
-  (define-key tern-mode-keymap (kbd "M-.") nil)
-  (define-key tern-mode-keymap (kbd "M-,") nil)
-  (define-key tern-mode-keymap (kbd "M-.") #'tern-find-definition)
-  (define-key tern-mode-keymap (kbd "M-[") #'tern-pop-find-definition)
-
-  (add-hook
-   'tern-mode-hook
-   (lambda ()
-     (require 'company-tern)))
-
-  :ensure t)
-
-;; /b/} tern
-
-;; /b/{ company-tern
-
-(use-package company-tern
-  :config
-;;   (defun company-tern-annotation (candidate)
-;;     "Return simplified type annotation. 'f' for functions and
-;; 'p' for anything else."
-;;     (if (company-tern-function-p candidate) "f trn" "p trn"))
-
-  :after (company tern)
-  :ensure t)
-
-;; /b/} company-tern
-
-;; /b/{ xref-js2
-
-;; (use-package xref-js2
-;;   :config
-;;   (setq xref-js2-ignored-dirs '("build"))
-
-;;   (defun xref-js2--root-dir ()
-;;     "Return the root directory of the project."
-;;     (or (rh-project-get-root)
-;;         (ignore-errors
-;;           (projectile-project-root))
-;;         (ignore-errors
-;;           (vc-root-dir))
-;;         (user-error "You are not in a project")))
-
-;;   :ensure t)
-
-;; /b/} xref-js2
-
 ;; /b/{ JavaScript Environments Setup
 
 (defun rh-typescript-setup ()
   (interactive)
-  (abbrev-mode -1)
-  (yas-minor-mode 1)
   (tide-setup)
   (company-mode 1)
   (flycheck-mode 1)
@@ -3666,8 +3521,6 @@ area."
 
 (defun rh-javascript-setup ()
   (interactive)
-  (abbrev-mode -1)
-  (yas-minor-mode 1)
   (tide-setup)
   (company-mode 1)
   (flycheck-mode 1)
