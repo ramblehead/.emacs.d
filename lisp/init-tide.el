@@ -23,7 +23,12 @@
                  (window-height . shrink-window-if-larger-than-buffer)))
 
   (add-to-list 'display-buffer-alist
-               `("*tide-documentation*"
+               `((lambda (buffer-nm actions)
+                   (when (and (char-or-string-p buffer-nm)
+                              (string= buffer-nm "*tide-documentation*"))
+                     (with-current-buffer buffer-nm
+                       (local-set-key (kbd "q") #'g2w-quit-window))
+                     t))
                  ,(g2w-display #'display-buffer-in-side-window t)
                  (inhibit-same-window . t)
                  (window-height . 15)))
@@ -32,8 +37,10 @@
                `((lambda (buffer-nm actions)
                    (with-current-buffer buffer-nm
                      (eq major-mode 'tide-project-errors-mode)))
-                 ,(g2w-display #'display-buffer-below-selected t)
-                 (inhibit-same-window . t)))
+                 ,(g2w-display #'display-buffer-below-selected)
+                 (inhibit-same-window . t)
+                 ;; (window-height . shrink-window-if-larger-than-buffer)
+                 ))
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)

@@ -6,29 +6,24 @@
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
  '(custom-safe-themes
-   (quote
-    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
+   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
  '(font-latex-fontify-script nil)
- '(font-latex-fontify-sectioning (quote color))
+ '(font-latex-fontify-sectioning 'color)
  '(font-latex-math-environments
-   (quote
-    ("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq")))
+   '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
-   (quote
-    ((t :background "black" :foreground "white" :family "misc-fixed"))))
+   '((t :background "black" :foreground "white" :family "misc-fixed")))
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   (quote
-    (fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package)))
+   '(json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values (quote ((eval progn (linum-mode -1) (nlinum-mode 1)))))
+ '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
  '(tab-stop-list
-   (quote
-    (8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
- '(visual-line-fringe-indicators (quote (nil right-curly-arrow)))
+   '(8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+ '(visual-line-fringe-indicators '(nil right-curly-arrow))
  '(w32shell-cygwin-bin "c:\\tools\\cygwin\\bin")
  '(w32shell-msys-bin "c:\\tools\\mingw\\msys\\1.0\\bin"))
 (custom-set-faces
@@ -1043,7 +1038,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (use-package total-lines
   :config (global-total-lines-mode 1)
-  :demand t
+  ;; :demand t
   :ensure t)
 
 (use-package rich-minority
@@ -1304,7 +1299,7 @@ Also sets SYMBOL to VALUE."
   ;;   (font-lock-flush))
 
   :bind (("C-c a w" . avy-goto-subword-1)
-         ("M-q" . avy-goto-word-0)
+         ("M-f" . avy-goto-subword-1)
          ("C-c a l" . avy-goto-line))
   :demand t
   :ensure t)
@@ -1377,8 +1372,6 @@ Also sets SYMBOL to VALUE."
 ;; /b/} isearch
 
 ;; == smooth scrolling ==
-
-(require 'fill-column-indicator)
 
 ;; Override text selection on typing
 ;; (i.e. non-persistent selection)
@@ -1807,10 +1800,6 @@ fields which we need."
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
 
-  (defun rh-ivy-alt-done-t ()
-    (interactive)
-    (ivy-alt-done t))
-
   (setq ivy-mode-map
         (let ((map (make-sparse-keymap)))
           (define-key map [remap switch-to-buffer-other-window]
@@ -1818,7 +1807,9 @@ fields which we need."
           map))
 
   :bind (:map ivy-minibuffer-map
-         ("C-j" . rh-ivy-alt-done-t)
+         ("C-j" . ivy-immediate-done)
+         ("C-<return>" . ivy-alt-done)
+         ("C-<kp-enter>" . ivy-alt-done)
          ("C-v" . nil)
          ("M-v" . nil))
 
@@ -1869,7 +1860,7 @@ fields which we need."
   :ensure t)
 
 (use-package lacarte
-  :bind ("s-x" . lacarte-execute-menu-command)
+  :bind ("<menu>" . lacarte-execute-menu-command)
   :demand t)
 
 ;; /b/} ivy/swiper/counsel/etc.
@@ -2213,26 +2204,25 @@ fields which we need."
   :after tide
   :ensure t)
 
-(use-package flycheck-pos-tip
-  :config
-  (defun flycheck-pos-tip-hide-messages ()
-    "Hide messages currently being shown if any."
-    (flycheck-hide-error-buffer))
-
-  (setq flycheck-pos-tip-timeout -1)
-  (flycheck-pos-tip-mode)
-
-  :after (flycheck pos-tip)
-  :ensure t)
-
-;; (use-package flycheck-popup-tip
+;; (use-package flycheck-pos-tip
 ;;   :config
-;;   (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
-;;   (setq flycheck-popup-tip-error-prefix "> ")
+;;   (defun flycheck-pos-tip-hide-messages ()
+;;     "Hide messages currently being shown if any."
+;;     (flycheck-hide-error-buffer))
 
-;;   :after flycheck
-;;   :ensure t
-;;   :disabled)
+;;   (setq flycheck-pos-tip-timeout -1)
+;;   (flycheck-pos-tip-mode)
+
+;;   :after (flycheck pos-tip)
+;;   :ensure t)
+
+(use-package flycheck-popup-tip
+  :config
+  (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
+  ;; (setq flycheck-popup-tip-error-prefix "> ")
+
+  :after flycheck
+  :ensure t)
 
 ;; /b/} flycheck
 
@@ -2953,12 +2943,9 @@ fields which we need."
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (require 'indium)
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
-  :bind (:map typescript-mode-map
-         ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t
   :ensure t)
 
@@ -3407,7 +3394,8 @@ area."
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
@@ -3493,6 +3481,13 @@ area."
 
 ;; /b/} graphql-mode
 
+;; /b/{ json-mode
+
+(use-package json-mode
+  :ensure)
+
+;; /b/{ json-mode
+
 ;; /b/{ tide
 
 (use-package tide
@@ -3506,7 +3501,10 @@ area."
          ("M-h" . tide-documentation-at-point)
          ("C-x M-h" . rh-tide-documentation-quit)
          :map tide-references-mode-map
-         ("q" . rh-quit-window-kill))
+         ("q" . rh-quit-window-kill)
+         ;; :map tide-project-errors-mode-map
+         ;; ("q" . rh-quit-window-kill)
+         )
   :ensure t)
 
 ;; /b/} tide
@@ -3817,6 +3815,8 @@ with very limited support for special characters."
                           "^\\*Ido Completions\\*$"
                           "^\\*buffer-selection\\*$"
                           "^\\*httpd\\*$"
+                          ;; tide
+                          "^\\*tide-server\\*.*$"
                           ;; node.js/indium
                           "^\\*node process\\*$"
                           "^\\*indium-fontification\\*$"
