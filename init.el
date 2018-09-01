@@ -6,7 +6,7 @@
  '(LaTeX-indent-level 0)
  '(LaTeX-item-indent 2)
  '(custom-safe-themes
-   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
+   '("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
  '(font-latex-fontify-script nil)
  '(font-latex-fontify-sectioning 'color)
  '(font-latex-math-environments
@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -875,6 +875,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
 
+  ;; (color-theme-sanityinc-tomorrow-blue)
+  ;; (load-theme 'sanityinc-tomorrow-blue t)
+
   (column-number-mode 1)
   (size-indication-mode -1)
 
@@ -1170,6 +1173,8 @@ Also sets SYMBOL to VALUE."
              ,(propertize " " 'face 'sml/numbers-separator)))))
 
   (setq sml/theme 'light)
+  ;; (setq sml/theme 'respectful)
+  ;; (setq sml/theme nil)
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
   (setq sml/size-indication-format "%I")
@@ -1343,6 +1348,9 @@ Also sets SYMBOL to VALUE."
 
 (setq visible-bell t)
 ;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
+
+(use-package color-theme-sanityinc-tomorrow
+  :ensure t)
 
 ;; /b/{ isearch
 
