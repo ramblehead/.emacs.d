@@ -2464,6 +2464,8 @@ fields which we need."
 
 (use-package magit
   :config
+  (setq magit-log-margin '(t "%F %H:%M " magit-log-margin-width t 10))
+
   ;; See https://github.com/magit/magit/issues/2541
   (setq magit-display-buffer-function
         (lambda (buffer)
