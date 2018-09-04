@@ -75,7 +75,7 @@
           (concat (vr-getenv "APPDATA") "/.local-emacs.d/recent-files"))
     (setq vr-saved-places-file-path
           (concat (vr-getenv "APPDATA") "/.local-emacs.d/saved-places"))
-    (setq vr-bm-repository-file-path
+    (setq rh-bm-repository-file-path
           (concat (vr-getenv "APPDATA") "/.local-emacs.d/bm-repository"))
     (setq vr-ido-last-file-path
           (concat (vr-getenv "APPDATA") "/.emacs.d/ido-last"))))
@@ -92,7 +92,7 @@
           (concat vr-user-data "emacs/recent-files"))
     (setq vr-saved-places-file-path
           (concat vr-user-data "emacs/saved-places"))
-    (setq vr-bm-repository-file-path
+    (setq rh-bm-repository-file-path
           (concat vr-user-data "emacs/bm-repository"))
     (setq vr-ido-last-file-path
           (concat vr-user-data "emacs/ido-last"))
@@ -107,8 +107,8 @@
        (when (file-exists-p ver-file-path)
          (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
 
-(setq vr-smex-save-file
-      (concat user-emacs-directory "smex-items"))
+;; (setq vr-smex-save-file
+;;       (concat user-emacs-directory "smex-items"))
 (setq vr-user-lisp-directory-path
       (concat user-emacs-directory "lisp/"))
 (setq vr-user-site-start-file-path
@@ -1731,7 +1731,7 @@ regexp-list."
 
   ;; If Emacs exits abruptly for some reason the recent file list will be lost.
   ;; Therefore call `recentf-save-list` periodically every 5 minutes.
-  (run-at-time nil (* 5 60) 'recentf-save-list)
+  ;; (run-at-time nil (* 5 60) 'recentf-save-list)
 
   (global-set-key (kbd "<f4>") 'recentf-open-files)
   (define-key recentf-dialog-mode-map (kbd "<escape>") 'recentf-cancel-dialog)
@@ -1837,18 +1837,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-(use-package smex
-  :config
-  (setq smex-save-file vr-smex-save-file)
-  (smex-initialize)
-
-  :demand t
-  :ensure t)
-
 (use-package counsel
-  :init
-  (require 'smex)
-
   :config
   (add-to-list 'rm-blacklist " counsel")
 
@@ -2241,6 +2230,21 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
 ;; /b/{ +++++++++ ----------------------------------------------------
+
+;; /b/{ sh-mode
+
+(use-package sh-script
+  :config
+  (add-hook
+   'sh-set-shell-hook
+   (lambda ()
+     (setq sh-basic-offset 2)
+     (setq sh-indentation 2)
+     (rh-programming-minor-modes 1)))
+
+  :defer t)
+
+;; /b/} sh-mode
 
 ;; /b/{ compile
 
@@ -3996,10 +4000,10 @@ with very limited support for special characters."
 (use-package bm
   :init
   ;; restore on load (even before you require bm)
-  (setq bm-restore-repository-on-load t)
+  (defvar bm-restore-repository-on-load t)
 
   ;; where to store persistant files
-  (setq bm-repository-file vr-bm-repository-file-path)
+  (setq bm-repository-file rh-bm-repository-file-path)
 
   :config
   ;; Allow cross-buffer 'next'

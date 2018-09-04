@@ -149,3 +149,17 @@
 ;;   :ensure t)
 
 ;; /b/} moz-minor-mode
+
+;; /b/{ moz-minor-mode
+
+;; (use-package smex
+;;   :config
+;;   (setq smex-save-file vr-smex-save-file)
+
+;;   :demand t
+;;   :ensure t)
+
+;; (require 'smex)
+;; (smex-initialize)
+
+;; /b/} moz-minor-mode
