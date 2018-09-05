@@ -3350,7 +3350,7 @@ area."
       (progn
         (cond
          ((string-equal web-mode-cur-language "css")
-          (rh-skewer-css-eval-current-declaration))
+          (rh-css-skewer-eval-current-declaration))
          (t (message "Can't evaluate last expression in browser")))))))
 
 (defun vr-web-skewer-eval-print-region (start end)
