@@ -3154,7 +3154,7 @@ area."
 (use-package css-mode
   :mode "\\.css\\'"
   :config
-  (require 'envr-css)
+  (require 'env-css)
   (setq css-indent-offset 2)
   (add-hook
    'css-mode-hook (lambda ()
@@ -3264,7 +3264,7 @@ area."
 ;;       (cg-search-backward-group-balanced-head)
 ;;     (nxml-backward-element arg)))
 
-(defun vr-nxml-code-folding-setup ()
+(defun rh-nxml-code-folding-setup ()
   (require 'sgml-mode)
   ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
   ;; see http://www.emacswiki.org/emacs/HideShow
@@ -3294,8 +3294,9 @@ area."
   (add-hook
    'nxml-mode-hook
    (lambda ()
-     (vr-nxml-code-folding-setup)
-     (rh-programming-minor-modes))))
+     (rh-nxml-code-folding-setup)
+     (rh-programming-minor-modes 1)
+     (rh-project-setup))))
 
 ;; /b/} nxml-mode
 

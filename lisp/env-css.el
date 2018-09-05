@@ -24,4 +24,4 @@
              ("<f6>" . rh-skewer-css-clear-all)
              ("<f5>" . rh-skewer-css-eval-current-declaration)))
 
-(provide 'envr-css)
+(provide 'env-css)
