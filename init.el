@@ -338,12 +338,12 @@ when only symbol face names are needed."
             (init-file-path (concat rh-project-path init-file-name ".el"))
             (rh-project-id (directory-file-name
                             (expand-file-name rh-project-path))))
-        (when (file-exists-p setup-file-path)
-          (load setup-file-path))
         (when (and (file-exists-p init-file-path)
                    (not (member rh-project-id rh-project-initialised-projects)))
           (add-to-list 'rh-project-initialised-projects rh-project-id)
-          (load init-file-path))))))
+          (load init-file-path))
+        (when (file-exists-p setup-file-path)
+          (load setup-file-path))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
