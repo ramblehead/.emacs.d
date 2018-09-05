@@ -303,6 +303,7 @@ when only symbol face names are needed."
 
 ;; /b/{ rh-project
 
+(defvar rh-project-initialised-projects '())
 (defvar rh-project-dir-name ".project")
 (defvar rh-project-generators-relative-path "../gen/")
 (defvar rh-project-include-path-suffix "-include-path")
@@ -320,14 +321,29 @@ when only symbol face names are needed."
       (abbreviate-file-name
        (expand-file-name (concat rh-project "../"))))))
 
-(cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
-  (let ((rh-project (rh-project-get-path)))
-    (when rh-project
-      (if supplied-p
-          (load (concat rh-project setup-file-name-base "-setup.el"))
-        (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
-          (when (file-exists-p setup-file-name)
-            (load setup-file-name)))))))
+;; (cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
+;;   (let ((rh-project (rh-project-get-path)))
+;;     (when rh-project
+;;       (if supplied-p
+;;           (load (concat rh-project setup-file-name-base "-setup.el"))
+;;         (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
+;;           (when (file-exists-p setup-file-name)
+;;             (load setup-file-name)))))))
+
+(cl-defun rh-project-setup (&optional (setup-file-name "setup")
+                                      (init-file-name "init"))
+  (let ((rh-project-path (rh-project-get-path)))
+    (when rh-project-path
+      (let ((setup-file-path (concat rh-project-path setup-file-name ".el"))
+            (init-file-path (concat rh-project-path init-file-name ".el"))
+            (rh-project-id (directory-file-name
+                            (expand-file-name rh-project-path))))
+        (when (file-exists-p setup-file-path)
+          (load setup-file-path))
+        (when (and (file-exists-p init-file-path)
+                   (not (member rh-project-id rh-project-initialised-projects)))
+          (add-to-list 'rh-project-initialised-projects rh-project-id)
+          (load init-file-path))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
