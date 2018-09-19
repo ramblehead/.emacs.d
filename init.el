@@ -376,7 +376,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defvar-local cg-backward-list-original #'backward-list
   "Original backward-list function used by the major mode before loading
-code-groups minor mode - i.e. the function usually bound to C-M-n")
+code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (defvar cg-doxygen-group-open-token "///@{")
 (defvar cg-doxygen-group-close-token "///@}")
