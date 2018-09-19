@@ -528,8 +528,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defun cg-hs-hide-group ()
   (interactive)
-  (let ((open-token)
-        (close-token))
+  (let (open-token close-token)
     (when (cg-looking-at-any-group-tail)
       (cg-search-backward-group-balanced-head))
     (setq open-token (cg-looking-at-any-group-head))
@@ -545,8 +544,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
 
 (defun cg-hs-toggle-hiding ()
   (interactive)
-  (let ((open-token)
-        (close-token))
+  (let (open-token close-token)
     (setq open-token (cg-looking-at-any-group-head))
     (if open-token
         (setq close-token (cg-group-reverse-token open-token))
@@ -561,7 +559,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
             (move-beginning-of-line nil)
             (if (cg-looking-at-group-head open-token)
                 (progn
-                  (move-end-of-line nil)
+                  (end-of-visual-line)
                   (if (cg-looking-at-group-tail close-token)
                       (setq hidden t)))))
           (if hidden
