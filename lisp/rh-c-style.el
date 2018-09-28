@@ -63,6 +63,23 @@
 
             '+))))))
 
+(defun rh-c++-get-offset-bol-namespace-switch (langelem)
+  "Returns offset for the next line after sptit return"
+  (ignore-errors
+    (save-excursion
+      (let ((current-line-num (line-number-at-pos))
+            langelem-line-num)
+        (goto-char (c-langelem-pos langelem))
+        (setq langelem-line-num (line-number-at-pos))
+        (if (eq (- current-line-num langelem-line-num) 1)
+            '+
+          (save-match-data
+            (let ((line (thing-at-point 'line t))
+                  (langelem-line-num (line-number-at-pos)))
+              (if (string-match "\\(^[[:space:]]+\\)[^[:space:]]" line)
+                  '++
+                '+))))))))
+
 (defun rh-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
 closing brace"
@@ -89,6 +106,14 @@ continuing (not first) item"
 (defun rh-c++-looking-at-template (langelem)
   "Return t if looking at class template"
   (if (looking-at "template") t nil))
+
+(defun rh-c++-looking-at-bol-namespace-switch (langelem)
+  "Returnt t if looking at '.', '->' or '::' at the begining of line"
+  (back-to-indentation)
+  (if (or (looking-at "\\.")
+          (looking-at "->")
+          (looking-at "::"))
+      t nil))
 
 (defun rh-c-style-examine (langelem looking-at-p)
   (and (equal major-mode 'c++-mode)
@@ -127,6 +152,23 @@ continuing (not first) item"
   (c-set-offset 'func-decl-cont '+)
   (c-set-offset 'inher-intro '++)
   (c-set-offset 'member-init-intro '++)
+
+  (c-set-offset
+   'arglist-cont
+   (lambda (langelem)
+     (cond
+     ;;  ((rh-c-style-examine
+     ;;    langelem
+     ;;    #'rh-c++-looking-at-guess-macro-definition)
+     ;;   nil)
+     ;;  ((rh-c-style-examine
+     ;;    langelem
+     ;;    #'rh-c++-looking-at-template)
+     ;;   0)
+      ((rh-c-style-examine
+        nil
+        #'rh-c++-looking-at-bol-namespace-switch)
+       (rh-c++-get-offset-bol-namespace-switch langelem)))))
 
   (c-set-offset
    'topmost-intro-cont
@@ -182,13 +224,16 @@ continuing (not first) item"
        (rh-c++-get-offset-return langelem))
       ((rh-c-style-examine
         nil
-        ;; see http://www.delorie.com/gnu/docs/elisp-manual-21/elisp_170.html for '#''
         #'rh-c++-looking-at-uniform_init_block_closing_brace_line)
        '-)
       ((rh-c-style-examine
         nil
         #'rh-c++-looking-at-uniform_init_block_cont_item)
        0)
+      ((rh-c-style-examine
+        nil
+        #'rh-c++-looking-at-bol-namespace-switch)
+       (rh-c++-get-offset-bol-namespace-switch langelem))
       (t '(nil c-lineup-assignments +)))))
 
   (c-set-offset

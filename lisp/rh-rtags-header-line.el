@@ -74,6 +74,19 @@
                'mode-line
              'mode-line-inactive))))
 
+(add-hook 'buffer-list-update-hook
+          (lambda ()
+            (when (bound-and-true-p rtags-track-container)
+              (run-with-timer
+               0 nil
+               #'rtags-update-current-container-cache))))
+
+;; (run-with-timer
+;;  0 0.5
+;;  (lambda ()
+;;    (when (bound-and-true-p rtags-track-container)
+;;      (rtags-update-current-container-cache))))
+
 (defun rh-rtags-header-line-find-file-handler ()
   (set (make-local-variable 'header-line-format)
        '(:eval (rh-rtags-header-line))))
