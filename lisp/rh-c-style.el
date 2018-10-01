@@ -73,12 +73,11 @@
         (setq langelem-line-num (line-number-at-pos))
         (if (eq (- current-line-num langelem-line-num) 1)
             '+
-          (save-match-data
-            (let ((line (thing-at-point 'line t))
-                  (langelem-line-num (line-number-at-pos)))
-              (if (string-match "\\(^[[:space:]]+\\)[^[:space:]]" line)
-                  '++
-                '+))))))))
+          (goto-line (1- current-line-num))
+          (back-to-indentation)
+          (if (rh-c++-looking-at-bol-namespace-switch langelem)
+              '+
+            '++))))))
 
 (defun rh-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
@@ -109,7 +108,7 @@ continuing (not first) item"
 
 (defun rh-c++-looking-at-bol-namespace-switch (langelem)
   "Returnt t if looking at '.', '->' or '::' at the begining of line"
-  (back-to-indentation)
+  ;; (back-to-indentation)
   (if (or (looking-at "\\.")
           (looking-at "->")
           (looking-at "::"))
