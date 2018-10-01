@@ -68,17 +68,19 @@
   (ignore-errors
     (save-excursion
       (let ((current-line-num (line-number-at-pos))
-            langelem-line-num)
+            (current-pos (point))
+            langelem-line-num line)
         (goto-char (c-langelem-pos langelem))
         (setq langelem-line-num (line-number-at-pos))
         (if (eq (- current-line-num langelem-line-num) 1)
             '+
           ;; (goto-line (1- current-line-num))
-          (goto-line current-line-num)
+          (goto-char current-pos)
+          (back-to-indentation)
           (c-backward-syntactic-ws)
           (back-to-indentation)
           (if (rh-c++-looking-at-bol-namespace-switch langelem)
-              '+
+              `[,(current-column)]
             '++))))))
 
 (defun rh-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
