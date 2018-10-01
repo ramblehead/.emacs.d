@@ -73,7 +73,9 @@
         (setq langelem-line-num (line-number-at-pos))
         (if (eq (- current-line-num langelem-line-num) 1)
             '+
-          (goto-line (1- current-line-num))
+          ;; (goto-line (1- current-line-num))
+          (goto-line current-line-num)
+          (c-backward-syntactic-ws)
           (back-to-indentation)
           (if (rh-c++-looking-at-bol-namespace-switch langelem)
               '+
@@ -108,7 +110,7 @@ continuing (not first) item"
 
 (defun rh-c++-looking-at-bol-namespace-switch (langelem)
   "Returnt t if looking at '.', '->' or '::' at the begining of line"
-  ;; (back-to-indentation)
+  (back-to-indentation)
   (if (or (looking-at "\\.")
           (looking-at "->")
           (looking-at "::"))
