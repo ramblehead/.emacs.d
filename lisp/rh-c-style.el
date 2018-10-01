@@ -63,25 +63,41 @@
 
             '+))))))
 
-(defun rh-c++-get-offset-bol-namespace-switch (langelem)
-  "Returns offset for the next line after sptit return"
-  (ignore-errors
-    (save-excursion
-      (let ((current-line-num (line-number-at-pos))
-            (current-pos (point))
-            langelem-line-num line)
-        (goto-char (c-langelem-pos langelem))
-        (setq langelem-line-num (line-number-at-pos))
-        (if (eq (- current-line-num langelem-line-num) 1)
-            '+
-          ;; (goto-line (1- current-line-num))
-          (goto-char current-pos)
-          (back-to-indentation)
-          (c-backward-syntactic-ws)
-          (back-to-indentation)
-          (if (rh-c++-looking-at-bol-namespace-switch langelem)
-              `[,(current-column)]
-            '++))))))
+;; (defun rh-c++-get-offset-bol-namespace-switch (langelem)
+;;   "Returns offset for the next line after sptit return"
+;;   (ignore-errors
+;;     (save-excursion
+;;       (let ((current-line-num (line-number-at-pos))
+;;             (current-pos (point))
+;;             langelem-line-num)
+;;         (goto-char (c-langelem-pos langelem))
+;;         (setq langelem-line-num (line-number-at-pos))
+;;         (if (eq (- current-line-num langelem-line-num) 1)
+;;             '+
+;;           (goto-char current-pos)
+;;           (back-to-indentation)
+;;           (c-backward-syntactic-ws)
+;;           (back-to-indentation)
+;;           (if (rh-c++-looking-at-bol-namespace-switch langelem)
+;;               `[,(current-column)]
+;;             '++))))))
+
+;; (defun rh-c++-get-offset-bol-namespace-switch (langelem)
+;;   "Returns offset for the next line after sptit return"
+;;   (ignore-errors
+;;     (save-excursion
+;;       (let ((current-line-num (line-number-at-pos))
+;;             (current-pos (point))
+;;             langelem-line-num)
+;;         (goto-char (c-langelem-pos langelem))
+;;         (setq langelem-line-num (line-number-at-pos))
+;;         (if (eq (- current-line-num langelem-line-num) 1)
+;;             '+
+;;           (goto-char current-pos)
+;;           (back-to-indentation)
+;;           (c-backward-syntactic-ws)
+;;           (back-to-indentation)
+;;           `[,(current-column)])))))
 
 (defun rh-c++-looking-at-uniform_init_block_closing_brace_line (langelem)
   "Return t if cursor if looking at C++11 uniform init block T v {xxx}
@@ -110,13 +126,13 @@ continuing (not first) item"
   "Return t if looking at class template"
   (if (looking-at "template") t nil))
 
-(defun rh-c++-looking-at-bol-namespace-switch (langelem)
-  "Returnt t if looking at '.', '->' or '::' at the begining of line"
-  (back-to-indentation)
-  (if (or (looking-at "\\.")
-          (looking-at "->")
-          (looking-at "::"))
-      t nil))
+;; (defun rh-c++-looking-at-bol-namespace-switch (langelem)
+;;   "Returnt t if looking at '.', '->' or '::' at the begining of line"
+;;   (back-to-indentation)
+;;   (if (or (looking-at "\\.")
+;;           (looking-at "->")
+;;           (looking-at "::"))
+;;       t nil))
 
 (defun rh-c-style-examine (langelem looking-at-p)
   (and (equal major-mode 'c++-mode)
@@ -156,22 +172,23 @@ continuing (not first) item"
   (c-set-offset 'inher-intro '++)
   (c-set-offset 'member-init-intro '++)
 
-  (c-set-offset
-   'arglist-cont
-   (lambda (langelem)
-     (cond
-     ;;  ((rh-c-style-examine
-     ;;    langelem
-     ;;    #'rh-c++-looking-at-guess-macro-definition)
-     ;;   nil)
-     ;;  ((rh-c-style-examine
-     ;;    langelem
-     ;;    #'rh-c++-looking-at-template)
-     ;;   0)
-      ((rh-c-style-examine
-        nil
-        #'rh-c++-looking-at-bol-namespace-switch)
-       (rh-c++-get-offset-bol-namespace-switch langelem)))))
+  ;; (c-set-offset
+  ;;  'arglist-cont
+  ;;  (lambda (langelem)
+  ;;    (cond
+  ;;     ;; ((rh-c-style-examine
+  ;;     ;;   langelem
+  ;;     ;;   #'rh-c++-looking-at-guess-macro-definition)
+  ;;     ;;  nil)
+  ;;     ;; ((rh-c-style-examine
+  ;;     ;;   langelem
+  ;;     ;;   #'rh-c++-looking-at-template)
+  ;;     ;;  0)
+  ;;     ;; ((rh-c-style-examine
+  ;;     ;;   nil
+  ;;     ;;   #'rh-c++-looking-at-bol-namespace-switch)
+  ;;     ;;  (rh-c++-get-offset-bol-namespace-switch langelem))
+  ;;     )))
 
   (c-set-offset
    'topmost-intro-cont
