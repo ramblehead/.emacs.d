@@ -1819,6 +1819,7 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " ivy")
 
+  (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
 
