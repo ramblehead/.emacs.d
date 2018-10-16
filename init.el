@@ -1321,6 +1321,7 @@ Also sets SYMBOL to VALUE."
   ;; (defadvice avy-goto-subword-1 (around rh-avy-goto-subword-1 () activate)
   ;;   ad-do-it
   ;;   (font-lock-flush))
+  (setq avy-all-windows 'all-frames)
 
   :bind (("C-c a w" . avy-goto-subword-1)
          ("M-f" . avy-goto-subword-1)
