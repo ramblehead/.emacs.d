@@ -2987,6 +2987,16 @@ fields which we need."
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
+  :bind (:map typescript-mode-map
+         ("{" . nil)
+         ("}" . nil)
+         ("(" . nil)
+         (")" . nil)
+         (":" . nil)
+         (";" . nil)
+         ("," . nil)
+         ("\"" . nil)
+         ("'" . nil))
   :defer t
   :ensure t)
 
