@@ -118,6 +118,9 @@
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
 
+;; TODO: investigate nadvice package
+;;       see https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
+
 ;; see https://www.quicklisp.org/beta/ for lisp libraries
 ;; Can then do magic like this:
 ;; (ql:quickload "alexandria")
@@ -981,15 +984,20 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 ;; (setq split-height-threshold 20)
 ;; (setq split-width-threshold 90)
 
-;; see http://emacs.stackexchange.com/questions/12709/how-to-save-last-place-of-point-in-a-buffer
-(setq save-place-file vr-saved-places-file-path)
-(if (<= 25 (car vr-emacs-version))
-    (progn
-      (require 'saveplace)
-      (save-place-mode))
-  (progn
-    (setq-default save-place t)
-    (require 'saveplace)))
+(use-package saveplace
+  :init
+  (setq save-place-file vr-saved-places-file-path)
+
+  (defadvice save-place-find-file-hook
+      (around rh-save-place-find-file-hook activate)
+    (when ad-do-it
+      (run-with-idle-timer 0 nil #'recenter)))
+
+  (if (version< emacs-version "25.0")
+      (progn
+        (require 'saveplace)
+        (setq-default save-place t))
+    (save-place-mode 1)))
 
 (setq default-input-method "russian-computer")
 
@@ -1925,25 +1933,25 @@ fields which we need."
 
 ;; /b/{ yasnippet
 
-;; (use-package yasnippet
-;;   :delight (yas-minor-mode " ⵙ")
-;;   :config
-;;   (add-to-list 'rm-blacklist " ⵙ")
+(use-package yasnippet
+  :delight (yas-minor-mode " ⵙ")
+  :config
+  (add-to-list 'rm-blacklist " ⵙ")
 
-;;   (yasnippet-snippets-initialize)
+  (yasnippet-snippets-initialize)
 
-;;   :bind (:map yas-minor-mode-map
-;;          ("<tab>" . nil)
-;;          ("TAB" . nil)
-;;          ("C-`" . yas-expand)
-;;          ("C-~" . yas-prev-field))
-;;   :defer t
-;;   :ensure t)
+  :bind (:map yas-minor-mode-map
+         ("<tab>" . nil)
+         ("TAB" . nil)
+         ("C-`" . yas-expand)
+         ("C-~" . yas-prev-field))
+  :defer t
+  :ensure t)
 
-;; (use-package yasnippet-snippets
-;;   :commands yasnippet-snippets-initialize
-;;   :defer t
-;;   :ensure t)
+(use-package yasnippet-snippets
+  :commands yasnippet-snippets-initialize
+  :defer t
+  :ensure t)
 
 ;; /b/} yasnippet
 
@@ -1988,7 +1996,9 @@ fields which we need."
   :config
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
-  (setq ac-modes(delq 'javascript-mode ac-modes))
+  (setq ac-modes (delq 'javascript-mode ac-modes))
+  (setq ac-modes (delq 'emacs-lisp-mode ac-modes))
+  (setq ac-modes (delq 'lisp-interaction-mode ac-modes))
 
   (ac-config-default)
 
