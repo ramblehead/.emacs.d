@@ -31,6 +31,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ac-completion-face ((t (:background "light sky blue" :foreground "systemmenutext" :underline t))))
+ '(ac-selection-face ((t (:background "light sky blue" :foreground "systemmenutext"))))
+ '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
+ '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
+ '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
  '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
  '(rtags-skippedline ((((class color)) (:background "#c2fada"))))
@@ -1920,25 +1925,25 @@ fields which we need."
 
 ;; /b/{ yasnippet
 
-(use-package yasnippet
-  :delight (yas-minor-mode " ⵙ")
-  :config
-  (add-to-list 'rm-blacklist " ⵙ")
+;; (use-package yasnippet
+;;   :delight (yas-minor-mode " ⵙ")
+;;   :config
+;;   (add-to-list 'rm-blacklist " ⵙ")
 
-  (yasnippet-snippets-initialize)
+;;   (yasnippet-snippets-initialize)
 
-  :bind (:map yas-minor-mode-map
-         ("<tab>" . nil)
-         ("TAB" . nil)
-         ("C-`" . yas-expand)
-         ("C-~" . yas-prev-field))
-  :defer t
-  :ensure t)
+;;   :bind (:map yas-minor-mode-map
+;;          ("<tab>" . nil)
+;;          ("TAB" . nil)
+;;          ("C-`" . yas-expand)
+;;          ("C-~" . yas-prev-field))
+;;   :defer t
+;;   :ensure t)
 
-(use-package yasnippet-snippets
-  :commands yasnippet-snippets-initialize
-  :defer t
-  :ensure t)
+;; (use-package yasnippet-snippets
+;;   :commands yasnippet-snippets-initialize
+;;   :defer t
+;;   :ensure t)
 
 ;; /b/} yasnippet
 
@@ -4056,16 +4061,16 @@ with very limited support for special characters."
 ;; /b/{ bm
 
 (use-package bm
-  :init
-  ;; restore on load (even before you require bm)
-  (defvar bm-restore-repository-on-load t)
-
-  ;; where to store persistant files
-  (setq bm-repository-file rh-bm-repository-file-path)
+  ;; :init
+  ;; ;; restore on load (even before you require bm)
+  ;; (defvar bm-restore-repository-on-load t)
 
   :config
   ;; Allow cross-buffer 'next'
   ;; (setq bm-cycle-all-buffers t)
+
+  ;; where to store persistant files
+  (setq bm-repository-file rh-bm-repository-file-path)
 
   ;; Only highlight the fringe of the line
   (setq bm-highlight-style 'bm-highlight-only-fringe)
@@ -4113,6 +4118,7 @@ with very limited support for special characters."
   :bind (("<f2>" . bm-next)
          ("S-<f2>" . bm-previous)
          ("C-<f2>" . bm-toggle))
+  :demand t
   :ensure t)
 
 ;; /b/} bm
