@@ -118,8 +118,9 @@
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
 
-;; TODO: investigate nadvice package
+;; TODO: investigate the following packages
 ;;       see https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
+;;       https://github.com/bmag/emacs-purpose
 
 ;; see https://www.quicklisp.org/beta/ for lisp libraries
 ;; Can then do magic like this:
@@ -1559,12 +1560,12 @@ Also sets SYMBOL to VALUE."
 (use-package undo-tree
   :init
   ;; undo-tree-visualizer
-  (add-to-list 'display-buffer-alist
-               '("*undo-tree*"
-                 (display-buffer-in-side-window)
-                 (side . right)
-                 (slot . 0)
-                 (window-width . 30)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*undo-tree*"
+  ;;                (display-buffer-in-side-window)
+  ;;                (side . right)
+  ;;                (slot . 0)
+  ;;                (window-width . 30)))
 
   :config
   (add-to-list 'rm-blacklist " Undo-Tree")
@@ -2520,19 +2521,25 @@ fields which we need."
     '("--graph" "--color" "--decorate" "-n256"))
 
   :config
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm action)
+                   (eq (with-current-buffer buffer-nm major-mode)
+                       'magit-status-mode))
+                 (display-buffer-same-window)))
+
   ;; See https://github.com/magit/magit/issues/2541
-  (setq magit-display-buffer-function
-        (lambda (buffer)
-          (display-buffer
-           buffer (if (and (derived-mode-p 'magit-mode)
-                           (memq (with-current-buffer buffer major-mode)
-                                 '(magit-process-mode
-                                   ;; magit-revision-mode
-                                   ;; magit-diff-mode
-                                   magit-stash-mode
-                                   magit-status-mode)))
-                      nil
-                    '(display-buffer-same-window)))))
+  ;; (setq magit-display-buffer-function
+  ;;       (lambda (buffer)
+  ;;         (display-buffer
+  ;;          buffer (if (and (derived-mode-p 'magit-mode)
+  ;;                          (memq (with-current-buffer buffer major-mode)
+  ;;                                '(magit-process-mode
+  ;;                                  magit-revision-mode
+  ;;                                  magit-diff-mode
+  ;;                                  magit-stash-mode
+  ;;                                  magit-status-mode)))
+  ;;                     nil
+  ;;                   '(display-buffer-same-window)))))
   :ensure t)
 
 (use-package gud
@@ -2640,7 +2647,9 @@ fields which we need."
 ;; https://github.com/syl20bnr/spacemacs/issues/5917
 (use-package realgud
   :commands (realgud:gdb realgud:gdb-pid realgud:pdb realgud:ipdb)
-  :pin melpa)
+
+  :pin melpa
+  :ensure t)
 
 ;; /b/} RealGUD
 
