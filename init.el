@@ -2572,37 +2572,38 @@ fields which we need."
 
 (use-package gud
   :config
-  (defun vr-gud-call-func (begin end func)
-    (let ((pos (point)))
-      (funcall func '(begin end))
-      ;; Allow debugger to run and return to the source buffer.
-      ;; TODO: find how to wait on debugger instead of guessing the time.
-      (sleep-for 0.1)
-      (goto-char pos)))
+  ;; (defun vr-gud-call-func (begin end func)
+  ;;   (let ((pos (point)))
+  ;;     (funcall func '(begin end))
+  ;;     ;; Allow debugger to run and return to the source buffer.
+  ;;     ;; TODO: find how to wait on debugger instead of guessing the time.
+  ;;     (sleep-for 0.1)
+  ;;     (goto-char pos)))
 
-  (defun vr-gud-print (begin end)
-    (interactive (vr-point-or-region))
-    (vr-gud-call-func begin end 'gud-print))
+  ;; (defun vr-gud-print (begin end)
+  ;;   (interactive (vr-point-or-region))
+  ;;   (vr-gud-call-func begin end 'gud-print))
 
-  (defun vr-gud-break (begin end)
-    (interactive (vr-point-or-region))
-    (vr-gud-call-func begin end 'gud-break))
+  ;; (defun vr-gud-break (begin end)
+  ;;   (interactive (vr-point-or-region))
+  ;;   (vr-gud-call-func begin end 'gud-break))
 
-  (defun vr-gud-tbreak (begin end)
-    (interactive (vr-point-or-region))
-    (vr-gud-call-func begin end 'gud-tbreak))
+  ;; (defun vr-gud-tbreak (begin end)
+  ;;   (interactive (vr-point-or-region))
+  ;;   (vr-gud-call-func begin end 'gud-tbreak))
 
-  (defun vr-gud-remove (begin end)
-    (interactive (vr-point-or-region))
-    (vr-gud-call-func begin end 'gud-remove))
+  ;; (defun vr-gud-remove (begin end)
+  ;;   (interactive (vr-point-or-region))
+  ;;   (vr-gud-call-func begin end 'gud-remove))
 
-  (define-key gud-minor-mode-map (kbd "<f5>") 'vr-gud-print)
-  (define-key gud-minor-mode-map (kbd "S-<f5>") 'gud-watch)
-  (define-key gud-minor-mode-map (kbd "<f9>") 'vr-gud-break)
-  (define-key gud-minor-mode-map (kbd "S-<f9>") 'vr-gud-tbreak)
-  (define-key gud-minor-mode-map (kbd "C-<f9>") 'vr-gud-remove)
-  (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
-  (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step))
+  ;; (define-key gud-minor-mode-map (kbd "<f5>") 'vr-gud-print)
+  ;; (define-key gud-minor-mode-map (kbd "S-<f5>") 'gud-watch)
+  ;; (define-key gud-minor-mode-map (kbd "<f9>") 'vr-gud-break)
+  ;; (define-key gud-minor-mode-map (kbd "S-<f9>") 'vr-gud-tbreak)
+  ;; (define-key gud-minor-mode-map (kbd "C-<f9>") 'vr-gud-remove)
+  ;; (define-key gud-minor-mode-map (kbd "<f10>") 'gud-next)
+  ;; (define-key gud-minor-mode-map (kbd "<f11>") 'gud-step)
+  )
 
 ;; (gdb-registers-buffer      gdb-registers-buffer-name   gdb-registers-mode   gdb-invalidate-registers  )
 ;; (gdb-locals-buffer         gdb-locals-buffer-name      gdb-locals-mode      gdb-invalidate-locals     )
