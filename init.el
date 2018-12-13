@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line indium iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -36,6 +36,8 @@
  '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
  '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
+ '(iedit-occurrence ((((background light)) (:background "lightblue"))))
+ '(iedit-read-only-occurrence ((((background light)) (:background "pale turquoise"))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
  '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
  '(rtags-skippedline ((((class color)) (:background "#c2fada"))))
@@ -969,6 +971,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
          ("C-x <kp-right>" . windmove-right)
          ("C-x <left>" . windmove-left)
          ("C-x <kp-left>" . windmove-left))
+  :after (yasnippet ivy counsel)
   :demand t)
 
 (setq load-prefer-newer t)
@@ -1971,7 +1974,7 @@ fields which we need."
          ("TAB" . nil)
          ("C-`" . yas-expand)
          ("C-~" . yas-prev-field))
-  :defer t
+  :demand t
   :ensure t)
 
 (use-package yasnippet-snippets
@@ -2930,6 +2933,7 @@ fields which we need."
          ("C-S-b" . recompile)
          :map c-mode-base-map
          ("C-c b" . rh-compile-toggle-display))
+
   :defer t)
 
 ;; /b/} C++
@@ -2958,16 +2962,9 @@ fields which we need."
   (add-hook
    'js-mode-hook
    (lambda ()
-     ;; Indium-mode keeps enabling/disabling it in REPL
-     ;; TODO: Investigate why Indium-mode REPL does that and if it can be fixed
-     (unless (or (equal (buffer-name) "*indium-fontification*")
-                 (eq major-mode 'js2-mode))
-       (require 'indium)
-       (rh-programming-minor-modes 1)
-       (rh-project-setup))))
+     (rh-programming-minor-modes 1)
+     (rh-project-setup)))
 
-  :bind (:map js-mode-map
-         ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t)
 
 ;; /b/} js-mode
@@ -3024,8 +3021,6 @@ fields which we need."
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
-  :bind (:map js-mode-map
-         ("<S-f5>" . rh-indium-interaction-and-run))
   :defer t
   :ensure t)
 
@@ -3135,121 +3130,6 @@ fields which we need."
   :ensure t)
 
 ;; /b/} skewer-mode
-
-;; /b/{ indium
-
-(use-package indium
-  :config
-  ;; Use major mode highlighter to indicate interactive minor modes
-  (add-to-list 'rm-blacklist " js-interaction")
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*node process*"
-  ;;                (display-buffer-below-selected)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
-  (add-to-list 'display-buffer-alist
-               '("*JS Inspector*"
-                 (display-buffer-reuse-mode-window
-                  display-buffer-below-selected)))
-
-  (add-to-list 'display-buffer-alist
-               '("*node process*"
-                 (display-buffer-use-some-window
-                  display-buffer-pop-up-window)
-                 (inhibit-same-window . t)))
-
-;;   (defun indium-run-node (command)
-;;     "Start a NodeJS process.
-
-;; Execute COMMAND, adding the `--inspect' flag.  When the process
-;; is ready, open an Indium connection on it.
-
-;; If `indium-nodejs-inspect-brk' is set to non-nil, break the
-;; execution at the first statement.
-
-;; If a connection is already open, close it."
-;;     (interactive (list (read-shell-command "Node command: "
-;;                                            (or (car indium-nodejs-commands-history) "node ")
-;;                                            'indium-nodejs-commands-history)))
-;;     (indium-maybe-quit)
-;;     (unless indium-current-connection
-;;       (let ((process (make-process :name "indium-nodejs-process"
-;; 				   :buffer "*node process*"
-;; 				   :filter #'indium-nodejs--process-filter
-;; 				   :command (list shell-file-name
-;; 						  shell-command-switch
-;; 						  (indium-nodejs--add-flags command)))))
-;;         (select-window (display-buffer (process-buffer process))))))
-
-  (defun rh-indium-eval-print-region (start end)
-    "Evaluate the region between START and END; and print result below region."
-    (interactive "r")
-    (if (use-region-p)
-        (indium-eval
-         (buffer-substring-no-properties start end)
-         `(lambda (value _error)
-            (let ((result (indium-render-value-to-string value)))
-              (save-excursion
-                (goto-char ,(if (< start end) end start))
-                (when (> (current-column) 0) (next-line))
-                (move-beginning-of-line 1)
-                (newline)
-                (previous-line)
-                (insert (substring-no-properties result))))))
-      (message "No active region to evaluate")))
-
-  (defun rh-indium-eval-region (start end)
-    "Evaluate the region between START and END; and print result in the echo
-area."
-    (interactive "r")
-    (if (use-region-p)
-        (indium-eval
-         (buffer-substring-no-properties start end)
-         (lambda (value _error)
-           (let ((result (indium-render-value-to-string value)))
-             (message result))))
-      (message "No active region to evaluate")))
-
-  (defun rh-indium-interaction-and-run ()
-    (interactive)
-    (indium-interaction-mode 1)
-    (select-window (display-buffer
-                    (temp-buffer-window-setup "*node process*")))
-    (indium-run-node "node"))
-
-  (defun rh-indium-repl-quit-and-clean ()
-    (interactive)
-    (let ((process (indium-current-connection-process)))
-      (when process
-        (set-process-sentinel
-         process
-         (lambda (process event)
-           (when (string-match-p "killed" event)
-             (kill-buffer "*node process*")
-             (kill-buffer "*indium-fontification*"))))
-        (indium-quit)
-        (indium-interaction-mode -1))))
-
-  (defun indium-inspector-quit-window ()
-    (interactive)
-    (quit-window t))
-
-  :bind (:map indium-inspector-mode-map
-         ("<backspace>" . indium-inspector-pop)
-         ("q" . 'indium-inspector-quit-window)
-         :map indium-repl-mode-map
-         ("C-<kp-up>" . indium-repl-previous-input)
-         ("C-<kp-down>" . indium-repl-next-input)
-         ("C-c C-q" . rh-indium-repl-quit-and-clean)
-         :map indium-interaction-mode-hook
-         ("<f5>" . rh-indium-eval-region)
-         ("M-<f5>" . rh-indium-eval-print-region))
-  :defer t
-  :ensure t)
-
-;; /b/} indium
 
 ;; /b/{ css-mode
 
@@ -3948,7 +3828,7 @@ with very limited support for special characters."
                           "^\\*tide-server\\*.*$"
                           ;; node.js/indium
                           "^\\*node process\\*$"
-                          "^\\*indium-fontification\\*$"
+                          ;; "^\\*indium-fontification\\*$"
                           ;; compile/script outputs
                           "^\\*skewer-error\\*$"
                           "^\\*tide-server\\*$"
