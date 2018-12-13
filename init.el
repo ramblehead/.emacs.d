@@ -1213,17 +1213,35 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+(use-package facemenu
+  :config
+  (add-to-list 'display-buffer-alist
+               '("*Colors*"
+                 (display-buffer-same-window)))
+  :defer t)
+
+(use-package faces
+  :config
+  (add-to-list 'display-buffer-alist
+               '("*Faces*"
+                 (display-buffer-same-window))))
+
 (use-package help-mode
   :init
-  (add-to-list 'display-buffer-alist
-               `("*Help*"
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (side . bottom)
-                 (slot . 0)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `("*Help*"
+  ;;                ,(g2w-display #'display-buffer-in-side-window t)
+  ;;                (side . bottom)
+  ;;                (slot . 0)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15))
+
 
   :config
+  (add-to-list 'display-buffer-alist
+               '("*Help*"
+                 (display-buffer-same-window)))
+
   (setq help-window-select t)
   (define-key help-mode-map (kbd "q") #'g2w-quit-window)
 
@@ -2596,53 +2614,55 @@ fields which we need."
 ;; (gdb-inferior-io           gdb-inferior-io-name        gdb-inferior-io-mode                           )
 ;; (gdb-partial-output-buffer gdb-partial-output-name                                                    )
 
+;; /b/{ gdb-mi
+
 (use-package gdb-mi
-  :init
-  (defvar vr-gdb-original-buffer nil)
+  ;; :init
+  ;; (defvar vr-gdb-original-buffer nil)
 
   :config
-  (defadvice gdb-setup-windows (around vr-gdb-setup-windows ())
-    "Layout the window pattern for option `gdb-many-windows'."
-    (gdb-get-buffer-create 'gdb-locals-buffer)
-    (gdb-get-buffer-create 'gdb-stack-buffer)
-    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-    (set-window-dedicated-p (selected-window) t)
-    (switch-to-buffer gud-comint-buffer)
-    (delete-other-windows)
-    (let ((win0 (selected-window))
-          (win1 (split-window nil ( / ( * (window-height) 4) 5)))
-          (win2 (split-window nil ( / (window-height) 4)))
-          ;; (win3 (split-window-right))
-          )
-      ;; (gdb-set-window-buffer (gdb-locals-buffer-name) nil win3)
-      (select-window win2)
-      (set-window-buffer
-       win2
-       (if gud-last-last-frame
-           (gud-find-file (car gud-last-last-frame))
-         (if gdb-main-file
-             (gud-find-file gdb-main-file)
-           ;; Put buffer list in window if we
-           ;; can't find a source file.
-           (list-buffers-noselect))))
-      ;; (set-window-dedicated-p (selected-window) nil)
-      (setq gdb-source-window (selected-window))
-      (select-window (split-window-below))
-      (switch-to-buffer vr-gdb-original-buffer)
-      ;; (let ((win4 (split-window-right)))
-      ;;   (gdb-set-window-buffer
-      ;;    (gdb-get-buffer-create 'gdb-inferior-io) nil win4))
-      (select-window win1)
-      (gdb-set-window-buffer (gdb-stack-buffer-name))
-      (let ((win5 (split-window-right)))
-        (gdb-set-window-buffer (if gdb-show-threads-by-default
-                                   (gdb-threads-buffer-name)
-                                 (gdb-breakpoints-buffer-name))
-                               nil win5))
-      (select-window win0)))
+  ;; (defadvice gdb-setup-windows (around vr-gdb-setup-windows ())
+  ;;   "Layout the window pattern for option `gdb-many-windows'."
+  ;;   (gdb-get-buffer-create 'gdb-locals-buffer)
+  ;;   (gdb-get-buffer-create 'gdb-stack-buffer)
+  ;;   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
+  ;;   (set-window-dedicated-p (selected-window) t)
+  ;;   (switch-to-buffer gud-comint-buffer)
+  ;;   (delete-other-windows)
+  ;;   (let ((win0 (selected-window))
+  ;;         (win1 (split-window nil ( / ( * (window-height) 4) 5)))
+  ;;         (win2 (split-window nil ( / (window-height) 4)))
+  ;;         ;; (win3 (split-window-right))
+  ;;         )
+  ;;     ;; (gdb-set-window-buffer (gdb-locals-buffer-name) nil win3)
+  ;;     (select-window win2)
+  ;;     (set-window-buffer
+  ;;      win2
+  ;;      (if gud-last-last-frame
+  ;;          (gud-find-file (car gud-last-last-frame))
+  ;;        (if gdb-main-file
+  ;;            (gud-find-file gdb-main-file)
+  ;;          ;; Put buffer list in window if we
+  ;;          ;; can't find a source file.
+  ;;          (list-buffers-noselect))))
+  ;;     ;; (set-window-dedicated-p (selected-window) nil)
+  ;;     (setq gdb-source-window (selected-window))
+  ;;     (select-window (split-window-below))
+  ;;     (switch-to-buffer vr-gdb-original-buffer)
+  ;;     ;; (let ((win4 (split-window-right)))
+  ;;     ;;   (gdb-set-window-buffer
+  ;;     ;;    (gdb-get-buffer-create 'gdb-inferior-io) nil win4))
+  ;;     (select-window win1)
+  ;;     (gdb-set-window-buffer (gdb-stack-buffer-name))
+  ;;     (let ((win5 (split-window-right)))
+  ;;       (gdb-set-window-buffer (if gdb-show-threads-by-default
+  ;;                                  (gdb-threads-buffer-name)
+  ;;                                (gdb-breakpoints-buffer-name))
+  ;;                              nil win5))
+  ;;     (select-window win0)))
 
-  (defadvice gdb (before vr-gdb (command-line))
-    (setq vr-gdb-original-buffer (window-buffer)))
+  ;; (defadvice gdb (before vr-gdb (command-line))
+  ;;   (setq vr-gdb-original-buffer (window-buffer)))
 
   ;; use gdb-many-windows by default
   (setq gdb-many-windows t)
@@ -2651,7 +2671,9 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise))
 
-;; /b/{ RealGUD
+;; /b/} gdb-mi
+
+;; /b/{ realgud
 
 ;; Autoinstall from init is disabled until the following problem is solved:
 ;; https://github.com/syl20bnr/spacemacs/issues/5917
@@ -2661,7 +2683,7 @@ fields which we need."
   :pin melpa
   :ensure t)
 
-;; /b/} RealGUD
+;; /b/} realgud
 
 ;; /b/{ C++
 
