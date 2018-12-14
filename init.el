@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(nodejs-repl ts-comint counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -3130,6 +3130,33 @@ fields which we need."
   :ensure t)
 
 ;; /b/} skewer-mode
+
+;; /b/{ nodejs-repl
+
+(use-package nodejs-repl
+  :defer t
+  :ensure t)
+
+;; /b/} nodejs-repl
+
+;; /b/{ ts-comint
+
+;; (add-hook 'typescript-mode-hook
+;;           (lambda ()
+;;             (local-set-key (kbd "C-x C-e") 'ts-send-last-sexp)
+;;             (local-set-key (kbd "C-M-x") 'ts-send-last-sexp-and-go)
+;;             (local-set-key (kbd "C-c b") 'ts-send-buffer)
+;;             (local-set-key (kbd "C-c C-b") 'ts-send-buffer-and-go)
+;;             (local-set-key (kbd "C-c l") 'ts-load-file-and-go)))
+
+(use-package ts-comint
+  :config
+  (setq ts-comint-program-command "npx tsun")
+
+  :defer t
+  :ensure t)
+
+;; /b/} ts-comint
 
 ;; /b/{ css-mode
 
