@@ -109,10 +109,8 @@
        (when (file-exists-p ver-file-path)
          (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
 
-;; (setq vr-smex-save-file
-;;       (concat user-emacs-directory "smex-items"))
 (setq vr-user-lisp-directory-path
-      (concat user-emacs-directory "lisp/"))
+      (concat (expand-file-name user-emacs-directory) "lisp/"))
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
@@ -199,7 +197,7 @@
 (defun rh-window-selected-interactively-p ()
   (eq (selected-window) rh-interactively-selected-window))
 
-(defun vr-point-or-region ()
+(defun rh-point-or-region ()
   (if (use-region-p)
       (list (region-beginning) (region-end))
     (list (point) (point))))
@@ -1251,7 +1249,16 @@ Also sets SYMBOL to VALUE."
   :defer t)
 
 (use-package grep
-  :init
+  ;; :init
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `(,(g2w-condition "*grep*")
+  ;;                ,(g2w-display #'display-buffer-in-side-window t)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
+  ;; (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
+
+  :config
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*grep*")
                  ,(g2w-display #'display-buffer-in-side-window t)
@@ -1260,7 +1267,6 @@ Also sets SYMBOL to VALUE."
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
-  :config
   (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
 
   (add-hook
@@ -2584,19 +2590,19 @@ fields which we need."
   ;;     (goto-char pos)))
 
   ;; (defun vr-gud-print (begin end)
-  ;;   (interactive (vr-point-or-region))
+  ;;   (interactive (rh-point-or-region))
   ;;   (vr-gud-call-func begin end 'gud-print))
 
   ;; (defun vr-gud-break (begin end)
-  ;;   (interactive (vr-point-or-region))
+  ;;   (interactive (rh-point-or-region))
   ;;   (vr-gud-call-func begin end 'gud-break))
 
   ;; (defun vr-gud-tbreak (begin end)
-  ;;   (interactive (vr-point-or-region))
+  ;;   (interactive (rh-point-or-region))
   ;;   (vr-gud-call-func begin end 'gud-tbreak))
 
   ;; (defun vr-gud-remove (begin end)
-  ;;   (interactive (vr-point-or-region))
+  ;;   (interactive (rh-point-or-region))
   ;;   (vr-gud-call-func begin end 'gud-remove))
 
   ;; (define-key gud-minor-mode-map (kbd "<f5>") 'vr-gud-print)
@@ -2965,6 +2971,8 @@ fields which we need."
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
+  :bind (:map js-mode-map
+         ("<f7>" . #'rh-nodejs-repl))
   :defer t)
 
 ;; /b/} js-mode
@@ -2974,46 +2982,19 @@ fields which we need."
 (use-package js2-mode
   :mode "\\.js\\'"
   :interpreter "node"
-  ;; "λ" stands for interactive and "i" for indium mode
-  ;; :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
-  ;;                       "js2λi"
-  ;;                     "js2"))
-  ;;            :major)
-  :delight '("js2" :major)
+  ;; "λ" stands for interactive and "n" for nodejs-repl
+  :delight '((:eval (if (bound-and-true-p rh-nodejs-repl)
+                        "js2λn"
+                      "js2"))
+             :major)
   :config
+  (require 'config-js2-mode)
+  (require 'nodejs-repl)
+
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
   (setq js2-skip-preprocessor-directives t)
-
-  (defvar-local rh-js2-additional-externs '())
-
-  ;; see http://emacswiki.org/emacs/Js2Mode After js2 has parsed a js file, we
-  ;; look for jslint globals decl comment ("/* global Fred, _, Harry */") and
-  ;; add any symbols to a buffer-local var of acceptable global vars Note that
-  ;; we also support the "symbol: true" way of specifying names via a hack
-  ;; (remove any ":true" to make it look like a plain decl, and any ':false' are
-  ;; left behind so they'll effectively be ignored as you can't have a symbol
-  ;; called "someName:false"
-  (add-hook
-   'js2-post-parse-callbacks
-   (lambda ()
-     (when (> (buffer-size) 0)
-       (let ((btext (replace-regexp-in-string
-                     ": *true" " "
-                     (replace-regexp-in-string
-                      "[\n\t ]+"
-                      " "
-                      (buffer-substring-no-properties 1 (buffer-size))
-                      t t))))
-         (mapc (apply-partially 'add-to-list 'js2-additional-externs)
-               (append
-                rh-js2-additional-externs
-                (split-string
-                 (if (string-match
-                      "/\\* *global *\\(.*?\\) *\\*/" btext)
-                     (match-string-no-properties 1 btext) "")
-                 " *, *" t)))))))
 
   (add-hook
    'js2-mode-hook
@@ -3021,7 +3002,6 @@ fields which we need."
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
-  :defer t
   :ensure t)
 
 ;; /b/} js2-mode
@@ -3077,7 +3057,7 @@ fields which we need."
 ;; /b/{ skewer-mode
 
 (defun vr-skewer-eval-last-expression-or-region (start end)
-  (interactive (vr-point-or-region))
+  (interactive (rh-point-or-region))
   (if (/= start end)
       (progn
         (deactivate-mark)
@@ -3097,7 +3077,7 @@ fields which we need."
 ;; (require 'cache-table)
 
 (defun vr-skewer-eval-print-last-expression-or-region (start end)
-  (interactive (vr-point-or-region))
+  (interactive (rh-point-or-region))
   (if (/= start end)
       (progn
         (deactivate-mark)
@@ -3133,18 +3113,24 @@ fields which we need."
 
 ;; /b/{ nodejs-repl
 
-;;     (add-hook 'js-mode-hook
-;;               (lambda ()
-;;                 (define-key js-mode-map (kbd "C-x C-e") 'nodejs-repl-send-last-expression)
-;;                 (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-;;                 (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-;;                 (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)))
-
 (use-package nodejs-repl
+  :config
+  (add-to-list 'rm-blacklist " rh-nodejs-repl")
+
+  (require 'config-nodejs-repl)
+
   :defer t
   :ensure t)
 
 ;; /b/} nodejs-repl
+
+;; /b/{ js-scratch
+
+(use-package js-scratch
+  :commands js-scratch
+  :pin manual)
+
+;; /b/} js-scratch
 
 ;; /b/{ css-mode
 
@@ -3185,7 +3171,7 @@ fields which we need."
 
 (use-package lisp-mode
   :delight
-  (emacs-lisp-mode "ξ")
+  (emacs-lisp-mode "ξλ")
   (lisp-interaction-mode "ξλ")
 
   :config
@@ -3206,6 +3192,7 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes 1)
      (eldoc-mode 1)
+     (auto-complete-mode 1)
      (set (make-local-variable 'vr-elisp-mode) t)))
 
   :after ielm
@@ -3504,7 +3491,7 @@ fields which we need."
 
 (use-package tide
   :delight (tide-mode " τ")
-  :config (require 'init-tide) (rh-config-tide)
+  :config (require 'config-tide)
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
          ("M-/" . tide-jump-to-implementation)
