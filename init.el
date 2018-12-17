@@ -2982,7 +2982,7 @@ fields which we need."
      (rh-project-setup)))
 
   :bind (:map js-mode-map
-         ("<f7>" . #'rh-nodejs-repl))
+         ("<f7>" . #'rh-nodejs-interaction))
   :defer t)
 
 ;; /b/} js-mode
@@ -2993,7 +2993,7 @@ fields which we need."
   :mode "\\.js\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "n" for nodejs-repl
-  :delight '((:eval (if (bound-and-true-p rh-nodejs-repl)
+  :delight '((:eval (if (bound-and-true-p rh-nodejs-interaction)
                         "js2λn"
                       "js2"))
              :major)
@@ -3125,7 +3125,7 @@ fields which we need."
 
 (use-package nodejs-repl
   :config
-  (add-to-list 'rm-blacklist " rh-nodejs-repl")
+  (add-to-list 'rm-blacklist " NodeJS Interaction")
 
   (require 'config-nodejs-repl)
 
@@ -3134,13 +3134,13 @@ fields which we need."
 
 ;; /b/} nodejs-repl
 
-;; /b/{ js-scratch
+;; /b/{ rh-scratch-js
 
-(use-package js-scratch
-  :commands js-scratch
+(use-package rh-scratch-js
+  :commands rh-scratch-js
   :pin manual)
 
-;; /b/} js-scratch
+;; /b/} rh-scratch-js
 
 ;; /b/{ css-mode
 

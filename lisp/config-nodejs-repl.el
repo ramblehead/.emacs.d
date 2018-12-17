@@ -7,10 +7,15 @@
                 display-buffer-pop-up-window)
                (inhibit-same-window . t)))
 
-(defvar rh-nodejs-repl-map
+(defvar rh-nodejs-interaction-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<f5>") #'rh-nodejs-repl-send-line-or-region)
     map))
+
+(define-minor-mode rh-nodejs-interaction
+  "Minor mode for interacting with a nodejs from other (e.g js) buffers."
+  :lighter " NodeJS Interaction"
+  :keymap rh-nodejs-interaction-map)
 
 (defadvice nodejs-repl-switch-to-repl
     (around rh-nodejs-repl-switch-to-repl () activate)
@@ -18,11 +23,6 @@
     (if buf
         (pop-to-buffer buf)
       (nodejs-repl))))
-
-(define-minor-mode rh-nodejs-repl
-  "Minor mode for interacting with a nodejs from other (e.g js) buffers."
-  :lighter " rh-nodejs-repl"
-  :keymap rh-nodejs-repl-map)
 
 (defun rh-nodejs-repl-send-line-or-region (start end)
   (interactive (if (use-region-p)
