@@ -28,9 +28,6 @@
                ;; (window-height . shrink-window-if-larger-than-buffer)
                ))
 
-(setq tide-completion-ignore-case t)
-(setq tide-always-show-documentation t)
-
 (add-hook
  'tide-mode-hook
  (lambda ()

@@ -3158,9 +3158,10 @@ fields which we need."
   (require 'env-css)
   (setq css-indent-offset 2)
   (add-hook
-   'css-mode-hook (lambda ()
-                    (rh-programming-minor-modes 1)
-                    (rh-project-setup)))
+   'css-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes 1)
+     (rh-project-setup)))
   :ensure t)
 
 ;; /b/} css-mode
@@ -3509,7 +3510,12 @@ fields which we need."
 
 (use-package tide
   :delight (tide-mode " τ")
-  :config (require 'config-tide)
+  :config
+  (require 'config-tide)
+
+  (setq tide-completion-ignore-case t)
+  (setq tide-always-show-documentation t)
+
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
          ("M-/" . tide-jump-to-implementation)
