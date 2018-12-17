@@ -2561,6 +2561,16 @@ fields which we need."
                        'magit-status-mode))
                  (display-buffer-same-window)))
 
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm action)
+                   (and (eq last-command 'magit-commit-create)
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-diff-mode)))
+                 (display-buffer-reuse-mode-window
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)
+                 (reusable-frames . nil)))
+
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
   ;;       (lambda (buffer)
