@@ -3128,7 +3128,15 @@ fields which we need."
   (add-to-list 'rm-blacklist " NodeJS Interaction")
 
   (require 'config-nodejs-repl)
+  (require 'company)
 
+  (add-hook
+   'nodejs-repl-mode-hook
+   (lambda ()
+     (company-mode 1)))
+
+  :bind (:map nodejs-repl-mode-map
+         ("TAB" . #'company-complete))
   :defer t
   :ensure t)
 
