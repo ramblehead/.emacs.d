@@ -3008,11 +3008,12 @@ fields which we need."
   (setq js-switch-indent-offset 2)
   (setq js2-skip-preprocessor-directives t)
 
-  (add-hook
-   'js2-mode-hook
-   (lambda ()
-     (rh-programming-minor-modes 1)
-     (rh-project-setup)))
+  ;; js-mode-hook is executed before js2-mode-hook
+  ;; (add-hook
+  ;;  'js2-mode-hook
+  ;;  (lambda ()
+  ;;    (rh-programming-minor-modes 1)
+  ;;    (rh-project-setup)))
 
   :ensure t)
 
