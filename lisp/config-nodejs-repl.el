@@ -2,7 +2,7 @@
 
 (add-to-list 'display-buffer-alist
              '("*nodejs*"
-               (display-buffer-same-window
+               (display-buffer-reuse-window
                 display-buffer-use-some-window
                 display-buffer-pop-up-window)
                (inhibit-same-window . t)))
