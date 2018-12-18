@@ -313,9 +313,11 @@ when only symbol face names are needed."
 (defvar rh-project-include-path-suffix "-include-path")
 
 (defun rh-project-get-path ()
-  (let ((src-tree-root (locate-dominating-file
-                        (file-truename default-directory)
-                        rh-project-dir-name)))
+  (let ((src-tree-root (and buffer-file-name
+                            (locate-dominating-file
+                             ;; (file-truename default-directory)
+                             (file-name-directory buffer-file-name)
+                             rh-project-dir-name))))
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
