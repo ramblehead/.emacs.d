@@ -1,12 +1,5 @@
 ;;; ramblehead's nodejs-repl configuration
 
-(add-to-list 'display-buffer-alist
-             '("*nodejs*"
-               (display-buffer-reuse-window
-                display-buffer-use-some-window
-                display-buffer-pop-up-window)
-               (inhibit-same-window . t)))
-
 (defvar rh-nodejs-interaction-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<f5>") #'rh-nodejs-repl-send-line-or-region)

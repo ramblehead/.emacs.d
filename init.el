@@ -1263,13 +1263,16 @@ Also sets SYMBOL to VALUE."
   :config
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*grep*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+                 ;; ,(g2w-display #'display-buffer-in-side-window t)
+                 ;; (inhibit-same-window . t)
+                 ;; (window-height . 15)
+                 (display-buffer-pop-up-window)
+                 ))
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
 
-  (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
+  ;; (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
 
   (add-hook
    'grep-mode-hook
@@ -1865,6 +1868,16 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " ivy")
 
+  (add-to-list 'display-buffer-alist
+               `(,(g2w-condition
+                   (lambda (buffer-nm action)
+                     (eq (with-current-buffer buffer-nm major-mode)
+                         'ivy-occur-grep-mode)))
+                 (display-buffer-pop-up-window)))
+
+  (add-to-list 'g2w-display-buffer-commands 'ivy-occur-press-and-switch)
+  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
+
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
@@ -1891,7 +1904,7 @@ fields which we need."
 
 (use-package swiper
   :bind (("C-s" . 'swiper)
-         ("C-c s" . 'isearch-forward)
+         ("M-s s" . 'isearch-forward)
          :map swiper-map
          ("M-y" . yank-pop))
 
@@ -1916,8 +1929,16 @@ fields which we need."
           (yank arg))
       (counsel-yank-pop)))
 
-  :bind (:map counsel-mode-map
+  (defun rh-counsel-ag ()
+    (interactive)
+    (let ((extra-ag-args (if current-prefix-arg nil ""))
+          (current-prefix-arg t))
+      (counsel-ag (thing-at-point 'symbol t) nil extra-ag-args)))
+
+  :bind (("C-c s" . 'rh-counsel-ag)
+         :map counsel-mode-map
          ("M-y" . rh-counsel-yank-pop))
+
   :demand t
   :ensure t)
 
@@ -2343,6 +2364,7 @@ fields which we need."
                  (window-height . 15)))
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
 
   (defun rh-compile-toggle-display ()
     (interactive)
@@ -3000,6 +3022,13 @@ fields which we need."
                       "js2"))
              :major)
   :config
+  (add-to-list 'display-buffer-alist
+               '("*nodejs*"
+                 (display-buffer-reuse-window
+                  display-buffer-use-some-window
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)))
+
   (require 'config-js2-mode)
   (require 'nodejs-repl)
 
@@ -3516,8 +3545,40 @@ fields which we need."
   :config
   (require 'config-tide)
 
+  (add-to-list 'display-buffer-alist
+               `("*tide-references*"
+                 ,(g2w-display #'display-buffer-below-selected t)
+                 (inhibit-same-window . t)
+                 (window-height . shrink-window-if-larger-than-buffer)))
+
+  (add-to-list 'display-buffer-alist
+               `((lambda (buffer-nm actions)
+                   (when (and (char-or-string-p buffer-nm)
+                              (string= buffer-nm "*tide-documentation*"))
+                     (with-current-buffer buffer-nm
+                       (local-set-key (kbd "q") #'g2w-quit-window))
+                     t))
+                 ,(g2w-display #'display-buffer-in-side-window t)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
+  (add-to-list 'display-buffer-alist
+               `((lambda (buffer-nm actions)
+                   (with-current-buffer buffer-nm
+                     (eq major-mode 'tide-project-errors-mode)))
+                 ,(g2w-display #'display-buffer-below-selected)
+                 (inhibit-same-window . t)
+                 ;; (window-height . shrink-window-if-larger-than-buffer)
+                 ))
+
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
+
+  (add-hook
+   'tide-mode-hook
+   (lambda ()
+     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+          #'rh-tide-company-display-permanent-doc-buffer)))
 
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
