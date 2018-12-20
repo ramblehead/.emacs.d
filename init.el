@@ -674,7 +674,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (defvar g2w-fallback-display-buffer-func
   ;; 'display-buffer-reuse-window)
-  'display-buffer-same-window)
+  'display-buffer-pop-up-window)
 
 (defvar g2w-display-buffer-commands
   '())
