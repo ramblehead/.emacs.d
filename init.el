@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets tern typescript-mode flycheck company-tern company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -3041,12 +3041,30 @@ fields which we need."
   ;; (add-hook
   ;;  'js2-mode-hook
   ;;  (lambda ()
-  ;;    (rh-programming-minor-modes 1)
-  ;;    (rh-project-setup)))
+  ;;    (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
 
   :ensure t)
 
 ;; /b/} js2-mode
+
+;; /b/{ xref-js2
+
+;; (use-package xref-js2
+;;   :config
+;;   ;; (setq xref-js2-ignored-dirs (delete "node_modules" xref-js2-ignored-dirs))
+;;   (setq xref-js2-ignored-dirs '("build"))
+;;   (add-to-list 'xref-js2-ag-arguments "-t")
+
+;;   (defadvice xref-js2--root-dir (around rh-xref-js2--root-dir activate)
+;;     (setq ad-return-value
+;;           (or (let ((proj-root (rh-project-get-root)))
+;;                 (and proj-root
+;;                      (expand-file-name proj-root)))
+;;               ad-do-it)))
+
+;;   :ensure t)
+
+;; /b/} xref-js2
 
 ;; /b/{ js2-refactor
 
