@@ -880,7 +880,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
 
-    (defun set-cursor-according-to-mode ()
+    (defun rh-set-cursor-according-to-mode ()
       "Change cursor type according to some minor modes."
       (cond
        (buffer-read-only
@@ -890,7 +890,14 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
        (t
         (setq cursor-type normal-cursor-type))))
 
-    (add-hook 'post-command-hook 'set-cursor-according-to-mode))
+    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode))
+
+  ;; (setq next-error-recenter '(4))
+
+  (add-hook
+   'next-error-hook
+   (lambda ()
+     (recenter)))
 
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
@@ -1846,9 +1853,10 @@ get full control to what dired shows and leave only those
 fields which we need."
   (progn
     ad-do-it
-    (setq ad-return-value (concat
-      (substring ad-return-value 0 1)
-      (substring ad-return-value 13)))))
+    (setq ad-return-value
+          (concat
+           (substring ad-return-value 0 1)
+           (substring ad-return-value 13)))))
 
 (ad-activate 'ls-lisp-format)
 
@@ -1875,8 +1883,18 @@ fields which we need."
                          'ivy-occur-grep-mode)))
                  (display-buffer-pop-up-window)))
 
-  (add-to-list 'g2w-display-buffer-commands 'ivy-occur-press-and-switch)
+  ;; (add-to-list 'g2w-display-buffer-commands 'ivy-occur-press-and-switch)
+  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
   (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
+
+  ;; (defadvice ivy-occur-press-and-switch
+  ;;     (after rh-ivy-occur-press-and-switch activate)
+  ;;   (run-hooks 'next-error-hook))
+
+  ;; (defadvice ivy-occur-press-and-switch
+  ;;     (around rh-ivy-occur-press-and-switch activate)
+  ;;   (setq compilation-current-error (point))
+  ;;   (next-error 0))
 
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "%d/%d ")
@@ -1893,7 +1911,9 @@ fields which we need."
          ("C-<return>" . ivy-alt-done)
          ("C-<kp-enter>" . ivy-alt-done)
          ("C-v" . nil)
-         ("M-v" . nil))
+         ("M-v" . nil)
+         :map ivy-occur-grep-mode-map
+         ("RET" . compile-goto-error))
 
   :demand t
   :ensure t)
@@ -2359,7 +2379,8 @@ fields which we need."
 
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*" nil)
-                 ,(g2w-display #'display-buffer-in-side-window)
+                 ;; ,(g2w-display #'display-buffer-in-side-window)
+                 (display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -2370,8 +2391,8 @@ fields which we need."
     (interactive)
     (rh-toggle-display "*compilation*"))
 
-  :bind (:map compilation-mode-map
-         ("q" . g2w-quit-window))
+  ;; :bind (:map compilation-mode-map
+  ;;        ("q" . g2w-quit-window))
   :defer)
 
 ;; /b/} compile
