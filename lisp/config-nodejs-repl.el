@@ -30,4 +30,36 @@
           (nodejs-repl-send-line)
         (nodejs-repl-send-last-expression)))))
 
+(defun nodejs-repl--completion-at-point-function ()
+  (setq nodejs-repl-completion-at-point-called-p t)
+  (when (or (comint-after-pmark-p)
+            rh-nodejs-interaction)
+    (let* ((input (buffer-substring (comint-line-beginning-position) (point)))
+           require-arg
+           token-length
+           file-completion-p)
+      (setq nodejs-repl-get-completions-for-require-p nil)  ;; reset
+      (if (not (nodejs-repl--in-string-p))
+          (setq token-length (length (nodejs-repl--get-last-token input)))
+        (setq require-arg (nodejs-repl--extract-require-argument input)
+              nodejs-repl-get-completions-for-require-p t)
+        (if (and require-arg
+                 (or (= (length require-arg) 1)  ; only quote or double quote
+                     (not (string-match-p "[./]" (substring require-arg 1 2)))))  ; not file path
+            (setq token-length (1- (length require-arg)))
+          (let ((quote-pos (save-excursion
+                             (search-backward-regexp "['\"]" (point-at-bol) t)
+                             (forward-char)
+                             (point))))
+            (when quote-pos
+              (setq file-completion-p t
+                    token-length (- (point) quote-pos))))))
+      (when token-length
+        (list
+         (save-excursion (backward-char token-length) (point))
+         (point)
+         (if file-completion-p
+             #'completion-file-name-table
+           (completion-table-dynamic #'nodejs-repl--get-completions)))))))
+
 (provide 'config-nodejs-repl)

@@ -3051,7 +3051,10 @@ fields which we need."
                  (inhibit-same-window . t)))
 
   (require 'config-js2-mode)
+
   (require 'nodejs-repl)
+  (require 'company)
+
 
   ;; Indentation style ajustments
   (setq js-indent-level 2)
@@ -3059,10 +3062,11 @@ fields which we need."
   (setq js2-skip-preprocessor-directives t)
 
   ;; js-mode-hook is executed before js2-mode-hook
-  ;; (add-hook
-  ;;  'js2-mode-hook
-  ;;  (lambda ()
-  ;;    (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+  (add-hook
+   'js2-mode-hook
+   (lambda ()
+     ;; (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)
+     (company-mode 1)))
 
   :ensure t)
 
