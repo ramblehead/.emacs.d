@@ -403,16 +403,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   (concat "^.*" close-token ".*$"))
 
 (defun cg-looking-at-group-head (open-token)
-  (if (string-match-p
-       (concat "^.*" open-token ".*$")
-       (thing-at-point 'line t))
-      open-token))
+  (let ((line (thing-at-point 'line t)))
+    (when (and line
+               (string-match-p (concat "^.*" open-token ".*$") line))
+      open-token)))
 
 (defun cg-looking-at-group-tail (close-token)
-  (if (string-match-p
-       (concat "^.*" close-token ".*$")
-       (thing-at-point 'line t))
-      close-token))
+  (let ((line (thing-at-point 'line t)))
+    (when (and line
+               (string-match-p (concat "^.*" close-token ".*$") line))
+      close-token)))
 
 (defun cg-group-head-or-tail-length (token line)
   (length
@@ -879,6 +879,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
+    ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
 
     (defun rh-set-cursor-according-to-mode ()
       "Change cursor type according to some minor modes."
@@ -999,10 +1000,20 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   :init
   (setq save-place-file vr-saved-places-file-path)
 
+  ;; (defadvice save-place-find-file-hook
+  ;;     (around rh-save-place-find-file-hook activate)
+  ;;   (when ad-do-it
+  ;;     (run-with-idle-timer 0 nil #'recenter)))
+
   (defadvice save-place-find-file-hook
       (around rh-save-place-find-file-hook activate)
     (when ad-do-it
-      (run-with-idle-timer 0 nil #'recenter)))
+      (run-with-timer
+       0 nil
+       (lambda (buf)
+         (dolist (win (get-buffer-window-list buf nil t))
+           (with-selected-window win (recenter))))
+       (current-buffer))))
 
   (if (version< emacs-version "25.0")
       (progn
@@ -2146,7 +2157,7 @@ fields which we need."
   :after (fuzzy pos-tip)
   :ensure t)
 
-(defun vr-ac-start-if-ac-mode ()
+(defun rh-ac-start-if-ac-mode ()
   (interactive)
   (cond
    ((cg-looking-at-auto-code-group-head-or-tail)
@@ -2173,18 +2184,50 @@ fields which we need."
   ;;   (message "No auto-completion running or nothing to complete."))
   )
 
-(global-set-key (kbd "C-<tab>") 'vr-ac-start-if-ac-mode)
+(global-set-key (kbd "C-<tab>") 'rh-ac-start-if-ac-mode)
 ;; (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
 ;; /b/} auto-complete
 
 ;; /b/{ company
 
+(defun after-change-function-xxx ()
+  (message "*** xxx"))
+
+;; (setq after-change-function-xxx nil)
+
+(put 'after-change-function-xxx 'permanent-local-hook t)
+
 (use-package company
   :init
   (defvar rh-company-display-permanent-doc-buffer nil)
 
   :config
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*company-documentation*"
+  ;;                (lambda (buffer alist)
+  ;;                  (or (let ((win (display-buffer-below-selected buffer alist)))
+  ;;                        (message "*** ooo")
+  ;;                        (shrink-window-if-larger-than-buffer win)
+  ;;                        win)
+  ;;                      (display-buffer-reuse-window buffer alist)
+  ;;                      (display-buffer-use-some-window buffer alist)
+  ;;                      (display-buffer-pop-up-window buffer alist)))
+  ;;                ;; (display-buffer-below-selected
+  ;;                ;;  display-buffer-reuse-window
+  ;;                ;;  display-buffer-use-some-window
+  ;;                ;;  display-buffer-pop-up-window)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 0.3)))
+
+  (add-to-list 'display-buffer-alist
+               '("*company-documentation*"
+                 (display-buffer-in-side-window
+                  display-buffer-use-some-window
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)
+                 (window-height . 15)))
+
   (setq company-lighter-base "CA")
 
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
@@ -2308,6 +2351,20 @@ fields which we need."
   ;;  '(company-tooltip-common-selection
   ;;    ((((type x)) (:inherit company-tooltip-selection :weight bold))
   ;;     (t (:inherit company-tooltip-selection)))))
+
+  (setq company-lighter
+        '(" "
+          (company-candidates
+           (:eval
+            (if (consp company-backend)
+                (company--group-lighter (nth company-selection
+                                             company-candidates)
+                                        company-lighter-base)
+              (cond
+               ((eq company-backend 'company-tern) "CA-ρ")
+               ((eq company-backend 'company-tide) "CA-τ")
+               (t (symbol-name company-backend)))))
+           company-lighter-base)))
 
   :ensure t)
 
@@ -3043,13 +3100,6 @@ fields which we need."
                       "js2"))
              :major)
   :config
-  (add-to-list 'display-buffer-alist
-               '("*nodejs*"
-                 (display-buffer-reuse-window
-                  display-buffer-use-some-window
-                  display-buffer-pop-up-window)
-                 (inhibit-same-window . t)))
-
   (require 'config-js2-mode)
 
   (require 'nodejs-repl)
@@ -3130,29 +3180,29 @@ fields which we need."
 ;; /b/{ tern
 
 (use-package tern
-  ;; :delight (tern "ts")
+  :delight (tern-mode " ρ")
   :config
 
   (setq tern-command (list "npx" "tern"))
-  ;; (setq typescript-indent-level 2)
 
-  ;; (add-hook
-  ;;  'tern-hook
-  ;;  (lambda ()
-  ;;    (rh-programming-minor-modes 1)
-  ;;    (rh-project-setup)))
+  (defun rh-company-tern-display-permanent-doc-buffer ()
+    (let ((buf (get-buffer-create "*company-documentation*")))
+      (display-buffer buf)))
 
-  ;; :bind (:map tern-map
-  ;;        ("{" . nil)
-  ;;        ("}" . nil)
-  ;;        ("(" . nil)
-  ;;        (")" . nil)
-  ;;        (":" . nil)
-  ;;        (";" . nil)
-  ;;        ("," . nil)
-  ;;        ("\"" . nil)
-  ;;        ("'" . nil))
-  ;; :defer t
+
+  (add-hook
+   'tern-mode-hook
+   (lambda ()
+     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+          #'rh-company-tern-display-permanent-doc-buffer)))
+
+  :bind (:map tern-mode-keymap
+         ("C-c C-R" . tern-rename-variable)
+         ("M-[" . tern-pop-find-definition)
+         ;; ("M-h" . tern-get-docs)
+         ;; ("C-x M-h" . rh-tide-documentation-quit)
+         )
+  :defer t
   :ensure t)
 
 ;; /b/} tern
@@ -3160,29 +3210,10 @@ fields which we need."
 ;; /b/{ company-tern
 
 (use-package company-tern
-  ;; :delight (tern "ts")
-  ;; :config
+  :config
+  (add-to-list 'company-backends 'company-tern)
 
-  ;; (setq tern-command (list "npx" "tern"))
-  ;; (setq typescript-indent-level 2)
-
-  ;; (add-hook
-  ;;  'tern-hook
-  ;;  (lambda ()
-  ;;    (rh-programming-minor-modes 1)
-  ;;    (rh-project-setup)))
-
-  ;; :bind (:map tern-map
-  ;;        ("{" . nil)
-  ;;        ("}" . nil)
-  ;;        ("(" . nil)
-  ;;        (")" . nil)
-  ;;        (":" . nil)
-  ;;        (";" . nil)
-  ;;        ("," . nil)
-  ;;        ("\"" . nil)
-  ;;        ("'" . nil))
-  ;; :defer t
+  :after tern
   :ensure t)
 
 ;; /b/} company-tern
@@ -3260,6 +3291,13 @@ fields which we need."
 
 (use-package nodejs-repl
   :config
+  (add-to-list 'display-buffer-alist
+               '("*nodejs*"
+                 (display-buffer-reuse-window
+                  display-buffer-use-some-window
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)))
+
   (add-to-list 'rm-blacklist " NodeJS Interaction")
 
   (require 'config-nodejs-repl)
