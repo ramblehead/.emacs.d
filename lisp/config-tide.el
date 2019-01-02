@@ -2,8 +2,8 @@
 
 (require 'company)
 
-(defun rh-tide-company-display-permanent-doc-buffer ()
-  (display-buffer (get-buffer-create "*tide-documentation*")))
+;; (defun rh-tide-company-display-permanent-doc-buffer ()
+;;   (display-buffer (get-buffer-create "*tide-documentation*")))
 
 (defun rh-tide-documentation-quit ()
   (interactive)

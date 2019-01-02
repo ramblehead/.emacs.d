@@ -2220,13 +2220,30 @@ fields which we need."
   ;;                (inhibit-same-window . t)
   ;;                (window-height . 0.3)))
 
-  (add-to-list 'display-buffer-alist
-               '("*company-documentation*"
-                 (display-buffer-in-side-window
-                  display-buffer-use-some-window
-                  display-buffer-pop-up-window)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*company-documentation*"
+  ;;    ((lambda (buffer alist)
+  ;;       (or (let ((win (display-buffer-below-selected buffer alist)))
+  ;;          (when win
+  ;;            (run-with-timer
+  ;;             0 nil
+  ;;             (lambda (win)
+  ;;               (shrink-window-if-larger-than-buffer win))
+  ;;             win))
+  ;;          win)
+  ;;        (display-buffer-use-some-window buffer alist)
+  ;;        (display-buffer-pop-up-window buffer alist))))
+  ;;    (inhibit-same-window . t)
+  ;;    (window-height . 0.3)))
+
+  (add-to-list
+   'display-buffer-alist
+   '("*company-documentation*"
+     (display-buffer-reuse-window
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
 
   (setq company-lighter-base "CA")
 
@@ -3187,19 +3204,25 @@ fields which we need."
 
   (defun rh-company-tern-display-permanent-doc-buffer ()
     (let ((buf (get-buffer-create "*company-documentation*")))
-      (display-buffer buf)))
+      (display-buffer buf)
+      ;; (run-with-timer
+      ;;  0 nil
+      ;;  (lambda (buf)
+      ;;    (dolist (win (get-buffer-window-list buf nil t))
+      ;;      (shrink-window-if-larger-than-buffer win)))
+      ;;  buf)
+      ))
 
-
-  (add-hook
-   'tern-mode-hook
-   (lambda ()
-     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
-          #'rh-company-tern-display-permanent-doc-buffer)))
+  ;; (add-hook
+  ;;  'tern-mode-hook
+  ;;  (lambda ()
+  ;;    (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+  ;;         #'rh-company-tern-display-permanent-doc-buffer)))
 
   :bind (:map tern-mode-keymap
          ("C-c C-R" . tern-rename-variable)
          ("M-[" . tern-pop-find-definition)
-         ;; ("M-h" . tern-get-docs)
+         ("M-h" . tern-get-docs)
          ;; ("C-x M-h" . rh-tide-documentation-quit)
          )
   :defer t
@@ -3692,16 +3715,24 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . shrink-window-if-larger-than-buffer)))
 
-  (add-to-list 'display-buffer-alist
-               `((lambda (buffer-nm actions)
-                   (when (and (char-or-string-p buffer-nm)
-                              (string= buffer-nm "*tide-documentation*"))
-                     (with-current-buffer buffer-nm
-                       (local-set-key (kbd "q") #'g2w-quit-window))
-                     t))
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              `((lambda (buffer-nm actions)
+  ;;                  (when (and (char-or-string-p buffer-nm)
+  ;;                             (string= buffer-nm "*tide-documentation*"))
+  ;;                    (with-current-buffer buffer-nm
+  ;;                      (local-set-key (kbd "q") #'g2w-quit-window))
+  ;;                    t))
+  ;;                ,(g2w-display #'display-buffer-in-side-window t)
+  ;;                (inhibit-same-window . t)
+  ;;                (window-height . 15)))
+
+  (add-to-list
+   'display-buffer-alist
+   '("*tide-documentation*"
+     (display-buffer-reuse-window
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
 
   (add-to-list 'display-buffer-alist
                `((lambda (buffer-nm actions)
@@ -3715,11 +3746,11 @@ fields which we need."
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
 
-  (add-hook
-   'tide-mode-hook
-   (lambda ()
-     (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
-          #'rh-tide-company-display-permanent-doc-buffer)))
+  ;; (add-hook
+  ;;  'tide-mode-hook
+  ;;  (lambda ()
+  ;;    (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
+  ;;         #'rh-tide-company-display-permanent-doc-buffer)))
 
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
@@ -3727,7 +3758,7 @@ fields which we need."
          ("M-," . tide-references)
          ("M-[" . tide-jump-back)
          ("M-h" . tide-documentation-at-point)
-         ("C-x M-h" . rh-tide-documentation-quit)
+         ;; ("C-x M-h" . rh-tide-documentation-quit)
          :map tide-references-mode-map
          ("q" . rh-quit-window-kill)
          ;; :map tide-project-errors-mode-map
