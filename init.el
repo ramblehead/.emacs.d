@@ -2191,13 +2191,6 @@ fields which we need."
 
 ;; /b/{ company
 
-(defun after-change-function-xxx ()
-  (message "*** xxx"))
-
-;; (setq after-change-function-xxx nil)
-
-(put 'after-change-function-xxx 'permanent-local-hook t)
-
 (use-package company
   :init
   (defvar rh-company-display-permanent-doc-buffer nil)
@@ -2241,6 +2234,7 @@ fields which we need."
    'display-buffer-alist
    '("*company-documentation*"
      ((lambda (buffer alist)
+        (require 'windmove)
         (let ((win (or (windmove-find-other-window 'right 1)
                        (windmove-find-other-window 'left  1))))
           (when win (window--display-buffer buffer win 'reuse alist))
@@ -3227,7 +3221,7 @@ fields which we need."
   :bind (:map tern-mode-keymap
          ("C-c C-R" . tern-rename-variable)
          ("M-[" . tern-pop-find-definition)
-         ("M-h" . tern-get-type))
+         ("M-h" . tern-get-docs))
   :defer t
   :ensure t)
 
