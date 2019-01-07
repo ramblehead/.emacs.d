@@ -2240,7 +2240,12 @@ fields which we need."
   (add-to-list
    'display-buffer-alist
    '("*company-documentation*"
-     (display-buffer-reuse-window
+     ((lambda (buffer alist)
+        (let ((win (or (windmove-find-other-window 'right 1)
+                       (windmove-find-other-window 'left  1))))
+          (when win (window--display-buffer buffer win 'reuse alist))
+          win))
+      display-buffer-reuse-window
       display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
