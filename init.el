@@ -3222,9 +3222,7 @@ fields which we need."
   :bind (:map tern-mode-keymap
          ("C-c C-R" . tern-rename-variable)
          ("M-[" . tern-pop-find-definition)
-         ("M-h" . tern-get-docs)
-         ;; ("C-x M-h" . rh-tide-documentation-quit)
-         )
+         ("M-h" . tern-get-type))
   :defer t
   :ensure t)
 
