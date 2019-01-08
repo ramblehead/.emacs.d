@@ -2411,9 +2411,41 @@ fields which we need."
 ;;   :after (flycheck pos-tip)
 ;;   :ensure t)
 
+(use-package popup
+  :config
+  (defvar rh-popup-direction 'default
+    "Possible values are:
+ 'default' lets `popup-calculate-direction' function to determine direction;
+ 'company' selects direction opposite to company tooltip overlay if such
+    overlay exists or uses `popup-calculate-direction' if company overlay does
+    not exist or company mode is not enabled;
+  1 is above selected row
+  -1 is below selected row.")
+
+  (defadvice popup-calculate-direction
+      (around rh-popup-calculate-direction (height row) activate)
+    (cl-case rh-popup-direction
+      (1 (setq ad-return-value 1))
+      (-1 (setq ad-return-value -1))
+      ('company
+       (if (and (bound-and-true-p company-mode)
+                company-pseudo-tooltip-overlay)
+           (setq ad-return-value
+                 (if (< (company--pseudo-tooltip-height) 0) 1 -1))
+         ad-do-it))
+      ('default ad-do-it)))
+
+  :defer t
+  :ensure t)
+
 (use-package flycheck-popup-tip
   :config
-  (add-hook 'flycheck-mode-hook 'flycheck-popup-tip-mode)
+  (add-hook
+   'flycheck-mode-hook
+   (lambda ()
+     (set (make-local-variable 'rh-popup-direction) 'company)
+     (flycheck-popup-tip-mode 1)))
+
   ;; (setq flycheck-popup-tip-error-prefix "> ")
 
   :after flycheck
