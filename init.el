@@ -1887,12 +1887,23 @@ fields which we need."
   :config
   (add-to-list 'rm-blacklist " ivy")
 
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition
-                   (lambda (buffer-nm action)
-                     (eq (with-current-buffer buffer-nm major-mode)
-                         'ivy-occur-grep-mode)))
-                 (display-buffer-pop-up-window)))
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition
+       (lambda (buffer-nm action)
+         (eq (with-current-buffer buffer-nm major-mode)
+             'ivy-occur-grep-mode))
+       nil)
+     (display-buffer-reuse-window
+      (lambda (buffer alist)
+        (require 'windmove)
+        (let ((win (or (windmove-find-other-window 'right)
+                       (windmove-find-other-window 'left))))
+          (when win (window--display-buffer buffer win 'reuse alist))
+          win))
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
 
   ;; (add-to-list 'g2w-display-buffer-commands 'ivy-occur-press-and-switch)
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
@@ -2233,13 +2244,13 @@ fields which we need."
   (add-to-list
    'display-buffer-alist
    '("*company-documentation*"
-     ((lambda (buffer alist)
+     (display-buffer-reuse-window
+      (lambda (buffer alist)
         (require 'windmove)
-        (let ((win (or (windmove-find-other-window 'right 1)
-                       (windmove-find-other-window 'left  1))))
+        (let ((win (or (windmove-find-other-window 'right)
+                       (windmove-find-other-window 'left))))
           (when win (window--display-buffer buffer win 'reuse alist))
           win))
-      display-buffer-reuse-window
       display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
