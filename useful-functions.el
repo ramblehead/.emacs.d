@@ -1,3 +1,5 @@
+(require 'windmove)
+
 (defun unfill-paragraph ()
   "Takes a multi-line paragraph and makes it into a single line of text."
   (interactive)
@@ -59,15 +61,35 @@
   (concat (downcase (substring obj 0 1)) (substring obj 1)))
 
 (defun wrap-in-quotes-region (start end)
-  "Print and returns number of words in the region."
+  "Places quotes around each line in the region."
   (interactive "r")
   (save-excursion
     (replace-regexp "^\\(.*\\)$" "\"\\1\"" nil start end)))
 
 (defun unwrap-from-quotes-region (start end)
-  "Print and returns number of words in the region."
+  "Removes quotes around each line in the region."
   (interactive "r")
   (save-excursion
     (replace-regexp
      "^\\([ \t]*\\)\"\\(.*\\)\"\\([ \t]*\\)$" "\\1\\2\\3"
      nil start end)))
+
+(defun rh-window-for-display-at-direction (direction)
+  (let ((win (windmove-find-other-window direction)))
+    (when (and win
+               ;; Check if win is not dedicated and not side window
+               (not (window-dedicated-p win))
+               (null (window-parameter (selected-window) 'window-side)))
+      win)))
+
+(defun rh-display-buffer-reuse-right (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'right)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
+(defun rh-display-buffer-reuse-left (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'left)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
