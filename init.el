@@ -865,6 +865,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (add-to-list 'default-frame-alist
                  '(font . "Hack-10.5"))
 
+    (set-face-attribute 'region nil
+                        :box '(:line-width -1
+                               :color "gtk_selection_bg_color"
+                               :style nil))
+
     ;; face-font-family-alternatives
 
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
@@ -877,8 +882,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
-    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
     ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
 
     (defun rh-set-cursor-according-to-mode ()
@@ -2521,8 +2526,8 @@ fields which we need."
 
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*" nil)
-                 ;; ,(g2w-display #'display-buffer-in-side-window)
-                 (display-buffer-in-side-window)
+                 ,(g2w-display #'display-buffer-in-side-window)
+                 ;; (display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
