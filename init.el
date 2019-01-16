@@ -1970,7 +1970,7 @@ fields which we need."
   (defun rh-swiper (&optional initial-input do-not-shift-select)
     (interactive)
     (unless initial-input
-      (setq initial-input (rh-deduce-default-text)))
+      (setq initial-input (rh-deduce-default-text t)))
     (if do-not-shift-select
         (swiper initial-input)
       (minibuffer-with-setup-hook
@@ -2007,7 +2007,7 @@ fields which we need."
   (defun rh-counsel-ag ()
     (interactive)
     (let* ((extra-ag-args (if current-prefix-arg nil ""))
-           (default-text (rh-deduce-default-text))
+           (default-text (rh-deduce-default-text t))
            (current-prefix-arg t))
       (counsel-ag default-text nil extra-ag-args)))
 

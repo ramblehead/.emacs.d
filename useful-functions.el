@@ -74,20 +74,16 @@
      "^\\([ \t]*\\)\"\\(.*\\)\"\\([ \t]*\\)$" "\\1\\2\\3"
      nil start end)))
 
-(defun rh-deduce-default-text ()
+(defun rh-deduce-default-text (&optional remove-shift-selection)
   (if (and (use-region-p)
            ;; Check if region is a "shift selection"
            (eq (car-safe transient-mark-mode) 'only))
-      (progn
-        (run-with-timer
-         0 nil
-         (lambda (buf)
-           (when (buffer-live-p buf)
-             (with-current-buffer buf
-               (setq mark-active nil))))
-         (current-buffer))
-        (buffer-substring-no-properties
-         (region-beginning) (region-end)))
+      (let (result)
+        (setq result (buffer-substring-no-properties
+                      (region-beginning) (region-end)))
+        (when remove-shift-selection
+          (setq mark-active nil))
+        result)
     (thing-at-point 'symbol t)))
 
 ;; see https://emacs.stackexchange.com/questions/22162/how-to-set-mark-in-elisp-and-have-shift-selection
