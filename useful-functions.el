@@ -74,6 +74,38 @@
      "^\\([ \t]*\\)\"\\(.*\\)\"\\([ \t]*\\)$" "\\1\\2\\3"
      nil start end)))
 
+(defun rh-deduce-default-text ()
+  (if (and (use-region-p)
+           ;; Check if region is a "shift selection"
+           (eq (car-safe transient-mark-mode) 'only))
+      (progn
+        (run-with-timer
+         0 nil
+         (lambda (buf)
+           (when (buffer-live-p buf)
+             (with-current-buffer buf
+               (setq mark-active nil))))
+         (current-buffer))
+        (buffer-substring-no-properties
+         (region-beginning) (region-end)))
+    (thing-at-point 'symbol t)))
+
+;; see https://emacs.stackexchange.com/questions/22162/how-to-set-mark-in-elisp-and-have-shift-selection
+(defun rh-shift-select-current-line ()
+  (interactive)
+  (let ((oldval (or (cdr-safe transient-mark-mode) transient-mark-mode)))
+    (setq mark-active nil)
+    (beginning-of-line)
+    (set-mark (point-marker))
+    (end-of-line)
+    (setq transient-mark-mode (cons 'only oldval))))
+
+;; (defun rh-shift-select-current-line ()
+;;   (interactive)
+;;   (beginning-of-line)
+;;   (setq this-command-keys-shift-translated t)
+;;   (call-interactively 'end-of-line))
+
 (defun rh-window-for-display-at-direction (direction)
   (let ((win (windmove-find-other-window direction)))
     (when (and win

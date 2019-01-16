@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -1239,6 +1239,10 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+(use-package rainbow-mode
+  :demand t
+  :ensure t)
+
 (use-package facemenu
   :config
   (add-to-list 'display-buffer-alist
@@ -1350,7 +1354,7 @@ Also sets SYMBOL to VALUE."
   :config
   (custom-set-faces
    '(iedit-occurrence
-     ((((background light)) (:background "lightblue"))))
+     ((((background light)) (:background "light blue"))))
    '(iedit-read-only-occurrence
      ((((background light)) (:background "pale turquoise")))))
 
@@ -1962,9 +1966,21 @@ fields which we need."
   :ensure t)
 
 (use-package swiper
-  :bind (("C-s" . 'swiper)
+  :config
+  (defun rh-swiper (&optional initial-input do-not-shift-select)
+    (interactive)
+    (unless initial-input
+      (setq initial-input (rh-deduce-default-text)))
+    (if do-not-shift-select
+        (swiper initial-input)
+      (minibuffer-with-setup-hook
+          #'rh-shift-select-current-line
+        (swiper initial-input))))
+
+  :bind (("C-s" . 'rh-swiper)
          ("M-s s" . 'isearch-forward)
          :map swiper-map
+         ("C-g" . abort-recursive-edit)
          ("M-y" . yank-pop))
 
   :demand t
@@ -1990,16 +2006,10 @@ fields which we need."
 
   (defun rh-counsel-ag ()
     (interactive)
-    (let ((extra-ag-args (if current-prefix-arg nil ""))
-          (default-text (if (use-region-p)
-                            (buffer-substring-no-properties
-                             (region-beginning) (region-end))
-                          (thing-at-point 'symbol t)))
-          (current-prefix-arg t))
-      (counsel-ag default-text nil extra-ag-args)
-      ;; (set-mark (point))
-      ;; (move-beginning-of-line)
-      ))
+    (let* ((extra-ag-args (if current-prefix-arg nil ""))
+           (default-text (rh-deduce-default-text))
+           (current-prefix-arg t))
+      (counsel-ag default-text nil extra-ag-args)))
 
   :bind (("C-c s" . 'rh-counsel-ag)
          :map counsel-mode-map
