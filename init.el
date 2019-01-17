@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -865,6 +865,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (add-to-list 'default-frame-alist
                  '(font . "Hack-10.5"))
 
+    ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
+    ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
+    (set-face-attribute 'region nil
+                        :box '(:line-width -1
+                               :color "gtk_selection_bg_color"
+                               :style nil))
+
     ;; face-font-family-alternatives
 
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
@@ -877,8 +884,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-9.5") ; ⭯
-    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-9.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
     ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
 
     (defun rh-set-cursor-according-to-mode ()
@@ -1234,6 +1241,10 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+(use-package rainbow-mode
+  :demand t
+  :ensure t)
+
 (use-package facemenu
   :config
   (add-to-list 'display-buffer-alist
@@ -1259,12 +1270,20 @@ Also sets SYMBOL to VALUE."
 
 
   :config
-  (add-to-list 'display-buffer-alist
-               '("*Help*"
-                 (display-buffer-same-window)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*Help*"
+  ;;                (display-buffer-same-window)))
+
+  (add-to-list
+   'display-buffer-alist
+   '("*Help*"
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      display-buffer-pop-up-window)))
 
   (setq help-window-select t)
-  (define-key help-mode-map (kbd "q") #'g2w-quit-window)
+  ;; (define-key help-mode-map (kbd "q") #'g2w-quit-window)
 
   :defer t)
 
@@ -1279,13 +1298,15 @@ Also sets SYMBOL to VALUE."
   ;; (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
 
   :config
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*grep*")
-                 ;; ,(g2w-display #'display-buffer-in-side-window t)
-                 ;; (inhibit-same-window . t)
-                 ;; (window-height . 15)
-                 (display-buffer-pop-up-window)
-                 ))
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition "*grep*")
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
   (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
@@ -1305,11 +1326,15 @@ Also sets SYMBOL to VALUE."
 
 (use-package replace
   :init
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*Occur*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition "*Occur*")
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
 
   (add-to-list 'g2w-display-buffer-commands
                'occur-mode-goto-occurrence)
@@ -1331,7 +1356,7 @@ Also sets SYMBOL to VALUE."
   :config
   (custom-set-faces
    '(iedit-occurrence
-     ((((background light)) (:background "lightblue"))))
+     ((((background light)) (:background "light blue"))))
    '(iedit-read-only-occurrence
      ((((background light)) (:background "pale turquoise")))))
 
@@ -1895,12 +1920,8 @@ fields which we need."
              'ivy-occur-grep-mode))
        nil)
      (display-buffer-reuse-window
-      (lambda (buffer alist)
-        (require 'windmove)
-        (let ((win (or (windmove-find-other-window 'right)
-                       (windmove-find-other-window 'left))))
-          (when win (window--display-buffer buffer win 'reuse alist))
-          win))
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
       display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
@@ -1935,7 +1956,9 @@ fields which we need."
          ("C-v" . nil)
          ("M-v" . nil)
          :map ivy-occur-grep-mode-map
-         ("RET" . compile-goto-error))
+         ("RET" . compile-goto-error)
+         ("M-<return>" . compilation-display-error)
+         ("M-<kp-enter>" . compilation-display-error))
 
   :demand t
   :ensure t)
@@ -1945,9 +1968,22 @@ fields which we need."
   :ensure t)
 
 (use-package swiper
+  :config
+  (defun rh-swiper-deduce (&optional initial-input do-not-shift-select)
+    (interactive)
+    (unless initial-input
+      (setq initial-input (rh-deduce-default-text t)))
+    (if do-not-shift-select
+        (swiper initial-input)
+      (minibuffer-with-setup-hook
+          #'rh-shift-select-current-line
+        (swiper initial-input))))
+
   :bind (("C-s" . 'swiper)
+         ("C-S-s" . 'rh-swiper)
          ("M-s s" . 'isearch-forward)
          :map swiper-map
+         ("C-g" . abort-recursive-edit)
          ("M-y" . yank-pop))
 
   :demand t
@@ -1973,9 +2009,10 @@ fields which we need."
 
   (defun rh-counsel-ag ()
     (interactive)
-    (let ((extra-ag-args (if current-prefix-arg nil ""))
-          (current-prefix-arg t))
-      (counsel-ag (thing-at-point 'symbol t) nil extra-ag-args)))
+    (let* ((extra-ag-args (if current-prefix-arg nil ""))
+           (default-text (rh-deduce-default-text t))
+           (current-prefix-arg t))
+      (counsel-ag default-text nil extra-ag-args)))
 
   :bind (("C-c s" . 'rh-counsel-ag)
          :map counsel-mode-map
@@ -2055,6 +2092,51 @@ fields which we need."
 
 ;; /b/} yasnippet
 
+;; /b/{ pos-tip
+
+(use-package pos-tip
+  :config
+  ;; (defvar pos-tip-foreground-color "#839496"
+  ;;   "Default foreground color of pos-tip's tooltip.")
+
+  ;; (defvar pos-tip-background-color "#073642"
+  ;;   "Default background color of pos-tip's tooltip.")
+
+  :ensure t)
+
+;; /b/} pos-tip
+
+;; /b/{ popup
+
+(use-package popup
+  :config
+  (defvar rh-popup-direction 'default
+    "Possible values are:
+ 'default' lets `popup-calculate-direction' function to determine direction;
+ 'company' selects direction opposite to company tooltip overlay if such
+    overlay exists or uses `popup-calculate-direction' if company overlay does
+    not exist or company mode is not enabled;
+  1 is above selected row
+  -1 is below selected row.")
+
+  (defadvice popup-calculate-direction
+      (around rh-popup-calculate-direction (height row) activate)
+    (cl-case rh-popup-direction
+      (1 (setq ad-return-value 1))
+      (-1 (setq ad-return-value -1))
+      ('company
+       (if (and (bound-and-true-p company-mode)
+                (bound-and-true-p company-pseudo-tooltip-overlay))
+           (setq ad-return-value
+                 (if (< (company--pseudo-tooltip-height) 0) 1 -1))
+         ad-do-it))
+      ('default ad-do-it)))
+
+  :defer t
+  :ensure t)
+
+;; /b/} popup
+
 ;; /b/{ auto-complete
 
 (defun vr-ac-add-buffer-dict (dict)
@@ -2079,16 +2161,6 @@ fields which we need."
                      ac-dictionary-files))))
 
 (use-package fuzzy
-  :ensure t)
-
-(use-package pos-tip
-  :config
-  ;; (defvar pos-tip-foreground-color "#839496"
-  ;;   "Default foreground color of pos-tip's tooltip.")
-
-  ;; (defvar pos-tip-background-color "#073642"
-  ;;   "Default background color of pos-tip's tooltip.")
-
   :ensure t)
 
 (use-package auto-complete
@@ -2245,12 +2317,8 @@ fields which we need."
    'display-buffer-alist
    '("*company-documentation*"
      (display-buffer-reuse-window
-      (lambda (buffer alist)
-        (require 'windmove)
-        (let ((win (or (windmove-find-other-window 'right)
-                       (windmove-find-other-window 'left))))
-          (when win (window--display-buffer buffer win 'reuse alist))
-          win))
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
       display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
@@ -2395,6 +2463,9 @@ fields which we need."
 
   :ensure t)
 
+;; (use-package company-quickhelp
+;;   :ensure)
+
 ;; /b/} company
 
 ;; /b/{ flycheck
@@ -2412,6 +2483,19 @@ fields which we need."
   :after tide
   :ensure t)
 
+(use-package flycheck-popup-tip
+  :config
+  (add-hook
+   'flycheck-mode-hook
+   (lambda ()
+     (set (make-local-variable 'rh-popup-direction) 'company)
+     (flycheck-popup-tip-mode 1)))
+
+  ;; (setq flycheck-popup-tip-error-prefix "> ")
+
+  :after (flycheck popup)
+  :ensure t)
+
 ;; (use-package flycheck-pos-tip
 ;;   :config
 ;;   (defun flycheck-pos-tip-hide-messages ()
@@ -2423,46 +2507,6 @@ fields which we need."
 
 ;;   :after (flycheck pos-tip)
 ;;   :ensure t)
-
-(use-package popup
-  :config
-  (defvar rh-popup-direction 'default
-    "Possible values are:
- 'default' lets `popup-calculate-direction' function to determine direction;
- 'company' selects direction opposite to company tooltip overlay if such
-    overlay exists or uses `popup-calculate-direction' if company overlay does
-    not exist or company mode is not enabled;
-  1 is above selected row
-  -1 is below selected row.")
-
-  (defadvice popup-calculate-direction
-      (around rh-popup-calculate-direction (height row) activate)
-    (cl-case rh-popup-direction
-      (1 (setq ad-return-value 1))
-      (-1 (setq ad-return-value -1))
-      ('company
-       (if (and (bound-and-true-p company-mode)
-                company-pseudo-tooltip-overlay)
-           (setq ad-return-value
-                 (if (< (company--pseudo-tooltip-height) 0) 1 -1))
-         ad-do-it))
-      ('default ad-do-it)))
-
-  :defer t
-  :ensure t)
-
-(use-package flycheck-popup-tip
-  :config
-  (add-hook
-   'flycheck-mode-hook
-   (lambda ()
-     (set (make-local-variable 'rh-popup-direction) 'company)
-     (flycheck-popup-tip-mode 1)))
-
-  ;; (setq flycheck-popup-tip-error-prefix "> ")
-
-  :after flycheck
-  :ensure t)
 
 ;; /b/} flycheck
 
@@ -2497,8 +2541,8 @@ fields which we need."
 
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*compilation*" nil)
-                 ;; ,(g2w-display #'display-buffer-in-side-window)
-                 (display-buffer-in-side-window)
+                 ,(g2w-display #'display-buffer-in-side-window)
+                 ;; (display-buffer-in-side-window)
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
@@ -2509,8 +2553,8 @@ fields which we need."
     (interactive)
     (rh-toggle-display "*compilation*"))
 
-  ;; :bind (:map compilation-mode-map
-  ;;        ("q" . g2w-quit-window))
+  :bind (:map compilation-mode-map
+         ("q" . g2w-quit-window))
   :defer)
 
 ;; /b/} compile
