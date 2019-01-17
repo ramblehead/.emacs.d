@@ -865,6 +865,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (add-to-list 'default-frame-alist
                  '(font . "Hack-10.5"))
 
+    ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
+    ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
     (set-face-attribute 'region nil
                         :box '(:line-width -1
                                :color "gtk_selection_bg_color"
@@ -1967,7 +1969,7 @@ fields which we need."
 
 (use-package swiper
   :config
-  (defun rh-swiper (&optional initial-input do-not-shift-select)
+  (defun rh-swiper-deduce (&optional initial-input do-not-shift-select)
     (interactive)
     (unless initial-input
       (setq initial-input (rh-deduce-default-text t)))
@@ -1977,7 +1979,8 @@ fields which we need."
           #'rh-shift-select-current-line
         (swiper initial-input))))
 
-  :bind (("C-s" . 'rh-swiper)
+  :bind (("C-s" . 'swiper)
+         ("C-S-s" . 'rh-swiper)
          ("M-s s" . 'isearch-forward)
          :map swiper-map
          ("C-g" . abort-recursive-edit)
@@ -2548,8 +2551,8 @@ fields which we need."
     (interactive)
     (rh-toggle-display "*compilation*"))
 
-  ;; :bind (:map compilation-mode-map
-  ;;        ("q" . g2w-quit-window))
+  :bind (:map compilation-mode-map
+         ("q" . g2w-quit-window))
   :defer)
 
 ;; /b/} compile
