@@ -2404,6 +2404,8 @@ fields which we need."
   (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
 
+  (setq flycheck-indication-mode nil)
+
   (flycheck-add-mode 'typescript-tslint 'web-mode)
   (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
