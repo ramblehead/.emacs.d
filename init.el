@@ -1224,8 +1224,8 @@ Also sets SYMBOL to VALUE."
             (rh-sml/position-percentage-format
              ,(propertize " " 'face 'sml/numbers-separator)))))
 
-  (setq sml/theme 'light)
-  ;; (setq sml/theme 'respectful)
+  ;; (setq sml/theme 'light)
+  (setq sml/theme 'respectful)
   ;; (setq sml/theme nil)
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
@@ -1237,6 +1237,26 @@ Also sets SYMBOL to VALUE."
   (setq sml/position-percentage-format nil)
 
   (sml/setup)
+
+  (eval-after-load "vc-hooks"
+    '(defadvice vc-mode-line (after sml/after-vc-mode-line-advice () activate)
+       "Color `vc-mode'."
+       (when (stringp vc-mode)
+         (let ((noback
+                (replace-regexp-in-string
+                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
+               (vc-mode-truncation-string
+                (if (char-displayable-p ?…) "…" "...")))
+           (when (> (string-width noback) 20)
+             (setq noback (concat (substring noback 0 18)
+                                  vc-mode-truncation-string)))
+           (setq vc-mode
+                 (propertize
+                  (if sml/vc-mode-show-backend vc-mode noback)
+                  'face
+                  (cond ((string-match "^ -" noback) 'sml/vc)
+                        ((string-match "^ [:@]" noback) 'sml/vc-edited)
+                        ((string-match "^ [!\\?]" noback) 'sml/modified))))))))
 
   :after (linum total-lines)
   :demand t
