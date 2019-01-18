@@ -102,12 +102,34 @@
 ;;   (setq this-command-keys-shift-translated t)
 ;;   (call-interactively 'end-of-line))
 
-(defun rh-window-for-display-at-direction (direction)
-  (let ((win (windmove-find-other-window direction)))
-    (when (and win
-               ;; Check if win is not dedicated and not side window
-               (not (window-dedicated-p win))
-               (null (window-parameter (selected-window) 'window-side)))
+;; (defun rh-window-for-display-at-direction (direction &optional arg window)
+;;   (let ((win (windmove-find-other-window direction arg window)))
+;;     (when (and win
+;;                ;; Check if win is not dedicated and not side window
+;;                (not (window-dedicated-p win))
+;;                (null (window-parameter (selected-window) 'window-side)))
+;;       win)))
+
+(defun rh-window-for-display-at-direction (direction &optional arg window)
+  (let ((win (windmove-find-other-window direction arg window)))
+    (when win
+      ;; Check if win is not dedicated, not side window and not minibuffer
+      (if (or (window-dedicated-p win)
+              (window-parameter win 'window-side)
+              (window-minibuffer-p win))
+          (rh-window-for-display-at-direction direction arg win)
+        win))))
+
+(defun rh-display-buffer-reuse-up (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'up)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
+(defun rh-display-buffer-reuse-down (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'down)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
       win)))
 
 (defun rh-display-buffer-reuse-right (buffer alist)

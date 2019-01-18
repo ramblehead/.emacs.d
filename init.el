@@ -886,6 +886,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
     ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
 
     (defun rh-set-cursor-according-to-mode ()
@@ -1259,27 +1260,16 @@ Also sets SYMBOL to VALUE."
                  (display-buffer-same-window))))
 
 (use-package help-mode
-  :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              `("*Help*"
-  ;;                ,(g2w-display #'display-buffer-in-side-window t)
-  ;;                (side . bottom)
-  ;;                (slot . 0)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15))
-
-
   :config
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*Help*"
-  ;;                (display-buffer-same-window)))
-
   (add-to-list
    'display-buffer-alist
    '("*Help*"
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
+      rh-display-buffer-reuse-down
+      rh-display-buffer-reuse-up
+      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)))
 
   (setq help-window-select t)
@@ -1288,15 +1278,6 @@ Also sets SYMBOL to VALUE."
   :defer t)
 
 (use-package grep
-  ;; :init
-  ;; (add-to-list 'display-buffer-alist
-  ;;              `(,(g2w-condition "*grep*")
-  ;;                ,(g2w-display #'display-buffer-in-side-window t)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
-
-  ;; (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
-
   :config
   (add-to-list
    'display-buffer-alist
@@ -1304,14 +1285,14 @@ Also sets SYMBOL to VALUE."
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
-      display-buffer-use-some-window
+      ;; rh-display-buffer-reuse-down
+      ;; rh-display-buffer-reuse-up
+      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
   (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
   (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
-
-  ;; (define-key grep-mode-map (kbd "q") #'g2w-quit-window)
 
   (add-hook
    'grep-mode-hook
@@ -1922,7 +1903,9 @@ fields which we need."
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
-      display-buffer-use-some-window
+      ;; rh-display-buffer-reuse-down
+      ;; rh-display-buffer-reuse-up
+      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
@@ -1980,7 +1963,7 @@ fields which we need."
         (swiper initial-input))))
 
   :bind (("C-s" . 'swiper)
-         ("C-S-s" . 'rh-swiper)
+         ("C-S-s" . 'rh-swiper-deduce)
          ("M-s s" . 'isearch-forward)
          :map swiper-map
          ("C-g" . abort-recursive-edit)
@@ -3550,7 +3533,6 @@ fields which we need."
 ;;     (nxml-backward-element arg)))
 
 (defun rh-nxml-code-folding-setup ()
-  (require 'sgml-mode)
   ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
   ;; see http://www.emacswiki.org/emacs/HideShow
   (add-to-list 'hs-special-modes-alist
@@ -3576,6 +3558,8 @@ fields which we need."
   ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
   :mode "\\.xml\\'"
   :config
+  (require 'sgml-mode)
+
   (add-hook
    'nxml-mode-hook
    (lambda ()
