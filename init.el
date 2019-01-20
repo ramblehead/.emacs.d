@@ -679,24 +679,46 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (defvar g2w-display-buffer-commands
   '())
 
+(defun g2w-is-this-display-buffer-command (buffer actions)
+  (memq this-command g2w-display-buffer-commands))
+
+(defun g2w-display-buffer-reuse-command-window (buffer alist)
+  (if (and (boundp 'g2w-destination-window)
+           (memq g2w-destination-window (window-list)))
+      (let ((win g2w-destination-window))
+        (when (and (bound-and-true-p g2w-reuse-visible)
+                   (not (eq (window-buffer win) buffer)))
+          (let ((win-reuse
+                 (get-buffer-window buffer (selected-frame))))
+            (when win-reuse (setq win win-reuse))))
+        (window--display-buffer buffer win
+                                'reuse alist))
+    (funcall g2w-fallback-display-buffer-func buffer alist)))
+
 (add-to-list
  'display-buffer-alist
- '((lambda (buffer actions)
-     (memq this-command g2w-display-buffer-commands))
-   (lambda (buffer alist)
-     (if (and (boundp 'g2w-destination-window)
-              (memq g2w-destination-window (window-list)))
-         (let ((win g2w-destination-window))
-           (when (and (bound-and-true-p g2w-reuse-visible)
-                      (not (eq (window-buffer win) buffer)))
-             (let ((win-reuse
-                    (get-buffer-window buffer (selected-frame))))
-               (when win-reuse (setq win win-reuse))))
-           (window--display-buffer buffer win
-                                   'reuse alist
-                                   display-buffer-mark-dedicated))
-       (funcall g2w-fallback-display-buffer-func buffer alist)))
+ '(g2w-is-this-display-buffer-command
+   g2w-display-buffer-reuse-command-window
    (inhibit-same-window . nil)))
+
+;; (add-to-list
+;;  'display-buffer-alist
+;;  '((lambda (buffer actions)
+;;      (memq this-command g2w-display-buffer-commands))
+;;    (lambda (buffer alist)
+;;      (if (and (boundp 'g2w-destination-window)
+;;               (memq g2w-destination-window (window-list)))
+;;          (let ((win g2w-destination-window))
+;;            (when (and (bound-and-true-p g2w-reuse-visible)
+;;                       (not (eq (window-buffer win) buffer)))
+;;              (let ((win-reuse
+;;                     (get-buffer-window buffer (selected-frame))))
+;;                (when win-reuse (setq win win-reuse))))
+;;            (window--display-buffer buffer win
+;;                                    'reuse alist
+;;                                    display-buffer-mark-dedicated))
+;;        (funcall g2w-fallback-display-buffer-func buffer alist)))
+;;    (inhibit-same-window . nil)))
 
 (cl-defmacro g2w-display (display-buffer-func
                           &optional (kill-on-quit nil))
@@ -1225,7 +1247,7 @@ Also sets SYMBOL to VALUE."
              ,(propertize " " 'face 'sml/numbers-separator)))))
 
   ;; (setq sml/theme 'light)
-  (setq sml/theme 'respectful)
+  (setq sml/theme 'automatic)
   ;; (setq sml/theme nil)
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
@@ -2174,6 +2196,9 @@ fields which we need."
   (setq ac-modes (delq 'javascript-mode ac-modes))
   (setq ac-modes (delq 'emacs-lisp-mode ac-modes))
   (setq ac-modes (delq 'lisp-interaction-mode ac-modes))
+  (setq ac-modes (delq 'cc-mode ac-modes))
+  (setq ac-modes (delq 'c++-mode ac-modes))
+  (setq ac-modes (delq 'c-mode ac-modes))
 
   (ac-config-default)
 
@@ -2540,6 +2565,8 @@ fields which we need."
 
 (use-package compile
   :config
+  (setq compilation-scroll-output t)
+
   (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (add-to-list 'display-buffer-alist
@@ -2557,7 +2584,9 @@ fields which we need."
     (rh-toggle-display "*compilation*"))
 
   :bind (:map compilation-mode-map
-         ("q" . g2w-quit-window))
+         ("q" . g2w-quit-window)
+         ("M-<return>" . compilation-display-error)
+         ("M-<kp-enter>" . compilation-display-error))
   :defer)
 
 ;; /b/} compile
@@ -2918,7 +2947,7 @@ fields which we need."
 ;; /b/{ C++
 
 (use-package rtags
-  :commands rtags-start-process-unless-running
+  ;; :commands rtags-start-process-unless-running
   :config
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
@@ -2952,6 +2981,13 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 6)))
 
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm actions)
+                   (with-current-buffer buffer-nm
+                     (and (memq this-command '(rtags-find-symbol-at-point))
+                          (not (boundp 'rtags-find-symbol-at-point)))))
+                 (display-buffer-same-window)))
+
   (defun rh-rtags-toggle-rdm-display ()
     (interactive)
     (rh-toggle-display "*rdm*" t))
@@ -2982,6 +3018,16 @@ fields which we need."
   (setq rtags-results-buffer-other-window t)
   (setq rtags-bury-buffer-function (lambda () (quit-window t)))
 
+  (add-hook
+   'rtags-references-tree-mode-hook
+   (lambda ()
+     (set (make-local-variable 'truncate-lines) t)))
+
+  (add-hook
+   'rtags-mode-hook
+   (lambda ()
+     (set (make-local-variable 'truncate-lines) t)))
+
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
   ;; (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
@@ -3010,16 +3056,7 @@ fields which we need."
   (bind-key "C-." #'rtags-find-symbol c-mode-base-map)
   (bind-key "C-," #'rtags-find-references c-mode-base-map)
 
-  (add-hook
-   'rtags-references-tree-mode-hook
-   (lambda ()
-     (set (make-local-variable 'truncate-lines) t)))
-
-  (add-hook
-   'rtags-mode-hook
-   (lambda ()
-     (set (make-local-variable 'truncate-lines) t)))
-
+  :defer t
   :pin manual)
 
 (use-package modern-cpp-font-lock
@@ -3049,8 +3086,14 @@ fields which we need."
   :pin manual)
 
 (use-package cc-mode
-  :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
+  ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
+  :mode "/hpp\\'\\|\\.ipp\\'"
   :config
+  (require 'compile)
+  (require 'auto-complete-c-headers)
+  (require 'auto-complete-clang)
+  (require 'rtags)
+
   (defvar-local rh-c++-compiler "g++")
   (defvar-local rh-c++-std "-std=c++1z")
 
@@ -3072,9 +3115,7 @@ fields which we need."
     (message "auto-completing with clang...")
     (auto-complete (append '(ac-source-clang) ac-sources)))
 
-  (defun rh-c++-compile-setup ()
-    (require 'compile)
-    (setq compilation-scroll-output t)
+  (defun rh-cc-compile-setup ()
     (let ((path (rh-project-get-path)))
       (when path
         (set (make-local-variable 'compile-command)
@@ -3094,7 +3135,7 @@ fields which we need."
   (defun rh-c++-indentation-setup ()
     (rh-c-style-setup))
 
-  (defun rh-c++-rtags-setup ()
+  (defun rh-cc-rtags-setup ()
     (rtags-start-process-unless-running)
     ;; The following does not work with my clang-auto-complete setting
     ;; (setq rtags-display-current-error-as-tooltip t)
@@ -3102,7 +3143,7 @@ fields which we need."
 
   (defun rh-c++-ac-setup ()
     ;; see https://github.com/mooz/auto-complete-c-headers
-    (require 'auto-complete-c-headers)
+
     ;; #include auto-completion search paths
     (set (make-local-variable 'achead:include-directories)
          (append (rh-project-get-include-path "c++")
@@ -3115,7 +3156,6 @@ fields which we need."
     ;; (setq rtags-completions-enabled t)
 
     ;; ;; see https://github.com/brianjcj/auto-complete-clang
-    (require 'auto-complete-clang)
 
     ;; i.e. 'echo "" | g++ -v -x c++ -E -'
     ;; (setq clang-completion-suppress-error 't)
@@ -3148,14 +3188,25 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
+     (rh-project-setup)
+     (rh-cc-rtags-setup)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
-     (rh-c++-compile-setup)
-     (rh-c++-rtags-setup)
+     (rh-cc-compile-setup)
      (rh-c++-ac-setup)))
 
-  :bind (:map c++-mode-map
+  (add-hook
+   'c-mode-hook
+   (lambda ()
+     ;; Using yas instead
+     (abbrev-mode -1)
+     (rh-programming-minor-modes t)
+     (rh-project-setup)
+     (rh-cc-rtags-setup)
+     (rh-cc-compile-setup)))
+
+  :bind (:map c-mode-base-map
          ("C-S-b" . recompile)
          :map c-mode-base-map
          ("C-c b" . rh-compile-toggle-display))
@@ -3209,7 +3260,6 @@ fields which we need."
              :major)
   :config
   (require 'config-js2-mode)
-
   (require 'nodejs-repl)
   (require 'company)
 
