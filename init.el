@@ -340,6 +340,7 @@ when only symbol face names are needed."
                                       (init-file-name "init"))
   (let ((rh-project-path (rh-project-get-path)))
     (when rh-project-path
+      (message (concat "rh-project: " rh-project-path))
       (let ((setup-file-path (concat rh-project-path setup-file-name ".el"))
             (init-file-path (concat rh-project-path init-file-name ".el"))
             (rh-project-id (directory-file-name
@@ -676,11 +677,23 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   ;; 'display-buffer-reuse-window)
   'display-buffer-pop-up-window)
 
-(defvar g2w-display-buffer-commands
+(defvar g2w-display-buffer-reuse-window-commands
   '())
 
-(defun g2w-is-this-display-buffer-command (buffer actions)
-  (memq this-command g2w-display-buffer-commands))
+(defvar g2w-display-buffer-same-window-commands
+  '())
+
+(defun g2w-reuse-same-window-p (buffer-nm actions)
+  (with-current-buffer buffer-nm
+    (and (not (boundp 'g2w-destination-window))
+         (memq this-command
+               g2w-display-buffer-same-window-commands))))
+
+(defun g2w-reuse-command-window-p (buffer-nm actions)
+  (with-current-buffer buffer-nm
+    (and (boundp 'g2w-destination-window)
+         (memq this-command
+               g2w-display-buffer-reuse-window-commands))))
 
 (defun g2w-display-buffer-reuse-command-window (buffer alist)
   (if (and (boundp 'g2w-destination-window)
@@ -697,14 +710,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (add-to-list
  'display-buffer-alist
- '(g2w-is-this-display-buffer-command
-   g2w-display-buffer-reuse-command-window
-   (inhibit-same-window . nil)))
+ '(g2w-reuse-command-window-p
+   g2w-display-buffer-reuse-command-window))
+
+(add-to-list
+ 'display-buffer-alist
+ '(g2w-reuse-same-window-p
+   display-buffer-same-window))
 
 ;; (add-to-list
 ;;  'display-buffer-alist
 ;;  '((lambda (buffer actions)
-;;      (memq this-command g2w-display-buffer-commands))
+;;      (memq this-command g2w-display-buffer-reuse-window-commands))
 ;;    (lambda (buffer alist)
 ;;      (if (and (boundp 'g2w-destination-window)
 ;;               (memq g2w-destination-window (window-list)))
@@ -889,10 +906,26 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
     ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
     ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
-    (set-face-attribute 'region nil
-                        :box '(:line-width -1
-                               :color "gtk_selection_bg_color"
-                               :style nil))
+    ;; (set-face-attribute 'region nil
+    ;;                     :box '(:line-width (-1 . -1)
+    ;;                            :color "gtk_selection_bg_color"
+    ;;                            :style nil))
+    (unwind-protect
+        (let (retval)
+          (condition-case ex
+              (set-face-attribute
+               'region nil
+               :box '(:line-width (-1 . -1)
+                                  :color "gtk_selection_bg_color"
+                                  :style nil))
+            ('error
+             ;; (message (format "Caught exception: [%s]" ex))
+             (set-face-attribute
+              'region nil
+              :box '(:line-width -1
+                                 :color "gtk_selection_bg_color"
+                                 :style nil))))
+          retval))
 
     ;; face-font-family-alternatives
 
@@ -1333,8 +1366,8 @@ Also sets SYMBOL to VALUE."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
 
   (add-hook
    'grep-mode-hook
@@ -1359,7 +1392,7 @@ Also sets SYMBOL to VALUE."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'occur-mode-goto-occurrence)
 
   :config
@@ -1394,9 +1427,9 @@ Also sets SYMBOL to VALUE."
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-goto-xref)
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-show-location-at-point)
 
   :bind (:map xref--xref-buffer-mode-map
@@ -1951,9 +1984,9 @@ fields which we need."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  ;; (add-to-list 'g2w-display-buffer-commands 'ivy-occur-press-and-switch)
-  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
+  ;; (add-to-list 'g2w-display-buffer-reuse-window-commands 'ivy-occur-press-and-switch)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
 
   ;; (defadvice ivy-occur-press-and-switch
   ;;     (after rh-ivy-occur-press-and-switch activate)
@@ -2576,8 +2609,8 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'g2w-display-buffer-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-commands 'compilation-display-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
 
   (defun rh-compile-toggle-display ()
     (interactive)
@@ -2957,22 +2990,24 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
 
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-select-and-remove-rtags-buffer)
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-select-other-window)
 
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-next-match)
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-previous-match)
 
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-find-symbol-at-point)
-  (add-to-list 'g2w-display-buffer-commands
-               'rtags-references-tree)
-  (add-to-list 'g2w-display-buffer-commands
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'rtags-find-references-at-point)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-find-virtuals-at-point)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'rtags-references-tree)
 
   (add-to-list 'display-buffer-alist
                '("*rdm*"
@@ -2984,8 +3019,12 @@ fields which we need."
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm actions)
                    (with-current-buffer buffer-nm
-                     (and (memq this-command '(rtags-find-symbol-at-point))
-                          (not (boundp 'rtags-find-symbol-at-point)))))
+                     (and (memq this-command
+                                '(rtags-find-symbol-at-point
+                                  rtags-find-references-at-point
+                                  rtags-find-virtuals-at-point
+                                  rtags-references-tree))
+                          (not (boundp 'g2w-destination-window)))))
                  (display-buffer-same-window)))
 
   (defun rh-rtags-toggle-rdm-display ()
@@ -3117,10 +3156,10 @@ fields which we need."
 
   (defun rh-cc-compile-setup ()
     (let ((path (rh-project-get-path)))
-      (when path
+      (when (and path
+                 (not (local-variable-p 'compile-command)))
         (set (make-local-variable 'compile-command)
-             (concat path "make -k"))
-        (message (concat "rh-project: " path)))))
+             (concat path "make -k")))))
 
   (defun rh-c++-yas-setup ()
     (let* ((project-path (rh-project-get-path))
