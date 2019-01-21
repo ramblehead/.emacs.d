@@ -919,7 +919,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                                   :color "gtk_selection_bg_color"
                                   :style nil))
             ('error
-             ;; (message (format "Caught exception: [%s]" ex))
              (set-face-attribute
               'region nil
               :box '(:line-width -1
