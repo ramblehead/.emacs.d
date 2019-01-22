@@ -924,9 +924,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               'region nil
               :box '(:line-width -1
                                  :color "gtk_selection_bg_color"
-                                 :style nil))
-             ;; (setq retval (cons 'exception (list ex)))
-             ))
+                                 :style nil))))
           retval))
 
     ;; face-font-family-alternatives
@@ -2067,14 +2065,19 @@ fields which we need."
           (yank arg))
       (counsel-yank-pop)))
 
-  (defun rh-counsel-ag ()
+  (defun rh-counsel-ag-deduce (&optional initial-input)
     (interactive)
     (let* ((extra-ag-args (if current-prefix-arg nil ""))
-           (default-text (rh-deduce-default-text t))
+           (default-text (or initial-input (rh-deduce-default-text t)))
            (current-prefix-arg t))
       (counsel-ag default-text nil extra-ag-args)))
 
+  (defun rh-counsel-ag ()
+    (interactive)
+    (rh-counsel-ag-deduce ""))
+
   :bind (("C-c s" . 'rh-counsel-ag)
+         ("C-c S" . 'rh-counsel-ag-deduce)
          :map counsel-mode-map
          ("M-y" . rh-counsel-yank-pop))
 
