@@ -2831,9 +2831,27 @@ fields which we need."
   :config
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm action)
-                   (eq (with-current-buffer buffer-nm major-mode)
-                       'magit-status-mode))
-                 (display-buffer-same-window)))
+                   (and (not (eq major-mode 'magit-diff-mode))
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-status-mode)))
+                 (display-buffer-same-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
+                  display-buffer-pop-up-window)))
+
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm action)
+                   (and (eq major-mode 'magit-diff-mode)
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-status-mode)))
+                 (rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)))
 
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm action)
@@ -2841,9 +2859,12 @@ fields which we need."
                         (eq (with-current-buffer buffer-nm major-mode)
                             'magit-diff-mode)))
                  (display-buffer-reuse-mode-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
-                 (inhibit-same-window . t)
-                 (reusable-frames . nil)))
+                 (inhibit-same-window . t)))
 
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
