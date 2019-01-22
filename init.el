@@ -680,14 +680,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (defvar g2w-display-buffer-reuse-window-commands
   '())
 
-(defvar g2w-display-buffer-same-window-commands
-  '())
+;; (defvar g2w-display-buffer-same-window-commands
+;;   '())
 
-(defun g2w-reuse-same-window-p (buffer-nm actions)
-  (with-current-buffer buffer-nm
-    (and (not (boundp 'g2w-destination-window))
-         (memq this-command
-               g2w-display-buffer-same-window-commands))))
+;; (defun g2w-reuse-same-window-p (buffer-nm actions)
+;;   (with-current-buffer buffer-nm
+;;     (and (not (string= buffer-nm "*RTags*"))
+;;          (not (boundp 'g2w-destination-window))
+;;          (memq this-command
+;;                g2w-display-buffer-same-window-commands))))
 
 (defun g2w-reuse-command-window-p (buffer-nm actions)
   (with-current-buffer buffer-nm
@@ -713,10 +714,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
  '(g2w-reuse-command-window-p
    g2w-display-buffer-reuse-command-window))
 
-(add-to-list
- 'display-buffer-alist
- '(g2w-reuse-same-window-p
-   display-buffer-same-window))
+;; (add-to-list
+;;  'display-buffer-alist
+;;  '(g2w-reuse-same-window-p
+;;    display-buffer-same-window))
 
 ;; (add-to-list
 ;;  'display-buffer-alist
@@ -2989,6 +2990,25 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
 
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm actions)
+                   (with-current-buffer buffer-nm
+                     (and (not (string= buffer-nm "*RTags*"))
+                          (not (boundp 'g2w-destination-window))
+                          (memq this-command
+                                '(rtags-find-symbol-at-point
+                                  rtags-find-references-at-point
+                                  rtags-find-virtuals-at-point
+                                  rtags-references-tree)))))
+                 (display-buffer-same-window)))
+
+  (add-to-list 'display-buffer-alist
+               '("*rdm*"
+                 (display-buffer-in-side-window)
+                 (side . top)
+                 (inhibit-same-window . t)
+                 (window-height . 6)))
+
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-select-and-remove-rtags-buffer)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
@@ -3007,24 +3027,6 @@ fields which we need."
                'rtags-find-virtuals-at-point)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-references-tree)
-
-  (add-to-list 'display-buffer-alist
-               '("*rdm*"
-                 (display-buffer-in-side-window)
-                 (side . top)
-                 (inhibit-same-window . t)
-                 (window-height . 6)))
-
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-nm actions)
-                   (with-current-buffer buffer-nm
-                     (and (memq this-command
-                                '(rtags-find-symbol-at-point
-                                  rtags-find-references-at-point
-                                  rtags-find-virtuals-at-point
-                                  rtags-references-tree))
-                          (not (boundp 'g2w-destination-window)))))
-                 (display-buffer-same-window)))
 
   (defun rh-rtags-toggle-rdm-display ()
     (interactive)
