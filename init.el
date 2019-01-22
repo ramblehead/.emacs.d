@@ -924,7 +924,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               'region nil
               :box '(:line-width -1
                                  :color "gtk_selection_bg_color"
-                                 :style nil))))
+                                 :style nil))
+             ;; (setq retval (cons 'exception (list ex)))
+             ))
           retval))
 
     ;; face-font-family-alternatives
