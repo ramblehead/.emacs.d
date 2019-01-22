@@ -1294,17 +1294,27 @@ Also sets SYMBOL to VALUE."
   (sml/setup)
 
   (eval-after-load "vc-hooks"
-    '(defadvice vc-mode-line (after sml/after-vc-mode-line-advice () activate)
-       "Color `vc-mode'."
+    '(defadvice vc-mode-line (after rh-vc-mode-line () activate)
        (when (stringp vc-mode)
-         (let ((noback
+         (let ((text-properties (text-properties-at 1 vc-mode))
+               (noback
                 (replace-regexp-in-string
-                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
-               (vc-mode-truncation-string
-                (if (char-displayable-p ?…) "…" "...")))
+                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode)))
            (when (> (string-width noback) 20)
-             (setq noback (concat (substring noback 0 18)
-                                  vc-mode-truncation-string)))
+             (let (vc-mode-truncation-string noback-beg noback-end help-echo)
+               (setq help-echo (plist-get text-properties 'help-echo))
+               (setq help-echo (split-string help-echo "\n"))
+               (push (substring noback 1) help-echo)
+               (setq help-echo (string-join help-echo "\n"))
+               (plist-put text-properties 'help-echo help-echo)
+               (setq vc-mode-truncation-string
+                     (if (char-displayable-p ?…) "…" "..."))
+               (setq noback-beg (substring noback 0 14))
+               (setq noback-end (substring noback -5))
+               (setq noback (concat noback-beg
+                                    vc-mode-truncation-string
+                                    noback-end))
+               (add-text-properties 0 (length noback) text-properties noback)))
            (setq vc-mode
                  (propertize
                   (if sml/vc-mode-show-backend vc-mode noback)
@@ -1336,6 +1346,14 @@ Also sets SYMBOL to VALUE."
 
 (use-package help-mode
   :config
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*Help*"
+  ;;    (rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up)))
+
   (add-to-list
    'display-buffer-alist
    '("*Help*"
@@ -1344,7 +1362,6 @@ Also sets SYMBOL to VALUE."
       rh-display-buffer-reuse-left
       rh-display-buffer-reuse-down
       rh-display-buffer-reuse-up
-      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)))
 
   (setq help-window-select t)
