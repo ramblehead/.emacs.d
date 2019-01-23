@@ -911,22 +911,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;;                            :color "gtk_selection_bg_color"
     ;;                            :style nil))
     (unwind-protect
-        (let (retval)
-          (condition-case ex
-              (set-face-attribute
-               'region nil
-               :box '(:line-width (-1 . -1)
-                                  :color "gtk_selection_bg_color"
-                                  :style nil))
-            ('error
-             (set-face-attribute
-              'region nil
-              :box '(:line-width -1
-                                 :color "gtk_selection_bg_color"
-                                 :style nil))
-             ;; (setq retval (cons 'exception (list ex)))
-             ))
-          retval))
+        (condition-case ex
+            (set-face-attribute
+             'region nil
+             :box '(:line-width (-1 . -1)
+                                :color "gtk_selection_bg_color"
+                                :style nil))
+          ('error
+           (set-face-attribute
+            'region nil
+            :box '(:line-width -1
+                               :color "gtk_selection_bg_color"
+                               :style nil)))))
 
     ;; face-font-family-alternatives
 
