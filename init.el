@@ -222,25 +222,6 @@
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
-;; == Outline ellipsis (for org mode, hideshow mode) ==
-
-;; see http://emacs.stackexchange.com/questions/10981/changing-the-appearance-of-org-mode-hidden-contents-ellipsis
-;; see http://emacswiki.org/emacs/OutlineMode
-
-;; (set-display-table-slot standard-display-table
-;;                         'selective-display (string-to-vector " ◦◦◦ "))
-
-(set-display-table-slot
- standard-display-table
- 'selective-display
- (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
-   (vconcat (mapcar (lambda (c) (+ face-offset c))
-                    ;; " […] "
-                    ;; " ◦◦◦ "
-                    ;; " [•••] "
-                    " [...] "
-                    ))))
-
 ;; == Convenience interactive functions ==
 
 ;; My adaptation of the native emacs function balance-windows
@@ -2775,6 +2756,15 @@ fields which we need."
 
   (setq hs-allow-nesting t)
   (setq hs-isearch-open t)
+
+  (defun rh-hs-set-up-overlay-handler (ov)
+    (overlay-put ov 'display
+                 (format (if (char-displayable-p ?•) " [• %d •] " " [* %d *] ")
+                         (count-lines (overlay-start ov)
+                                      (overlay-end ov))))
+    (overlay-put ov 'face 'shadow))
+
+  (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
 
   ;; This should be uncommented when cg becomes a mode which overrides
   ;; this key map
