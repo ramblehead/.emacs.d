@@ -1285,6 +1285,7 @@ Also sets SYMBOL to VALUE."
              (let (vc-mode-truncation-string noback-beg noback-end help-echo)
                (setq help-echo (plist-get text-properties 'help-echo))
                (setq help-echo (split-string help-echo "\n"))
+               (push "" help-echo)
                (push (substring noback 1) help-echo)
                (setq help-echo (string-join help-echo "\n"))
                (plist-put text-properties 'help-echo help-echo)
@@ -1295,7 +1296,7 @@ Also sets SYMBOL to VALUE."
                (setq noback (concat noback-beg
                                     vc-mode-truncation-string
                                     noback-end))
-               (add-text-properties 0 (length noback) text-properties noback)))
+               (add-text-properties 1 (length noback) text-properties noback)))
            (setq vc-mode
                  (propertize
                   (if sml/vc-mode-show-backend vc-mode noback)
