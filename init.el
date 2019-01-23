@@ -222,25 +222,6 @@
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
-;; == Outline ellipsis (for org mode, hideshow mode) ==
-
-;; see http://emacs.stackexchange.com/questions/10981/changing-the-appearance-of-org-mode-hidden-contents-ellipsis
-;; see http://emacswiki.org/emacs/OutlineMode
-
-;; (set-display-table-slot standard-display-table
-;;                         'selective-display (string-to-vector " ◦◦◦ "))
-
-(set-display-table-slot
- standard-display-table
- 'selective-display
- (let ((face-offset (* (face-id 'shadow) (lsh 1 22))))
-   (vconcat (mapcar (lambda (c) (+ face-offset c))
-                    ;; " […] "
-                    ;; " ◦◦◦ "
-                    ;; " [•••] "
-                    " [...] "
-                    ))))
-
 ;; == Convenience interactive functions ==
 
 ;; My adaptation of the native emacs function balance-windows
@@ -680,14 +661,15 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (defvar g2w-display-buffer-reuse-window-commands
   '())
 
-(defvar g2w-display-buffer-same-window-commands
-  '())
+;; (defvar g2w-display-buffer-same-window-commands
+;;   '())
 
-(defun g2w-reuse-same-window-p (buffer-nm actions)
-  (with-current-buffer buffer-nm
-    (and (not (boundp 'g2w-destination-window))
-         (memq this-command
-               g2w-display-buffer-same-window-commands))))
+;; (defun g2w-reuse-same-window-p (buffer-nm actions)
+;;   (with-current-buffer buffer-nm
+;;     (and (not (string= buffer-nm "*RTags*"))
+;;          (not (boundp 'g2w-destination-window))
+;;          (memq this-command
+;;                g2w-display-buffer-same-window-commands))))
 
 (defun g2w-reuse-command-window-p (buffer-nm actions)
   (with-current-buffer buffer-nm
@@ -713,10 +695,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
  '(g2w-reuse-command-window-p
    g2w-display-buffer-reuse-command-window))
 
-(add-to-list
- 'display-buffer-alist
- '(g2w-reuse-same-window-p
-   display-buffer-same-window))
+;; (add-to-list
+;;  'display-buffer-alist
+;;  '(g2w-reuse-same-window-p
+;;    display-buffer-same-window))
 
 ;; (add-to-list
 ;;  'display-buffer-alist
@@ -1291,17 +1273,28 @@ Also sets SYMBOL to VALUE."
   (sml/setup)
 
   (eval-after-load "vc-hooks"
-    '(defadvice vc-mode-line (after sml/after-vc-mode-line-advice () activate)
-       "Color `vc-mode'."
+    '(defadvice vc-mode-line (after rh-vc-mode-line () activate)
        (when (stringp vc-mode)
-         (let ((noback
+         (let ((text-properties (text-properties-at 1 vc-mode))
+               (noback
                 (replace-regexp-in-string
-                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
-               (vc-mode-truncation-string
-                (if (char-displayable-p ?…) "…" "...")))
+                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode)))
            (when (> (string-width noback) 20)
-             (setq noback (concat (substring noback 0 18)
-                                  vc-mode-truncation-string)))
+             (let (vc-mode-truncation-string noback-beg noback-end help-echo)
+               (setq help-echo (plist-get text-properties 'help-echo))
+               (setq help-echo (split-string help-echo "\n"))
+               (push "" help-echo)
+               (push (substring noback 1) help-echo)
+               (setq help-echo (string-join help-echo "\n"))
+               (plist-put text-properties 'help-echo help-echo)
+               (setq vc-mode-truncation-string
+                     (if (char-displayable-p ?…) "…" "..."))
+               (setq noback-beg (substring noback 0 14))
+               (setq noback-end (substring noback -5))
+               (setq noback (concat noback-beg
+                                    vc-mode-truncation-string
+                                    noback-end))
+               (add-text-properties 1 (length noback) text-properties noback)))
            (setq vc-mode
                  (propertize
                   (if sml/vc-mode-show-backend vc-mode noback)
@@ -1333,6 +1326,14 @@ Also sets SYMBOL to VALUE."
 
 (use-package help-mode
   :config
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*Help*"
+  ;;    (rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up)))
+
   (add-to-list
    'display-buffer-alist
    '("*Help*"
@@ -1341,7 +1342,6 @@ Also sets SYMBOL to VALUE."
       rh-display-buffer-reuse-left
       rh-display-buffer-reuse-down
       rh-display-buffer-reuse-up
-      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)))
 
   (setq help-window-select t)
@@ -2062,14 +2062,19 @@ fields which we need."
           (yank arg))
       (counsel-yank-pop)))
 
-  (defun rh-counsel-ag ()
+  (defun rh-counsel-ag-deduce (&optional initial-input)
     (interactive)
     (let* ((extra-ag-args (if current-prefix-arg nil ""))
-           (default-text (rh-deduce-default-text t))
+           (default-text (or initial-input (rh-deduce-default-text t)))
            (current-prefix-arg t))
       (counsel-ag default-text nil extra-ag-args)))
 
+  (defun rh-counsel-ag ()
+    (interactive)
+    (rh-counsel-ag-deduce ""))
+
   :bind (("C-c s" . 'rh-counsel-ag)
+         ("C-c S" . 'rh-counsel-ag-deduce)
          :map counsel-mode-map
          ("M-y" . rh-counsel-yank-pop))
 
@@ -2751,6 +2756,15 @@ fields which we need."
   (setq hs-allow-nesting t)
   (setq hs-isearch-open t)
 
+  (defun rh-hs-set-up-overlay-handler (ov)
+    (overlay-put ov 'display
+                 (format (if (char-displayable-p ?•) " [• %d •] " " [* %d *] ")
+                         (count-lines (overlay-start ov)
+                                      (overlay-end ov))))
+    (overlay-put ov 'face 'shadow))
+
+  (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
+
   ;; This should be uncommented when cg becomes a mode which overrides
   ;; this key map
   ;; (define-key hs-minor-mode-map (kbd "C-S-j") #'hs-toggle-hiding)
@@ -2826,9 +2840,27 @@ fields which we need."
   :config
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm action)
-                   (eq (with-current-buffer buffer-nm major-mode)
-                       'magit-status-mode))
-                 (display-buffer-same-window)))
+                   (and (not (eq major-mode 'magit-diff-mode))
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-status-mode)))
+                 (display-buffer-same-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
+                  display-buffer-pop-up-window)))
+
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm action)
+                   (and (eq major-mode 'magit-diff-mode)
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-status-mode)))
+                 (rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
+                  display-buffer-pop-up-window)
+                 (inhibit-same-window . t)))
 
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm action)
@@ -2836,9 +2868,12 @@ fields which we need."
                         (eq (with-current-buffer buffer-nm major-mode)
                             'magit-diff-mode)))
                  (display-buffer-reuse-mode-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
-                 (inhibit-same-window . t)
-                 (reusable-frames . nil)))
+                 (inhibit-same-window . t)))
 
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
@@ -2987,6 +3022,25 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
 
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm actions)
+                   (with-current-buffer buffer-nm
+                     (and (not (string= buffer-nm "*RTags*"))
+                          (not (boundp 'g2w-destination-window))
+                          (memq this-command
+                                '(rtags-find-symbol-at-point
+                                  rtags-find-references-at-point
+                                  rtags-find-virtuals-at-point
+                                  rtags-references-tree)))))
+                 (display-buffer-same-window)))
+
+  (add-to-list 'display-buffer-alist
+               '("*rdm*"
+                 (display-buffer-in-side-window)
+                 (side . top)
+                 (inhibit-same-window . t)
+                 (window-height . 6)))
+
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-select-and-remove-rtags-buffer)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
@@ -3005,24 +3059,6 @@ fields which we need."
                'rtags-find-virtuals-at-point)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-references-tree)
-
-  (add-to-list 'display-buffer-alist
-               '("*rdm*"
-                 (display-buffer-in-side-window)
-                 (side . top)
-                 (inhibit-same-window . t)
-                 (window-height . 6)))
-
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-nm actions)
-                   (with-current-buffer buffer-nm
-                     (and (memq this-command
-                                '(rtags-find-symbol-at-point
-                                  rtags-find-references-at-point
-                                  rtags-find-virtuals-at-point
-                                  rtags-references-tree))
-                          (not (boundp 'g2w-destination-window)))))
-                 (display-buffer-same-window)))
 
   (defun rh-rtags-toggle-rdm-display ()
     (interactive)
