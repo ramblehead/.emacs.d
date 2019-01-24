@@ -3251,7 +3251,9 @@ fields which we need."
 
     (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
       (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
-    (local-set-key (kbd "C-x C-<tab>") #'rh-c++-auto-complete-clang))
+    (local-set-key (kbd "C-x C-<tab>") #'rh-c++-auto-complete-clang)
+
+    (auto-complete-mode 1))
 
   (add-hook
    'c++-mode-hook
