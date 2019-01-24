@@ -672,10 +672,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 ;;                g2w-display-buffer-same-window-commands))))
 
 (defun g2w-reuse-command-window-p (buffer-nm actions)
-  (with-current-buffer buffer-nm
-    (and (boundp 'g2w-destination-window)
-         (memq this-command
-               g2w-display-buffer-reuse-window-commands))))
+  (and (boundp 'g2w-destination-window)
+       (memq this-command
+             g2w-display-buffer-reuse-window-commands)))
 
 (defun g2w-display-buffer-reuse-command-window (buffer alist)
   (if (and (boundp 'g2w-destination-window)
