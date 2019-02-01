@@ -2539,10 +2539,6 @@ fields which we need."
 
   (setq flycheck-indication-mode nil)
 
-  (flycheck-add-mode 'typescript-tslint 'web-mode)
-  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-
-  :after tide
   :ensure t)
 
 (use-package flycheck-popup-tip
@@ -3434,9 +3430,9 @@ fields which we need."
   ;;         #'rh-company-tern-display-permanent-doc-buffer)))
 
   :bind (:map tern-mode-keymap
+         ;; ("M-h" . tern-get-docs)
          ("C-c C-R" . tern-rename-variable)
-         ("M-[" . tern-pop-find-definition)
-         ("M-h" . tern-get-docs))
+         ("M-[" . tern-pop-find-definition))
   :defer t
   :ensure t)
 
@@ -3998,6 +3994,15 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1))
+
+(defun rh-setup-javascript-tern ()
+  (interactive)
+  (tern-mode 1))
+
+(defun rh-setup-javascript-tern-tide ()
+  (interactive)
+  (tern-mode 1)
+  (rh-setup-javascript-tide))
 
 ;; /b/} JavaScript Environments Setup
 

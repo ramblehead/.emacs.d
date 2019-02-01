@@ -5,7 +5,7 @@
     (define-key map (kbd "<f5>") #'rh-nodejs-repl-send-line-or-region)
     map))
 
-(define-minor-mode rh-nodejs-interaction
+(define-minor-mode rh-nodejs-repl-interaction
   "Minor mode for interacting with a nodejs from other (e.g js) buffers."
   :lighter " NodeJS Interaction"
   :keymap rh-nodejs-interaction-map
