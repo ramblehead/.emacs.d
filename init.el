@@ -3436,6 +3436,7 @@ fields which we need."
   :config
 
   (setq tern-command (list "npx" "tern"))
+  (setq tern-update-argument-hints-timer -1)
 
   (defun rh-company-tern-display-permanent-doc-buffer ()
     (let ((buf (get-buffer-create "*company-documentation*")))
