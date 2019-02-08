@@ -893,11 +893,30 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;;                            :style nil))
     (unwind-protect
         (condition-case ex
-            (set-face-attribute
-             'region nil
-             :box '(:line-width (-1 . -1)
-                                :color "gtk_selection_bg_color"
-                                :style nil))
+            (progn
+             (set-face-attribute
+              'region nil
+              :box '(:line-width (-1 . -1)
+                                 :color "gtk_selection_bg_color"
+                                 :style nil))
+             ;; see https://www.reddit.com/r/emacs/comments/345by9/having_the_background_face_for_selection_region/
+             (setq redisplay-highlight-region-function
+                   (lambda (start end window rol)
+                     (if (not (overlayp rol))
+                         (let ((nrol (make-overlay start end)))
+                           (funcall redisplay-unhighlight-region-function rol)
+                           (overlay-put nrol 'window window)
+                           (overlay-put nrol 'face 'region)
+                           ;; Low priority so that a large region always stays
+                           ;; behind other regions. The box face should make it
+                           ;; visible.
+                           (overlay-put nrol 'priority '(-100 . -100))
+                           nrol)
+                       (unless (and (eq (overlay-buffer rol) (current-buffer))
+                                    (eq (overlay-start rol) start)
+                                    (eq (overlay-end rol) end))
+                         (move-overlay rol start end (current-buffer)))
+                       rol))))
           ('error
            (set-face-attribute
             'region nil
@@ -3017,6 +3036,7 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 0.3)))
 
+  ;; If following symbol without completion buffer, do it in the same window
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-nm actions)
                    (with-current-buffer buffer-nm
@@ -3083,7 +3103,7 @@ fields which we need."
 
   (setq rtags-other-window-function (lambda () (other-window -1)))
   (setq rtags-results-buffer-other-window t)
-  (setq rtags-bury-buffer-function (lambda () (quit-window t)))
+  (setq rtags-bury-buffer-function 'quit-window)
 
   (add-hook
    'rtags-references-tree-mode-hook
@@ -3092,6 +3112,11 @@ fields which we need."
 
   (add-hook
    'rtags-mode-hook
+   (lambda ()
+     (set (make-local-variable 'truncate-lines) t)))
+
+  (add-hook
+   'rtags-diagnostics-mode-hook
    (lambda ()
      (set (make-local-variable 'truncate-lines) t)))
 
