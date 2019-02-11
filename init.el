@@ -1079,7 +1079,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
       (progn
         (require 'saveplace)
         (setq-default save-place t))
-    (save-place-mode 1)))
+    (save-place-mode 1))
+  :config
+  (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
+
+  :demand t)
 
 (setq default-input-method "russian-computer")
 
