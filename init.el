@@ -1080,9 +1080,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
         (require 'saveplace)
         (setq-default save-place t))
     (save-place-mode 1))
-  :config
-  (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
-
+  ;; :config
+  ;; (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
   :demand t)
 
 (setq default-input-method "russian-computer")
@@ -1820,8 +1819,8 @@ filename associated with it."
   (find-alternate-file ".."))
 
 (defun vr-dired-mode-setup ()
-  (make-local-variable 'coding-system-for-read)
-  (setq coding-system-for-read vr-dired-coding-system)
+  (set (make-local-variable 'coding-system-for-read) vr-dired-coding-system)
+  ;; (save-place-local-mode -1)
   (hl-line-mode 1)
   (define-key dired-mode-map (kbd "C-x C-f") 'vr-no-ido-find-alternate-file)
   (define-key dired-mode-map (kbd "<escape>") 'vr-dired-cancel)
