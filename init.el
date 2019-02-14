@@ -910,7 +910,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                            ;; Low priority so that a large region always stays
                            ;; behind other regions. The box face should make it
                            ;; visible.
-                           (overlay-put nrol 'priority '(-100 . -100))
+                           (overlay-put nrol 'priority '(-100 . 100))
                            nrol)
                        (unless (and (eq (overlay-buffer rol) (current-buffer))
                                     (eq (overlay-start rol) start)
@@ -2252,6 +2252,8 @@ fields which we need."
   (setq ac-modes (delq 'cc-mode ac-modes))
   (setq ac-modes (delq 'c++-mode ac-modes))
   (setq ac-modes (delq 'c-mode ac-modes))
+  (setq ac-modes (delq 'js-jsx-mode ac-modes))
+  (setq ac-modes (delq 'js2-jsx-mode ac-modes))
 
   (ac-config-default)
 
@@ -3326,6 +3328,11 @@ fields which we need."
                             (equal pair '("nodejs" . js-mode))))
                       interpreter-mode-alist))
 
+  (setq auto-mode-alist
+        (cl-delete-if (lambda (pair)
+                        (equal pair '("\\.jsx\\'" . js-jsx-mode)))
+                      auto-mode-alist))
+
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
@@ -3357,7 +3364,6 @@ fields which we need."
   (require 'nodejs-repl)
   (require 'company)
 
-
   ;; Indentation style ajustments
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
@@ -3371,6 +3377,9 @@ fields which we need."
      (company-mode 1)))
 
   :ensure t)
+
+;; (use-package js2-jsx-mode
+;;   :mode "\\.jsx\\'")
 
 ;; /b/} js2-mode
 
@@ -3456,9 +3465,11 @@ fields which we need."
   ;;         #'rh-company-tern-display-permanent-doc-buffer)))
 
   :bind (:map tern-mode-keymap
+         ("C-." . tern-find-definition)
+         ("C-/" . tern-find-definition-by-name)
+         ("C-," . tern-pop-find-definition)
          ;; ("M-h" . tern-get-docs)
-         ("C-c C-R" . tern-rename-variable)
-         ("M-[" . tern-pop-find-definition))
+         ("C-c C-R" . tern-rename-variable))
   :defer t
   :ensure t)
 
@@ -3633,7 +3644,7 @@ fields which we need."
       (eval-last-sexp current-prefix-arg)))
 
   (define-key lisp-mode-shared-map (kbd "<f5>") 'rh-lisp-eval-region-or-last-sexp)
-  (define-key lisp-mode-shared-map (kbd "M-<f5>") 'eval-print-last-sexp)
+  (define-key lisp-mode-shared-map (kbd "C-<f5>") 'eval-print-last-sexp)
   (define-key lisp-mode-shared-map (kbd "S-<f5>") 'rh-ielm-split-window)
 
   (add-hook
@@ -3844,7 +3855,7 @@ fields which we need."
 
 (use-package web-mode
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
   :config
   (add-to-list
    'web-mode-ac-sources-alist
