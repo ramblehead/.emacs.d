@@ -3468,11 +3468,16 @@ fields which we need."
   ;;         #'rh-company-tern-display-permanent-doc-buffer)))
 
   :bind (:map tern-mode-keymap
+         ("M-." . nil)
+         ("C-M-." . nil)
+         ("M-," . nil)
+         ("C-c c-r" . nil)
          ("C-." . tern-find-definition)
          ("C-/" . tern-find-definition-by-name)
          ("C-," . tern-pop-find-definition)
          ;; ("M-h" . tern-get-docs)
-         ("C-c C-R" . tern-rename-variable))
+         ;; ("C-c C-R" . tern-rename-variable)
+         )
   :defer t
   :ensure t)
 
