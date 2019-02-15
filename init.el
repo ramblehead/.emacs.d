@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -899,24 +899,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               :box '(:line-width (-1 . -1)
                                  :color "gtk_selection_bg_color"
                                  :style nil))
-             ;; see https://www.reddit.com/r/emacs/comments/345by9/having_the_background_face_for_selection_region/
-             (setq redisplay-highlight-region-function
-                   (lambda (start end window rol)
-                     (if (not (overlayp rol))
-                         (let ((nrol (make-overlay start end)))
-                           (funcall redisplay-unhighlight-region-function rol)
-                           (overlay-put nrol 'window window)
-                           (overlay-put nrol 'face 'region)
-                           ;; Low priority so that a large region always stays
-                           ;; behind other regions. The box face should make it
-                           ;; visible.
-                           (overlay-put nrol 'priority '(-100 . -100))
-                           nrol)
-                       (unless (and (eq (overlay-buffer rol) (current-buffer))
-                                    (eq (overlay-start rol) start)
-                                    (eq (overlay-end rol) end))
-                         (move-overlay rol start end (current-buffer)))
-                       rol))))
+             ;; ;; see https://www.reddit.com/r/emacs/comments/345by9/having_the_background_face_for_selection_region/
+             ;; (setq redisplay-highlight-region-function
+             ;;       (lambda (start end window rol)
+             ;;         (if (not (overlayp rol))
+             ;;             (let ((nrol (make-overlay start end)))
+             ;;               (funcall redisplay-unhighlight-region-function rol)
+             ;;               (overlay-put nrol 'window window)
+             ;;               (overlay-put nrol 'face 'region)
+             ;;               ;; Low priority so that a large region always stays
+             ;;               ;; behind other regions. The box face should make it
+             ;;               ;; visible.
+             ;;               (overlay-put nrol 'priority '(-100 . -100))
+             ;;               nrol)
+             ;;           (unless (and (eq (overlay-buffer rol) (current-buffer))
+             ;;                        (eq (overlay-start rol) start)
+             ;;                        (eq (overlay-end rol) end))
+             ;;             (move-overlay rol start end (current-buffer)))
+             ;;           rol)))
+             )
           ('error
            (set-face-attribute
             'region nil
@@ -2637,6 +2638,8 @@ fields which we need."
 
   :bind (:map compilation-mode-map
          ("q" . g2w-quit-window)
+         ;; ("<return>" . compilation-display-error)
+         ;; ("<kp-enter>" . compilation-display-error)
          ("M-<return>" . compilation-display-error)
          ("M-<kp-enter>" . compilation-display-error))
   :defer)
@@ -3211,11 +3214,10 @@ fields which we need."
     (auto-complete (append '(ac-source-clang) ac-sources)))
 
   (defun rh-cc-compile-setup ()
-    (let ((path (rh-project-get-path)))
-      (when (and path
-                 (not (local-variable-p 'compile-command)))
+    (let ((project-path (rh-project-get-path)))
+      (when project-path
         (set (make-local-variable 'compile-command)
-             (concat path "make -k")))))
+             (concat project-path "make -k")))))
 
   (defun rh-c++-yas-setup ()
     (let* ((project-path (rh-project-get-path))
@@ -3285,13 +3287,13 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
-     (rh-project-setup)
      (rh-cc-rtags-setup)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
      (rh-cc-compile-setup)
-     (rh-c++-ac-setup)))
+     (rh-c++-ac-setup)
+     (rh-project-setup)))
 
   (add-hook
    'c-mode-hook
@@ -3299,9 +3301,9 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
-     (rh-project-setup)
      (rh-cc-rtags-setup)
-     (rh-cc-compile-setup)))
+     (rh-cc-compile-setup)
+     (rh-project-setup)))
 
   :bind (:map c-mode-base-map
          ("C-S-b" . recompile)
@@ -3678,6 +3680,22 @@ fields which we need."
      (rh-programming-minor-modes 1))))
 
 ;; /b/} python-mode
+
+;; /b/{ bazel-mode
+
+(use-package bazel-mode
+  :mode "\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'"
+  :config
+  (setq python-indent-offset 2)
+
+  (add-hook
+   'bazel-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes 1)))
+
+  :ensure t)
+
+;; /b/} bazel-mode
 
 ;; /b/{ visual-basic-mode
 
