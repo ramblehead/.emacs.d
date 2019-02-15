@@ -7,6 +7,7 @@
 ;;   (display-buffer (get-buffer-create "*tide-documentation*")))
 
 (flycheck-add-mode 'typescript-tslint 'web-mode)
+(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
 (defun rh-tide-documentation-quit ()
