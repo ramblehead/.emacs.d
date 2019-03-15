@@ -3310,7 +3310,6 @@ fields which we need."
 
   :bind (:map c-mode-base-map
          ("C-S-b" . recompile)
-         :map c-mode-base-map
          ("C-c b" . rh-compile-toggle-display))
 
   :defer t)
@@ -3438,7 +3437,9 @@ fields which we need."
          (";" . nil)
          ("," . nil)
          ("\"" . nil)
-         ("'" . nil))
+         ("'" . nil)
+         ("C-S-b" . recompile)
+         ("C-c b" . rh-compile-toggle-display))
   :defer t
   :ensure t)
 
