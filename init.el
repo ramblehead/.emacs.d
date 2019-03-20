@@ -3129,12 +3129,21 @@ fields which we need."
    (lambda ()
      (set (make-local-variable 'truncate-lines) t)))
 
-  (add-hook
-   'after-save-hook
-   (lambda ()
-     ;; TODO: file an issue to rtags GitHub about this bug
-     (when rtags-enabled
-       (rtags-reparse-file))))
+  ;; TODO: file an issue to rtags GitHub about bug with
+  ;;       multiple paths in compilation database.
+  (setq rtags-reindex-on-save t)
+
+  ;; TODO: add company support for my rtags settings
+  ;;       and remove auto-complete:
+  ;; (setq rtags-completions-enabled t)
+  ;; (require 'company)
+  ;; (push 'company-rtags company-backends)
+  ;; or better
+  ;; (push '(company-rtags company-keywords) company-backends)
+  ;; toggle on complete (setq rtags-spellcheck-enabled t)
+  ;; (setq company-tooltip-maximum-width 80)
+  ;; (setq company-tooltip-minimum-width 35)
+  ;; company-echo-truncate-lines
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
