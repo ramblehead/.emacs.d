@@ -3162,6 +3162,34 @@ fields which we need."
   :defer t
   :pin manual)
 
+
+;; TODO: add eldoc support for my rtags settings
+;; see https://github.com/Andersbakken/rtags/issues/987
+
+;; (defun rtags-eldoc-function () (rtags-get-summary-text 1))
+
+;; (defun fontify-string (str mode)
+;;   "Return STR fontified according to MODE."
+;;   (with-temp-buffer
+;;         (insert str)
+;;         (delay-mode-hooks (funcall mode))
+;;         (font-lock-default-function mode)
+;;         (font-lock-default-fontify-region
+;;          (point-min) (point-max) nil)
+;;         (buffer-string)))
+
+;; (defun rtags-eldoc-function ()
+;;   (let ((summary (rtags-get-summary-text)))
+;;     (and summary
+;;          (fontify-string
+;;           (replace-regexp-in-string
+;;            "{[^}]*$" ""
+;;            (mapconcat
+;;             (lambda (str) (if (= 0 (length str)) "//" (string-trim str)))
+;;             (split-string summary "\r?\n")
+;;             " "))
+;;           major-mode))))
+
 (use-package modern-cpp-font-lock
   :commands modern-c++-font-lock-mode
   :config
