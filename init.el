@@ -3129,6 +3129,13 @@ fields which we need."
    (lambda ()
      (set (make-local-variable 'truncate-lines) t)))
 
+  (add-hook
+   'after-save-hook
+   (lambda ()
+     ;; TODO: file an issue to rtags GitHub about this bug
+     (when rtags-enabled
+       (rtags-reparse-file))))
+
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
   ;; (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
