@@ -3144,6 +3144,7 @@ fields which we need."
   ;; (setq company-tooltip-maximum-width 80)
   ;; (setq company-tooltip-minimum-width 35)
   ;; company-echo-truncate-lines
+  ;; (setq company-tooltip-offset-display 'lines)
 
   (rtags-enable-standard-keybindings)
   ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
