@@ -3147,21 +3147,6 @@ fields which we need."
   ;; (setq company-tooltip-offset-display 'lines)
 
   (rtags-enable-standard-keybindings)
-  ;; (define-key c-mode-base-map (kbd "C-c r d") 'rh-rtags-toggle-rdm-display)
-  ;; (define-key c-mode-base-map (kbd "M-[") 'rtags-location-stack-back)
-  ;; (define-key c-mode-base-map (kbd "M-]") 'rtags-location-stack-forward)
-
-  ;; (define-key c-mode-base-map (kbd "M-.") 'rtags-find-symbol-at-point)
-
-  ;; (define-key c-mode-base-map (kbd "M->") 'rtags-next-match)
-  ;; (define-key c-mode-base-map (kbd "M-<") 'rtags-previous-match)
-  ;; ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-find-references-at-point)
-  ;; (define-key c-mode-base-map (kbd "M-,") 'rtags-references-tree)
-  ;; (define-key c-mode-base-map (kbd "C-M-,") 'rtags-find-virtuals-at-point)
-  ;; (define-key c-mode-base-map (kbd "M-i") 'rtags-imenu)
-  ;; (define-key c-mode-base-map (kbd "C-.") 'rtags-find-symbol)
-  ;; (define-key c-mode-base-map (kbd "C-,") 'rtags-find-references)
-
   (bind-key "C-c r d" #'rh-rtags-toggle-rdm-display c-mode-base-map)
   (bind-key "M-[" #'rtags-location-stack-back c-mode-base-map)
   (bind-key "M-]" #'rtags-location-stack-forward c-mode-base-map)
