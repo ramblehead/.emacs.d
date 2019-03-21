@@ -3133,6 +3133,8 @@ fields which we need."
   ;;       multiple paths in compilation database.
   (setq rtags-reindex-on-save t)
 
+  (require 'rh-rtags-eldoc)
+
   ;; TODO: add company support for my rtags settings
   ;;       and remove auto-complete:
   ;; (setq rtags-completions-enabled t)
@@ -3321,6 +3323,7 @@ fields which we need."
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
      (rh-cc-rtags-setup)
+     (rh-rtags-eldoc-setup)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
