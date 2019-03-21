@@ -55,22 +55,42 @@
              "[[:blank:]]*{.*$" ""
              (mapconcat
               (lambda (str)
-                ;; (if (= 0 (length str))
-                ;;     "//"
-                ;;   (string-trim str))
-                (when (< 0 (length str))
+                (if (= 0 (length str))
+                    (setq str " // ")
+                  ;; (string-trim str))
+                  (< 0 (length str))
                   (setq str (string-trim str))
-                  (when (char-equal (aref str 0) ?:)
-                    (setq str (concat " " str)))
-                  (when (char-equal (aref str (- (length str) 1)) ?,)
-                    (setq str (concat str " "))))
+                  (let ((fst (aref str 0))
+                        (lst (aref str (1- (length str)))))
+                    (when (seq-contains ":" fst)
+                      (setq str (concat " " str)))
+                    (when (seq-contains ",>*&" lst)
+                      (setq str (concat str " ")))))
                 str)
               (split-string summary "\r?\n")
               "")))
       (setq summary (replace-regexp-in-string
+                     "[[:blank:]]*//.*$" ""
+                     summary))
+      (setq summary (replace-regexp-in-string
                      "\\(.*[^:]\\):[^:].*$" "\\1"
                      summary))
       (setq summary (string-trim-right summary))
+      (setq summary (replace-regexp-in-string
+                     "[[:blank:]]\\{2,\\}" " "
+                     summary))
+      (setq summary (replace-regexp-in-string
+                     "template<" "template <"
+                     summary))
+      (setq summary (replace-regexp-in-string
+                     ">[[:blank:]]+>" ">>"
+                     summary))
+      (setq summary (replace-regexp-in-string
+                     "\\(.+\\)[[:blank:]]+(" "\\1("
+                     summary))
+      ;; (setq summary (replace-regexp-in-string
+      ;;                "[[:blank:]]*noexcept$" ""
+      ;;                summary))
       (setq summary (rh-rtags-eldoc-fontify-string summary major-mode)))))
 
 ;;;###autoload
