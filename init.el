@@ -2623,7 +2623,7 @@ fields which we need."
   (setq dumb-jump-selector 'ivy)
 
   :bind (("M-g g" . dumb-jump-hydra/body)
-         ("s-/" . dumb-jump-go)
+         ("s-." . dumb-jump-go)
          ("s-[" . dumb-jump-back))
   :defer t
   :ensure t)
@@ -2933,6 +2933,9 @@ fields which we need."
                   rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
+
+  (setq transient-display-buffer-action
+        '(display-buffer-below-selected (side . bottom)))
 
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
