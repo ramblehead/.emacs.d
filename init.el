@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -2006,7 +2006,9 @@ fields which we need."
 
   ;; (add-to-list 'g2w-display-buffer-reuse-window-commands 'ivy-occur-press-and-switch)
   (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
+  (add-to-list
+   'g2w-display-buffer-reuse-window-commands
+   'compilation-display-error)
 
   ;; (defadvice ivy-occur-press-and-switch
   ;;     (after rh-ivy-occur-press-and-switch activate)
@@ -2018,6 +2020,7 @@ fields which we need."
   ;;   (next-error 0))
 
   (setq ivy-use-virtual-buffers t)
+  (setq ivy-virtual-abbreviate 'abbreviate)
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
 
@@ -2105,8 +2108,17 @@ fields which we need."
   :ensure t)
 
 (use-package lacarte
-  :bind ("<menu>" . lacarte-execute-menu-command)
   :demand t)
+
+(use-package ivy-rich
+  :config
+  (setq ivy-format-function #'ivy-format-function-line)
+  (setq ivy-rich-path-style 'abbrev)
+
+  (ivy-rich-mode 1)
+
+  :demand t
+  :ensure t)
 
 ;; /b/} ivy/swiper/counsel/etc.
 
@@ -3324,7 +3336,7 @@ fields which we need."
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
      (rh-cc-rtags-setup)
-     (rh-rtags-eldoc-setup)
+     ;; (rh-rtags-eldoc-setup)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
