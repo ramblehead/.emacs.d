@@ -2461,6 +2461,9 @@ fields which we need."
   (setq company-require-match nil)
 
   (setq company-idle-delay 0)
+  (setq company-tooltip-maximum-width 80)
+  (setq company-tooltip-minimum-width 35)
+  (setq company-tooltip-offset-display 'lines)
 
   ;; Use "M-h" for company-show-doc-buffer
   (define-key company-active-map (kbd "<f1>") nil)
@@ -3157,23 +3160,27 @@ fields which we need."
   (add-hook
    'rtags-references-tree-mode-hook
    (lambda ()
-     (set (make-local-variable 'truncate-lines) t)))
-
-  (add-hook
-   'rtags-mode-hook
-   (lambda ()
-     (set (make-local-variable 'truncate-lines) t)))
+     (setq-local 'truncate-lines t)))
 
   (add-hook
    'rtags-diagnostics-mode-hook
    (lambda ()
-     (set (make-local-variable 'truncate-lines) t)))
+     (setq-local truncate-lines t)))
+
+  (add-hook
+   'rtags-mode-hook
+   (lambda ()
+     (setq-local truncate-lines t)))
 
   ;; TODO: file an issue to rtags GitHub about bug with
   ;;       multiple paths in compilation database.
   (setq rtags-reindex-on-save t)
+  (setq rtags-completions-enabled t)
 
   (require 'rh-rtags-eldoc)
+
+  ;; (require 'company)
+  ;; (push 'company-rtags company-backends)
 
   ;; TODO: add company support for my rtags settings
   ;;       and remove auto-complete:
@@ -3183,10 +3190,20 @@ fields which we need."
   ;; or better
   ;; (push '(company-rtags company-keywords) company-backends)
   ;; toggle on complete (setq rtags-spellcheck-enabled t)
-  ;; (setq company-tooltip-maximum-width 80)
-  ;; (setq company-tooltip-minimum-width 35)
   ;; company-echo-truncate-lines
-  ;; (setq company-tooltip-offset-display 'lines)
+
+  ;; (setq-local company-echo-truncate-lines nil)
+
+  ;; (add-hook
+  ;;  'company-completion-started-hook
+  ;;  (lambda (_)
+  ;;    (setq-local rtags-spellcheck-enabled t))
+  ;;  nil t)
+
+  ;; (add-hook
+  ;;  'company-after-completion-hook
+  ;;  (lambda (_)
+  ;;    (setq-local rtags-spellcheck-enabled t))
 
   (rtags-enable-standard-keybindings)
   (bind-key "C-c r d" #'rh-rtags-toggle-rdm-display c-mode-base-map)
@@ -3266,6 +3283,7 @@ fields which we need."
   (require 'auto-complete-c-headers)
   (require 'auto-complete-clang)
   (require 'rtags)
+  (require 'rh-cc-company)
 
   (defvar-local rh-c++-compiler "g++")
   (defvar-local rh-c++-std "-std=c++1z")
@@ -3368,7 +3386,8 @@ fields which we need."
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
      (rh-cc-compile-setup)
-     (rh-c++-ac-setup)
+     ;; (rh-c++-ac-setup)
+     (rh-cc-company-setup)
      (rh-project-setup)))
 
   (add-hook

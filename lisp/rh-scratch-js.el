@@ -14,7 +14,7 @@
        (setq buf (get-buffer-create "*rh-scratch-js*")))
      (with-current-buffer buf
        (js2-mode)
-       (rh-nodejs-interaction 1)
+       (rh-nodejs-repl-interaction 1)
        (set (make-local-variable 'js2-strict-missing-semi-warning) nil)
        (unless bufp
          (insert "// This buffer is for text that is not saved, and for JavaScript evaluation.\n\n")))
