@@ -1349,14 +1349,6 @@ Also sets SYMBOL to VALUE."
 
 (use-package help-mode
   :config
-  ;; (add-to-list
-  ;;  'display-buffer-alist
-  ;;  '("*Help*"
-  ;;    (rh-display-buffer-reuse-right
-  ;;     rh-display-buffer-reuse-left
-  ;;     rh-display-buffer-reuse-down
-  ;;     rh-display-buffer-reuse-up)))
-
   (add-to-list
    'display-buffer-alist
    '("*Help*"
@@ -1386,8 +1378,13 @@ Also sets SYMBOL to VALUE."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
+  (add-to-list
+   'g2w-display-buffer-reuse-window-commands
+   'compile-goto-error)
+
+  (add-to-list
+   'g2w-display-buffer-reuse-window-commands
+   'compilation-display-error)
 
   (add-hook
    'grep-mode-hook
@@ -3663,12 +3660,23 @@ fields which we need."
 
 (use-package nodejs-repl
   :config
-  (add-to-list 'display-buffer-alist
-               '("*nodejs*"
-                 (display-buffer-reuse-window
-                  display-buffer-use-some-window
-                  display-buffer-pop-up-window)
-                 (inhibit-same-window . t)))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*nodejs*"
+  ;;    (display-buffer-reuse-window
+  ;;     display-buffer-use-some-window
+  ;;     display-buffer-pop-up-window)
+  ;;    (inhibit-same-window . t)))
+
+  (add-to-list
+   'display-buffer-alist
+   '("*nodejs*"
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      rh-display-buffer-reuse-down
+      rh-display-buffer-reuse-up
+      display-buffer-pop-up-window)))
 
   (add-to-list 'rm-blacklist " NodeJS Interaction")
 
