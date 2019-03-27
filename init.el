@@ -2271,6 +2271,7 @@ fields which we need."
   (setq ac-modes (delq 'c-mode ac-modes))
   (setq ac-modes (delq 'js-jsx-mode ac-modes))
   (setq ac-modes (delq 'js2-jsx-mode ac-modes))
+  (setq ac-modes (delq 'python-mode ac-modes))
 
   (ac-config-default)
 
@@ -3283,7 +3284,7 @@ fields which we need."
   (require 'auto-complete-c-headers)
   (require 'auto-complete-clang)
   (require 'rtags)
-  (require 'rh-cc-company)
+  (require 'rh-cc-mode-config)
 
   (defvar-local rh-c++-compiler "g++")
   (defvar-local rh-c++-std "-std=c++1z")
@@ -3782,12 +3783,17 @@ fields which we need."
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :config
+  (require 'rh-python-mode-config)
+
   (setq python-indent-offset 2)
 
   (add-hook
    'python-mode-hook
    (lambda ()
-     (rh-programming-minor-modes 1))))
+     (rh-programming-minor-modes 1)
+     (rh-python-company-setup)))
+
+  :defer t)
 
 ;; /b/} python-mode
 
