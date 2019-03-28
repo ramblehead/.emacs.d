@@ -3177,32 +3177,6 @@ fields which we need."
 
   (require 'rh-rtags-eldoc)
 
-  ;; (require 'company)
-  ;; (push 'company-rtags company-backends)
-
-  ;; TODO: add company support for my rtags settings
-  ;;       and remove auto-complete:
-  ;; (setq rtags-completions-enabled t)
-  ;; (require 'company)
-  ;; (push 'company-rtags company-backends)
-  ;; or better
-  ;; (push '(company-rtags company-keywords) company-backends)
-  ;; toggle on complete (setq rtags-spellcheck-enabled t)
-  ;; company-echo-truncate-lines
-
-  ;; (setq-local company-echo-truncate-lines nil)
-
-  ;; (add-hook
-  ;;  'company-completion-started-hook
-  ;;  (lambda (_)
-  ;;    (setq-local rtags-spellcheck-enabled t))
-  ;;  nil t)
-
-  ;; (add-hook
-  ;;  'company-after-completion-hook
-  ;;  (lambda (_)
-  ;;    (setq-local rtags-spellcheck-enabled t))
-
   (rtags-enable-standard-keybindings)
   (bind-key "C-c r d" #'rh-rtags-toggle-rdm-display c-mode-base-map)
   (bind-key "M-[" #'rtags-location-stack-back c-mode-base-map)
@@ -3218,34 +3192,6 @@ fields which we need."
 
   :defer t
   :pin manual)
-
-
-;; TODO: add eldoc support for my rtags settings
-;; see https://github.com/Andersbakken/rtags/issues/987
-
-;; (defun rtags-eldoc-function () (rtags-get-summary-text 1))
-
-;; (defun fontify-string (str mode)
-;;   "Return STR fontified according to MODE."
-;;   (with-temp-buffer
-;;         (insert str)
-;;         (delay-mode-hooks (funcall mode))
-;;         (font-lock-default-function mode)
-;;         (font-lock-default-fontify-region
-;;          (point-min) (point-max) nil)
-;;         (buffer-string)))
-
-;; (defun rtags-eldoc-function ()
-;;   (let ((summary (rtags-get-summary-text)))
-;;     (and summary
-;;          (fontify-string
-;;           (replace-regexp-in-string
-;;            "{[^}]*$" ""
-;;            (mapconcat
-;;             (lambda (str) (if (= 0 (length str)) "//" (string-trim str)))
-;;             (split-string summary "\r?\n")
-;;             " "))
-;;           major-mode))))
 
 (use-package modern-cpp-font-lock
   :commands modern-c++-font-lock-mode
@@ -3797,10 +3743,17 @@ fields which we need."
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
+  :commands (python-repl run-python)
   :config
   (require 'rh-python-mode-config)
 
+  (add-to-list
+   'display-buffer-alist
+   '("*Python*"
+     (display-buffer-same-window)))
+
   (setq python-indent-offset 2)
+  (setq python-shell-interpreter "python3")
 
   (add-hook
    'python-mode-hook
