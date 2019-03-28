@@ -36,13 +36,19 @@
 
 (require 'company)
 
-;;;###autoload
-(defun rh-python-company-setup ()
-  (interactive)
+(defalias 'python-repl 'run-python)
 
+(defadvice python-util-clone-local-variables
+    (around
+     rh-python-util-clone-local-variables (from-buffer)
+     activate)
+  (unless (string-match-p "\\.mako\\'" (buffer-name from-buffer))
+    ad-do-it))
+
+(defun rh-python-company-setup ()
   (setq-local company-backends
-              '((company-keywords company-dabbrev-code)
-                company-capf company-files (company-dabbrev company-ispell)))
+              '((company-capf company-keywords company-dabbrev-code)
+                company-files (company-dabbrev company-ispell)))
 
   (company-mode 1))
 
