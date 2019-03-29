@@ -3611,19 +3611,17 @@ fields which we need."
   ;;  'display-buffer-alist
   ;;  '("*nodejs*"
   ;;    (display-buffer-reuse-window
-  ;;     display-buffer-use-some-window
-  ;;     display-buffer-pop-up-window)
-  ;;    (inhibit-same-window . t)))
+  ;;     rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up
+  ;;     display-buffer-pop-up-window)))
 
   (add-to-list
    'display-buffer-alist
    '("*nodejs*"
      (display-buffer-reuse-window
-      rh-display-buffer-reuse-right
-      rh-display-buffer-reuse-left
-      rh-display-buffer-reuse-down
-      rh-display-buffer-reuse-up
-      display-buffer-pop-up-window)))
+      display-buffer-same-window)))
 
   (add-to-list 'rm-blacklist " NodeJS Interaction")
 
