@@ -2502,6 +2502,8 @@ fields which we need."
         (funcall rh-company-display-permanent-doc-buffer))
       (company-show-doc-buffer)))
 
+  (define-key company-active-map (kbd "M-l") #'company-show-location)
+
   ;; (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
   ;; (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
 
@@ -3158,7 +3160,7 @@ fields which we need."
   (add-hook
    'rtags-references-tree-mode-hook
    (lambda ()
-     (setq-local 'truncate-lines t)))
+     (setq-local truncate-lines t)))
 
   (add-hook
    'rtags-diagnostics-mode-hook
@@ -3733,6 +3735,12 @@ fields which we need."
 
   :after (lisp-mode ielm)
   :ensure t
+  :demand t)
+
+(use-package edebug
+  :config
+  (setq edebug-print-length nil)
+
   :demand t)
 
 (use-package lispy
