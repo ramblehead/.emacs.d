@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(ts-comint lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -3631,6 +3631,11 @@ fields which we need."
 
 (use-package nodejs-repl
   :config
+  (add-to-list 'rm-blacklist " NodeJS Interaction")
+
+  (setenv "NODE_NO_READLINE" "1")
+  (setenv "NODE_DISABLE_COLORS" "1")
+
   ;; (add-to-list
   ;;  'display-buffer-alist
   ;;  '("*nodejs*"
@@ -3646,8 +3651,6 @@ fields which we need."
    '("*nodejs*"
      (display-buffer-reuse-window
       display-buffer-same-window)))
-
-  (add-to-list 'rm-blacklist " NodeJS Interaction")
 
   (require 'config-nodejs-repl)
   (require 'company)
@@ -3671,13 +3674,6 @@ fields which we need."
   :pin manual)
 
 ;; /b/} rh-scratch-js
-
-;; /b/{ ts-comint
-
-(use-package ts-comint
-  :ensure t)
-
-;; /b/} ts-comint
 
 ;; /b/{ css-mode
 
