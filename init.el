@@ -2112,24 +2112,13 @@ fields which we need."
   (setq ivy-format-function #'ivy-format-function-line)
   (setq ivy-rich-path-style 'abbrev)
 
-  (defun rh-ivy-rich-switch-buffer-path (candidate)
-    (let ((result (ivy-rich-switch-buffer-path candidate)))
-      (if (string-empty-p result)
-          (propertize
-           (ivy-rich-switch-buffer-major-mode candidate)
-           'face 'shadow)
-        result)))
-
   (plist-put
    ivy-rich-display-transformers-list
    'ivy-switch-buffer
    '(:columns
      ((ivy-rich-candidate (:width 30))
-      (rh-ivy-rich-switch-buffer-path
-       (:width
-        (lambda (path)
-          (ivy-rich-switch-buffer-shorten-path
-           path (- (ivy-rich-minibuffer-width 1.0) 30))))))
+      (ivy-rich-switch-buffer-major-mode (:width 20 :face shadow))
+      (ivy-rich-switch-buffer-path))
      :predicate
      (lambda (cand)
        (get-buffer cand))))
