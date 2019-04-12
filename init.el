@@ -225,18 +225,16 @@
 ;; == Convenience interactive functions ==
 
 ;; My adaptation of the native emacs function balance-windows
-(defun vr-balance-windows-horizontally (&optional window-or-frame)
+(defun rh-balance-windows-horizontally (&optional window-or-frame)
   (interactive)
-  (let* ((window
-          (cond
-           ((or (not window-or-frame)
-                (frame-live-p window-or-frame))
-            (frame-root-window window-or-frame))
-           ((or (window-live-p window-or-frame)
-                (window-child window-or-frame))
-            window-or-frame)
-           (t
-            (error "Not a window or frame %s" window-or-frame))))
+  (let* ((window (cond
+                  ((or (not window-or-frame)
+                       (frame-live-p window-or-frame))
+                   (frame-root-window window-or-frame))
+                  ((or (window-live-p window-or-frame)
+                       (window-child window-or-frame))
+                   window-or-frame)
+                  (t (error "Not a window or frame %s" window-or-frame))))
          (frame (window-frame window)))
     ;; Balance horizontally.
     (window--resize-reset (window-frame window) t)
@@ -247,18 +245,16 @@
       (run-window-configuration-change-hook frame))))
 
 ;; My adaptation of the native emacs function balance-windows
-(defun vr-balance-windows-vertically (&optional window-or-frame)
+(defun rh-balance-windows-vertically (&optional window-or-frame)
   (interactive)
-  (let* ((window
-          (cond
-           ((or (not window-or-frame)
-                (frame-live-p window-or-frame))
-            (frame-root-window window-or-frame))
-           ((or (window-live-p window-or-frame)
-                (window-child window-or-frame))
-            window-or-frame)
-           (t
-            (error "Not a window or frame %s" window-or-frame))))
+  (let* ((window (cond
+                  ((or (not window-or-frame)
+                       (frame-live-p window-or-frame))
+                   (frame-root-window window-or-frame))
+                  ((or (window-live-p window-or-frame)
+                       (window-child window-or-frame))
+                   window-or-frame)
+                  (t (error "Not a window or frame %s" window-or-frame))))
          (frame (window-frame window)))
     ;; Balance vertically.
     (window--resize-reset (window-frame window))
@@ -1030,10 +1026,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
          ("M-s-<kp-left>" . shrink-window-horizontally)
          ("M-s-<right>" . enlarge-window-horizontally)
          ("M-s-<kp-right>" . enlarge-window-horizontally)
-         ("M-s-<kp-begin>" . vr-balance-windows-horizontally)
-         ("S-M-s-<kp-begin>" . vr-balance-windows-vertically)
-         ("M-s-'" . vr-balance-windows-horizontally)
-         ("M-s-\"" . vr-balance-windows-vertically)
+         ("M-s-<kp-begin>" . rh-balance-windows-horizontally)
+         ("S-M-s-<kp-begin>" . rh-balance-windows-vertically)
+         ("M-s-'" . rh-balance-windows-horizontally)
+         ("M-s-\"" . rh-balance-windows-vertically)
          ;; Move point between windows
          ;; see http://stackoverflow.com/questions/91071/emacs-switch-to-previous-window
          ("C-x <up>" . windmove-up)
