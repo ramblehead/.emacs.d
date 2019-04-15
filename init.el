@@ -1363,6 +1363,20 @@ Also sets SYMBOL to VALUE."
 
   :defer t)
 
+(use-package apropos
+  :config
+  (add-to-list
+   'display-buffer-alist
+   '("*Apropos*"
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      rh-display-buffer-reuse-down
+      rh-display-buffer-reuse-up
+      display-buffer-pop-up-window)))
+
+  :defer t)
+
 (use-package grep
   :config
   (add-to-list
