@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -2317,6 +2317,7 @@ fields which we need."
   (setq ac-modes (delq 'js-jsx-mode ac-modes))
   (setq ac-modes (delq 'js2-jsx-mode ac-modes))
   (setq ac-modes (delq 'python-mode ac-modes))
+  (setq ac-modes (delq 'scss-mode ac-modes))
 
   (ac-config-default)
 
@@ -3687,7 +3688,7 @@ fields which we need."
      (company-mode 1)))
 
   :bind (:map nodejs-repl-mode-map
-         ("TAB" . #'company-complete))
+         ("TAB" . company-complete))
   :defer t
   :ensure t)
 
@@ -3713,9 +3714,30 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
+
   :ensure t)
 
 ;; /b/} css-mode
+
+;; /b/{ scss-mode
+
+(use-package scss-mode
+  :config
+
+  (add-hook
+   'css-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes 1)
+     (company-mode 1)
+     (rh-project-setup)))
+
+  :bind (:map scss-mode-map
+         ("C-S-b" . recompile)
+         ("C-c b" . rh-compile-toggle-display))
+  :defer t
+  :ensure t)
+
+;; /b/} scss-mode
 
 ;; /b/{ web-beautify
 
