@@ -3436,7 +3436,7 @@ fields which we need."
      (rh-project-setup)))
 
   :bind (:map js-mode-map
-         ("<f7>" . #'rh-nodejs-interaction))
+         ("<f7>" . rh-nodejs-interaction))
   :defer t)
 
 ;; /b/} js-mode
@@ -3474,25 +3474,6 @@ fields which we need."
 ;;   :mode "\\.jsx\\'")
 
 ;; /b/} js2-mode
-
-;; /b/{ xref-js2
-
-;; (use-package xref-js2
-;;   :config
-;;   ;; (setq xref-js2-ignored-dirs (delete "node_modules" xref-js2-ignored-dirs))
-;;   (setq xref-js2-ignored-dirs '("build"))
-;;   (add-to-list 'xref-js2-ag-arguments "-t")
-
-;;   (defadvice xref-js2--root-dir (around rh-xref-js2--root-dir activate)
-;;     (setq ad-return-value
-;;           (or (let ((proj-root (rh-project-get-root)))
-;;                 (and proj-root
-;;                      (expand-file-name proj-root)))
-;;               ad-do-it)))
-
-;;   :ensure t)
-
-;; /b/} xref-js2
 
 ;; /b/{ js2-refactor
 
@@ -3701,6 +3682,44 @@ fields which we need."
   :pin manual)
 
 ;; /b/} rh-scratch-js
+
+;; /b/{ inter-node
+
+(use-package inter-node
+  :commands inter-node
+  :config
+  (add-to-list 'rm-blacklist " NodeJS")
+
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*nodejs*"
+  ;;    (display-buffer-reuse-window
+  ;;     rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up
+  ;;     display-buffer-pop-up-window)))
+
+  (add-to-list
+   'display-buffer-alist
+   '("*nodejs*"
+     (display-buffer-reuse-window
+      display-buffer-same-window)))
+
+  ;; (require 'config-inter-node)
+  ;; (require 'company)
+
+  ;; (add-hook
+  ;;  'inter-node-mode-hook
+  ;;  (lambda ()
+  ;;    (company-mode 1)))
+
+  ;; :bind (:map inter-node-mode-map
+  ;;        ("TAB" . company-complete))
+  :defer t
+  :pin manual)
+
+;; /b/} inter-node
 
 ;; /b/{ css-mode
 
