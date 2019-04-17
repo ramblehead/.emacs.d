@@ -3436,13 +3436,13 @@ fields which we need."
   :mode "\\.js\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "n" for nodejs-repl
-  :delight '((:eval (if (bound-and-true-p rh-nodejs-interaction)
+  :delight '((:eval (if (bound-and-true-p inter-node)
                         "js2λn"
                       "js2"))
              :major)
   :config
   (require 'config-js2-mode)
-  (require 'nodejs-repl)
+  ;; (require 'nodejs-repl)
   (require 'company)
 
   ;; Indentation style ajustments
@@ -3645,41 +3645,41 @@ fields which we need."
 
 ;; /b/{ nodejs-repl
 
-(use-package nodejs-repl
-  :config
-  (add-to-list 'rm-blacklist " NodeJS Interaction")
+;; (use-package nodejs-repl
+;;   :config
+;;   (add-to-list 'rm-blacklist " NodeJS Interaction")
 
-  (setenv "NODE_NO_READLINE" "1")
-  (setenv "NODE_DISABLE_COLORS" "1")
+;;   (setenv "NODE_NO_READLINE" "1")
+;;   (setenv "NODE_DISABLE_COLORS" "1")
 
-  ;; (add-to-list
-  ;;  'display-buffer-alist
-  ;;  '("*nodejs*"
-  ;;    (display-buffer-reuse-window
-  ;;     rh-display-buffer-reuse-right
-  ;;     rh-display-buffer-reuse-left
-  ;;     rh-display-buffer-reuse-down
-  ;;     rh-display-buffer-reuse-up
-  ;;     display-buffer-pop-up-window)))
+;;   ;; (add-to-list
+;;   ;;  'display-buffer-alist
+;;   ;;  '("*nodejs*"
+;;   ;;    (display-buffer-reuse-window
+;;   ;;     rh-display-buffer-reuse-right
+;;   ;;     rh-display-buffer-reuse-left
+;;   ;;     rh-display-buffer-reuse-down
+;;   ;;     rh-display-buffer-reuse-up
+;;   ;;     display-buffer-pop-up-window)))
 
-  (add-to-list
-   'display-buffer-alist
-   '("*nodejs*"
-     (display-buffer-reuse-window
-      display-buffer-same-window)))
+;;   (add-to-list
+;;    'display-buffer-alist
+;;    '("*nodejs*"
+;;      (display-buffer-reuse-window
+;;       display-buffer-same-window)))
 
-  (require 'config-nodejs-repl)
-  (require 'company)
+;;   (require 'config-nodejs-repl)
+;;   (require 'company)
 
-  (add-hook
-   'nodejs-repl-mode-hook
-   (lambda ()
-     (company-mode 1)))
+;;   (add-hook
+;;    'nodejs-repl-mode-hook
+;;    (lambda ()
+;;      (company-mode 1)))
 
-  :bind (:map nodejs-repl-mode-map
-         ("TAB" . #'company-complete))
-  :defer t
-  :ensure t)
+;;   :bind (:map nodejs-repl-mode-map
+;;          ("TAB" . #'company-complete))
+;;   :defer t
+;;   :ensure t)
 
 ;; /b/} nodejs-repl
 
