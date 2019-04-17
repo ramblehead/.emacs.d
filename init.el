@@ -3805,7 +3805,7 @@ fields which we need."
 
 (use-package edebug
   :config
-  (setq edebug-print-length nil)
+  (setq edebug-print-length -1)
 
   :demand t)
 
