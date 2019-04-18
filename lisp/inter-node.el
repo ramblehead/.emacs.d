@@ -1,3 +1,5 @@
+;;; ramblehead's inter-node
+
 ;; https://emacs.stackexchange.com/questions/692/asynchronously-wait-for-output-from-a-comint-process
 ;; https://emacs.stackexchange.com/questions/32449/content-was-split-in-the-functions-of-comint-preoutput-filter-functions
 
@@ -15,7 +17,7 @@
   :group 'nodejs-repl
   :type 'string)
 
-(defvar inter-node-repl-process-name "node-repl"
+(defvar inter-node-repl-process-name "inter-node-repl"
   "Process name of Node.js REPL")
 
 (defcustom inter-node-repl-start-js
@@ -41,7 +43,9 @@
 
 (defun inter-node--strip-all-ascii-escapes (string)
   "Strip ASCII Terminal Escape Sequences"
-  (replace-regexp-in-string "\\[[0-9;]*[a-zA-Z]\\|" "" string))
+  ;; \x1b is ^[ - RET ESCAPE
+  ;; \x0d is ^M - RET CARRIAGE RETURN
+  (replace-regexp-in-string "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
 
 (defun inter-node--dedup-prompt (string)
   "Deduplicate string with prompt"
@@ -52,6 +56,18 @@
 (defun inter-node--comint-preoutput-filter (output)
   (setq output (inter-node--strip-all-ascii-escapes output))
   (setq output (inter-node--dedup-prompt output)))
+
+(defun inter-node--wait-for-prompt (process)
+  (with-current-buffer (process-buffer process)
+    (let* ((buffer (current-buffer))
+           (last-line (inter-node--get-buffer-last-line buffer))
+           (prompt-regex (concat "^" inter-node-repl-prompt)))
+      (while (not (string-match-p prompt-regex last-line))
+        (unless (process-live-p process)
+          (error "Node.js REPL process terminated"))
+        (accept-process-output nil 0.01)
+        (setq last-line (inter-node--get-buffer-last-line buffer)))
+      (goto-char (point-max)))))
 
 (define-derived-mode inter-node-repl-mode comint-mode "Node.js REPL"
   "Major mode for Node.js REPL"
@@ -67,6 +83,7 @@
   (add-hook 'completion-at-point-functions
             'inter-node--completion-at-point-function nil t))
 
+;;;###autoload
 (defun inter-node-repl (&optional bury)
   "Run Node.js REPL"
   (interactive)
@@ -77,7 +94,8 @@
       (setq buffer (make-comint
                     inter-node-repl-process-name
                     "node" nil "-e" inter-node-repl-start-js))
-      (setq process (get-buffer-process buffer)))
+      (setq process (get-buffer-process buffer))
+      (inter-node--wait-for-prompt process))
     (with-current-buffer buffer (inter-node-repl-mode))
     (if bury
         (bury-buffer buffer)
@@ -102,25 +120,19 @@
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defun inter-node--get-buffer-last-line (buffer)
-  (save-excursion
-    (set-buffer buffer)
-    (goto-char (point-max))
-    (buffer-substring-no-properties
-     (line-beginning-position)
-     (line-end-position))))
+;; Shamelessly stolen from nodejs-repl-clear-line
+(defun inter-node--clear-process-input (process)
+  "Send ^U (NEGATIVE ACKNOWLEDGEMENT) to Node.js process."
+  (process-send-string process "\x15"))
 
-(defun inter-node--wait-for-prompt (process)
-  (with-current-buffer (process-buffer process)
-    (let* ((buffer (current-buffer))
-           (last-line (inter-node--get-buffer-last-line buffer))
-           (prompt-regex (concat "^" inter-node-repl-prompt)))
-      (while (not (string-match-p prompt-regex last-line))
-        (unless (process-live-p process)
-          (error "Node.js REPL process terminated"))
-        (accept-process-output nil 0.01)
-        (setq last-line (inter-node--get-buffer-last-line buffer)))
-      (goto-char (point-max)))))
+(defun inter-node--get-buffer-last-line (buffer)
+  (let ((inhibit-field-text-motion t))
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-max))
+      (buffer-substring-no-properties
+       (line-beginning-position)
+       (line-end-position)))))
 
 (defun inter-node--send-to-process-filter (process string)
   (with-current-buffer (process-buffer process)
@@ -150,7 +162,8 @@
          (marker-position-orig (marker-position (process-mark process)))
          (process-filter-orig (process-filter process))
          (process-buffer-orig (process-buffer process))
-         (input (concat ".editor\n" string "")))
+         ;; \x04 is ^D - END OF TRANSMISSION
+         (input (concat ".editor\n" string "\x04")))
     (with-temp-buffer
     ;; (with-current-buffer "dbg"
       (unwind-protect
@@ -213,13 +226,13 @@
             (set-process-filter
              process #'inter-node--send-to-process-filter)
             (set-marker (process-mark process) (point-min))
-            (process-send-string process "")
+            (inter-node--clear-process-input process)
             (inter-node--wait-for-prompt process)
             (process-send-string process (concat string "\t"))
             (while (accept-process-output process 0.01))
             (process-send-string process "\t")
             (while (accept-process-output process 0.01))
-            (process-send-string process "")
+            (inter-node--clear-process-input process)
             (inter-node--wait-for-prompt process))
         (set-process-buffer process process-buffer-orig)
         (set-process-filter process process-filter-orig)
@@ -231,7 +244,7 @@
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; inter-node mode
+;;; inter-node-mode - minor NodeJS REPL interaction mode
 ;; -------------------------------------------------------------------
 ;; /b/{
 
@@ -249,6 +262,7 @@
     (with-current-buffer (process-buffer process)
       (inter-node-do-java-script-sync js-string))))
 
+;;;###autoload
 (defun inter-node-eval (beg &optional end)
   (interactive (if (use-region-p)
                    (list (region-beginning) (region-end))
@@ -261,22 +275,23 @@
         (insert output))
     (message (inter-node--eval beg end))))
 
+;;;###autoload
 (defun inter-node-eval-buffer ()
   (interactive)
   (message (inter-node--eval (point-min) (point-max))))
 
-(defvar inter-node-map
+(defvar inter-node-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<f5>") #'inter-node-eval)
     (define-key map (kbd "C-<f5>") #'inter-node-eval-buffer)
     map))
 
-(define-minor-mode inter-node
-  "Minor mode for interacting with a nodejs from other (e.g js) buffers."
-  nil
-  :lighter " NodeJS"
-  :keymap inter-node-map
-  (if inter-node
+;;;###autoload
+(define-minor-mode inter-node-mode
+  "Minor mode for interacting with NodeJS from other (e.g js) buffers"
+  :lighter " inter-node"
+  :keymap inter-node-mode-keymap
+  (if inter-node-mode
       (progn
         (inter-node-repl t)
         (add-hook 'completion-at-point-functions
@@ -284,33 +299,47 @@
     (remove-hook 'completion-at-point-functions
                  'inter-node--completion-at-point-function t)))
 
-;;; inter-node mode
+;;; inter-node-mode
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; Auto-completion functions
+;;; auto-completion functions
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+;; TODO: * Do not do anything if inside string
+;;       * Remove comments
+
 (defun inter-node--extract-completion-input (raw-input)
+  ;; Strip '// ... \n' - style comments
+  (setq raw-input
+        (replace-regexp-in-string "//.*$" "" raw-input))
+  ;; Replace all control and white space characters with a single space
   (setq raw-input
         (replace-regexp-in-string "[[:blank:][:cntrl:]]+" " " raw-input))
+  ;; Strip '/* ... */' - style comments
+  (setq raw-input
+        (replace-regexp-in-string "/\\*.*\\*/" "" raw-input))
+  ;; Replace multiple space sequences with single space
+  (setq raw-input
+        (replace-regexp-in-string " +" " " raw-input))
   (setq raw-input (string-trim-left raw-input))
+  ;; Remove spaces around '.' operator
   (setq raw-input (replace-regexp-in-string " ?\\. ?" "." raw-input))
-  ;; (substring raw-input (string-match-p "[^[:blank:]]*$" raw-input))
+  ;; Get last valid JavaScript symbol
   (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input)))
 
 (defun inter-node--extract-completion-prefix (input)
   (substring input (string-match-p "[^\\.]*$" input)))
 
-;; TODO: * Do not do anything if inside string
-;;       * Remove comments
-
 (defun inter-node--get-completion-raw-input ()
-  (let (end)
+  (let ((regex "[^[:alnum:][:blank:][:cntrl:]_/\\*\\$\\.]")
+        end)
     (save-excursion
       (setq end (point))
-      (search-backward-regexp "[^[:alnum:][:blank:][:cntrl:]_/\\*\\$\\.]")
+      (if (fboundp 'js--re-search-backward)
+          (js--re-search-backward regex)
+        (search-backward-regexp regex))
       (buffer-substring-no-properties (point) end))))
 
 (defun inter-node--completion-at-point-function ()
@@ -320,12 +349,44 @@
           (setq input (buffer-substring-no-properties
                        (comint-line-beginning-position)
                        (point))))
-      (setq input (inter-node--get-completion-raw-input)))
+      ;; unless cursor is inside string/comment
+      ;; see http://ergoemacs.org/emacs/
+      ;;     elisp_determine_cursor_inside_string_or_comment.html
+      (let ((ppss (syntax-ppss)))
+        (unless (or (nth 3 ppss) (nth 4 ppss))
+          (setq input (inter-node--get-completion-raw-input)))))
     (when input
       (setq input (inter-node--extract-completion-input input))
       (list (- (point) (length (inter-node--extract-completion-prefix input)))
             (point)
             (inter-node-get-tab-completions-sync input)))))
 
-;;; Auto-completion functions
+;; ;;;###autoload
+;; (defun company-tide (command &optional arg &rest ignored)
+;;   (interactive (list 'interactive))
+;;   (cl-case command
+;;     (interactive (company-begin-backend 'company-tide))
+;;     (prefix (and
+;;              (bound-and-true-p tide-mode)
+;;              (-any-p #'derived-mode-p tide-supported-modes)
+;;              (tide-current-server)
+;;              (not (nth 4 (syntax-ppss)))
+;;              (or (tide-completion-prefix) 'stop)))
+;;     (candidates (cons :async
+;;                       (lambda (cb)
+;;                         (tide-command:completions arg cb))))
+;;     (sorted t)
+;;     (ignore-case tide-completion-ignore-case)
+;;     (meta (tide-completion-meta arg))
+;;     (annotation (tide-completion-annotation arg))
+;;     (doc-buffer (tide-completion-doc-buffer arg))
+;;     (post-completion (tide-post-completion arg))))
+
+;; (eval-after-load 'company
+;;   '(progn
+;;      (cl-pushnew 'company-tide company-backends)))
+
+;;; auto-completion functions
 ;; /b/}
+
+(provide 'inter-node)

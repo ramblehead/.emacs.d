@@ -3447,7 +3447,7 @@ fields which we need."
   :mode "\\.js\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "n" for nodejs-repl
-  :delight '((:eval (if (bound-and-true-p inter-node)
+  :delight '((:eval (if (bound-and-true-p inter-node-mode)
                         "js2λn"
                       "js2"))
              :major)
@@ -3465,7 +3465,9 @@ fields which we need."
   (add-hook
    'js2-mode-hook
    (lambda ()
-     ;; (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)
+     (setq-local company-backends
+                 '((company-keywords company-dabbrev-code)
+                   company-files (company-dabbrev company-ispell)))
      (company-mode 1)))
 
   :ensure t)
@@ -3686,36 +3688,23 @@ fields which we need."
 ;; /b/{ inter-node
 
 (use-package inter-node
-  :commands inter-node
+  :commands (inter-node-mode
+             inter-node-repl
+             inter-node-eval
+             inter-node-eval-buffer)
   :config
-  (add-to-list 'rm-blacklist " NodeJS")
-
-  ;; (add-to-list
-  ;;  'display-buffer-alist
-  ;;  '("*nodejs*"
-  ;;    (display-buffer-reuse-window
-  ;;     rh-display-buffer-reuse-right
-  ;;     rh-display-buffer-reuse-left
-  ;;     rh-display-buffer-reuse-down
-  ;;     rh-display-buffer-reuse-up
-  ;;     display-buffer-pop-up-window)))
+  (add-to-list ' rm-blacklist " inter-node")
 
   (add-to-list
    'display-buffer-alist
-   '("*nodejs*"
+   '("*inter-node-repl*"
      (display-buffer-reuse-window
       display-buffer-same-window)))
 
-  ;; (require 'config-inter-node)
-  ;; (require 'company)
+  ;; Using company-capf until a proper company back-end is implemented
+  (require 'company-capf)
+  (bind-key "C-x C-<tab>" #'company-capf inter-node-mode-keymap)
 
-  ;; (add-hook
-  ;;  'inter-node-mode-hook
-  ;;  (lambda ()
-  ;;    (company-mode 1)))
-
-  ;; :bind (:map inter-node-mode-map
-  ;;        ("TAB" . company-complete))
   :defer t
   :pin manual)
 
