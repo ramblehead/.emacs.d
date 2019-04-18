@@ -181,9 +181,6 @@
       (inter-node--get-java-script-output string))))
 
 (defun inter-node--get-tab-completions-output (input-string)
-  ;; (let ((input-string-len (length input-string))
-  ;;       (prompt-regex (concat "^" inter-node-repl-prompt))
-  ;;       beg end output-string)
   (let (beg end output-string candidates candidate prefix-length)
     (save-excursion
       (goto-char (point-min))
@@ -201,16 +198,14 @@
         (setq candidate (car candidates))
         (string-match "^\\(.+\\.\\)[^[:blank:][:cntrl:]\\.]+" candidate)
         (setq prefix-length (length (match-string 1 candidate))))
-      (nreverse (seq-reduce
-       (lambda (result candidate)
-         (if (string-empty-p candidate)
-             result
-           (push (substring candidate prefix-length) result)))
-       candidates ()))
 
-      ;; (unless (eq beg end)
-      ;;   (delete "" (split-string output-string "[\r\n]+")))
-      )))
+      (nreverse
+       (seq-reduce
+        (lambda (result candidate)
+          (if (string-empty-p candidate)
+              result
+            (push (substring candidate prefix-length) result)))
+        candidates ())))))
 
 (defun inter-node-get-tab-completions-sync (string)
   "Get Node.js REPL tab-completions"
@@ -248,19 +243,29 @@
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+;;;###autoload
+(defun inter-node-eval-expression (js-expr)
+  (interactive "sEval NodeJS: ")
+  (inter-node-do-java-script-sync js-expr))
+
+(defun inter-node--in-bol-p ()
+  "Returns t if point in the beginning of line excluding white space"
+  (string-blank-p
+   (buffer-substring-no-properties (line-beginning-position) (point))))
+
 (defun inter-node--eval (beg end)
   (unless end (setq end beg))
-  (let ((js-string (if (/= beg end)
-                       (buffer-substring-no-properties beg end)
-                     (if (eq (point) (line-beginning-position))
-                         ;; consider using (js--forward-expression) here...
-                         (thing-at-point 'line t)
-                       (thing-at-point 'symbol t))))
+  (let ((js-expr (if (/= beg end)
+                     (buffer-substring-no-properties beg end)
+                   (if (inter-node--in-bol-p)
+                       ;; consider using (js--forward-expression) here...
+                       (thing-at-point 'line t)
+                     (thing-at-point 'symbol t))))
         (process (get-process inter-node-repl-process-name)))
     (unless process
       (setq process (inter-node-repl t)))
     (with-current-buffer (process-buffer process)
-      (inter-node-do-java-script-sync js-string))))
+      (inter-node-do-java-script-sync js-expr))))
 
 ;;;###autoload
 (defun inter-node-eval (beg &optional end)
@@ -283,6 +288,7 @@
 (defvar inter-node-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<f5>") #'inter-node-eval)
+    (define-key map (kbd "S-<f5>") #'inter-node-eval-expression)
     (define-key map (kbd "C-<f5>") #'inter-node-eval-buffer)
     map))
 
@@ -307,9 +313,6 @@
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-;; TODO: * Do not do anything if inside string
-;;       * Remove comments
-
 (defun inter-node--extract-completion-input (raw-input)
   ;; Strip '// ... \n' - style comments
   (setq raw-input
@@ -326,7 +329,7 @@
   (setq raw-input (string-trim-left raw-input))
   ;; Remove spaces around '.' operator
   (setq raw-input (replace-regexp-in-string " ?\\. ?" "." raw-input))
-  ;; Get last valid JavaScript symbol
+  ;; get last valid JavaScript symbol
   (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input)))
 
 (defun inter-node--extract-completion-prefix (input)
@@ -342,6 +345,16 @@
         (search-backward-regexp regex))
       (buffer-substring-no-properties (point) end))))
 
+(defun inter-node--in-string-p ()
+  "Returns t if point is inside string
+see http://ergoemacs.org/emacs/elisp_determine_cursor_inside_string_or_comment.html"
+  (nth 3 (syntax-ppss)))
+
+(defun inter-node--in-comment-p ()
+  "Returns t if point is inside comment
+see http://ergoemacs.org/emacs/elisp_determine_cursor_inside_string_or_comment.html"
+  (nth 4 (syntax-ppss)))
+
 (defun inter-node--completion-at-point-function ()
   (let (input)
     (if (eq major-mode 'inter-node-repl-mode)
@@ -349,12 +362,8 @@
           (setq input (buffer-substring-no-properties
                        (comint-line-beginning-position)
                        (point))))
-      ;; unless cursor is inside string/comment
-      ;; see http://ergoemacs.org/emacs/
-      ;;     elisp_determine_cursor_inside_string_or_comment.html
-      (let ((ppss (syntax-ppss)))
-        (unless (or (nth 3 ppss) (nth 4 ppss))
-          (setq input (inter-node--get-completion-raw-input)))))
+      (unless (or (inter-node--in-string-p) (inter-node--in-comment-p))
+        (setq input (inter-node--get-completion-raw-input))))
     (when input
       (setq input (inter-node--extract-completion-input input))
       (list (- (point) (length (inter-node--extract-completion-prefix input)))
