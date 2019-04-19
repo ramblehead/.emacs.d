@@ -1,7 +1,9 @@
-;;; ramblehead's inter-node
-
-;; https://emacs.stackexchange.com/questions/692/asynchronously-wait-for-output-from-a-comint-process
-;; https://emacs.stackexchange.com/questions/32449/content-was-split-in-the-functions-of-comint-preoutput-filter-functions
+;;; inter-node.el --- Minor Node.JS Interaction Mode and Minimalist Node.JS REPL
+;;
+;; Description: Execute JavaScript commands in Node.JS
+;;              directly from JavaScript buffers.
+;; Author: Victor Rybynok (aka ramblehead)
+;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
 ;; -------------------------------------------------------------------
 ;;; Minimalist Node.js REPL for inter-node minor mode
@@ -19,6 +21,9 @@
 
 (defvar inter-node-repl-process-name "inter-node-repl"
   "Process name of Node.js REPL")
+
+(defvar inter-node-command "node"
+  "Command to start Node.JS")
 
 (defcustom inter-node-repl-start-js
   (concat
@@ -93,7 +98,7 @@
         (setq buffer (process-buffer process))
       (setq buffer (make-comint
                     inter-node-repl-process-name
-                    "node" nil "-e" inter-node-repl-start-js))
+                    inter-node-command nil "-e" inter-node-repl-start-js))
       (setq process (get-buffer-process buffer))
       (inter-node--wait-for-prompt process))
     (with-current-buffer buffer (inter-node-repl-mode))
