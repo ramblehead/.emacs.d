@@ -251,7 +251,7 @@
 ;;;###autoload
 (defun inter-node-eval-expression (js-expr)
   (interactive "sEval NodeJS: ")
-  (inter-node-do-java-script-sync js-expr))
+  (message (inter-node-do-java-script-sync js-expr)))
 
 (defun inter-node--in-bol-p ()
   "Returns t if point in the beginning of line excluding white space"
