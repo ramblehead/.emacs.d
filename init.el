@@ -3458,7 +3458,7 @@ fields which we need."
 (use-package js2-mode
   :mode "\\.js\\'"
   :interpreter "node"
-  ;; "λ" stands for interactive and "n" for nodejs-repl
+  ;; "λ" stands for interactive and "n" for Node.JS
   :delight '((:eval (if (bound-and-true-p inter-node-mode)
                         "js2λn"
                       "js2"))
@@ -3477,6 +3477,9 @@ fields which we need."
   (add-hook
    'js2-mode-hook
    (lambda ()
+     (setq-local rm-blacklist (seq-copy rm-blacklist))
+     (add-to-list 'rm-blacklist " inter-node")
+
      (setq-local company-backends
                  '((company-keywords company-dabbrev-code)
                    company-files (company-dabbrev company-ispell)))
@@ -3705,8 +3708,6 @@ fields which we need."
              inter-node-eval
              inter-node-eval-buffer)
   :config
-  (add-to-list ' rm-blacklist " inter-node")
-
   (add-to-list
    'display-buffer-alist
    '("*inter-node-repl*"
