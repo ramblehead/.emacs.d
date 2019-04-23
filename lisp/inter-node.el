@@ -58,9 +58,21 @@
          (regexp (concat p "\\(.*\\)\\(" p "\\1\\)+")))
     (replace-regexp-in-string regexp "\\2" string)))
 
+(defun inter-node--rewrite-output-sequence-p (string)
+  ;; \x1b is ^[ - RET ESCAPE
+  (string-match-p "\x1b\\[1G\x1b\\[0J\\(.*?\\)\x1b\\[3G" string))
+
 (defun inter-node--comint-preoutput-filter (output)
-  (setq output (inter-node--strip-all-ascii-escapes output))
-  (setq output (inter-node--dedup-prompt output)))
+  (let ((rewrite (inter-node--rewrite-output-sequence-p output)))
+    (setq output (inter-node--strip-all-ascii-escapes output))
+    (setq output (inter-node--dedup-prompt output))
+    (if (and rewrite
+             (string-match-p (concat "^" (regexp-quote output))
+                             (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (line-end-position))))
+        ""
+      output)))
 
 (defun inter-node--wait-for-prompt (process)
   (with-current-buffer (process-buffer process)
@@ -78,6 +90,9 @@
   "Major mode for Node.js REPL"
   (add-hook 'comint-preoutput-filter-functions
             #'inter-node--comint-preoutput-filter nil t)
+
+  ;; (add-hook 'comint-output-filter-functions
+  ;;           #'inter-node--comint-output-filter nil t)
 
   ;; (setq-local font-lock-defaults '(nil nil t))
 
@@ -113,8 +128,8 @@
                     inter-node-repl-process-name
                     inter-node-command nil "-e" inter-node-repl-start-js))
       (setq process (get-buffer-process buffer))
-      (inter-node--wait-for-prompt process))
-    (with-current-buffer buffer (inter-node-repl-mode))
+      (inter-node--wait-for-prompt process)
+      (with-current-buffer buffer (inter-node-repl-mode)))
     (if bury
         (bury-buffer buffer)
       (pop-to-buffer buffer))
