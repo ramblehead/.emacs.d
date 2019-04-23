@@ -86,7 +86,20 @@
   (setq-local comint-use-prompt-regexp t)
 
   (add-hook 'completion-at-point-functions
-            'inter-node--completion-at-point-function nil t))
+            #'inter-node--completion-at-point-function nil t))
+
+;; (defadvice set-process-window-size
+;;     (around inter-node--set-process-window-size (process height width) activate)
+;;   (if (string= (process-name process) inter-node-repl-process-name)
+;;     ad-do-it))
+
+(defun inter-node--set-process-window-size (orig-fun process height width)
+  (if (string= (process-name process) inter-node-repl-process-name)
+      (funcall orig-fun process 0 0)
+    (funcall orig-fun process height width)))
+
+(advice-add 'set-process-window-size :around
+            #'inter-node--set-process-window-size)
 
 ;;;###autoload
 (defun inter-node-repl (&optional bury)
