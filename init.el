@@ -1153,6 +1153,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   :ensure t)
 
 (use-package rich-minority
+  :config
+
+  (defun rh-rm-minor-modes ()
+    (interactive)
+    (message
+     (substring-no-properties
+      (mapconcat
+       (lambda (pair)
+         (format "%s (%S)" (string-trim-left (car pair)) (cdr pair)))
+       (delq nil (mapcar #'rm-format-mode-line-entry minor-mode-alist))
+       "\n"))))
+
   :demand t
   :ensure t)
 
