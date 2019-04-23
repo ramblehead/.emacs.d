@@ -29,7 +29,7 @@
   (concat
    "let repl = require('repl');"
    ;; Do not split long lines to fit terminal width.
-   ;; emacs should wrap or trim long lines instead.
+   ;; emacs should wrap or trim them instead.
    "process.stdout.columns = 0;"
    "process.stdout.rows = 0;"
    "process.stdout.on('resize', () => {"
