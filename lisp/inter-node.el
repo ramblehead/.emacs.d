@@ -12,6 +12,7 @@
 
 (defgroup inter-node nil
   "Node.js REPL and its minor interaction mode"
+  :prefix "inter-node-"
   :group 'processes)
 
 (defcustom inter-node-repl-prompt "> "

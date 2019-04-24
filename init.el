@@ -4182,6 +4182,7 @@ fields which we need."
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
+  (setq tide-completion-enable-autoimport-suggestions nil)
 
   ;; (add-hook
   ;;  'tide-mode-hook
