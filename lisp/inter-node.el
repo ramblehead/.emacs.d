@@ -128,7 +128,8 @@
       (with-current-buffer (process-buffer process)
         (insert ".exit")
         (comint-send-input)
-        (current-buffer)))))
+        (current-buffer))
+      (message "Process %s finished" inter-node-repl-process-name))))
 
 ;;; Minimalist Node.js REPL for inter-repl minor mode
 ;; /b/}
