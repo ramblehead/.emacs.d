@@ -268,20 +268,62 @@
   (interactive "sEval NodeJS: ")
   (message (inter-node-do-java-script-sync js-expr)))
 
-(defun inter-node--in-bol-p ()
-  "Returns t if point in the beginning of line excluding white space"
+(defun inter-node--js2-forward-expression-p ()
+  "Returns t if point is looking at \"=\" or \";\" excluding white space."
+  (save-excursion
+    (js2-forward-sws)
+    (or (looking-at "=[^=]*")
+        (looking-at "`")
+        (looking-at "\\.")
+        (looking-at "("))))
+
+(defun inter-node--js2-forward-expression ()
+  "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
+skip forward unconditionally first time and then while
+`inter-node--js2-mode-forward-sexp-p' returns t."
+  (js2-mode-forward-sexp)
+  (while (inter-node--js2-forward-expression-p)
+    (js2-mode-forward-sexp)))
+
+(defun inter-node--js2-expression-at-pos-beg-end (pos)
+  (let (beg end)
+    (save-excursion
+      (goto-char pos)
+      (js2-forward-sws)
+      (when (looking-at "var\\b\\|let\\b\\|const\\b")
+        (right-word)
+        (js2-forward-sws))
+      (setq beg (point))
+      (inter-node--js2-forward-expression)
+      (setq end (point)))
+    (cons beg end)))
+
+(defun inter-node--pos-inside-symbol-p (pos)
+  "Returns t if POS is in inside symbol."
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (and bounds
+         (> pos (car bounds))
+         (< pos (cdr bounds)))))
+
+(defun inter-node--pos-at-bol-p (pos)
+  "Returns t if POS is in the beginning of line excluding white space."
   (string-blank-p
-   (buffer-substring-no-properties (line-beginning-position) (point))))
+   (buffer-substring-no-properties (line-beginning-position) pos)))
+
+(defun inter-node--expression-at-pos-beg-end (pos)
+  (let (bounds)
+    (if (eq major-mode 'js2-mode)
+        (if (inter-node--pos-inside-symbol-p pos)
+            (setq bounds (bounds-of-thing-at-point 'symbol))
+          (setq bounds (inter-node--js2-expression-at-pos-beg-end pos)))
+      (if (inter-node--pos-at-bol-p pos)
+          (setq bounds (cons (line-beginning-position) (line-end-position)))
+        (setq bounds (bounds-of-thing-at-point 'symbol))))
+    bounds))
 
 (defun inter-node--eval (beg end)
-  (unless end (setq end beg))
-  (let ((js-expr (if (/= beg end)
-                     (buffer-substring-no-properties beg end)
-                   (if (inter-node--in-bol-p)
-                       ;; consider using (js--forward-expression) here...
-                       (thing-at-point 'line t)
-                     (thing-at-point 'symbol t))))
-        (process (get-process inter-node-repl-process-name)))
+  (let* ((js-expr (buffer-substring-no-properties beg end))
+         (process (get-process inter-node-repl-process-name)))
     (unless process
       (setq process (inter-node-repl t)))
     (with-current-buffer (process-buffer process)
@@ -291,14 +333,20 @@
 (defun inter-node-eval (beg &optional end)
   (interactive (if (use-region-p)
                    (list (region-beginning) (region-end))
-                 (list (point) (point))))
+                 (list (point) nil)))
+  (when (null end)
+    (let ((bounds (inter-node--expression-at-pos-beg-end beg)))
+      (setq beg (car bounds)
+            end (cdr bounds))))
   (if current-prefix-arg
       (save-excursion
         (setq output (inter-node--eval beg end))
         (end-of-line)
         (newline)
         (insert output))
-    (message (inter-node--eval beg end))))
+    (message (inter-node--eval beg end)))
+  (unless (use-region-p)
+    (pulse-momentary-highlight-region beg end 'next-error)))
 
 ;;;###autoload
 (defun inter-node-eval-buffer ()
