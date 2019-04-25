@@ -274,6 +274,7 @@
     (js2-forward-sws)
     (or (looking-at "=[^=]*")
         (looking-at "`")
+        (looking-at "\\[")
         (looking-at "\\.")
         (looking-at "("))))
 
