@@ -278,6 +278,16 @@
         (looking-at "\\.")
         (looking-at "("))))
 
+(defun inter-node--get-log-buffer ()
+  (let* ((name (concat "*" "inter-node-log" "*"))
+         (buffer (get-buffer name)))
+    (or buffer
+        (progn
+          (setq buffer (get-buffer-create name))
+          (with-current-buffer buffer
+            (inter-node-log-mode))
+          buffer))))
+
 (defun inter-node--js2-forward-expression ()
   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
 skip forward unconditionally first time and then while
@@ -339,13 +349,21 @@ skip forward unconditionally first time and then while
     (let ((bounds (inter-node--expression-at-pos-beg-end beg)))
       (setq beg (car bounds)
             end (cdr bounds))))
-  (if current-prefix-arg
-      (save-excursion
-        (setq output (inter-node--eval beg end))
-        (end-of-line)
-        (newline)
-        (insert output))
-    (message (inter-node--eval beg end)))
+  (let (input output)
+    (if current-prefix-arg
+        (save-excursion
+          (setq output (inter-node--eval beg end))
+          (end-of-line)
+          (newline)
+          (insert output))
+      (setq input (buffer-substring-no-properties beg end))
+      (setq output (inter-node--eval beg end))
+      (with-current-buffer (inter-node--get-log-buffer)
+        (insert input)
+        (newline 2)
+        (insert output)
+        (newline 2))
+      (message output)))
   (unless (use-region-p)
     (pulse-momentary-highlight-region beg end 'next-error)))
 
@@ -363,7 +381,7 @@ skip forward unconditionally first time and then while
 
 ;;;###autoload
 (define-minor-mode inter-node-mode
-  "Minor mode for interacting with NodeJS from other (e.g js) buffers"
+  "Minor mode for interacting with NodeJS from other (e.g js) buffers."
   :lighter " inter-node"
   :keymap inter-node-mode-keymap
   (if inter-node-mode
@@ -374,11 +392,17 @@ skip forward unconditionally first time and then while
     (remove-hook 'completion-at-point-functions
                  'inter-node--completion-at-point-function t)))
 
+(define-derived-mode inter-node-log-mode fundamental-mode "inter-node-log"
+  "Major mode for inter-node log."
+  :lighter " inter-node-log"
+  ;; (setq-local buffer-read-only t)
+  (setq-local window-point-insertion-type t))
+
 ;;; inter-node-mode
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; auto-completion functions
+;;; completion functions
 ;; -------------------------------------------------------------------
 ;; /b/{
 
