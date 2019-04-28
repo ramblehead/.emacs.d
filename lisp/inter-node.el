@@ -28,7 +28,8 @@
 
 (defcustom inter-node-repl-start-js
   (concat
-   "let repl = require('repl');"
+   "const repl = require('repl');"
+   "const util = require('util');"
    ;; Do not split long lines to fit terminal width.
    ;; emacs should wrap or trim them instead.
    "process.stdout.columns = 0;"
@@ -41,6 +42,7 @@
    "  prompt: '" inter-node-repl-prompt "',"
    "  useGlobal: false,"
    "  replMode: repl.REPL_MODE_SLOPPY,"
+   "  writer: output => util.inspect(output, { maxArrayLength: null }),"
    ;; "  writer: output => output,"
    "})")
   "JavaScript expression used to start Node.js REPL"
@@ -349,21 +351,25 @@ skip forward unconditionally first time and then while
     (let ((bounds (inter-node--expression-at-pos-beg-end beg)))
       (setq beg (car bounds)
             end (cdr bounds))))
-  (let (input output)
+  (let* ((log-buffer (inter-node--get-log-buffer))
+         (input (buffer-substring-no-properties beg end))
+         (output (inter-node--eval beg end)))
     (if current-prefix-arg
         (save-excursion
-          (setq output (inter-node--eval beg end))
           (end-of-line)
           (newline)
           (insert output))
-      (setq input (buffer-substring-no-properties beg end))
-      (setq output (inter-node--eval beg end))
-      (with-current-buffer (inter-node--get-log-buffer)
+      (with-current-buffer log-buffer
+        (goto-char (point-max))
+        (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
         (insert input)
-        (newline 2)
+        (insert "\n\n")
+        (insert "// /b/= node\n\n")
         (insert output)
-        (newline 2))
-      (message output)))
+        (insert "\n\n")
+        (insert "// /b/}\n\n"))
+      (unless (get-buffer-window log-buffer 'visible)
+        (message output))))
   (unless (use-region-p)
     (pulse-momentary-highlight-region beg end 'next-error)))
 
