@@ -265,6 +265,20 @@
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+(defun inter-node--get-log-buffer ()
+  (let* ((name (concat "*" "inter-node-log" "*"))
+         (buffer (get-buffer name)))
+    (or buffer
+        (progn
+          (setq buffer (get-buffer-create name))
+          (with-current-buffer buffer
+            (inter-node-log-mode))
+          buffer))))
+
+(defun inter-node-log-buffer ()
+  (interactive)
+  (display-buffer (inter-node--get-log-buffer)))
+
 ;;;###autoload
 (defun inter-node-eval-expression (js-expr)
   (interactive "sEval NodeJS: ")
@@ -279,16 +293,6 @@
         (looking-at "\\[")
         (looking-at "\\.")
         (looking-at "("))))
-
-(defun inter-node--get-log-buffer ()
-  (let* ((name (concat "*" "inter-node-log" "*"))
-         (buffer (get-buffer name)))
-    (or buffer
-        (progn
-          (setq buffer (get-buffer-create name))
-          (with-current-buffer buffer
-            (inter-node-log-mode))
-          buffer))))
 
 (defun inter-node--js2-forward-expression ()
   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to

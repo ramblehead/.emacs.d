@@ -2919,12 +2919,12 @@ fields which we need."
   "Enables some minor modes, useful for programming."
   (interactive)
   (let* ((toggle (not enable-supplied-p))
-         (enabled (local-variable-p 'vr-prog-modes))
+         (enabled (local-variable-p 'rh-prog-modes))
          (enabling (if toggle (if enabled nil t) enable))
          (disabling (not enabling)))
     (if (and (not enabled) enabling)
         (progn
-          (set (make-local-variable 'vr-prog-modes) t)
+          (set (make-local-variable 'rh-prog-modes) t)
           ;; (linum-mode 1)
           ;; (nlinum-mode 1)
           (rh-show-paren-local-mode 1)
@@ -2940,7 +2940,7 @@ fields which we need."
           ;; (message "Enablibling programming modes")
           )
       (when (and enabled disabling)
-        (kill-local-variable 'vr-prog-modes)
+        (kill-local-variable 'rh-prog-modes)
         ;; (linum-mode -1)
         ;; (nlinum-mode -1)
         (rh-show-paren-local-mode -1)
