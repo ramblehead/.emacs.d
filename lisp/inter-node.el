@@ -5,6 +5,36 @@
 ;; Author: Victor Rybynok (aka ramblehead)
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
+
+;; (shell-command-to-string "ls")
+
+;; (require 'json)
+
+;; (setq-local ts-expr "const x: string = \"xxx\"")
+;; (setq-local jsi-babel-dir nil) ; nil, 'file, 'pwd, ""
+;; (setq-local jsi-babel-dir-default "/home/rh/projects/s600-solution/wtx/web/")
+;; (setq-local jsi-babel-command nil) ; nil, ""
+;; (setq-local jsi-babel-command-defaults '("babel" "npx --no-install babel"))
+;; (setq-local jsi-ts-babel-config-file nil) ; nil, ""
+;; (setq-local jsi-ts-babel-config-file-default
+;;             "/home/rh/projects/s600-solution/wtx/web/jsi-ts.babel.config.js")
+
+;; (setq-local
+;;  jsi-babel-shell-command
+;;  (concat
+;;   "set -euo pipefail;"
+;;   "cd " jsi-babel-dir ";"
+;;   "echo \"" (json-encode-string ts-expr) "\""
+;;   "|"
+;;   jsi-babel-command
+;;   " --no-babelrc --config-file " jsi-ts-babel-config-file
+;;   " -f stdin.ts"))
+
+;; echo "const x: number = 0"|npx babel --no-babelrc --config-file ./jsi-ts-babel-config-file -f stdin.ts
+
+;; (shell-command-to-string jsi-babel-shell-command)
+
+
 ;; -------------------------------------------------------------------
 ;;; Minimalist Node.js REPL for inter-node minor mode
 ;; -------------------------------------------------------------------
@@ -266,6 +296,7 @@
 ;; /b/{
 
 (defun inter-node--get-log-buffer ()
+  "Returns `inter-node-log' buffer. Creates one if it does not already exit."
   (let* ((name (concat "*" "inter-node-log" "*"))
          (buffer (get-buffer name)))
     (or buffer
@@ -275,7 +306,8 @@
             (inter-node-log-mode))
           buffer))))
 
-(defun inter-node-log-buffer ()
+(defun inter-node-log ()
+  "Displays `inter-node-log' buffer. Creates one if it does not already exit."
   (interactive)
   (display-buffer (inter-node--get-log-buffer)))
 

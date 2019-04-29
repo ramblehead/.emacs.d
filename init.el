@@ -2686,9 +2686,10 @@ fields which we need."
 
   (setq dumb-jump-selector 'ivy)
 
-  :bind (("M-g g" . dumb-jump-hydra/body)
-         ("s-." . dumb-jump-go)
-         ("s-[" . dumb-jump-back))
+  :bind (("C-M-/" . dumb-jump-hydra/body)
+         ("C-M-." . dumb-jump-go)
+         ("C-M-," . dumb-jump-back)
+         ("C-M-[" . dumb-jump-back))
   :defer t
   :ensure t)
 
