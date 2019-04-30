@@ -3460,7 +3460,7 @@ fields which we need."
   :mode "\\.js\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "n" for Node.JS
-  :delight '((:eval (if (bound-and-true-p inter-node-mode)
+  :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "js2λn"
                       "js2"))
              :major)
@@ -3479,7 +3479,7 @@ fields which we need."
    'js2-mode-hook
    (lambda ()
      (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " inter-node")
+     (add-to-list 'rm-blacklist " jsi-node")
 
      (setq-local company-backends
                  '((company-keywords company-dabbrev-code)
@@ -3701,28 +3701,28 @@ fields which we need."
 
 ;; /b/} rh-scratch-js
 
-;; /b/{ inter-node
+;; /b/{ js-interaction
 
-(use-package inter-node
-  :commands (inter-node-mode
-             inter-node-repl
-             inter-node-eval
-             inter-node-eval-buffer)
+(use-package js-interaction
+  :commands (jsi-node-mode
+             jsi-node-repl
+             jsi-node-eval
+             jsi-node-eval-buffer)
   :config
   (add-to-list
    'display-buffer-alist
-   '("*inter-node-repl*"
+   '("*jsi-node-repl*"
      (display-buffer-reuse-window
       display-buffer-same-window)))
 
   ;; Using company-capf until a proper company back-end is implemented
   (require 'company-capf)
-  (bind-key "C-x C-<tab>" #'company-capf inter-node-mode-keymap)
+  (bind-key "C-x C-<tab>" #'company-capf jsi-node-mode-keymap)
 
   :defer t
   :pin manual)
 
-;; /b/} inter-node
+;; /b/} js-interaction
 
 ;; /b/{ css-mode
 
