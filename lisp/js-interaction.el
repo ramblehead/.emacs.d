@@ -27,28 +27,11 @@ Possible values are:
 ;; (setq-local ts-expr "const x: string = \"xxx\"")
 
 ;; /home/rh/projects/s600-solution/wtx/web/
-(defcustom jsi-babel-dir nil
+(defcustom jsi-babel-dir #'jsi-babel-get-dir-default
   "The directory from where Babel is executed.
 
 Possible values are:
- - nil    use `jsi-babel-dir-default' variable.
- - `buffer-file' use current buffer file directory or `jsi-babel-dir-default'
-   if buffer has no file.
- - `pwd'  use `default-directory'
- - string literal with directory path."
-  :group 'js-interaction
-  :type 'string)
-
-(defcustom jsi-babel-dir-default 'buffer-file
-  "Default directory from where Babel is executed.
-
-This variable is used when `jsi-babel-dir' is set to nil or to `buffer-file'
-while current buffer has no file.
-
-Possible values are:
- - `buffer-file' use current buffer file directory or `pwd'
-   if buffer has no file.
- - `pwd'  use `pwd' function
+ - function which returns string with with directory path.
  - string literal with directory path."
   :group 'js-interaction
   :type 'string)
@@ -87,21 +70,17 @@ When this variable is nil `jsi-ts-babel-config-file-default' is used."
   :group 'js-interaction
   :type 'string)
 
-(defun jsi--babel-get-dir-default ()
-  (cond
-   ((eq jsi-babel-dir-default 'buffer-file)
-    (or (ignore-errors (file-name-directory (buffer-file-name)))
-        default-directory))
-   (t default-directory)))
 
-(defun jsi--babel-get-dir ()
-  (cond
-   ((null jsi-babel-dir) (jsi--babel-get-dir-default))
-   ((eq jsi-babel-dir 'buffer-file)
-    (or (ignore-errors (file-name-directory (buffer-file-name)))
-        (jsi--babel-get-dir-default)))
-   ((eq jsi-babel-dir 'pwd) default-directory)
-   ((stringp jsi-babel-dir) jsi-babel-dir)))
+
+(defun jsi-babel-get-dir-default ()
+  (or (ignore-errors (file-name-directory (buffer-file-name)))
+      default-directory))
+
+(defun jsi-babel-get-command-default ())
+
+(defun jsi-babel-get-config-file-default ()
+  ;; Check if ts or js
+  )
 
 ;; (shell-command-to-string "ls")
 
