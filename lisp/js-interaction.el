@@ -15,14 +15,17 @@
   "Directory where this elisp module is located.")
 
 (defcustom jsi-transpiler #'jsi-transpiler-get-default
-  "Specifies what transpiler should be used by js-interaction modes.
-
-Possible values are:
- - function which returns any of the following values:
- - nil    do not use transpiler.
- - `babel' use Babel."
+  "Specifies what transpiler should be used by js-interaction modes."
   :group 'js-interaction
-  :type 'symbol)
+  :type '(choice (const
+                  :tag "Do not use transpiler"
+                  nil)
+                 (const
+                  :tag "Use babel as transpiler"
+                  babel)
+                 (const
+                  :tag "Function that returns transpiler type"
+                  jsi-transpiler-get-default)))
 
 (defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
   "List of major modes for which babel transpiler should be used by default."
@@ -33,8 +36,7 @@ Possible values are:
   "Returns `babel' for major-mode equal `typescript-mode'
 and nil for other modes."
   (cond
-   ((seq-contains-p jsi-transpiler-babel-default-modes major-mode)
-    (when (jsi--get-value jsi-babel-command) 'babel))))
+   ((seq-contains-p jsi-transpiler-babel-default-modes major-mode) 'babel)))
 
 ;; -------------------------------------------------------------------
 ;;; js-interaction common functions
