@@ -24,8 +24,11 @@
                   :tag "Use babel as transpiler"
                   babel)
                  (const
-                  :tag "Function that returns transpiler type"
-                  jsi-transpiler-get-default)))
+                  :tag "Default transplier selection function"
+                  jsi-transpiler-get-default)
+                 (function
+                  :tag "Function that returns transplier type symbol"
+                  :value jsi-transpiler-get-default)))
 
 (defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
   "List of major modes for which babel transpiler should be used by default."
@@ -64,7 +67,12 @@ Possible values are:
  - function which returns string with directory path.
  - string literal with directory path."
   :group 'js-interaction
-  :type 'string)
+  :type '(choice (const
+                  :tag "Default babel run directory selection function"
+                  jsi-babel-run-directory-get-default)
+                 (const
+                  :tag "Function that returns transpiler type"
+                  jsi-transpiler-get-default)))
 
 (defun jsi-babel-run-directory-get-default ()
   "Returns current buffer file directory or `default-directory'
