@@ -6,18 +6,46 @@
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
 (defgroup js-interaction nil
-  "Node.js REPL and its minor interaction mode"
+  "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
   :group 'processes)
 
-(defcustom jsi-transpiler 'babel
+(defvar js-interaction-directory
+  (file-name-directory (or load-file-name buffer-file-name))
+  "Directory where this elisp module is located.")
+
+(defcustom jsi-transpiler #'jsi-transpiler-get-default
   "Specifies what transpiler should be used by js-interaction modes.
 
 Possible values are:
+ - function which returns any of the following values:
  - nil    do not use transpiler.
  - `babel' use Babel."
   :group 'js-interaction
   :type 'symbol)
+
+(defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
+  "List of major modes for which babel transpiler should be used by default."
+  :group 'js-interaction
+  :type '(repeat symbol))
+
+(defun jsi-transpiler-get-default ()
+  "Returns `babel' for major-mode equal `typescript-mode'
+and nil for other modes."
+  (cond
+   ((seq-contains-p jsi-transpiler-babel-default-modes major-mode)
+    (when (jsi--get-value jsi-babel-command) 'babel))))
+
+;; -------------------------------------------------------------------
+;;; js-interaction common functions
+;; -------------------------------------------------------------------
+;; /b/{
+
+(defun jsi--get-value (var)
+  "Returns (funcall var) if `var' is a function or `var' if not."
+  (if (functionp var) (funcall var) var))
+
+;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Babel transplier for js-interaction modes
@@ -27,60 +55,76 @@ Possible values are:
 ;; (setq-local ts-expr "const x: string = \"xxx\"")
 
 ;; /home/rh/projects/s600-solution/wtx/web/
-(defcustom jsi-babel-dir #'jsi-babel-get-dir-default
+(defcustom jsi-babel-run-directory #'jsi-babel-run-directory-get-default
   "The directory from where Babel is executed.
 
 Possible values are:
- - function which returns string with with directory path.
+ - function which returns string with directory path.
  - string literal with directory path."
   :group 'js-interaction
   :type 'string)
 
-(defcustom jsi-babel-command nil
-  "Command used to run Babel.
-
-Possible values are:
- - nil    use `jsi-babel-command-defaults' variable.
- - string literal with the command."
-  :group 'js-interaction
-  :type 'string)
-
-(defcustom jsi-babel-command-defaults '("npx --no-install babel" "babel")
-  "List of default commands used to run Babel.
-
-This variable should hold a list of strings. Each string represents command that
-can be used to run Babel. Each command from the list is executed with
-\"--version\" parameter to test if it returns 0 (works). The first command which
-returns 0 is then used to run Babel."
-  :group 'js-interaction
-  :type '(repeat string))
-
-;; /home/rh/projects/s600-solution/wtx/web/jsi-ts.babel.config.js
-(defcustom jsi-ts-babel-config-file nil
-  "Config file used to run Babel.
-
-When this variable is nil `jsi-ts-babel-config-file-default' is used."
-  :group 'js-interaction
-  :type 'string)
-
-(defcustom jsi-ts-babel-config-file-default
-  (concat (file-name-directory (or load-file-name buffer-file-name))
-          "jsi-ts.babel.config.js")
-  "Default config file used to run Babel."
-  :group 'js-interaction
-  :type 'string)
-
-
-
-(defun jsi-babel-get-dir-default ()
+(defun jsi-babel-run-directory-get-default ()
+  "Returns current buffer file directory or `default-directory'
+if current buffer has no file."
   (or (ignore-errors (file-name-directory (buffer-file-name)))
       default-directory))
 
-(defun jsi-babel-get-command-default ())
+(defcustom jsi-babel-command #'jsi-babel-command-get-default
+  "Command used to run Babel.
 
-(defun jsi-babel-get-config-file-default ()
-  ;; Check if ts or js
-  )
+Possible values are:
+ - function which returns string with babel command.
+ - string literal with babel command."
+  :group 'js-interaction
+  :type 'string)
+
+(defvar-local jsi-babel-command-default-cache nil)
+(defun jsi-babel-command-get-default ()
+  "Returns \"npx --no-install babel\" or \"babel\" if any of those commands
+work, or nil otherwise. On first call the returned value is cached in
+buffer-local variable `jsi-babel-command-default-cache'.  All consequential
+calls would return the cached value."
+  (or
+   jsi-babel-command-default-cache
+   (setq
+    jsi-babel-command-default-cache
+    (let ((default-directory (jsi--get-value jsi-babel-run-directory)))
+      (cond
+       ((eq 0 (ignore-errors
+                (call-process "npx" nil nil nil
+                              "--no-install" "babel" "--version")))
+        "npx --no-install babel")
+       ((eq 0 (ignore-errors
+                (call-process "babel" nil nil nil "--version")))
+        "babel"))))))
+
+;; /home/rh/projects/s600-solution/wtx/web/jsi-ts.babel.config.js
+(defcustom jsi-ts-babel-config-file #'jsi-babel-config-file-get-default
+  "Config file used to run Babel."
+  :group 'js-interaction
+  :type '(choice (const
+                  :tag "Do not pass any config file to babel."
+                  nil)
+                 (const
+                  :tag "Default config file selection function."
+                  #'jsi-babel-config-file-get-default)
+                 (function
+                  :tag "Function that returns string with config file path")
+                 (string
+                  :tag "String literal with config file path")))
+
+(defun jsi-babel-config-file-get-default ()
+  "Returns default jsi-ts.babel.config.js file path if current buffer major mode
+is `typescript-mode'. For all other major modes returns default
+jsi-ts.babel.config.js file path.
+
+Default babel config files are located in the same directory as this elisp
+module file."
+  (cond
+   ((eq major-mode 'typescript-mode)
+    (concat js-interaction-directory "jsi-ts.babel.config.js"))
+   (t (concat js-interaction-directory "jsi.babel.config.js"))))
 
 ;; (shell-command-to-string "ls")
 
@@ -90,7 +134,7 @@ When this variable is nil `jsi-ts-babel-config-file-default' is used."
 ;;  jsi-babel-shell-command
 ;;  (concat
 ;;   "set -euo pipefail;"
-;;   "cd " jsi-babel-dir ";"
+;;   "cd " jsi-babel-run-directory ";"
 ;;   "echo \"" (json-encode-string ts-expr) "\""
 ;;   "|"
 ;;   jsi-babel-command
