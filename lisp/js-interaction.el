@@ -100,19 +100,21 @@ calls would return the cached value."
         "babel"))))))
 
 ;; /home/rh/projects/s600-solution/wtx/web/jsi-ts.babel.config.js
-(defcustom jsi-ts-babel-config-file #'jsi-babel-config-file-get-default
+(defcustom jsi-babel-config-file #'jsi-babel-config-file-get-default
   "Config file used to run Babel."
   :group 'js-interaction
   :type '(choice (const
-                  :tag "Do not pass any config file to babel."
+                  :tag "Do not pass any config file to babel"
                   nil)
                  (const
-                  :tag "Default config file selection function."
-                  #'jsi-babel-config-file-get-default)
+                  :tag "Default config file selection function"
+                  jsi-babel-config-file-get-default)
                  (function
-                  :tag "Function that returns string with config file path")
+                  :tag "Function that returns string with config file path"
+                  :value jsi-babel-config-file-get-default)
                  (string
-                  :tag "String literal with config file path")))
+                  :tag "String literal with config file path"
+                  :value "babel.config.js")))
 
 (defun jsi-babel-config-file-get-default ()
   "Returns default jsi-ts.babel.config.js file path if current buffer major mode
