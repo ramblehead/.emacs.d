@@ -5,6 +5,8 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
+(require 'json)
+
 (defgroup js-interaction nil
   "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
@@ -46,7 +48,7 @@ and nil for other modes."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defun jsi--get-value (var)
+(defun jsi--get (var)
   "Returns (funcall var) if `var' is a function or `var' if not."
   (if (functionp var) (funcall var) var))
 
@@ -57,22 +59,18 @@ and nil for other modes."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-;; (setq-local ts-expr "const x: string = \"xxx\"")
-
-;; /home/rh/projects/s600-solution/wtx/web/
 (defcustom jsi-babel-run-directory #'jsi-babel-run-directory-get-default
-  "The directory from where Babel is executed.
-
-Possible values are:
- - function which returns string with directory path.
- - string literal with directory path."
+  "The directory from where Babel is executed."
   :group 'js-interaction
   :type '(choice (const
                   :tag "Default function to auto-select babel run directory"
                   jsi-babel-run-directory-get-default)
+                 (string
+                  :tag "String literal with babel run directory"
+                  :value "~")
                  (const
-                  :tag "Function that returns transpiler type"
-                  jsi-transpiler-get-default)))
+                  :tag "Function that returns string with babel run directory"
+                  jsi-babel-run-directory-get-default)))
 
 (defun jsi-babel-run-directory-get-default ()
   "Returns current buffer file directory or `default-directory'
@@ -81,13 +79,17 @@ if current buffer has no file."
       default-directory))
 
 (defcustom jsi-babel-command #'jsi-babel-command-get-default
-  "Command used to run Babel.
-
-Possible values are:
- - function which returns string with babel command.
- - string literal with babel command."
+  "Command used to run Babel."
   :group 'js-interaction
-  :type 'string)
+  :type '(choice (const
+                  :tag "Default function to auto-select babel command"
+                  jsi-babel-command-get-default)
+                 (string
+                  :tag "String literal with babel command"
+                  :value "babel")
+                 (const
+                  :tag "Function that returns string with babel command"
+                  jsi-babel-command-get-default)))
 
 (defvar-local jsi-babel-command-default-cache nil)
 (defun jsi-babel-command-get-default ()
@@ -99,7 +101,7 @@ calls would return the cached value."
    jsi-babel-command-default-cache
    (setq
     jsi-babel-command-default-cache
-    (let ((default-directory (jsi--get-value jsi-babel-run-directory)))
+    (let ((default-directory (jsi--get jsi-babel-run-directory)))
       (cond
        ((eq 0 (ignore-errors
                 (call-process "npx" nil nil nil
@@ -114,16 +116,16 @@ calls would return the cached value."
   "Config file used to run Babel."
   :group 'js-interaction
   :type '(choice (const
-                  :tag "Do not pass any config file to babel"
+                  :tag "Do not pass any config file to Babel"
                   nil)
                  (const
-                  :tag "Default config file selection function"
+                  :tag "Default function to auto-select Babel config file"
                   jsi-babel-config-file-get-default)
                  (function
-                  :tag "Function that returns string with config file path"
+                  :tag "Function that returns string with Babel config file"
                   :value jsi-babel-config-file-get-default)
                  (string
-                  :tag "String literal with config file path"
+                  :tag "String literal with config file"
                   :value "babel.config.js")))
 
 (defun jsi-babel-config-file-get-default ()
@@ -135,27 +137,23 @@ Default babel config files are located in the same directory as this elisp
 module file."
   (cond
    ((eq major-mode 'typescript-mode)
-    (concat js-interaction-directory "jsi-ts.babel.config.js"))
-   (t (concat js-interaction-directory "jsi.babel.config.js"))))
+    (concat (jsi--get jsi-babel-run-directory) "jsi-ts.babel.config.js"))
+   (t (concat (jsi--get jsi-babel-run-directory) "jsi.babel.config.js"))))
 
-;; (shell-command-to-string "ls")
-
-;; (require 'json)
-
-;; (setq-local
-;;  jsi-babel-shell-command
-;;  (concat
-;;   "set -euo pipefail;"
-;;   "cd " jsi-babel-run-directory ";"
-;;   "echo \"" (json-encode-string ts-expr) "\""
-;;   "|"
-;;   jsi-babel-command
-;;   " --no-babelrc --config-file " jsi-ts-babel-config-file
-;;   " -f stdin.ts"))
-
-;; echo "const x: number = 0"|npx babel --no-babelrc --config-file ./jsi-ts-babel-config-file -f stdin.ts
-
-;; (shell-command-to-string jsi-babel-shell-command)
+(defun jsi-babel-transply-sync (string)
+  "Transply STRING with Babel"
+  (let ((command
+         (concat
+          "set -euo pipefail;"
+          "cd " (jsi--get jsi-babel-run-directory) ";"
+          "echo \"" (json-encode-string string) "\""
+          "|"
+          (jsi--get jsi-babel-command)
+          " --no-babelrc "
+          (let ((config-file (jsi--get jsi-babel-config-file)))
+            (if config-file (concat "--config-file " config-file "")))
+          " -f stdin.ts")))
+    (shell-command-to-string command)))
 
 ;; /b/}
 
@@ -328,7 +326,7 @@ module file."
         (buffer-substring-no-properties beg end)))))
 
 (defun jsi-node-do-java-script-sync (string)
-  "Send string to Node.js process and return the output synchronously"
+  "Send STRING to Node.js process and return the output synchronously"
   (let* ((process (get-process jsi-node-repl-process-name))
          (marker-position-orig (marker-position (process-mark process)))
          (process-filter-orig (process-filter process))
@@ -413,20 +411,20 @@ module file."
 ;;; jsi-node-mode - minor Node.JS REPL interaction mode
 ;; -------------------------------------------------------------------
 ;; /b/{
-
+(setq xxx 'js-interaction)
 (defun jsi-node--get-log-buffer ()
-  "Returns `jsi-node-log' buffer. Creates one if it does not already exit."
-  (let* ((name (concat "*" "jsi-node-log" "*"))
+  "Returns `js-interaction' buffer. Creates one if it does not already exit."
+  (let* ((name (concat "*" "js-interaction" "*"))
          (buffer (get-buffer name)))
     (or buffer
         (progn
           (setq buffer (get-buffer-create name))
           (with-current-buffer buffer
-            (jsi-node-log-mode))
+            (js-interaction-mode))
           buffer))))
 
-(defun jsi-node-log ()
-  "Displays `jsi-node-log' buffer. Creates one if it does not already exit."
+(defun js-interaction ()
+  "Displays `js-interaction' buffer. Creates one if it does not already exit."
   (interactive)
   (display-buffer (jsi-node--get-log-buffer)))
 
@@ -553,9 +551,9 @@ skip forward unconditionally first time and then while
     (remove-hook 'completion-at-point-functions
                  'jsi-node--completion-at-point-function t)))
 
-(define-derived-mode jsi-node-log-mode fundamental-mode "jsi-node-log"
+(define-derived-mode js-interaction-mode fundamental-mode "js-interaction"
   "Major mode for jsi-node log."
-  :lighter " jsi-node-log"
+  :lighter " js-interaction"
   ;; (setq-local buffer-read-only t)
   (setq-local window-point-insertion-type t))
 
