@@ -411,7 +411,7 @@ module file."
 ;;; jsi-node-mode - minor Node.JS REPL interaction mode
 ;; -------------------------------------------------------------------
 ;; /b/{
-(setq xxx 'js-interaction)
+
 (defun jsi-node--get-log-buffer ()
   "Returns `js-interaction' buffer. Creates one if it does not already exit."
   (let* ((name (concat "*" "js-interaction" "*"))
