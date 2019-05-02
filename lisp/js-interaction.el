@@ -24,7 +24,7 @@
                   :tag "Use babel as transpiler"
                   babel)
                  (const
-                  :tag "Default transplier selection function"
+                  :tag "Default function to auto-select transplier"
                   jsi-transpiler-get-default)
                  (function
                   :tag "Function that returns transplier type symbol"
@@ -68,7 +68,7 @@ Possible values are:
  - string literal with directory path."
   :group 'js-interaction
   :type '(choice (const
-                  :tag "Default babel run directory selection function"
+                  :tag "Default function to auto-select babel run directory"
                   jsi-babel-run-directory-get-default)
                  (const
                   :tag "Function that returns transpiler type"
