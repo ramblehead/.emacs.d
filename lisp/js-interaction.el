@@ -5,16 +5,14 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
-(require 'json)
-
 (defgroup js-interaction nil
   "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
   :group 'processes)
 
-(defvar js-interaction-directory
-  (file-name-directory (or load-file-name buffer-file-name))
-  "Directory where this elisp module is located.")
+;; (defvar js-interaction-directory
+;;   (file-name-directory (or load-file-name buffer-file-name))
+;;   "Directory where this elisp module is located.")
 
 (defcustom jsi-transpiler #'jsi-transpiler-get-default
   "Specifies what transpiler should be used by js-interaction modes."
@@ -42,6 +40,26 @@
 and nil for other modes."
   (cond
    ((seq-contains-p jsi-transpiler-babel-default-modes major-mode) 'babel)))
+
+(defcustom jsi-input-language #'jsi-input-language-get-default
+  "String with input language name abbreviation used in interaction logs."
+  :group 'js-interaction
+  :type '(choice (string
+                  :tag "Language name abbreviation string"
+                  "js")
+                 (const
+                  :tag "Default function to auto-select language abbreviation"
+                  jsi-transpiler-get-default)
+                 (function
+                  :tag "Function that returns language abbreviation string"
+                  :value jsi-transpiler-get-default)))
+
+(defun jsi-input-language-get-default ()
+  "Returns input language name abbreviation based on current buffer major mode.
+If mode is not recognised, assumes JavaScript."
+  (case major-mode
+    (typescript-mode "ts")
+    (otherwise "js")))
 
 ;; -------------------------------------------------------------------
 ;;; js-interaction common functions
@@ -128,32 +146,58 @@ calls would return the cached value."
                   :tag "String literal with config file"
                   :value "babel.config.js")))
 
+(defun jsi-babel--locate-dominating-config (dir file-name)
+  "Walk up DIR and find the first parent directory which containes FILE-NAME.
+Returns full path of the found file or nil if none was found."
+  (let ((dir (locate-dominating-file
+              (jsi--get jsi-babel-run-directory)
+              (lambda (parent)
+                (directory-files parent nil
+                                 (concat "^" (regexp-quote file-name) "$"))))))
+    (when dir (concat dir file-name))))
+
 (defun jsi-babel-config-file-get-default ()
   "Returns default jsi-ts.babel.config.js file path if current buffer major mode
 is `typescript-mode'. For all other major modes returns default
 jsi-ts.babel.config.js file path.
 
-Default babel config files are located in the same directory as this elisp
-module file."
-  (cond
-   ((eq major-mode 'typescript-mode)
-    (concat (jsi--get jsi-babel-run-directory) "jsi-ts.babel.config.js"))
-   (t (concat (jsi--get jsi-babel-run-directory) "jsi.babel.config.js"))))
+Default babel config files are searched by waling up the directory
+defined by `jsi-babel-run-directory'."
+  (let ((dir (jsi--get jsi-babel-run-directory)))
+    (cond
+     ((eq major-mode 'typescript-mode)
+      (jsi-babel--locate-dominating-config dir "jsi-ts.babel.config.js"))
+     (t (jsi-babel--locate-dominating-config dir "jsi.babel.config.js")))))
 
-(defun jsi-babel-transply-sync (string)
+(defun jsi-babel-transpile-sync (string)
   "Transply STRING with Babel"
-  (let ((command
-         (concat
-          "set -euo pipefail;"
-          "cd " (jsi--get jsi-babel-run-directory) ";"
-          "echo \"" (json-encode-string string) "\""
-          "|"
-          (jsi--get jsi-babel-command)
-          " --no-babelrc "
-          (let ((config-file (jsi--get jsi-babel-config-file)))
-            (if config-file (concat "--config-file " config-file "")))
-          " -f stdin.ts")))
-    (shell-command-to-string command)))
+  (let ((babel-command (jsi--get jsi-babel-command))
+        full-command)
+    (if (null babel-command)
+        (error "jsi-babel: Babel command not found.")
+      (setq string (replace-regexp-in-string "\"" "\\\"" string))
+      (setq string (replace-regexp-in-string "[\\]" "\\\\\\\\" string))
+      (setq
+       full-command
+       (concat
+        "set -euo pipefail;"
+        "cd " (jsi--get jsi-babel-run-directory) ";"
+        "echo \"" string "\""
+        "|"
+        (jsi--get jsi-babel-command)
+        " --no-babelrc "
+        (let ((config-file (jsi--get jsi-babel-config-file)))
+          (if config-file (concat "--config-file " config-file) ""))
+        " -f stdin.ts"))
+      (string-trim (shell-command-to-string full-command)))))
+
+(defun jsi-transpile-sync (transpiler string)
+  "Transply STRING using TRANSPILER.
+Only `babel' TRANSPILER value is currently supported."
+  (case transpiler
+    (babel (jsi-babel-transpile-sync string))
+    (otherwise
+     (error (concat "jsi: provided TRANSPILER value is not supported")))))
 
 ;; /b/}
 
@@ -487,16 +531,18 @@ skip forward unconditionally first time and then while
         (setq bounds (bounds-of-thing-at-point 'symbol))))
     bounds))
 
-(defun jsi-node--eval (beg end)
-  (let* ((js-expr (buffer-substring-no-properties beg end))
-         (process (get-process jsi-node-repl-process-name)))
+(defun jsi-node--eval (js-expr)
+  (let ((process (get-process jsi-node-repl-process-name)))
     (unless process
       (setq process (jsi-node-repl t)))
     (with-current-buffer (process-buffer process)
       (jsi-node-do-java-script-sync js-expr))))
 
+(defun jsi-node--eval-region (beg end)
+  (jsi-node--eval (buffer-substring-no-properties beg end)))
+
 ;;;###autoload
-(defun jsi-node-eval (beg &optional end)
+(defun jsi-node-eval (beg &optional end no-pulse)
   (interactive (if (use-region-p)
                    (list (region-beginning) (region-end))
                  (list (point) nil)))
@@ -505,8 +551,15 @@ skip forward unconditionally first time and then while
       (setq beg (car bounds)
             end (cdr bounds))))
   (let* ((log-buffer (jsi-node--get-log-buffer))
+         (input-language (jsi--get jsi-input-language))
          (input (buffer-substring-no-properties beg end))
-         (output (jsi-node--eval beg end)))
+         (transpiler (jsi--get jsi-transpiler))
+         transpiled-output output)
+    (setq input (string-trim input))
+    (if (null transpiler)
+        (setq output (jsi-node--eval input))
+      (setq transpiled-output (jsi-transpile-sync transpiler input))
+      (setq output (jsi-node--eval transpiled-output)))
     (if current-prefix-arg
         (save-excursion
           (end-of-line)
@@ -514,22 +567,27 @@ skip forward unconditionally first time and then while
           (insert output))
       (with-current-buffer log-buffer
         (goto-char (point-max))
-        (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
+        (insert (concat "// ["  (current-time-string) "] /b/{ "
+                        input-language "\n\n"))
         (insert input)
         (insert "\n\n")
-        (insert "// /b/= node\n\n")
+        (when transpiler
+          (insert "// /b/> " (symbol-name transpiler) "\n\n")
+          (insert transpiled-output)
+          (insert "\n\n"))
+        (insert "// /b/> node\n\n")
         (insert output)
         (insert "\n\n")
         (insert "// /b/}\n\n"))
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
-  (unless (use-region-p)
+  (unless (or no-pulse (use-region-p))
     (pulse-momentary-highlight-region beg end 'next-error)))
 
 ;;;###autoload
 (defun jsi-node-eval-buffer ()
   (interactive)
-  (message (jsi-node--eval (point-min) (point-max))))
+  (jsi-node-eval (point-min) (point-max) t))
 
 (defvar jsi-node-mode-keymap
   (let ((map (make-sparse-keymap)))
