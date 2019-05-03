@@ -4096,11 +4096,13 @@ fields which we need."
   (setq web-mode-enable-current-element-highlight t)
   (setq web-mode-enable-auto-indentation nil)
 
-  (setq web-mode-comment-formats
-        (remove-if (lambda (comment-format)
-                     (string-equal (car comment-format) "javascript"))
-                   web-mode-comment-formats))
-  (add-to-list 'web-mode-comment-formats '("javascript" . "//"))
+  ;; (setq web-mode-comment-formats
+  ;;       (remove-if (lambda (comment-format)
+  ;;                    (string-equal (car comment-format) "javascript"))
+  ;;                  web-mode-comment-formats))
+  ;; (add-to-list 'web-mode-comment-formats '("javascript" . "//"))
+
+  (setcdr (assoc "javascript" web-mode-comment-formats #'string=) "//")
   (add-to-list 'web-mode-comment-formats '("jsx" . "//"))
 
   (copy-face 'show-paren-match 'web-mode-current-element-highlight-face)
