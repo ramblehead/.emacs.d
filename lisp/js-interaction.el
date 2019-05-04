@@ -44,9 +44,12 @@ and nil for other modes."
 (defcustom jsi-input-language #'jsi-input-language-get-default
   "String with input language name abbreviation used in interaction logs."
   :group 'js-interaction
-  :type '(choice (string
+  :type '(choice (const
                   :tag "Language name abbreviation string"
-                  "js")
+                  'ts)
+                 (const
+                  :tag "Language name abbreviation string"
+                  'js)
                  (const
                   :tag "Default function to auto-select language abbreviation"
                   jsi-transpiler-get-default)
@@ -58,8 +61,8 @@ and nil for other modes."
   "Returns input language name abbreviation based on current buffer major mode.
 If mode is not recognised, assumes JavaScript."
   (case major-mode
-    (typescript-mode "ts")
-    (otherwise "js")))
+    (typescript-mode 'ts)
+    (otherwise 'js)))
 
 ;; -------------------------------------------------------------------
 ;;; js-interaction common functions
@@ -175,8 +178,8 @@ defined by `jsi-babel-run-directory'."
         full-command)
     (if (null babel-command)
         (error "jsi-babel: Babel command not found.")
-      (setq string (replace-regexp-in-string "\"" "\\\"" string))
       (setq string (replace-regexp-in-string "[\\]" "\\\\\\\\" string))
+      (setq string (replace-regexp-in-string "\"" "\\\\\"" string))
       (setq
        full-command
        (concat
@@ -551,7 +554,7 @@ skip forward unconditionally first time and then while
       (setq beg (car bounds)
             end (cdr bounds))))
   (let* ((log-buffer (jsi-node--get-log-buffer))
-         (input-language (jsi--get jsi-input-language))
+         (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
          transpiled-output output)
