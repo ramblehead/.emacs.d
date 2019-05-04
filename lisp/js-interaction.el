@@ -5,14 +5,19 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
+;; -------------------------------------------------------------------
+;;; js-interaction common
+;; -------------------------------------------------------------------
+;; /b/{
+
 (defgroup js-interaction nil
   "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
   :group 'processes)
 
-;; (defvar js-interaction-directory
-;;   (file-name-directory (or load-file-name buffer-file-name))
-;;   "Directory where this elisp module is located.")
+(defun jsi--get (var)
+  "Returns (funcall var) if `var' is a function or `var' if not."
+  (if (functionp var) (funcall var) var))
 
 (defcustom jsi-transpiler #'jsi-transpiler-get-default
   "Specifies what transpiler should be used by js-interaction modes."
@@ -64,14 +69,66 @@ If mode is not recognised, assumes JavaScript."
     (typescript-mode 'ts)
     (otherwise 'js)))
 
-;; -------------------------------------------------------------------
-;;; js-interaction common functions
-;; -------------------------------------------------------------------
-;; /b/{
+;;;###autoload
+(defun jsi-transpile-expression (js-expr)
+  (interactive "sTranspile expression: ")
+  (let ((transpiler (jsi--get jsi-transpiler)))
+    (if (null transpiler)
+        (error "`jsi-transpiler' is evaluated to nil.")
+      (let* ((log-buffer (jsi--get-log-buffer))
+             (input js-expr)
+             (transpiled-input (jsi-transpile-sync transpiler input)))
+        (with-current-buffer log-buffer
+          (let ((inhibit-read-only t))
+            (goto-char (point-max))
+            (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
+            (insert input)
+            (insert "\n\n")
+            (insert "// /b/> " (symbol-name transpiler) "\n\n")
+            (insert transpiled-input)
+            (insert "\n\n")
+            (insert "// /b/}\n\n")))
+        (unless (get-buffer-window log-buffer 'visible)
+          (message output))))))
 
-(defun jsi--get (var)
-  "Returns (funcall var) if `var' is a function or `var' if not."
-  (if (functionp var) (funcall var) var))
+;;;###autoload
+(defun jsi-transpile (beg &optional end no-pulse)
+  (interactive (if (use-region-p)
+                   (list (region-beginning) (region-end))
+                 (list (point) nil)))
+  (when (null end)
+    (let ((bounds (jsi--node-expression-at-pos-beg-end beg)))
+      (setq beg (car bounds)
+            end (cdr bounds))))
+  (let* ((log-buffer (jsi--get-log-buffer))
+         (input-language (symbol-name (jsi--get jsi-input-language)))
+         (input (buffer-substring-no-properties beg end))
+         (transpiler (jsi--get jsi-transpiler))
+         transpiled-input)
+    (setq input (string-trim input))
+    (if (null transpiler)
+        (error "`jsi-transpiler' is evaluated to nil.")
+      (setq transpiled-input (jsi-transpile-sync transpiler input)))
+    (with-current-buffer log-buffer
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+        (insert (concat "// ["  (current-time-string) "] /b/{ "
+                        input-language "\n\n"))
+        (insert input)
+        (insert "\n\n")
+        (insert "// /b/> " (symbol-name transpiler) "\n\n")
+        (insert transpiled-input)
+        (insert "\n\n")
+        (insert "// /b/}\n\n")))
+    (unless (get-buffer-window log-buffer 'visible)
+      (message transpiled-input)))
+  (unless (or no-pulse (use-region-p))
+    (pulse-momentary-highlight-region beg end 'next-error)))
+
+;;;###autoload
+(defun jsi-transpile-buffer ()
+  (interactive)
+  (jsi-transpile (point-min) (point-max) t))
 
 ;; /b/}
 
@@ -149,7 +206,7 @@ calls would return the cached value."
                   :tag "String literal with config file"
                   :value "babel.config.js")))
 
-(defun jsi-babel--locate-dominating-config (dir file-name)
+(defun jsi--babel-locate-dominating-config (dir file-name)
   "Walk up DIR and find the first parent directory which containes FILE-NAME.
 Returns full path of the found file or nil if none was found."
   (let ((dir (locate-dominating-file
@@ -169,8 +226,8 @@ defined by `jsi-babel-run-directory'."
   (let ((dir (jsi--get jsi-babel-run-directory)))
     (cond
      ((eq major-mode 'typescript-mode)
-      (jsi-babel--locate-dominating-config dir "jsi-ts.babel.config.js"))
-     (t (jsi-babel--locate-dominating-config dir "jsi.babel.config.js")))))
+      (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
+     (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
 
 (defun jsi-babel-transpile-sync (string)
   "Transply STRING with Babel"
@@ -205,7 +262,7 @@ Only `babel' TRANSPILER value is currently supported."
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; Minimalist Node.js REPL for jsi-node minor mode
+;;; jsi-node-repl - minimalist Node.js REPL for jsi-node minor mode
 ;; -------------------------------------------------------------------
 ;; /b/{
 
@@ -243,21 +300,21 @@ Only `babel' TRANSPILER value is currently supported."
   :group 'js-interaction
   :type 'string)
 
-(defun jsi-node--strip-all-ascii-escapes (string)
+(defun jsi--node-strip-all-ascii-escapes (string)
   "Strip ASCII Terminal Escape Sequences"
   ;; \x1b is ^[ - RET ESCAPE
   ;; \x0d is ^M - RET CARRIAGE RETURN
   (replace-regexp-in-string "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
 
-(defun jsi-node--dedup-prompt (string)
+(defun jsi--node-dedup-prompt (string)
   "Deduplicate string with prompt"
   (let* ((p jsi-node-repl-prompt)
          (regexp (concat p "\\(.*\\)\\(" p "\\1\\)+")))
     (replace-regexp-in-string regexp "\\2" string)))
 
-(defun jsi-node--comint-preoutput-filter (output)
-  (setq output (jsi-node--strip-all-ascii-escapes output))
-  (setq output (jsi-node--dedup-prompt output))
+(defun jsi--node-comint-preoutput-filter (output)
+  (setq output (jsi--node-strip-all-ascii-escapes output))
+  (setq output (jsi--node-dedup-prompt output))
   (if (and (string-match-p (concat "^" jsi-node-repl-prompt) output)
            (string-match-p (concat "^" (regexp-quote output))
                            (buffer-substring-no-properties
@@ -266,37 +323,37 @@ Only `babel' TRANSPILER value is currently supported."
       ""
     output))
 
-(defun jsi-node--wait-for-prompt (process)
+(defun jsi--node-wait-for-prompt (process)
   (with-current-buffer (process-buffer process)
     (let* ((buffer (current-buffer))
-           (last-line (jsi-node--get-buffer-last-line buffer))
+           (last-line (jsi--node-get-buffer-last-line buffer))
            (prompt-regex (concat "^" jsi-node-repl-prompt)))
       (while (not (string-match-p prompt-regex last-line))
         (unless (process-live-p process)
           (error "Node.js REPL process terminated"))
         (accept-process-output nil 0.01)
-        (setq last-line (jsi-node--get-buffer-last-line buffer)))
+        (setq last-line (jsi--node-get-buffer-last-line buffer)))
       (goto-char (point-max)))))
 
 (define-derived-mode jsi-node-repl-mode comint-mode "Node.js REPL"
   "Major mode for Node.js REPL"
   (add-hook 'comint-preoutput-filter-functions
-            #'jsi-node--comint-preoutput-filter nil t)
+            #'jsi--node-comint-preoutput-filter nil t)
 
   (setq-local comint-process-echoes t)
   (setq-local comint-prompt-regexp (concat "^" jsi-node-repl-prompt))
   (setq-local comint-use-prompt-regexp t)
 
   (add-hook 'completion-at-point-functions
-            #'jsi-node--completion-at-point-function nil t))
+            #'jsi--node-completion-at-point-function nil t))
 
-(defun jsi-node--set-process-window-size (orig-fun process height width)
+(defun jsi--node-set-process-window-size (orig-fun process height width)
   (if (string= (process-name process) jsi-node-repl-process-name)
       (funcall orig-fun process 0 0)
     (funcall orig-fun process height width)))
 
 (advice-add 'set-process-window-size :around
-            #'jsi-node--set-process-window-size)
+            #'jsi--node-set-process-window-size)
 
 ;;;###autoload
 (defun jsi-node-repl (&optional bury)
@@ -311,7 +368,7 @@ Only `babel' TRANSPILER value is currently supported."
                     jsi-node-command nil "-e" jsi-node-repl-start-js))
       (with-current-buffer buffer (jsi-node-repl-mode))
       (setq process (get-buffer-process buffer))
-      (jsi-node--wait-for-prompt process))
+      (jsi--node-wait-for-prompt process))
     (if bury
         (bury-buffer buffer)
       (pop-to-buffer buffer))
@@ -328,20 +385,19 @@ Only `babel' TRANSPILER value is currently supported."
         (current-buffer))
       (message "Process %s finished" jsi-node-repl-process-name))))
 
-;;; Minimalist Node.js REPL for inter-repl minor mode
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; do-java-script and tab-completions in Node.js REPL
+;;; do-java-script and tab-completions for jsi-node-repl
 ;; -------------------------------------------------------------------
 ;; /b/{
 
 ;; Shamelessly stolen from nodejs-repl-clear-line
-(defun jsi-node--clear-process-input (process)
+(defun jsi--node-clear-process-input (process)
   "Send ^U (NEGATIVE ACKNOWLEDGEMENT) to Node.js process."
   (process-send-string process "\x15"))
 
-(defun jsi-node--get-buffer-last-line (buffer)
+(defun jsi--node-get-buffer-last-line (buffer)
   (let ((inhibit-field-text-motion t))
     (save-excursion
       (set-buffer buffer)
@@ -350,16 +406,16 @@ Only `babel' TRANSPILER value is currently supported."
        (line-beginning-position)
        (line-end-position)))))
 
-(defun jsi-node--send-to-process-filter (process string)
+(defun jsi--node-send-to-process-filter (process string)
   (with-current-buffer (process-buffer process)
     (goto-char (process-mark process))
-    (insert (jsi-node--comint-preoutput-filter string))
+    (insert (jsi--node-comint-preoutput-filter string))
     (set-marker (process-mark process) (point))
     ;; Update window-point point - only useful for debugging.
     (dolist (window (get-buffer-window-list))
       (set-window-point window (point)))))
 
-(defun jsi-node--get-java-script-output (input-string)
+(defun jsi--node-get-java-script-output (input-string)
   (unless (string-empty-p input-string)
     (let (beg end)
       (save-excursion
@@ -386,17 +442,17 @@ Only `babel' TRANSPILER value is currently supported."
           (progn
             (set-process-buffer process (current-buffer))
             (set-process-filter
-             process #'jsi-node--send-to-process-filter)
+             process #'jsi--node-send-to-process-filter)
             (set-marker (process-mark process) (point-max))
             (process-send-string process input)
-            (jsi-node--wait-for-prompt process))
+            (jsi--node-wait-for-prompt process))
         (set-process-buffer process process-buffer-orig)
         (set-process-filter process process-filter-orig)
         (set-marker (process-mark process)
                     marker-position-orig process-buffer-orig))
-      (jsi-node--get-java-script-output string))))
+      (jsi--node-get-java-script-output string))))
 
-(defun jsi-node--get-tab-completions-output (input-string)
+(defun jsi--node-get-tab-completions-output (input-string)
   (let (beg end output-string candidates candidate prefix-length)
     (save-excursion
       (goto-char (point-min))
@@ -435,52 +491,46 @@ Only `babel' TRANSPILER value is currently supported."
           (progn
             (set-process-buffer process (current-buffer))
             (set-process-filter
-             process #'jsi-node--send-to-process-filter)
+             process #'jsi--node-send-to-process-filter)
             (set-marker (process-mark process) (point-min))
-            (jsi-node--clear-process-input process)
-            (jsi-node--wait-for-prompt process)
+            (jsi--node-clear-process-input process)
+            (jsi--node-wait-for-prompt process)
             (process-send-string process (concat string "\t"))
             (while (accept-process-output process 0.01))
             (process-send-string process "\t")
             (while (accept-process-output process 0.01))
-            (jsi-node--clear-process-input process)
-            (jsi-node--wait-for-prompt process))
+            (jsi--node-clear-process-input process)
+            (jsi--node-wait-for-prompt process))
         (set-process-buffer process process-buffer-orig)
         (set-process-filter process process-filter-orig)
         (set-marker (process-mark process)
                     marker-position-orig process-buffer-orig))
-      (jsi-node--get-tab-completions-output string))))
+      (jsi--node-get-tab-completions-output string))))
 
-;;; do-java-script and tab-completions in Node.js REPL
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; jsi-node-mode - minor Node.JS REPL interaction mode
+;;; jsi-node-mode - minor js-interaction mode for jsi-node-repl
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defun jsi-node--get-log-buffer ()
-  "Returns `js-interaction' buffer. Creates one if it does not already exit."
-  (let* ((name (concat "*" "js-interaction" "*"))
+(defun jsi--get-log-buffer ()
+  "Returns `jsi-log' buffer. Creates one if it doesn't already exit."
+  (let* ((name (concat "*" "jsi-log" "*"))
          (buffer (get-buffer name)))
     (or buffer
         (progn
           (setq buffer (get-buffer-create name))
           (with-current-buffer buffer
-            (js-interaction-mode))
+            (jsi-log-mode))
           buffer))))
 
-(defun js-interaction ()
-  "Displays `js-interaction' buffer. Creates one if it does not already exit."
+(defun jsi-log ()
+  "Displays `jsi-log' buffer. Creates one if it doesn't already exit."
   (interactive)
-  (display-buffer (jsi-node--get-log-buffer)))
+  (display-buffer (jsi--get-log-buffer)))
 
-;;;###autoload
-(defun jsi-node-eval-expression (js-expr)
-  (interactive "sEval NodeJS: ")
-  (message (jsi-node-do-java-script-sync js-expr)))
-
-(defun jsi-node--js2-forward-expression-p ()
+(defun jsi--node-js2-forward-expression-p ()
   "Returns t if point is looking at \"=\" or \";\" excluding white space."
   (save-excursion
     (js2-forward-sws)
@@ -490,15 +540,15 @@ Only `babel' TRANSPILER value is currently supported."
         (looking-at "\\.")
         (looking-at "("))))
 
-(defun jsi-node--js2-forward-expression ()
+(defun jsi--node-js2-forward-expression ()
   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
 skip forward unconditionally first time and then while
-`jsi-node--js2-mode-forward-sexp-p' returns t."
+`jsi--node-js2-mode-forward-sexp-p' returns t."
   (js2-mode-forward-sexp)
-  (while (jsi-node--js2-forward-expression-p)
+  (while (jsi--node-js2-forward-expression-p)
     (js2-mode-forward-sexp)))
 
-(defun jsi-node--js2-expression-at-pos-beg-end (pos)
+(defun jsi--node-js2-expression-at-pos-beg-end (pos)
   (let (beg end)
     (save-excursion
       (goto-char pos)
@@ -507,42 +557,79 @@ skip forward unconditionally first time and then while
         (right-word)
         (js2-forward-sws))
       (setq beg (point))
-      (jsi-node--js2-forward-expression)
+      (jsi--node-js2-forward-expression)
       (setq end (point)))
     (cons beg end)))
 
-(defun jsi-node--pos-inside-symbol-p (pos)
+(defun jsi--node-ts-expression-at-pos-beg-end (pos)
+  (let (beg end)
+    (save-excursion
+      (goto-char pos)
+      (typescript--forward-syntactic-ws)
+      (setq beg (point))
+      (typescript--forward-expression)
+      (setq end (point)))
+    (cons beg end)))
+
+(defun jsi--node-pos-inside-symbol-p (pos)
   "Returns t if POS is in inside symbol."
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
     (and bounds
          (> pos (car bounds))
          (< pos (cdr bounds)))))
 
-(defun jsi-node--pos-at-bol-p (pos)
+(defun jsi--node-pos-at-bol-p (pos)
   "Returns t if POS is in the beginning of line excluding white space."
   (string-blank-p
    (buffer-substring-no-properties (line-beginning-position) pos)))
 
-(defun jsi-node--expression-at-pos-beg-end (pos)
+(defun jsi--node-expression-at-pos-beg-end (pos)
   (let (bounds)
-    (if (eq major-mode 'js2-mode)
-        (if (jsi-node--pos-inside-symbol-p pos)
-            (setq bounds (bounds-of-thing-at-point 'symbol))
-          (setq bounds (jsi-node--js2-expression-at-pos-beg-end pos)))
-      (if (jsi-node--pos-at-bol-p pos)
+    (cond
+     ((eq major-mode 'js2-mode)
+      (if (jsi--node-pos-inside-symbol-p pos)
+          (setq bounds (bounds-of-thing-at-point 'symbol))
+        (setq bounds (jsi--node-js2-expression-at-pos-beg-end pos))))
+     ((eq major-mode 'typescript-mode)
+      (if (jsi--node-pos-inside-symbol-p pos)
+          (setq bounds (bounds-of-thing-at-point 'symbol))
+        (setq bounds (jsi--node-ts-expression-at-pos-beg-end pos))))
+     (t
+      (if (jsi--node-pos-at-bol-p pos)
           (setq bounds (cons (line-beginning-position) (line-end-position)))
-        (setq bounds (bounds-of-thing-at-point 'symbol))))
+        (setq bounds (bounds-of-thing-at-point 'symbol)))))
     bounds))
 
-(defun jsi-node--eval (js-expr)
+(defun jsi--node-eval (js-expr)
   (let ((process (get-process jsi-node-repl-process-name)))
     (unless process
       (setq process (jsi-node-repl t)))
     (with-current-buffer (process-buffer process)
       (jsi-node-do-java-script-sync js-expr))))
 
-(defun jsi-node--eval-region (beg end)
-  (jsi-node--eval (buffer-substring-no-properties beg end)))
+(defun jsi--node-eval-region (beg end)
+  (jsi--node-eval (buffer-substring-no-properties beg end)))
+
+;;;###autoload
+(defun jsi-node-eval-expression (js-expr)
+  (interactive "sEval NodeJS: ")
+  (let ((log-buffer (jsi--get-log-buffer))
+        (input js-expr)
+        (output (jsi-node-do-java-script-sync js-expr)))
+    (with-current-buffer log-buffer
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+        (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
+        (insert input)
+        (insert "\n\n")
+        (insert "// /b/> node\n\n")
+        (insert output)
+        (insert "\n\n")
+        (insert "// /b/}\n\n")))
+    (unless (get-buffer-window log-buffer 'visible)
+      (message output))))
+
+  (message (jsi-node-do-java-script-sync js-expr)))
 
 ;;;###autoload
 (defun jsi-node-eval (beg &optional end no-pulse)
@@ -550,38 +637,39 @@ skip forward unconditionally first time and then while
                    (list (region-beginning) (region-end))
                  (list (point) nil)))
   (when (null end)
-    (let ((bounds (jsi-node--expression-at-pos-beg-end beg)))
+    (let ((bounds (jsi--node-expression-at-pos-beg-end beg)))
       (setq beg (car bounds)
             end (cdr bounds))))
-  (let* ((log-buffer (jsi-node--get-log-buffer))
+  (let* ((log-buffer (jsi--get-log-buffer))
          (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
-         transpiled-output output)
+         transpiled-input output)
     (setq input (string-trim input))
     (if (null transpiler)
-        (setq output (jsi-node--eval input))
-      (setq transpiled-output (jsi-transpile-sync transpiler input))
-      (setq output (jsi-node--eval transpiled-output)))
+        (setq output (jsi--node-eval input))
+      (setq transpiled-input (jsi-transpile-sync transpiler input))
+      (setq output (jsi--node-eval transpiled-input)))
     (if current-prefix-arg
         (save-excursion
           (end-of-line)
           (newline)
           (insert output))
       (with-current-buffer log-buffer
-        (goto-char (point-max))
-        (insert (concat "// ["  (current-time-string) "] /b/{ "
-                        input-language "\n\n"))
-        (insert input)
-        (insert "\n\n")
-        (when transpiler
-          (insert "// /b/> " (symbol-name transpiler) "\n\n")
-          (insert transpiled-output)
-          (insert "\n\n"))
-        (insert "// /b/> node\n\n")
-        (insert output)
-        (insert "\n\n")
-        (insert "// /b/}\n\n"))
+        (let ((inhibit-read-only t))
+          (goto-char (point-max))
+          (insert (concat "// ["  (current-time-string) "] /b/{ "
+                          input-language "\n\n"))
+          (insert input)
+          (insert "\n\n")
+          (when transpiler
+            (insert "// /b/> " (symbol-name transpiler) "\n\n")
+            (insert transpiled-input)
+            (insert "\n\n"))
+          (insert "// /b/> node\n\n")
+          (insert output)
+          (insert "\n\n")
+          (insert "// /b/}\n\n")))
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
   (unless (or no-pulse (use-region-p))
@@ -594,6 +682,9 @@ skip forward unconditionally first time and then while
 
 (defvar jsi-node-mode-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<f6>") #'jsi-transpile)
+    (define-key map (kbd "S-<f6>") #'jsi-transpile-expression)
+    (define-key map (kbd "C-<f6>") #'jsi-transpile-buffer)
     (define-key map (kbd "<f5>") #'jsi-node-eval)
     (define-key map (kbd "S-<f5>") #'jsi-node-eval-expression)
     (define-key map (kbd "C-<f5>") #'jsi-node-eval-buffer)
@@ -608,25 +699,25 @@ skip forward unconditionally first time and then while
       (progn
         (jsi-node-repl t)
         (add-hook 'completion-at-point-functions
-                  'jsi-node--completion-at-point-function nil t))
+                  'jsi--node-completion-at-point-function nil t))
     (remove-hook 'completion-at-point-functions
-                 'jsi-node--completion-at-point-function t)))
+                 'jsi--node-completion-at-point-function t)))
 
-(define-derived-mode js-interaction-mode fundamental-mode "js-interaction"
-  "Major mode for jsi-node log."
+(define-derived-mode
+  jsi-log-mode fundamental-mode "jsi-log"
+  "Major mode for js-interaction modes log."
   :lighter " js-interaction"
-  ;; (setq-local buffer-read-only t)
+  (setq-local buffer-read-only t)
   (setq-local window-point-insertion-type t))
 
-;;; jsi-node-mode
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; Node.JS REPL completion functions
+;;; completion functions for jsi-node-repl
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defun jsi-node--extract-completion-input (raw-input)
+(defun jsi--node-extract-completion-input (raw-input)
   ;; Strip '// ... \n' - style comments
   (setq raw-input
         (replace-regexp-in-string "//.*$" "" raw-input))
@@ -645,10 +736,10 @@ skip forward unconditionally first time and then while
   ;; get last valid JavaScript symbol
   (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input)))
 
-(defun jsi-node--extract-completion-prefix (input)
+(defun jsi--node-extract-completion-prefix (input)
   (substring input (string-match-p "[^\\.]*$" input)))
 
-(defun jsi-node--get-completion-raw-input ()
+(defun jsi--node-get-completion-raw-input ()
   (let ((regex "[^[:alnum:][:blank:][:cntrl:]_/\\*\\$\\.]")
         end)
     (save-excursion
@@ -658,28 +749,28 @@ skip forward unconditionally first time and then while
         (search-backward-regexp regex))
       (buffer-substring-no-properties (point) end))))
 
-(defun jsi-node--in-string-p ()
+(defun jsi--node-in-string-p ()
   "Returns t if point is inside string
 see http://ergoemacs.org/emacs/elisp_determine_cursor_inside_string_or_comment.html"
   (nth 3 (syntax-ppss)))
 
-(defun jsi-node--in-comment-p ()
+(defun jsi--node-in-comment-p ()
   "Returns t if point is inside comment
 see http://ergoemacs.org/emacs/elisp_determine_cursor_inside_string_or_comment.html"
   (nth 4 (syntax-ppss)))
 
-(defun jsi-node--completion-at-point-function ()
+(defun jsi--node-completion-at-point-function ()
   (let (input)
     (if (eq major-mode 'jsi-node-repl-mode)
         (when (comint-after-pmark-p)
           (setq input (buffer-substring-no-properties
                        (comint-line-beginning-position)
                        (point))))
-      (unless (or (jsi-node--in-string-p) (jsi-node--in-comment-p))
-        (setq input (jsi-node--get-completion-raw-input))))
+      (unless (or (jsi--node-in-string-p) (jsi--node-in-comment-p))
+        (setq input (jsi--node-get-completion-raw-input))))
     (when input
-      (setq input (jsi-node--extract-completion-input input))
-      (list (- (point) (length (jsi-node--extract-completion-prefix input)))
+      (setq input (jsi--node-extract-completion-input input))
+      (list (- (point) (length (jsi--node-extract-completion-prefix input)))
             (point)
             (jsi-node-get-tab-completions-sync input)))))
 
@@ -708,7 +799,6 @@ see http://ergoemacs.org/emacs/elisp_determine_cursor_inside_string_or_comment.h
 ;;   '(progn
 ;;      (cl-pushnew 'company-tide company-backends)))
 
-;;; auto-completion functions
 ;; /b/}
 
 (provide 'js-interaction)
