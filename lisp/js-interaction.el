@@ -75,7 +75,7 @@ If mode is not recognised, assumes JavaScript."
   (let ((transpiler (jsi--get jsi-transpiler)))
     (if (null transpiler)
         (error "`jsi-transpiler' is evaluated to nil.")
-      (let* ((log-buffer (jsi--get-log-buffer))
+      (let* ((log-buffer (jsi--log-get-buffer))
              (input js-expr)
              (transpiled-input (jsi-transpile-sync transpiler input)))
         (with-current-buffer log-buffer
@@ -97,10 +97,10 @@ If mode is not recognised, assumes JavaScript."
                    (list (region-beginning) (region-end))
                  (list (point) nil)))
   (when (null end)
-    (let ((bounds (jsi--node-expression-at-pos-beg-end beg)))
+    (let ((bounds (jsi--dwim-expression-at-pos-beg-end beg)))
       (setq beg (car bounds)
             end (cdr bounds))))
-  (let* ((log-buffer (jsi--get-log-buffer))
+  (let* ((log-buffer (jsi--log-get-buffer))
          (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
@@ -112,8 +112,10 @@ If mode is not recognised, assumes JavaScript."
     (with-current-buffer log-buffer
       (let ((inhibit-read-only t))
         (goto-char (point-max))
-        (insert (concat "// ["  (current-time-string) "] /b/{ "
-                        input-language "\n\n"))
+        (insert (propertize (concat "// ["  (current-time-string) "] /b/{ "
+                                    input-language "\n")
+                            'face 'jsi-log-message-heading-highlight))
+        (insert "\n")
         (insert input)
         (insert "\n\n")
         (insert "// /b/> " (symbol-name transpiler) "\n\n")
@@ -129,6 +131,46 @@ If mode is not recognised, assumes JavaScript."
 (defun jsi-transpile-buffer ()
   (interactive)
   (jsi-transpile (point-min) (point-max) t))
+
+;; /b/}
+
+;; -------------------------------------------------------------------
+;;; jsi-log - js-interaction modes log
+;; -------------------------------------------------------------------
+;; /b/{
+
+(defface jsi-log-message-heading-highlight
+  '((((class color) (background light))
+     :background "grey75"
+     :foreground "grey30")
+    (((class color) (background dark))
+     :background "grey35"
+     :foreground "grey70"))
+  "Face for current diff hunk headings."
+  :group 'js-interaction)
+
+(define-derived-mode
+  jsi-log-mode fundamental-mode "jsi-log"
+  "Major mode for js-interaction modes log."
+  :lighter " js-interaction"
+  (setq-local buffer-read-only t)
+  (setq-local window-point-insertion-type t))
+
+(defun jsi--log-get-buffer ()
+  "Returns `jsi-log' buffer. Creates one if it doesn't already exit."
+  (let* ((name (concat "*" "jsi-log" "*"))
+         (buffer (get-buffer name)))
+    (or buffer
+        (progn
+          (setq buffer (get-buffer-create name))
+          (with-current-buffer buffer
+            (jsi-log-mode))
+          buffer))))
+
+(defun jsi-log ()
+  "Displays `jsi-log' buffer. Creates one if it doesn't already exit."
+  (interactive)
+  (display-buffer (jsi--log-get-buffer)))
 
 ;; /b/}
 
@@ -189,7 +231,6 @@ calls would return the cached value."
                 (call-process "babel" nil nil nil "--version")))
         "babel"))))))
 
-;; /home/rh/projects/s600-solution/wtx/web/jsi-ts.babel.config.js
 (defcustom jsi-babel-config-file #'jsi-babel-config-file-get-default
   "Config file used to run Babel."
   :group 'js-interaction
@@ -514,23 +555,7 @@ Only `babel' TRANSPILER value is currently supported."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defun jsi--get-log-buffer ()
-  "Returns `jsi-log' buffer. Creates one if it doesn't already exit."
-  (let* ((name (concat "*" "jsi-log" "*"))
-         (buffer (get-buffer name)))
-    (or buffer
-        (progn
-          (setq buffer (get-buffer-create name))
-          (with-current-buffer buffer
-            (jsi-log-mode))
-          buffer))))
-
-(defun jsi-log ()
-  "Displays `jsi-log' buffer. Creates one if it doesn't already exit."
-  (interactive)
-  (display-buffer (jsi--get-log-buffer)))
-
-(defun jsi--node-js2-forward-expression-p ()
+(defun jsi--dwim-js2-forward-expression-p ()
   "Returns t if point is looking at \"=\" or \";\" excluding white space."
   (save-excursion
     (js2-forward-sws)
@@ -540,15 +565,15 @@ Only `babel' TRANSPILER value is currently supported."
         (looking-at "\\.")
         (looking-at "("))))
 
-(defun jsi--node-js2-forward-expression ()
+(defun jsi--dwim-js2-forward-expression ()
   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
 skip forward unconditionally first time and then while
 `jsi--node-js2-mode-forward-sexp-p' returns t."
   (js2-mode-forward-sexp)
-  (while (jsi--node-js2-forward-expression-p)
+  (while (jsi--dwim-js2-forward-expression-p)
     (js2-mode-forward-sexp)))
 
-(defun jsi--node-js2-expression-at-pos-beg-end (pos)
+(defun jsi--dwim-js2-expression-at-pos-beg-end (pos)
   (let (beg end)
     (save-excursion
       (goto-char pos)
@@ -557,11 +582,11 @@ skip forward unconditionally first time and then while
         (right-word)
         (js2-forward-sws))
       (setq beg (point))
-      (jsi--node-js2-forward-expression)
+      (jsi--dwim-js2-forward-expression)
       (setq end (point)))
     (cons beg end)))
 
-(defun jsi--node-ts-expression-at-pos-beg-end (pos)
+(defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
   (let (beg end)
     (save-excursion
       (goto-char pos)
@@ -571,31 +596,31 @@ skip forward unconditionally first time and then while
       (setq end (point)))
     (cons beg end)))
 
-(defun jsi--node-pos-inside-symbol-p (pos)
+(defun jsi--dwim-pos-inside-symbol-p (pos)
   "Returns t if POS is in inside symbol."
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
     (and bounds
          (> pos (car bounds))
          (< pos (cdr bounds)))))
 
-(defun jsi--node-pos-at-bol-p (pos)
+(defun jsi--dwim-pos-at-bol-p (pos)
   "Returns t if POS is in the beginning of line excluding white space."
   (string-blank-p
    (buffer-substring-no-properties (line-beginning-position) pos)))
 
-(defun jsi--node-expression-at-pos-beg-end (pos)
+(defun jsi--dwim-expression-at-pos-beg-end (pos)
   (let (bounds)
     (cond
      ((eq major-mode 'js2-mode)
-      (if (jsi--node-pos-inside-symbol-p pos)
+      (if (jsi--dwim-pos-inside-symbol-p pos)
           (setq bounds (bounds-of-thing-at-point 'symbol))
-        (setq bounds (jsi--node-js2-expression-at-pos-beg-end pos))))
+        (setq bounds (jsi--dwim-js2-expression-at-pos-beg-end pos))))
      ((eq major-mode 'typescript-mode)
-      (if (jsi--node-pos-inside-symbol-p pos)
+      (if (jsi--dwim-pos-inside-symbol-p pos)
           (setq bounds (bounds-of-thing-at-point 'symbol))
-        (setq bounds (jsi--node-ts-expression-at-pos-beg-end pos))))
+        (setq bounds (jsi--dwim-ts-expression-at-pos-beg-end pos))))
      (t
-      (if (jsi--node-pos-at-bol-p pos)
+      (if (jsi--dwim-pos-at-bol-p pos)
           (setq bounds (cons (line-beginning-position) (line-end-position)))
         (setq bounds (bounds-of-thing-at-point 'symbol)))))
     bounds))
@@ -613,7 +638,7 @@ skip forward unconditionally first time and then while
 ;;;###autoload
 (defun jsi-node-eval-expression (js-expr)
   (interactive "sEval NodeJS: ")
-  (let ((log-buffer (jsi--get-log-buffer))
+  (let ((log-buffer (jsi--log-get-buffer))
         (input js-expr)
         (output (jsi-node-do-java-script-sync js-expr)))
     (with-current-buffer log-buffer
@@ -629,18 +654,16 @@ skip forward unconditionally first time and then while
     (unless (get-buffer-window log-buffer 'visible)
       (message output))))
 
-  (message (jsi-node-do-java-script-sync js-expr)))
-
 ;;;###autoload
 (defun jsi-node-eval (beg &optional end no-pulse)
   (interactive (if (use-region-p)
                    (list (region-beginning) (region-end))
                  (list (point) nil)))
   (when (null end)
-    (let ((bounds (jsi--node-expression-at-pos-beg-end beg)))
+    (let ((bounds (jsi--dwim-expression-at-pos-beg-end beg)))
       (setq beg (car bounds)
             end (cdr bounds))))
-  (let* ((log-buffer (jsi--get-log-buffer))
+  (let* ((log-buffer (jsi--log-get-buffer))
          (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
@@ -702,13 +725,6 @@ skip forward unconditionally first time and then while
                   'jsi--node-completion-at-point-function nil t))
     (remove-hook 'completion-at-point-functions
                  'jsi--node-completion-at-point-function t)))
-
-(define-derived-mode
-  jsi-log-mode fundamental-mode "jsi-log"
-  "Major mode for js-interaction modes log."
-  :lighter " js-interaction"
-  (setq-local buffer-read-only t)
-  (setq-local window-point-insertion-type t))
 
 ;; /b/}
 
