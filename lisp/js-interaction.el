@@ -114,7 +114,7 @@ If mode is not recognised, assumes JavaScript."
         (goto-char (point-max))
         (insert (propertize (concat "// ["  (current-time-string) "] /b/{ "
                                     input-language "\n")
-                            'face 'jsi-log-message-heading-highlight))
+                            'face 'jsi-log-record-heading-highlight))
         (insert "\n")
         (insert input)
         (insert "\n\n")
@@ -139,14 +139,34 @@ If mode is not recognised, assumes JavaScript."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(defface jsi-log-message-heading-highlight
+(defface jsi-log-record-heading-highlight
   '((((class color) (background light))
      :background "grey75"
      :foreground "grey30")
     (((class color) (background dark))
      :background "grey35"
      :foreground "grey70"))
-  "Face for current diff hunk headings."
+  "Face for log record heading."
+  :group 'js-interaction)
+
+(defface jsi-log-transpiler-heading-highlight
+  '((((class color) (background light))
+     :background "#ffffcc"
+     :foreground "#aaaa11")
+    (((class color) (background dark))
+     :background "#555522"
+     :foreground "#ffffcc"))
+  "Face for log transpiler heading."
+  :group 'js-interaction)
+
+(defface jsi-log-interpreter-heading-highlight
+  '((((class color) (background light))
+     :background "#cceecc"
+     :foreground "#22aa22")
+    (((class color) (background dark))
+     :background "#336633"
+     :foreground "#cceecc"))
+  "Face for log interpreter heading."
   :group 'js-interaction)
 
 (define-derived-mode
@@ -155,6 +175,51 @@ If mode is not recognised, assumes JavaScript."
   :lighter " js-interaction"
   (setq-local buffer-read-only t)
   (setq-local window-point-insertion-type t))
+
+;; (defun jsi-log-add-record
+;;     (input-language input transpiler transpiled-input output)
+;;   (with-current-buffer log-buffer
+;;     (let ((inhibit-read-only t))
+;;       (goto-char (point-max))
+;;       (insert (concat "// ["  (current-time-string) "] /b/{ "
+;;                       input-language "\n\n"))
+;;       (insert input)
+;;       (insert "\n\n")
+;;       (when transpiler
+;;         (insert "// /b/> " (symbol-name transpiler) "\n\n")
+;;         (insert transpiled-input)
+;;         (insert "\n\n"))
+;;       (insert "// /b/> node\n\n")
+;;       (insert output)
+;;       (insert "\n\n")
+;;       (insert "// /b/}\n\n"))))
+
+(defun jsi-log-add-record (input-language input
+                           transpiler transpiled-input
+                           interpreter output)
+  (with-current-buffer (jsi--log-get-buffer)
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      ;; (insert
+      ;;  (propertize (concat "["  (current-time-string) "]\n")
+      ;;              'face 'jsi-log-record-heading-highlight))
+      (insert
+       (propertize (concat "@ " (symbol-name input-language) "\n")
+                   'face 'jsi-log-record-heading-highlight))
+      (insert input)
+      (insert "\n\n")
+      (when transpiler
+        (insert
+         (propertize (concat "> " (symbol-name transpiler) "\n")
+                     'face 'jsi-log-transpiler-heading-highlight))
+        (insert transpiled-input)
+        (insert "\n\n"))
+      (when interpreter
+        (insert
+         (propertize (concat "> " (symbol-name interpreter) "\n")
+                     'face 'jsi-log-interpreter-heading-highlight))
+        (insert output)
+        (insert "\n\n")))))
 
 (defun jsi--log-get-buffer ()
   "Returns `jsi-log' buffer. Creates one if it doesn't already exit."
