@@ -19,6 +19,18 @@
   "Returns (funcall var) if `var' is a function or `var' if not."
   (if (functionp var) (funcall var) var))
 
+;; /b/}
+
+;; -------------------------------------------------------------------
+;;; Transpilers common
+;; -------------------------------------------------------------------
+;; /b/{
+
+(defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
+  "List of major modes for which babel transpiler should be used by default."
+  :group 'js-interaction
+  :type '(repeat symbol))
+
 (defcustom jsi-transpiler #'jsi-transpiler-get-default
   "Specifies what transpiler should be used by js-interaction modes."
   :group 'js-interaction
@@ -34,11 +46,6 @@
                  (function
                   :tag "Function that returns transplier type symbol"
                   :value jsi-transpiler-get-default)))
-
-(defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
-  "List of major modes for which babel transpiler should be used by default."
-  :group 'js-interaction
-  :type '(repeat symbol))
 
 (defun jsi-transpiler-get-default ()
   "Returns `babel' for major-mode equal `typescript-mode'
@@ -78,16 +85,10 @@ If mode is not recognised, assumes JavaScript."
       (let* ((log-buffer (jsi--log-get-buffer))
              (input js-expr)
              (transpiled-input (jsi-transpile-sync transpiler input)))
-        (with-current-buffer log-buffer
-          (let ((inhibit-read-only t))
-            (goto-char (point-max))
-            (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
-            (insert input)
-            (insert "\n\n")
-            (insert "// /b/> " (symbol-name transpiler) "\n\n")
-            (insert transpiled-input)
-            (insert "\n\n")
-            (insert "// /b/}\n\n")))
+        (jsi-log-record-add
+         (jsi--get jsi-input-language) input
+         transpiler transpiled-input
+         nil nil)
         (unless (get-buffer-window log-buffer 'visible)
           (message output))))))
 
@@ -109,19 +110,10 @@ If mode is not recognised, assumes JavaScript."
     (if (null transpiler)
         (error "`jsi-transpiler' is evaluated to nil.")
       (setq transpiled-input (jsi-transpile-sync transpiler input)))
-    (with-current-buffer log-buffer
-      (let ((inhibit-read-only t))
-        (goto-char (point-max))
-        (insert (propertize (concat "// ["  (current-time-string) "] /b/{ "
-                                    input-language "\n")
-                            'face 'jsi-log-record-heading-highlight))
-        (insert "\n")
-        (insert input)
-        (insert "\n\n")
-        (insert "// /b/> " (symbol-name transpiler) "\n\n")
-        (insert transpiled-input)
-        (insert "\n\n")
-        (insert "// /b/}\n\n")))
+    (jsi-log-record-add
+     (jsi--get jsi-input-language) input
+     transpiler transpiled-input
+     nil nil)
     (unless (get-buffer-window log-buffer 'visible)
       (message transpiled-input)))
   (unless (or no-pulse (use-region-p))
@@ -747,16 +739,8 @@ skip forward unconditionally first time and then while
   (let ((log-buffer (jsi--log-get-buffer))
         (input js-expr)
         (output (jsi-node-do-java-script-sync js-expr)))
-    (with-current-buffer log-buffer
-      (let ((inhibit-read-only t))
-        (goto-char (point-max))
-        (insert (concat "// ["  (current-time-string) "] /b/{ js\n\n"))
-        (insert input)
-        (insert "\n\n")
-        (insert "// /b/> node\n\n")
-        (insert output)
-        (insert "\n\n")
-        (insert "// /b/}\n\n")))
+    (jsi-log-record-add
+     'js input nil nil 'node output)
     (unless (get-buffer-window log-buffer 'visible)
       (message output))))
 
@@ -784,28 +768,10 @@ skip forward unconditionally first time and then while
           (end-of-line)
           (newline)
           (insert output))
-      ;; (with-current-buffer log-buffer
-      ;;   (let ((inhibit-read-only t))
-      ;;     (goto-char (point-max))
-      ;;     (insert (concat "// ["  (current-time-string) "] /b/{ "
-      ;;                     input-language "\n\n"))
-      ;;     (insert input)
-      ;;     (insert "\n\n")
-      ;;     (when transpiler
-      ;;       (insert "// /b/> " (symbol-name transpiler) "\n\n")
-      ;;       (insert transpiled-input)
-      ;;       (insert "\n\n"))
-      ;;     (insert "// /b/> node\n\n")
-      ;;     (insert output)
-      ;;     (insert "\n\n")
-      ;;     (insert "// /b/}\n\n")))
       (jsi-log-record-add
-       (jsi--get jsi-input-language)
-       input
-       transpiler
-       transpiled-input
-       'node
-       output)
+       (jsi--get jsi-input-language) input
+       transpiler transpiled-input
+       'node output)
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
   (unless (or no-pulse (use-region-p))
