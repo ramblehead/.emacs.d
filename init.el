@@ -893,8 +893,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
              (set-face-attribute
               'region nil
               :box '(:line-width (-1 . -1)
-                                 :color "gtk_selection_bg_color"
-                                 :style nil))
+                     :color "gtk_selection_bg_color"
+                     :style nil))
              ;; ;; see https://www.reddit.com/r/emacs/comments/345by9/having_the_background_face_for_selection_region/
              ;; (setq redisplay-highlight-region-function
              ;;       (lambda (start end window rol)
@@ -918,8 +918,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            (set-face-attribute
             'region nil
             :box '(:line-width -1
-                               :color "gtk_selection_bg_color"
-                               :style nil)))))
+                   :color "gtk_selection_bg_color"
+                   :style nil)))))
 
     ;; face-font-family-alternatives
 
@@ -3466,7 +3466,6 @@ fields which we need."
              :major)
   :config
   (require 'config-js2-mode)
-  ;; (require 'nodejs-repl)
   (require 'company)
 
   ;; Indentation style ajustments
@@ -3504,13 +3503,27 @@ fields which we need."
 ;; /b/{ typescript-mode
 
 (use-package typescript-mode
-  :delight (typescript-mode "ts")
+  ;; :delight (typescript-mode "ts")
+  :delight '((:eval (if (bound-and-true-p jsi-node-mode)
+                        "tsλn"
+                      "ts"))
+             :major)
   :config
+  (require 'company)
+
   (setq typescript-indent-level 2)
 
   (add-hook
    'typescript-mode-hook
    (lambda ()
+     (setq-local rm-blacklist (seq-copy rm-blacklist))
+     (add-to-list 'rm-blacklist " jsi-node")
+
+     (setq-local company-backends
+                 '((company-keywords company-dabbrev-code)
+                   company-files (company-dabbrev company-ispell)))
+     (company-mode 1)
+
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
@@ -4118,7 +4131,10 @@ fields which we need."
      (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
      (local-set-key (kbd "C-M-n") 'forward-sexp)
-     (local-set-key (kbd "C-M-p") 'backward-sexp)))
+     (local-set-key (kbd "C-M-p") 'backward-sexp)
+
+     (local-set-key (kbd "C-S-b") 'recompile)
+     (local-set-key (kbd "C-c b") 'rh-compile-toggle-display)))
 
   :ensure t)
 

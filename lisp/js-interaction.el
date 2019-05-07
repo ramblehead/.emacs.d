@@ -142,39 +142,57 @@ If mode is not recognised, assumes JavaScript."
 (defface jsi-log-record-heading-highlight
   '((((class color) (background light))
      :background "grey75"
-     :foreground "grey30")
+     :foreground "grey30"
+     :weight bold)
     (((class color) (background dark))
      :background "grey35"
-     :foreground "grey70"))
+     :foreground "grey70"
+     :weight bold))
   "Face for log record heading."
   :group 'js-interaction)
 
 (defface jsi-log-transpiler-heading-highlight
   '((((class color) (background light))
      :background "#ffffcc"
-     :foreground "#aaaa11")
+     :foreground "#aaaa11"
+     :weight bold)
     (((class color) (background dark))
      :background "#555522"
-     :foreground "#ffffcc"))
+     :foreground "#ffffcc"
+     :weight bold))
   "Face for log transpiler heading."
   :group 'js-interaction)
 
 (defface jsi-log-interpreter-heading-highlight
   '((((class color) (background light))
      :background "#cceecc"
-     :foreground "#22aa22")
+     :foreground "#22aa22"
+     :weight bold)
     (((class color) (background dark))
      :background "#336633"
-     :foreground "#cceecc"))
+     :foreground "#cceecc"
+     :weight bold))
   "Face for log interpreter heading."
   :group 'js-interaction)
+
+;; (face-spec-set
+;;  'jsi-log-interpreter-heading-highlight
+;;  '((((class color) (background light))
+;;     :background "#cceecc"
+;;     :foreground "#22aa22")
+;;    (((class color) (background dark))
+;;     :background "#336633"
+;;     :foreground "#cceecc"))
+;;  'face-defface-spec)
 
 (define-derived-mode
   jsi-log-mode fundamental-mode "jsi-log"
   "Major mode for js-interaction modes log."
-  :lighter " js-interaction"
+  ;; :lighter " js-interaction"
   (setq-local buffer-read-only t)
   (setq-local window-point-insertion-type t))
+
+;; TODO Fix code-blocks to ignore e.g. /b/ { in strings
 
 ;; (defun jsi-log-add-record
 ;;     (input-language input transpiler transpiled-input output)
@@ -194,36 +212,59 @@ If mode is not recognised, assumes JavaScript."
 ;;       (insert "\n\n")
 ;;       (insert "// /b/}\n\n"))))
 
-(defun jsi-log-add-record (input-language input
+(defun jsi--log-fontify-string (string mode)
+  "Return STR fontified according to MODE."
+  (with-temp-buffer
+    (insert string)
+    (delay-mode-hooks (funcall mode))
+    (font-lock-default-function mode)
+    (font-lock-default-fontify-region
+     (point-min) (point-max) nil)
+    (buffer-string)))
+
+(defun jsi--log-fontify-mode (language)
+  "Return mode used to fontify LANGUAGE."
+  (case language
+    (ts 'typescript-mode)
+    (js 'js-mode)))
+
+(defun jsi--log-symbol-text (symbol)
+  (case symbol
+    ('js "JavaScript")
+    ('ts "TypeScript")
+    ('babel "Babel")
+    ('node "Node.js")))
+
+(defun jsi-log-record-add (input-language input
                            transpiler transpiled-input
                            interpreter output)
   (with-current-buffer (jsi--log-get-buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      ;; (insert
-      ;;  (propertize (concat "["  (current-time-string) "]\n")
-      ;;              'face 'jsi-log-record-heading-highlight))
       (insert
-       (propertize (concat "@ " (symbol-name input-language) "\n")
+       (propertize (concat "@ " (jsi--log-symbol-text input-language) "\n")
                    'face 'jsi-log-record-heading-highlight))
-      (insert input)
+      (insert (jsi--log-fontify-string
+               input (jsi--log-fontify-mode input-language)))
       (insert "\n\n")
       (when transpiler
         (insert
-         (propertize (concat "> " (symbol-name transpiler) "\n")
+         (propertize (concat "> " (jsi--log-symbol-text transpiler) "\n")
                      'face 'jsi-log-transpiler-heading-highlight))
-        (insert transpiled-input)
+        (insert (jsi--log-fontify-string
+                 transpiled-input (jsi--log-fontify-mode 'js)))
         (insert "\n\n"))
       (when interpreter
         (insert
-         (propertize (concat "> " (symbol-name interpreter) "\n")
+         (propertize (concat "> " (jsi--log-symbol-text interpreter) "\n")
                      'face 'jsi-log-interpreter-heading-highlight))
-        (insert output)
+        (insert (jsi--log-fontify-string
+                 output (jsi--log-fontify-mode 'js)))
         (insert "\n\n")))))
 
 (defun jsi--log-get-buffer ()
   "Returns `jsi-log' buffer. Creates one if it doesn't already exit."
-  (let* ((name (concat "*" "jsi-log" "*"))
+  (let* ((name "*jsi-log*")
          (buffer (get-buffer name)))
     (or buffer
         (progn
@@ -729,7 +770,7 @@ skip forward unconditionally first time and then while
       (setq beg (car bounds)
             end (cdr bounds))))
   (let* ((log-buffer (jsi--log-get-buffer))
-         (input-language (symbol-name (jsi--get jsi-input-language)))
+         ;; (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
          transpiled-input output)
@@ -743,21 +784,28 @@ skip forward unconditionally first time and then while
           (end-of-line)
           (newline)
           (insert output))
-      (with-current-buffer log-buffer
-        (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (insert (concat "// ["  (current-time-string) "] /b/{ "
-                          input-language "\n\n"))
-          (insert input)
-          (insert "\n\n")
-          (when transpiler
-            (insert "// /b/> " (symbol-name transpiler) "\n\n")
-            (insert transpiled-input)
-            (insert "\n\n"))
-          (insert "// /b/> node\n\n")
-          (insert output)
-          (insert "\n\n")
-          (insert "// /b/}\n\n")))
+      ;; (with-current-buffer log-buffer
+      ;;   (let ((inhibit-read-only t))
+      ;;     (goto-char (point-max))
+      ;;     (insert (concat "// ["  (current-time-string) "] /b/{ "
+      ;;                     input-language "\n\n"))
+      ;;     (insert input)
+      ;;     (insert "\n\n")
+      ;;     (when transpiler
+      ;;       (insert "// /b/> " (symbol-name transpiler) "\n\n")
+      ;;       (insert transpiled-input)
+      ;;       (insert "\n\n"))
+      ;;     (insert "// /b/> node\n\n")
+      ;;     (insert output)
+      ;;     (insert "\n\n")
+      ;;     (insert "// /b/}\n\n")))
+      (jsi-log-record-add
+       (jsi--get jsi-input-language)
+       input
+       transpiler
+       transpiled-input
+       'node
+       output)
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
   (unless (or no-pulse (use-region-p))
