@@ -828,10 +828,18 @@ skip forward unconditionally first time and then while
   (setq raw-input (string-trim-left raw-input))
   ;; Remove spaces around '.' operator
   (setq raw-input (replace-regexp-in-string " ?\\. ?" "." raw-input))
-  ;; get last valid JavaScript symbol
-  (if (string-match-p "[\"'] ?\\.$" raw-input)
-      "String.name."
-    (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input))))
+  (setq raw-input
+        ;; ''. or "". completions as string object
+        (if (string-match-p "[\"'] ?\\.$" raw-input)
+            "String.name."
+          ;; get last valid JavaScript symbol
+          (substring raw-input
+                     (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input))))
+  (if (string-match-p "^ ?\\. ?$" raw-input)
+      ;; Return symbol which has no competions to ignore Node.JS REPL dot
+      ;; commands when in non-REPL buffers
+      "+"
+    raw-input))
 
 (defun jsi--node-extract-completion-prefix (input)
   (substring input (string-match-p "[^\\.]*$" input)))
