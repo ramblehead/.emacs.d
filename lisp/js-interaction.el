@@ -829,7 +829,9 @@ skip forward unconditionally first time and then while
   ;; Remove spaces around '.' operator
   (setq raw-input (replace-regexp-in-string " ?\\. ?" "." raw-input))
   ;; get last valid JavaScript symbol
-  (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input)))
+  (if (string-match-p "[\"'] ?\\.$" raw-input)
+      "String.name."
+    (substring raw-input (string-match-p "[[:alnum:]_\\$\\.]*$" raw-input))))
 
 (defun jsi--node-extract-completion-prefix (input)
   (substring input (string-match-p "[^\\.]*$" input)))
