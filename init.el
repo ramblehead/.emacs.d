@@ -3002,6 +3002,8 @@ fields which we need."
   (setq transient-display-buffer-action
         '(display-buffer-below-selected (side . bottom)))
 
+  (setq magit-bury-buffer-function #'quit-window)
+
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
   ;;       (lambda (buffer)
