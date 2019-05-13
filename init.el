@@ -3762,7 +3762,7 @@ fields which we need."
   :config
 
   (add-hook
-   'css-mode-hook
+   'scss-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
      (company-mode 1)
