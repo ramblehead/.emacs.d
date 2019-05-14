@@ -3776,6 +3776,7 @@ fields which we need."
 ;; /b/{ scss-mode
 
 (use-package scss-mode
+  :mode "\\.scss\\'"
   :config
 
   (add-hook
