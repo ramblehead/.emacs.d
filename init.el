@@ -3679,7 +3679,11 @@ fields which we need."
           (setf (cache-table-get id skewer-eval-print-map) pos))))))
 
 (use-package skewer-mode
-  :config (httpd-start)
+  :config
+  (httpd-start)
+  ;; Add host IP address to .emacs.d/secret.el as the following
+  ;; (customize-set-variable 'httpd-host "10.0.100.180")
+  ;; so httpd will use that IP instead of localhost
   :defer t
   :ensure t)
 
