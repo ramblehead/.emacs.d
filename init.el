@@ -1556,8 +1556,6 @@ Also sets SYMBOL to VALUE."
 (use-package color-theme-sanityinc-tomorrow
   :ensure t)
 
-;; /b/{ isearch
-
 (use-package isearch
   :config
   (setq isearch-allow-scroll t)
@@ -1581,7 +1579,18 @@ Also sets SYMBOL to VALUE."
   ;;         (recenter '(4)))))
   :demand t)
 
-;; /b/} isearch
+(use-package electric
+  :config
+  (defun rh-electric-indent-post-self-insert-function ()
+    (when (and electric-indent-mode
+               (eq last-command 'newline))
+      (save-excursion
+        (move-beginning-of-line 0)
+        (when (looking-at "^[[:blank:]]+$")
+          (delete-region (point) (line-end-position))))))
+
+  (add-hook 'post-self-insert-hook
+            #'rh-electric-indent-post-self-insert-function))
 
 ;; == smooth scrolling ==
 
@@ -3892,7 +3901,8 @@ fields which we need."
   (add-to-list
    'display-buffer-alist
    '("*Python*"
-     (display-buffer-same-window)))
+     (display-buffer-reuse-window
+      display-buffer-same-window)))
 
   (setq python-indent-offset 2)
   (setq python-shell-interpreter "python3")
@@ -4149,6 +4159,7 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes t)
      (auto-complete-mode -1)
+     (setq-local electric-indent-inhibit t)
      (rh-project-setup)
      ;; (vr-web-ac-setup)
 
