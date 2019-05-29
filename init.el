@@ -17,7 +17,7 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb flycheck-typescript-tslint yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
@@ -2667,6 +2667,9 @@ fields which we need."
 
   (setq flycheck-indication-mode nil)
 
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+
+  :defer t
   :ensure t)
 
 (use-package flycheck-popup-tip
@@ -2674,7 +2677,7 @@ fields which we need."
   (add-hook
    'flycheck-mode-hook
    (lambda ()
-     (set (make-local-variable 'rh-popup-direction) 'company)
+     (setq-local rh-popup-direction 'company)
      (flycheck-popup-tip-mode 1)))
 
   ;; (setq flycheck-popup-tip-error-prefix "> ")
@@ -4208,22 +4211,12 @@ fields which we need."
   :config
   (require 'config-tide)
 
-  (add-to-list 'display-buffer-alist
-               `("*tide-references*"
-                 ,(g2w-display #'display-buffer-below-selected t)
-                 (inhibit-same-window . t)
-                 (window-height . shrink-window-if-larger-than-buffer)))
-
-  ;; (add-to-list 'display-buffer-alist
-  ;;              `((lambda (buffer-nm actions)
-  ;;                  (when (and (char-or-string-p buffer-nm)
-  ;;                             (string= buffer-nm "*tide-documentation*"))
-  ;;                    (with-current-buffer buffer-nm
-  ;;                      (local-set-key (kbd "q") #'g2w-quit-window))
-  ;;                    t))
-  ;;                ,(g2w-display #'display-buffer-in-side-window t)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 15)))
+  (add-to-list
+   'display-buffer-alist
+   `("*tide-references*"
+     ,(g2w-display #'display-buffer-below-selected t)
+     (inhibit-same-window . t)
+     (window-height . shrink-window-if-larger-than-buffer)))
 
   (add-to-list
    'display-buffer-alist
@@ -4233,14 +4226,18 @@ fields which we need."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  (add-to-list 'display-buffer-alist
-               `((lambda (buffer-nm actions)
-                   (with-current-buffer buffer-nm
-                     (eq major-mode 'tide-project-errors-mode)))
-                 ,(g2w-display #'display-buffer-below-selected)
-                 (inhibit-same-window . t)
-                 ;; (window-height . shrink-window-if-larger-than-buffer)
-                 ))
+  (add-to-list
+   'display-buffer-alist
+   `((lambda (buffer-nm actions)
+       (with-current-buffer buffer-nm
+         (eq major-mode 'tide-project-errors-mode)))
+     ,(g2w-display #'display-buffer-below-selected)
+     (inhibit-same-window . t)
+     ;; (window-height . shrink-window-if-larger-than-buffer)
+     ))
+
+  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
@@ -4252,6 +4249,7 @@ fields which we need."
   ;;    (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
   ;;         #'rh-tide-company-display-permanent-doc-buffer)))
 
+  :after (company flycheck)
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
          ("M-/" . tide-jump-to-implementation)
@@ -4264,6 +4262,7 @@ fields which we need."
          ;; :map tide-project-errors-mode-map
          ;; ("q" . rh-quit-window-kill)
          )
+  :defer t
   :ensure t)
 
 ;; /b/} tide
