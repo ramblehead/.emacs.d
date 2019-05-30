@@ -2341,6 +2341,7 @@ fields which we need."
   (setq ac-modes (delq 'js2-jsx-mode ac-modes))
   (setq ac-modes (delq 'python-mode ac-modes))
   (setq ac-modes (delq 'scss-mode ac-modes))
+  (setq ac-modes (delq 'web-mode ac-modes))
 
   (ac-config-default)
 
@@ -3481,6 +3482,11 @@ fields which we need."
   (add-hook
    'js-mode-hook
    (lambda ()
+     (setq-local company-backends
+                 '((company-keywords company-dabbrev-code)
+                   company-files (company-dabbrev company-ispell)))
+     (company-mode 1)
+
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
@@ -3514,12 +3520,7 @@ fields which we need."
    'js2-mode-hook
    (lambda ()
      (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " jsi-node")
-
-     (setq-local company-backends
-                 '((company-keywords company-dabbrev-code)
-                   company-files (company-dabbrev company-ispell)))
-     (company-mode 1)))
+     (add-to-list 'rm-blacklist " jsi-node")))
 
   :ensure t)
 
@@ -3552,14 +3553,13 @@ fields which we need."
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " jsi-node")
-
      (setq-local company-backends
                  '((company-keywords company-dabbrev-code)
                    company-files (company-dabbrev company-ispell)))
      (company-mode 1)
 
+     (setq-local rm-blacklist (seq-copy rm-blacklist))
+     (add-to-list 'rm-blacklist " jsi-node")
      (rh-programming-minor-modes 1)
      (rh-project-setup)))
 
@@ -4112,6 +4112,8 @@ fields which we need."
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
   :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
   :config
+  (require 'company)
+
   (add-to-list
    'web-mode-ac-sources-alist
    '("html" . (ac-source-html-tag
@@ -4165,19 +4167,22 @@ fields which we need."
   (add-hook
    'web-mode-hook
    (lambda ()
-     (rh-programming-minor-modes t)
-     (auto-complete-mode -1)
+     (setq-local company-backends
+                 '((company-keywords company-dabbrev-code)
+                   company-files (company-dabbrev company-ispell)))
+     (company-mode 1)
+
+     (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
      (rh-project-setup)
-     ;; (vr-web-ac-setup)
 
-     (local-set-key (kbd "C-S-j") 'vr-web-hs-toggle-hiding)
-     (local-set-key (kbd "C-x C-S-j") 'vr-web-hs-html-toggle-hiding)
-     (local-set-key (kbd "C-M-n") 'forward-sexp)
-     (local-set-key (kbd "C-M-p") 'backward-sexp)
+     (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
+     (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)
+     (local-set-key (kbd "C-M-n") #'forward-sexp)
+     (local-set-key (kbd "C-M-p") #'backward-sexp)
 
-     (local-set-key (kbd "C-S-b") 'recompile)
-     (local-set-key (kbd "C-c b") 'rh-compile-toggle-display)))
+     (local-set-key (kbd "C-S-b") #'recompile)
+     (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)))
 
   :ensure t)
 
@@ -4284,7 +4289,10 @@ fields which we need."
   (company-mode 1)
   (flycheck-mode 1)
   (eldoc-mode 1)
-  (tide-hl-identifier-mode 1))
+  (tide-hl-identifier-mode 1)
+
+  (setq-local company-backends (delq 'company-tide company-backends))
+  (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
 (defun rh-setup-javascript-tide ()
   (interactive)
@@ -4292,7 +4300,9 @@ fields which we need."
   (company-mode 1)
   (flycheck-mode 1)
   (eldoc-mode 1)
-  (tide-hl-identifier-mode 1))
+  (tide-hl-identifier-mode 1)
+  (setq-local company-backends (delq 'company-tide company-backends))
+  (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
 (defun rh-setup-javascript-tern ()
   (interactive)
@@ -4301,7 +4311,9 @@ fields which we need."
 (defun rh-setup-javascript-tern-tide ()
   (interactive)
   (tern-mode 1)
-  (rh-setup-javascript-tide))
+  (rh-setup-javascript-tide)
+  (setq-local company-backends (delq 'company-tern company-backends))
+  (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
 ;; /b/} JavaScript Environments Setup
 
