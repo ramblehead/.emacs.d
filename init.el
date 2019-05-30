@@ -13,6 +13,7 @@
    '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
    '((t :background "black" :foreground "white" :family "misc-fixed")))
+ '(httpd-host "10.0.100.180" t)
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
@@ -36,6 +37,7 @@
  '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
  '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
+ '(flycheck-warning ((t (:underline (:color "yellow4" :style wave)))))
  '(iedit-occurrence ((((background light)) (:background "lightblue"))))
  '(iedit-read-only-occurrence ((((background light)) (:background "pale turquoise"))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
@@ -2661,12 +2663,15 @@ fields which we need."
 ;; /b/{ flycheck
 
 (use-package flycheck
+  :custom
+  (flycheck-mode-line-prefix "Φ")
+  (flycheck-check-syntax-automatically '(save mode-enabled))
+  (flycheck-indication-mode nil)
+
+  :custom-face
+  (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
+
   :config
-  (setq flycheck-mode-line-prefix "Φ")
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-
-  (setq flycheck-indication-mode nil)
-
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
   :defer t
@@ -4238,6 +4243,10 @@ fields which we need."
 
   (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
   (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+  (flycheck-add-next-checker 'typescript-tide
+                             '(warning . javascript-eslint) 'append)
+  (flycheck-add-next-checker 'tsx-tide
+                             '(warning . javascript-eslint) 'append)
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
