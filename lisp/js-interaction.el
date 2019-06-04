@@ -220,7 +220,8 @@ If mode is not recognised, assumes JavaScript."
   "Return mode used to fontify LANGUAGE."
   (case language
     (ts 'typescript-mode)
-    (js 'js-mode)))
+    (js 'js-mode)
+    (output 'json-mode)))
 
 (defun jsi--log-symbol-text (symbol)
   (case symbol
@@ -253,7 +254,7 @@ If mode is not recognised, assumes JavaScript."
          (propertize (concat "> " (jsi--log-symbol-text interpreter) "\n")
                      'face 'jsi-log-interpreter-heading-highlight))
         (insert (jsi--log-fontify-string
-                 output (jsi--log-fontify-mode 'js)))
+                 output (jsi--log-fontify-mode 'output)))
         (insert "\n\n")))))
 
 (defun jsi--log-get-buffer ()
@@ -506,7 +507,9 @@ Only `babel' TRANSPILER value is currently supported."
         (setq buffer (process-buffer process))
       (setq buffer (make-comint
                     jsi-node-repl-process-name
-                    jsi-node-command nil "-e" jsi-node-repl-start-js))
+                    jsi-node-command nil
+                    "--experimental-repl-await"
+                    "-e" jsi-node-repl-start-js))
       (with-current-buffer buffer (jsi-node-repl-mode))
       (setq process (get-buffer-process buffer))
       (jsi--node-wait-for-prompt process))
