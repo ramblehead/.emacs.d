@@ -2709,6 +2709,8 @@ fields which we need."
 
 (use-package dumb-jump
   :config
+  (require 'hydra)
+
   (defhydra dumb-jump-hydra (:color blue :columns 3)
     "Dumb Jump"
     ("j" dumb-jump-go "Go")
