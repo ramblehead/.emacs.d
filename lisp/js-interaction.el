@@ -86,10 +86,10 @@ If mode is not recognised, assumes JavaScript."
         (error "`jsi-transpiler' is evaluated to nil.")
       (let* ((log-buffer (jsi--log-get-buffer))
              (input js-expr)
-             (transpiled-input (jsi-transpile-sync transpiler input)))
+             (transpiler-output (jsi-transpile-sync transpiler input)))
         (jsi-log-record-add
          (jsi--get jsi-input-language) input
-         transpiler transpiled-input
+         transpiler transpiler-output
          nil nil)
         (unless (get-buffer-window log-buffer 'visible)
           (message output))))))
@@ -107,17 +107,17 @@ If mode is not recognised, assumes JavaScript."
          (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
-         transpiled-input)
+         transpiler-output)
     (setq input (string-trim input))
     (if (null transpiler)
         (error "`jsi-transpiler' is evaluated to nil.")
-      (setq transpiled-input (jsi-transpile-sync transpiler input)))
+      (setq transpiler-output (jsi-transpile-sync transpiler input)))
     (jsi-log-record-add
      (jsi--get jsi-input-language) input
-     transpiler transpiled-input
+     transpiler transpiler-output
      nil nil)
     (unless (get-buffer-window log-buffer 'visible)
-      (message transpiled-input)))
+      (message transpiler-output)))
   (unless (or no-pulse (use-region-p))
     (pulse-momentary-highlight-region beg end 'next-error)))
 
@@ -189,7 +189,7 @@ If mode is not recognised, assumes JavaScript."
 ;; TODO Fix code-blocks to ignore e.g. /b/ { in strings
 
 ;; (defun jsi-log-add-record
-;;     (input-language input transpiler transpiled-input output)
+;;     (input-language input transpiler transpiler-output output)
 ;;   (with-current-buffer log-buffer
 ;;     (let ((inhibit-read-only t))
 ;;       (goto-char (point-max))
@@ -199,7 +199,7 @@ If mode is not recognised, assumes JavaScript."
 ;;       (insert "\n\n")
 ;;       (when transpiler
 ;;         (insert "// /b/> " (symbol-name transpiler) "\n\n")
-;;         (insert transpiled-input)
+;;         (insert transpiler-output)
 ;;         (insert "\n\n"))
 ;;       (insert "// /b/> node\n\n")
 ;;       (insert output)
@@ -210,18 +210,19 @@ If mode is not recognised, assumes JavaScript."
   "Return STR fontified according to MODE."
   (with-temp-buffer
     (insert string)
-    (delay-mode-hooks (funcall mode))
-    (font-lock-default-function mode)
-    (font-lock-default-fontify-region
-     (point-min) (point-max) nil)
+    (when mode
+      (delay-mode-hooks (funcall mode))
+      (font-lock-default-function mode)
+      (font-lock-default-fontify-region
+       (point-min) (point-max) nil))
     (buffer-string)))
 
-(defun jsi--log-fontify-mode (language)
+(defun jsi--log-fontify-mode (syntax)
   "Return mode used to fontify LANGUAGE."
-  (case language
+  (case syntax
     (ts 'typescript-mode)
     (js 'js-mode)
-    (output 'json-mode)))
+    (output nil)))
 
 (defun jsi--log-symbol-text (symbol)
   (case symbol
@@ -231,8 +232,8 @@ If mode is not recognised, assumes JavaScript."
     ('node "Node.js")))
 
 (defun jsi-log-record-add (input-language input
-                           transpiler transpiled-input
-                           interpreter output)
+                           transpiler transpiler-output
+                           interpreter interpreter-output)
   (with-current-buffer (jsi--log-get-buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
@@ -247,14 +248,17 @@ If mode is not recognised, assumes JavaScript."
          (propertize (concat "> " (jsi--log-symbol-text transpiler) "\n")
                      'face 'jsi-log-transpiler-heading-highlight))
         (insert (jsi--log-fontify-string
-                 transpiled-input (jsi--log-fontify-mode 'js)))
+                 (plist-get transpiler-output ':text)
+                 (if (= (plist-get transpiler-output ':exit-code) 0)
+                     (jsi--log-fontify-mode 'js)
+                   (jsi--log-fontify-mode 'output))))
         (insert "\n\n"))
       (when interpreter
         (insert
          (propertize (concat "> " (jsi--log-symbol-text interpreter) "\n")
                      'face 'jsi-log-interpreter-heading-highlight))
         (insert (jsi--log-fontify-string
-                 output (jsi--log-fontify-mode 'output)))
+                 interpreter-output (jsi--log-fontify-mode 'output)))
         (insert "\n\n")))))
 
 (defun jsi--log-get-buffer ()
@@ -371,30 +375,48 @@ defined by `jsi-babel-run-directory'."
       (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
      (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
 
-(defun jsi-babel-transpile-sync (string)
-  "Transply STRING with Babel"
+(defun jsi-babel-transpile-sync (input-string)
+  "Transpile STRING with Babel"
   (let ((babel-command (jsi--get jsi-babel-command))
-        full-command)
+        arg-string output-string exit-code)
     (if (null babel-command)
         (error "jsi-babel: Babel command not found.")
-      (setq string (replace-regexp-in-string "[\\]" "\\\\\\\\" string))
-      (setq string (replace-regexp-in-string "\"" "\\\\\"" string))
+      (setq input-string
+            (replace-regexp-in-string "[\\]" "\\\\\\\\" input-string))
+      (setq input-string
+            (replace-regexp-in-string "\"" "\\\\\"" input-string))
+      (setq input-string
+            (replace-regexp-in-string "\`" "\\\\\`" input-string))
       (setq
-       full-command
+       arg-string
        (concat
         "set -euo pipefail;"
         "cd " (jsi--get jsi-babel-run-directory) ";"
-        "echo \"" string "\""
+        "set +e;"
+        "echo \"" input-string "\""
         "|"
         (jsi--get jsi-babel-command)
         " --no-babelrc "
         (let ((config-file (jsi--get jsi-babel-config-file)))
           (if config-file (concat "--config-file " config-file) ""))
-        " -f stdin.ts"))
-      (string-trim (shell-command-to-string full-command)))))
+        " -f stdin.ts; echo $?"))
+      (setq
+       output-string
+       (string-trim
+        (with-temp-buffer
+          (shell-command arg-string t)
+          (goto-char (point-max))
+          (move-beginning-of-line 0)
+          (setq exit-code
+                (string-to-number (buffer-substring-no-properties
+                                   (point) (line-end-position))))
+          (delete-region (point) (line-end-position))
+          (buffer-string))))
+      `(:text ,output-string
+        :exit-code ,exit-code))))
 
 (defun jsi-transpile-sync (transpiler string)
-  "Transply STRING using TRANSPILER.
+  "Transpile STRING using TRANSPILER.
 Only `babel' TRANSPILER value is currently supported."
   (case transpiler
     (babel (jsi-babel-transpile-sync string))
@@ -418,6 +440,10 @@ Only `babel' TRANSPILER value is currently supported."
 
 (defvar jsi-node-command "node"
   "Command to start Node.JS")
+
+(defvar jsi-node-command-arguments
+  '("--experimental-repl-await")
+  "List of node command arguments (switches) used to start Node.JS")
 
 (defcustom jsi-node-repl-start-js
   (concat
@@ -505,11 +531,12 @@ Only `babel' TRANSPILER value is currently supported."
         buffer)
     (if process
         (setq buffer (process-buffer process))
-      (setq buffer (make-comint
-                    jsi-node-repl-process-name
-                    jsi-node-command nil
-                    "--experimental-repl-await"
-                    "-e" jsi-node-repl-start-js))
+      (setq buffer (eval
+                    `(make-comint
+                      jsi-node-repl-process-name
+                      jsi-node-command nil
+                      ,@jsi-node-command-arguments
+                      "-e" jsi-node-repl-start-js)))
       (with-current-buffer buffer (jsi-node-repl-mode))
       (setq process (get-buffer-process buffer))
       (jsi--node-wait-for-prompt process))
@@ -762,12 +789,12 @@ skip forward unconditionally first time and then while
          ;; (input-language (symbol-name (jsi--get jsi-input-language)))
          (input (buffer-substring-no-properties beg end))
          (transpiler (jsi--get jsi-transpiler))
-         transpiled-input output)
+         transpiler-output output)
     (setq input (string-trim input))
     (if (null transpiler)
         (setq output (jsi--node-eval input))
-      (setq transpiled-input (jsi-transpile-sync transpiler input))
-      (setq output (jsi--node-eval transpiled-input)))
+      (setq transpiler-output (jsi-transpile-sync transpiler input))
+      (setq output (jsi--node-eval transpiler-output)))
     (if current-prefix-arg
         (save-excursion
           (end-of-line)
@@ -775,7 +802,7 @@ skip forward unconditionally first time and then while
           (insert output))
       (jsi-log-record-add
        (jsi--get jsi-input-language) input
-       transpiler transpiled-input
+       transpiler transpiler-output
        'node output)
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
