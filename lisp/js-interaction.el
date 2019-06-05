@@ -397,7 +397,7 @@ defined by `jsi-babel-run-directory'."
       ;; "Hide" await keyword from Babel input-string
       (setq input-string
             (replace-regexp-in-string
-             "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
+             "^\\(.*\\)await\\([[:blank:]\n\r]\\)"
              "\\1/* __await__ */\\2" input-string))
 
       (setq
@@ -435,8 +435,8 @@ defined by `jsi-babel-run-directory'."
       ;; Get await keyword back to Babel output-string.
       (setq output-string
             (replace-regexp-in-string
-             "^\\([[:blank:]]*\\)/\\* __await__ \\*/[[:blank:]\n\r]+"
-             "\\1await " output-string))
+             "[\n\r]*/\\* __await__ \\*/[\n\r]+"
+             " await " output-string))
 
       `(:text ,output-string
         :error ,output-error))))
