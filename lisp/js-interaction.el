@@ -386,7 +386,19 @@ defined by `jsi-babel-run-directory'."
       (setq input-string
             (replace-regexp-in-string "\"" "\\\\\"" input-string))
       (setq input-string
-            (replace-regexp-in-string "\`" "\\\\\`" input-string))
+            (replace-regexp-in-string "`" "\\\\`" input-string))
+
+      ;; TODO: Remove the following await hiding logic once Babel can handle it.
+      ;; see https://github.com/babel/babel/issues/9329
+      ;;
+      ;; TODO: Write a real top-level wait replacement instead of
+      ;;       using zero indentation
+      ;; Hide top-level await from Babel
+      (setq input-string
+            (replace-regexp-in-string
+             "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
+             "\\1/* __await__ */\\2" input-string))
+
       (setq
        arg-string
        (concat
@@ -415,6 +427,16 @@ defined by `jsi-babel-run-directory'."
       (if (= exit-code 0)
           (setq output-error nil)
         (setq output-error 'transpiler))
+
+      ;; TODO: Remove the following await hiding logic once Babel can handle it.
+      ;; see https://github.com/babel/babel/issues/9329
+      ;;
+      ;; Get top-level await back to Babel output-string.
+      (setq output-string
+            (replace-regexp-in-string
+             "^\\([[:blank:]]*\\)/\\* __await__ \\*/[[:blank:]\n\r]"
+             "\\1await " output-string))
+
       `(:text ,output-string
         :error ,output-error))))
 
@@ -689,7 +711,8 @@ Only `babel' TRANSPILER value is currently supported."
 ;; /b/{
 
 (defun jsi--dwim-js2-forward-expression-p ()
-  "Returns t if point is looking at \"=\" or \";\" excluding white space."
+  "Returns t if point is looking at '=', ';', '`', '[', '.', '('
+excluding white space."
   (save-excursion
     (js2-forward-sws)
     (or (looking-at "=[^=]*")
@@ -719,15 +742,46 @@ skip forward unconditionally first time and then while
       (setq end (point)))
     (cons beg end)))
 
+;; TODO: remove `jsi--dwim-ts-forward-expression' after
+;;       `typescript--forward-expression' is fixed
+;; see https://github.com/emacs-typescript/typescript.el/issues/105
+(defun jsi--dwim-ts-forward-expression ()
+  "Move forward over a whole typescript expression."
+  (loop
+   do (progn
+        (forward-comment most-positive-fixnum)
+        (loop until (or (eolp)
+                        (progn
+                          (forward-comment most-positive-fixnum)
+                          (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
+              do (forward-sexp)))
+   while (and (eq (char-after) ?\n)
+              (save-excursion
+                (forward-char)
+                (typescript--continued-expression-p)))))
+
 (defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
   (let (beg end)
     (save-excursion
       (goto-char pos)
       (typescript--forward-syntactic-ws)
+      (when (looking-at "var\\b\\|let\\b\\|const\\b")
+        (right-word)
+        (typescript--forward-syntactic-ws))
       (setq beg (point))
-      (typescript--forward-expression)
+      (jsi--dwim-ts-forward-expression)
       (setq end (point)))
     (cons beg end)))
+
+;; (defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
+;;   (let (beg end)
+;;     (save-excursion
+;;       (goto-char pos)
+;;       (typescript--forward-syntactic-ws)
+;;       (setq beg (point))
+;;       (typescript--forward-expression)
+;;       (setq end (point)))
+;;     (cons beg end)))
 
 (defun jsi--dwim-pos-inside-symbol-p (pos)
   "Returns t if POS is in inside symbol."
@@ -812,9 +866,9 @@ skip forward unconditionally first time and then while
            transpiler transpiler-output
            'node output)
         (jsi-log-record-add
-         nil nil
+         (jsi--get jsi-input-language) input
          transpiler transpiler-output
-         'node output))
+         nil nil))
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
   (unless (or no-pulse (use-region-p))
