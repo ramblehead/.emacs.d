@@ -117,7 +117,7 @@ If mode is not recognised, assumes JavaScript."
      transpiler transpiler-output
      nil nil)
     (unless (get-buffer-window log-buffer 'visible)
-      (message transpiler-output)))
+      (message (plist-get transpiler-output ':text))))
   (unless (or no-pulse (use-region-p))
     (pulse-momentary-highlight-region beg end 'next-error)))
 
@@ -249,7 +249,7 @@ If mode is not recognised, assumes JavaScript."
                      'face 'jsi-log-transpiler-heading-highlight))
         (insert (jsi--log-fontify-string
                  (plist-get transpiler-output ':text)
-                 (if (= (plist-get transpiler-output ':exit-code) 0)
+                 (if (null (plist-get transpiler-output ':error))
                      (jsi--log-fontify-mode 'js)
                    (jsi--log-fontify-mode 'output))))
         (insert "\n\n"))
@@ -378,7 +378,7 @@ defined by `jsi-babel-run-directory'."
 (defun jsi-babel-transpile-sync (input-string)
   "Transpile STRING with Babel"
   (let ((babel-command (jsi--get jsi-babel-command))
-        arg-string output-string exit-code)
+        arg-string output-string output-error exit-code)
     (if (null babel-command)
         (error "jsi-babel: Babel command not found.")
       (setq input-string
@@ -412,8 +412,11 @@ defined by `jsi-babel-run-directory'."
                                    (point) (line-end-position))))
           (delete-region (point) (line-end-position))
           (buffer-string))))
+      (if (= exit-code 0)
+          (setq output-error nil)
+        (setq output-error 'transpiler))
       `(:text ,output-string
-        :exit-code ,exit-code))))
+        :error ,output-error))))
 
 (defun jsi-transpile-sync (transpiler string)
   "Transpile STRING using TRANSPILER.
@@ -794,16 +797,24 @@ skip forward unconditionally first time and then while
     (if (null transpiler)
         (setq output (jsi--node-eval input))
       (setq transpiler-output (jsi-transpile-sync transpiler input))
-      (setq output (jsi--node-eval transpiler-output)))
+      (when (null (plist-get transpiler-output ':error))
+        (setq output (jsi--node-eval (plist-get transpiler-output ':text)))))
     (if current-prefix-arg
         (save-excursion
           (end-of-line)
           (newline)
-          (insert output))
-      (jsi-log-record-add
-       (jsi--get jsi-input-language) input
-       transpiler transpiler-output
-       'node output)
+          (if (null (plist-get transpiler-output ':error))
+              (insert output)
+            (insert (plist-get transpiler-output ':text))))
+      (if (null (plist-get transpiler-output ':error))
+          (jsi-log-record-add
+           (jsi--get jsi-input-language) input
+           transpiler transpiler-output
+           'node output)
+        (jsi-log-record-add
+         nil nil
+         transpiler transpiler-output
+         'node output))
       (unless (get-buffer-window log-buffer 'visible)
         (message output))))
   (unless (or no-pulse (use-region-p))
