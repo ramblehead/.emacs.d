@@ -3772,7 +3772,7 @@ fields which we need."
 
   ;; Using company-capf until a proper company back-end is implemented
   (require 'company-capf)
-  (bind-key "C-x C-<tab>" #'company-capf jsi-node-mode-keymap)
+  (bind-key "C-c C-<tab>" #'company-capf jsi-node-mode-keymap)
 
   :defer t
   :pin manual)
@@ -4221,6 +4221,8 @@ fields which we need."
 (use-package tide
   :delight (tide-mode " τ")
   :config
+  (require 'company)
+  (require 'flycheck)
   (require 'config-tide)
 
   (add-to-list
@@ -4248,6 +4250,8 @@ fields which we need."
      ;; (window-height . shrink-window-if-larger-than-buffer)
      ))
 
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
+
   (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
   (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
   (flycheck-add-next-checker 'typescript-tide
@@ -4258,6 +4262,9 @@ fields which we need."
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
   (setq tide-completion-enable-autoimport-suggestions nil)
+
+  ;; company-tide is loaded after company
+  (bind-key "C-x C-<tab>" #'company-tide tide-mode-map)
 
   ;; (add-hook
   ;;  'tide-mode-hook

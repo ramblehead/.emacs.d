@@ -238,14 +238,16 @@ If mode is not recognised, assumes JavaScript."
     (let ((inhibit-read-only t))
       (goto-char (point-max))
       (insert
-       (propertize (concat "@ " (jsi--log-symbol-text input-language) "\n")
+       (propertize (concat "@ " (jsi--log-symbol-text input-language)
+                           " Input \n")
                    'face 'jsi-log-record-heading-highlight))
       (insert (jsi--log-fontify-string
                input (jsi--log-fontify-mode input-language)))
       (insert "\n\n")
       (when transpiler
         (insert
-         (propertize (concat "> " (jsi--log-symbol-text transpiler) "\n")
+         (propertize (concat "> " (jsi--log-symbol-text transpiler)
+                             " Output \n")
                      'face 'jsi-log-transpiler-heading-highlight))
         (insert (jsi--log-fontify-string
                  (plist-get transpiler-output ':text)
@@ -255,7 +257,8 @@ If mode is not recognised, assumes JavaScript."
         (insert "\n\n"))
       (when interpreter
         (insert
-         (propertize (concat "> " (jsi--log-symbol-text interpreter) "\n")
+         (propertize (concat "> " (jsi--log-symbol-text interpreter)
+                             " Output \n")
                      'face 'jsi-log-interpreter-heading-highlight))
         (insert (jsi--log-fontify-string
                  interpreter-output (jsi--log-fontify-mode 'output)))
@@ -391,9 +394,7 @@ defined by `jsi-babel-run-directory'."
       ;; TODO: Remove the following await hiding logic once Babel can handle it.
       ;; see https://github.com/babel/babel/issues/9329
       ;;
-      ;; TODO: Write a real top-level wait replacement instead of
-      ;;       using zero indentation
-      ;; Hide top-level await from Babel
+      ;; "Hide" await keyword from Babel input-string
       (setq input-string
             (replace-regexp-in-string
              "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
@@ -431,10 +432,10 @@ defined by `jsi-babel-run-directory'."
       ;; TODO: Remove the following await hiding logic once Babel can handle it.
       ;; see https://github.com/babel/babel/issues/9329
       ;;
-      ;; Get top-level await back to Babel output-string.
+      ;; Get await keyword back to Babel output-string.
       (setq output-string
             (replace-regexp-in-string
-             "^\\([[:blank:]]*\\)/\\* __await__ \\*/[[:blank:]\n\r]"
+             "^\\([[:blank:]]*\\)/\\* __await__ \\*/[[:blank:]\n\r]+"
              "\\1await " output-string))
 
       `(:text ,output-string

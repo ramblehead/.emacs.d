@@ -1,12 +1,7 @@
 ;;; ramblehead's tide configuration
 
-(require 'company)
-(require 'flycheck)
-
 ;; (defun rh-tide-company-display-permanent-doc-buffer ()
 ;;   (display-buffer (get-buffer-create "*tide-documentation*")))
-
-(flycheck-add-mode 'typescript-tslint 'web-mode)
 
 (defun rh-tide-documentation-quit ()
   (interactive)
