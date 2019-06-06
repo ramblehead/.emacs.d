@@ -779,6 +779,7 @@ skip forward unconditionally first time and then while
         (typescript--forward-syntactic-ws))
       (setq beg (point))
       (jsi--dwim-ts-forward-expression)
+      (when (looking-at ";") (forward-char))
       (setq end (point)))
     (cons beg end)))
 
