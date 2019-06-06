@@ -487,7 +487,10 @@ Only `babel' TRANSPILER value is currently supported."
    "  prompt: '" jsi-node-repl-prompt "',"
    "  useGlobal: false,"
    "  replMode: repl.REPL_MODE_SLOPPY,"
-   "  writer: output => util.inspect(output, { maxArrayLength: null }),"
+   "  writer: output => util.inspect(output, {"
+   "    maxArrayLength: null,"
+   "    compact: false,"
+   "  }),"
    ;; "  writer: output => output,"
    "})")
   "JavaScript expression used to start Node.js REPL"
@@ -711,13 +714,18 @@ Only `babel' TRANSPILER value is currently supported."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+;; TODO: rewrite jsi--dwim-js2 functions to jsi--dwim-js functions
+;;       using js-mode, e.g. `js--forward-expression'
+
 (defun jsi--dwim-js2-forward-expression-p ()
-  "Returns t if point is looking at '=', ';', '`', '[', '.', '('
+  "Returns t if point is looking at '=', ';', '`', '[', '.', '(' ...
 excluding white space."
   (save-excursion
     (js2-forward-sws)
     (or (looking-at "=[^=]*")
         (looking-at "`")
+        (looking-at "+")
+        (looking-at "-")
         (looking-at "\\[")
         (looking-at "\\.")
         (looking-at "("))))
@@ -773,16 +781,6 @@ skip forward unconditionally first time and then while
       (jsi--dwim-ts-forward-expression)
       (setq end (point)))
     (cons beg end)))
-
-;; (defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
-;;   (let (beg end)
-;;     (save-excursion
-;;       (goto-char pos)
-;;       (typescript--forward-syntactic-ws)
-;;       (setq beg (point))
-;;       (typescript--forward-expression)
-;;       (setq end (point)))
-;;     (cons beg end)))
 
 (defun jsi--dwim-pos-inside-symbol-p (pos)
   "Returns t if POS is in inside symbol."
