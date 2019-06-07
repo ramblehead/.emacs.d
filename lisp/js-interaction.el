@@ -390,6 +390,8 @@ defined by `jsi-babel-run-directory'."
             (replace-regexp-in-string "\"" "\\\\\"" input-string))
       (setq input-string
             (replace-regexp-in-string "`" "\\\\`" input-string))
+      (setq input-string
+            (replace-regexp-in-string "\\$" "\\\\$" input-string))
 
       ;; TODO: Remove the following await hiding logic once Babel can handle it.
       ;; see https://github.com/babel/babel/issues/9329
