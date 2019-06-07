@@ -4299,8 +4299,12 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
-
-  (setq-local company-backends (delq 'company-tide company-backends))
+  ;; TODO: should remove company-tide from default company-backends
+  ;;       when company-keywords include typescript.
+  ;; The keywords could be taken from the following link:
+  ;; https://github.com/Microsoft/TypeScript/issues/2536
+  ;; (setq-local company-backends (delq 'company-tide company-backends))
+  (add-to-list 'company-backends 'company-tide)
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
 (defun rh-setup-javascript-tide ()
@@ -4310,18 +4314,20 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
-  (setq-local company-backends (delq 'company-tide company-backends))
+  (setq company-backends (delq 'company-tide company-backends))
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
 (defun rh-setup-javascript-tern ()
   (interactive)
-  (tern-mode 1))
+  (tern-mode 1)
+  (setq company-backends (delq 'company-tern company-backends))
+  (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
 (defun rh-setup-javascript-tern-tide ()
   (interactive)
   (tern-mode 1)
   (rh-setup-javascript-tide)
-  (setq-local company-backends (delq 'company-tern company-backends))
+  (setq company-backends (delq 'company-tern company-backends))
   (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
 ;; /b/} JavaScript Environments Setup

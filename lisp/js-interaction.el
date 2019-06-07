@@ -1,5 +1,10 @@
 ;;; js-interaction.el --- Minor Node.JS Interaction Mode and Minimalist Node.JS REPL
 ;;
+;; TODO:
+;;   * Replace Babel call via bash (using `shell-command') with the call via
+;;     node (using `call-process'). This should make js-interaction more
+;;     friendly to some evil OSs.
+;;
 ;; Description: Execute JavaScript commands in Node.JS
 ;;              directly from JavaScript buffers.
 ;; Author: Victor Rybynok
@@ -719,26 +724,26 @@ Only `babel' TRANSPILER value is currently supported."
 ;; TODO: rewrite jsi--dwim-js2 functions to jsi--dwim-js functions
 ;;       using js-mode, e.g. `js--forward-expression'
 
-(defun jsi--dwim-js2-forward-expression-p ()
-  "Returns t if point is looking at '=', ';', '`', '[', '.', '(' ...
-excluding white space."
-  (save-excursion
-    (js2-forward-sws)
-    (or (looking-at "=[^=]*")
-        (looking-at "`")
-        (looking-at "+")
-        (looking-at "-")
-        (looking-at "\\[")
-        (looking-at "\\.")
-        (looking-at "("))))
+;; (defun jsi--dwim-js2-forward-expression-p ()
+;;   "Returns t if point is looking at '=', ';', '`', '[', '.', '(' ...
+;; excluding white space."
+;;   (save-excursion
+;;     (js2-forward-sws)
+;;     (or (looking-at "=[^=]*")
+;;         (looking-at "`")
+;;         (looking-at "+")
+;;         (looking-at "-")
+;;         (looking-at "\\[")
+;;         (looking-at "\\.")
+;;         (looking-at "("))))
 
-(defun jsi--dwim-js2-forward-expression ()
-  "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
-skip forward unconditionally first time and then while
-`jsi--node-js2-mode-forward-sexp-p' returns t."
-  (js2-mode-forward-sexp)
-  (while (jsi--dwim-js2-forward-expression-p)
-    (js2-mode-forward-sexp)))
+;; (defun jsi--dwim-js2-forward-expression ()
+;;   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
+;; skip forward unconditionally first time and then while
+;; `jsi--node-js2-mode-forward-sexp-p' returns t."
+;;   (js2-mode-forward-sexp)
+;;   (while (jsi--dwim-js2-forward-expression-p)
+;;     (js2-mode-forward-sexp)))
 
 (defun jsi--dwim-js2-expression-at-pos-beg-end (pos)
   (let (beg end)
@@ -749,7 +754,8 @@ skip forward unconditionally first time and then while
         (right-word)
         (js2-forward-sws))
       (setq beg (point))
-      (jsi--dwim-js2-forward-expression)
+      ;; (jsi--dwim-js2-forward-expression)
+      (js--forward-expression)
       (setq end (point)))
     (cons beg end)))
 
@@ -781,7 +787,7 @@ skip forward unconditionally first time and then while
         (typescript--forward-syntactic-ws))
       (setq beg (point))
       (jsi--dwim-ts-forward-expression)
-      (when (looking-at ";") (forward-char))
+      ;; (when (looking-at ";") (forward-char))
       (setq end (point)))
     (cons beg end)))
 
