@@ -392,6 +392,20 @@ defined by `jsi-babel-run-directory'."
       (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
      (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
 
+;; (defun jsi--babel-import-only-p ()
+;;   (goto-char (point-min))
+;;   (let ((import-only t))
+;;     (while (and import-only (not (eobp)))
+;;       (jsi--dwim-ts-forward-expression)
+;;       (typescript--forward-syntactic-ws)
+;;       (when (looking-at ";")
+;;         (forward-char)
+;;         (typescript--forward-syntactic-ws))
+;;       (unless (eobp)
+;;         (unless (looking-at "import")
+;;           (setq import-only nil))))
+;;     import-only))
+
 (defun jsi-babel-transpile-sync (input-string)
   "Transpile STRING with Babel"
   (if (and jsi-babel-skip-import
