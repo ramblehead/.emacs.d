@@ -3770,6 +3770,9 @@ fields which we need."
      (display-buffer-reuse-window
       display-buffer-same-window)))
 
+  (setq jsi-node-command-require-esm t)
+  (setq jsi-babel-skip-import t)
+
   ;; Using company-capf until a proper company back-end is implemented
   (require 'company-capf)
   (bind-key "C-c C-<tab>" #'company-capf jsi-node-mode-keymap)
