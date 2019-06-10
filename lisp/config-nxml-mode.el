@@ -15,6 +15,18 @@
                  nil)))
 
 (defun rh-nxml-compute-indent-from-previous-line (orig-fun)
+  "React-like tag attributes closing pointy-bracket indentation.
+
+For example:
+  <message id=\"DevicePanelLogo\">
+    <img
+      src=\"img/cambustion_logo.png\"
+      alt=\"Cambustion\"
+      class=\"img-responsive\"
+    >
+    </img>
+  </message>
+"
   (let (prev-bol ref-column looking-at->)
     (catch 'indent
       (save-excursion
