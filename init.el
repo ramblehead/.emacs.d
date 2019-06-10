@@ -3953,50 +3953,23 @@ fields which we need."
 
 ;; /b/{ nxml-mode
 
-;; (defun vr-nxml-forward-element (&optional arg)
-;;   (interactive "^p")
-;;   (if (cg-looking-at-any-group-head)
-;;       (cg-search-forward-group-balanced-tail)
-;;     (nxml-forward-element arg)))
-
-;; (defun vr-nxml-backward-element (&optional arg)
-;;   (interactive "^p")
-;;   (if (cg-looking-at-any-group-tail)
-;;       (cg-search-backward-group-balanced-head)
-;;     (nxml-backward-element arg)))
-
-(defun rh-nxml-code-folding-setup ()
-  ;; see http://emacs.stackexchange.com/questions/2884/the-old-how-to-fold-xml-question
-  ;; see http://www.emacswiki.org/emacs/HideShow
-  (add-to-list 'hs-special-modes-alist
-               '(nxml-mode
-                 ;; "<!--\\|<[^/>]*[^/]>"
-                 "<!--\\|<[^/][^>]*[^/]>"
-                 "-->\\|</[^/>]*[^/]>"
-                 "<!--"
-                 sgml-skip-tag-forward
-                 nil))
-
-  (setq cg-forward-list-original #'nxml-forward-element)
-  (setq cg-backward-list-original #'nxml-backward-element)
-
-  ;; (setq vr-nxml-code-folding-initialised t)
-  ;; (hs-minor-mode 1)
-  ;; (local-set-key (kbd "C-S-j") 'cg-hs-toggle-hiding)
-  ;; (local-set-key (kbd "C-M-n") 'vr-nxml-forward-element)
-  ;; (local-set-key (kbd "C-M-p") 'vr-nxml-backward-element)
-  )
-
 (use-package nxml-mode
-  ;; :mode "\\.xml\\'\\|\\.html\\'\\|\\.htm\\'"
   :mode "\\.xml\\'"
   :config
-  (require 'sgml-mode)
+  (require 'config-nxml-mode)
+
+  (setq nxml-child-indent 2)
+  (setq nxml-attribute-indent 2)
+  (setq nxml-sexp-element-flag nil)
+
+  (rh-nxml-code-folding-setup)
 
   (add-hook
    'nxml-mode-hook
    (lambda ()
-     (rh-nxml-code-folding-setup)
+     (setq cg-forward-list-original #'nxml-forward-element)
+     (setq cg-backward-list-original #'nxml-backward-element)
+
      (rh-programming-minor-modes 1)
      (rh-project-setup))))
 
