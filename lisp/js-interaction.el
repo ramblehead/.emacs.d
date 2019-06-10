@@ -305,14 +305,14 @@ If mode is not recognised, assumes JavaScript."
                   :tag "Function that returns string with babel run directory"
                   jsi-babel-run-directory-get-default)))
 
-(defvar jsi-babel-skip-import nil
-  "Expressions beginning with 'import' keyword skip transpiler (e.g. babel) and
-passed directly to interpreter (e.g. node).
+;; (defvar jsi-babel-skip-import nil
+;;   "Expressions beginning with 'import' keyword skip transpiler (e.g. babel) and
+;; passed directly to interpreter (e.g. node).
 
-This might be useful when 'import' is handled outside babel
-(e.g. 'esm', see https://github.com/standard-things/esm),
-and 'import' elission should not occur
-(e.g. see https://github.com/Microsoft/TypeScript/wiki/FAQ#why-are-imports-being-elided-in-my-emit.")
+;; This might be useful when 'import' is handled outside babel
+;; (e.g. 'esm', see https://github.com/standard-things/esm),
+;; and 'import' elission should not occur
+;; (e.g. see https://github.com/Microsoft/TypeScript/wiki/FAQ#why-are-imports-being-elided-in-my-emit.")
 
 (defun jsi-babel-run-directory-get-default ()
   "Returns current buffer file directory or `default-directory'
@@ -392,24 +392,29 @@ defined by `jsi-babel-run-directory'."
       (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
      (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
 
-;; (defun jsi--babel-import-only-p ()
-;;   (goto-char (point-min))
-;;   (let ((import-only t))
-;;     (while (and import-only (not (eobp)))
-;;       (jsi--dwim-ts-forward-expression)
-;;       (typescript--forward-syntactic-ws)
-;;       (when (looking-at ";")
-;;         (forward-char)
-;;         (typescript--forward-syntactic-ws))
-;;       (unless (eobp)
-;;         (unless (looking-at "import")
-;;           (setq import-only nil))))
-;;     import-only))
+(defun jsi--babel-import-only-p (input-string)
+  "Returns t if INPUT-STRING contains 'import' statements only."
+  (with-temp-buffer
+    (delay-mode-hooks (typescript-mode))
+    (insert input-string)
+    (goto-char (point-min))
+    (let ((import-only t))
+      (while (and import-only (not (eobp)))
+        (typescript--forward-syntactic-ws)
+        (when (looking-at ";")
+          (forward-char)
+          (typescript--forward-syntactic-ws))
+        (unless (eobp)
+          (if (looking-at "import")
+              (jsi--dwim-ts-forward-expression)
+            (setq import-only nil))))
+      import-only)))
 
 (defun jsi-babel-transpile-sync (input-string)
   "Transpile STRING with Babel"
-  (if (and jsi-babel-skip-import
-           (string-match-p "^[[:blank:]]*import" input-string))
+  (if (jsi--babel-import-only-p input-string)
+  ;; (if (and jsi-babel-skip-import
+  ;;          (jsi--babel-import-only-p input-string))
       `(:text ,input-string
         :error nil)
 
