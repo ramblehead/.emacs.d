@@ -2672,7 +2672,8 @@ fields which we need."
   (flycheck-indication-mode nil)
 
   :custom-face
-  (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
+  ;; (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
+  (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
 
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
@@ -3460,8 +3461,8 @@ fields which we need."
 ;; /b/{ js-mode
 
 (use-package js
-  :mode ("\\.js\\'" . js-mode)
-  :interpreter "node"
+  ;; :mode ("\\.js\\'" . js-mode)
+  ;; :interpreter "node"
   ;; "λ" stands for interactive and "n" for Node.JS
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "jsλn"
@@ -3509,8 +3510,8 @@ fields which we need."
 ;; /b/{ js2-mode
 
 (use-package js2-mode
-  ;; :mode "\\.js\\'"
-  ;; :interpreter "node"
+  :mode "\\.js\\'"
+  :interpreter "node"
   ;; "λ" stands for interactive and "n" for Node.JS
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "js2λn"
