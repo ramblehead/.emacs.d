@@ -15,6 +15,10 @@
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+(require 'cl-lib)
+;; (require 'cl)
+(require 'js)
+
 (defgroup js-interaction nil
   "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
@@ -32,7 +36,9 @@
 ;; /b/{
 
 (defcustom jsi-transpiler-babel-default-modes '(typescript-mode)
-  "List of major modes for which babel transpiler should be used by default."
+  "List of major modes for which Babel transpiler should be selected by default.
+
+see `jsi-transpiler-get-default'"
   :group 'js-interaction
   :type '(repeat symbol))
 
@@ -43,7 +49,7 @@
                   :tag "Do not use transpiler"
                   nil)
                  (const
-                  :tag "Use babel as transpiler"
+                  :tag "Use Babel as transpiler"
                   babel)
                  (const
                   :tag "Default function to auto-select transplier"
@@ -54,9 +60,13 @@
 
 (defun jsi-transpiler-get-default ()
   "Returns `babel' for major-mode equal `typescript-mode'
-and nil for other modes."
+and nil for other modes.
+
+This function may recognise more JavsScript-targeted languages and transpilers
+in the future."
   (cond
-   ;; TODO: Change to seq-contains-p in the future when more emacs'es support it
+   ;; TODO: Change to seq-contains-p in the future when
+   ;;       more emacs'es support it:
    ;; ((seq-contains-p jsi-transpiler-babel-default-modes major-mode) 'babel)))
    ((member major-mode jsi-transpiler-babel-default-modes) 'babel)))
 
@@ -769,45 +779,43 @@ see https://github.com/standard-things/esm")
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; jsi-node-mode - minor js-interaction mode for jsi-node-repl
+;;; Auxiliary Do What I Mean (DWIM) functions
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-;; TODO: rewrite jsi--dwim-js2 functions to jsi--dwim-js functions
-;;       using js-mode, e.g. `js--forward-expression'
+;; see `typescript--forward-expression' comment.
+;; Looks like I have to write to js-mode maintainers too...
+(defun jsi--dwim-js--forward-expression ()
+  "Move forward over a whole JavaScript expression."
+  (cl-loop
+   do (progn
+        (forward-comment most-positive-fixnum)
+        (cl-loop until (or (eolp)
+                           (progn
+                             (forward-comment most-positive-fixnum)
+                             (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
+                 do (forward-sexp)))
 
-;; (defun jsi--dwim-js2-forward-expression-p ()
-;;   "Returns t if point is looking at '=', ';', '`', '[', '.', '(' ...
-;; excluding white space."
-;;   (save-excursion
-;;     (js2-forward-sws)
-;;     (or (looking-at "=[^=]*")
-;;         (looking-at "`")
-;;         (looking-at "+")
-;;         (looking-at "-")
-;;         (looking-at "\\[")
-;;         (looking-at "\\.")
-;;         (looking-at "("))))
+   while (and (eq (char-after) ?\n)
+              (save-excursion
+                (forward-char)
+                (js--continued-expression-p)))))
 
-;; (defun jsi--dwim-js2-forward-expression ()
-;;   "Skip forward to the \"very end\" of sexp. Uses `js2-mode-forward-sexp' to
-;; skip forward unconditionally first time and then while
-;; `jsi--node-js2-mode-forward-sexp-p' returns t."
-;;   (js2-mode-forward-sexp)
-;;   (while (jsi--dwim-js2-forward-expression-p)
-;;     (js2-mode-forward-sexp)))
+(defun jsi--dwim-js-expression-at-pos-beg-end (pos)
+  "This function works only in js-mode and derived modes, such as js2-mode.
+It tries to guess the JavaScript expression following POS which user
+wants to evaluate.
 
-(defun jsi--dwim-js2-expression-at-pos-beg-end (pos)
+Return value is an expression begging and end cons (BEG . END)"
   (let (beg end)
     (save-excursion
       (goto-char pos)
-      (js2-forward-sws)
+      (js--forward-syntactic-ws)
       (when (looking-at "var\\b\\|let\\b\\|const\\b")
         (right-word)
-        (js2-forward-sws))
+        (js--forward-syntactic-ws))
       (setq beg (point))
-      ;; (jsi--dwim-js2-forward-expression)
-      (js--forward-expression)
+      (jsi--dwim-js--forward-expression)
       (setq end (point)))
     (cons beg end)))
 
@@ -816,20 +824,25 @@ see https://github.com/standard-things/esm")
 ;; see https://github.com/emacs-typescript/typescript.el/issues/105
 (defun jsi--dwim-ts-forward-expression ()
   "Move forward over a whole typescript expression."
-  (loop
+  (cl-loop
    do (progn
         (forward-comment most-positive-fixnum)
-        (loop until (or (eolp)
-                        (progn
-                          (forward-comment most-positive-fixnum)
-                          (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
-              do (forward-sexp)))
+        (cl-loop until (or (eolp)
+                           (progn
+                             (forward-comment most-positive-fixnum)
+                             (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
+                 do (forward-sexp)))
+
    while (and (eq (char-after) ?\n)
               (save-excursion
                 (forward-char)
                 (typescript--continued-expression-p)))))
 
 (defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
+  "This function works only in typescript-mode. It tries to guess the TypeScript
+expression following POS which user wants to evaluate.
+
+Return value is an expression begging and end cons (BEG . END)"
   (let (beg end)
     (save-excursion
       (goto-char pos)
@@ -839,7 +852,6 @@ see https://github.com/standard-things/esm")
         (typescript--forward-syntactic-ws))
       (setq beg (point))
       (jsi--dwim-ts-forward-expression)
-      ;; (when (looking-at ";") (forward-char))
       (setq end (point)))
     (cons beg end)))
 
@@ -851,17 +863,27 @@ see https://github.com/standard-things/esm")
          (< pos (cdr bounds)))))
 
 (defun jsi--dwim-pos-at-bol-p (pos)
-  "Returns t if POS is in the beginning of line excluding white space."
+  "Returns t if POS is in the beginning of line neglecting white space."
   (string-blank-p
    (buffer-substring-no-properties (line-beginning-position) pos)))
 
 (defun jsi--dwim-expression-at-pos-beg-end (pos)
+  "This function may call an appropriate jsi--dwim-... function depending on
+POS surrounding text and current major mode:
+* when POS is inside symbol, return bounds (BEG . END) for that symbol;
+* at typescript-mode, call `jsi--dwim-ts-expression-at-pos-beg-end';
+* at js-mode and its derived modes, call
+  `jsi--dwim-js-expression-at-pos-beg-end';
+* for all other major modes, if point is at the beginning of the line
+  neglecting white space, return bounds of that line.
+
+Return value is an expression begging and end cons (BEG . END)"
   (let (bounds)
     (cond
-     ((eq major-mode 'js2-mode)
+     ((derived-mode-p 'js-mode)
       (if (jsi--dwim-pos-inside-symbol-p pos)
           (setq bounds (bounds-of-thing-at-point 'symbol))
-        (setq bounds (jsi--dwim-js2-expression-at-pos-beg-end pos))))
+        (setq bounds (jsi--dwim-js-expression-at-pos-beg-end pos))))
      ((eq major-mode 'typescript-mode)
       (if (jsi--dwim-pos-inside-symbol-p pos)
           (setq bounds (bounds-of-thing-at-point 'symbol))
@@ -871,6 +893,13 @@ see https://github.com/standard-things/esm")
           (setq bounds (cons (line-beginning-position) (line-end-position)))
         (setq bounds (bounds-of-thing-at-point 'symbol)))))
     bounds))
+
+;; /b/}
+
+;; -------------------------------------------------------------------
+;;; jsi-node-mode - minor js-interaction mode for jsi-node-repl
+;; -------------------------------------------------------------------
+;; /b/{
 
 (defun jsi--node-eval (js-expr)
   (let ((process (get-process jsi-node-repl-process-name)))
