@@ -120,6 +120,8 @@
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
 
+(require 'cl-lib)
+
 ;; TODO: investigate the following packages
 ;;       see https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
 ;;       https://github.com/bmag/emacs-purpose
@@ -3458,7 +3460,13 @@ fields which we need."
 ;; /b/{ js-mode
 
 (use-package js
-  ;; :mode ("\\.js\\'" . js-mode)
+  :mode ("\\.js\\'" . js-mode)
+  :interpreter "node"
+  ;; "λ" stands for interactive and "n" for Node.JS
+  :delight '((:eval (if (bound-and-true-p jsi-node-mode)
+                        "jsλn"
+                      "js"))
+             :major)
   ;; :delight '((:eval (if (bound-and-true-p indium-interaction-mode)
   ;;                       "jsλi"
   ;;                     "js"))
@@ -3501,8 +3509,8 @@ fields which we need."
 ;; /b/{ js2-mode
 
 (use-package js2-mode
-  :mode "\\.js\\'"
-  :interpreter "node"
+  ;; :mode "\\.js\\'"
+  ;; :interpreter "node"
   ;; "λ" stands for interactive and "n" for Node.JS
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "js2λn"
@@ -4228,12 +4236,16 @@ fields which we need."
 
   (flycheck-add-mode 'typescript-tslint 'web-mode)
 
-  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-  (flycheck-add-next-checker 'typescript-tide
-                             '(warning . javascript-eslint) 'append)
-  (flycheck-add-next-checker 'tsx-tide
-                             '(warning . javascript-eslint) 'append)
+  ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+  ;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+
+  (flycheck-add-next-checker 'typescript-tide 'javascript-eslint 'append)
+  (flycheck-add-next-checker 'tsx-tide 'javascript-eslint 'append)
+
+  ;; (flycheck-add-next-checker 'typescript-tide
+  ;;                            '(warning . javascript-eslint) 'append)
+  ;; (flycheck-add-next-checker 'tsx-tide
+  ;;                            '(warning . javascript-eslint) 'append)
 
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
@@ -4248,7 +4260,7 @@ fields which we need."
   ;;    (set (make-local-variable 'rh-company-display-permanent-doc-buffer)
   ;;         #'rh-tide-company-display-permanent-doc-buffer)))
 
-  :after (company flycheck)
+  ;; :after (company flycheck)
   :bind (:map tide-mode-map
          ("M-." . tide-jump-to-definition)
          ("M-/" . tide-jump-to-implementation)
