@@ -2672,8 +2672,8 @@ fields which we need."
   (flycheck-indication-mode nil)
 
   :custom-face
-  ;; (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
-  (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
+  ;; (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
+  (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
 
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)

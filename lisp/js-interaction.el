@@ -1,10 +1,5 @@
 ;;; js-interaction.el --- Minor Node.JS Interaction Mode and Minimalist Node.JS REPL
 ;;
-;; TODO:
-;;   * Replace Babel call via bash (using `shell-command') with the call via
-;;     node (using `call-process'). This should make js-interaction more
-;;     friendly to some evil OSs.
-;;
 ;; Description: Execute JavaScript commands in Node.JS
 ;;              directly from JavaScript buffers.
 ;; Author: Victor Rybynok
@@ -70,20 +65,20 @@ in the future."
    ((member major-mode jsi-transpiler-babel-default-modes) 'babel)))
 
 (defcustom jsi-input-language #'jsi-input-language-get-default
-  "String with input language name abbreviation used in interaction logs."
+  "Recognised input languages."
   :group 'js-interaction
   :type '(choice (const
-                  :tag "Language name abbreviation string"
+                  :tag "TypeScript"
                   'ts)
                  (const
-                  :tag "Language name abbreviation string"
+                  :tag "JavaScript"
                   'js)
                  (const
-                  :tag "Default function to auto-select language abbreviation"
-                  jsi-transpiler-get-default)
+                  :tag "Default function to auto-select input language"
+                  jsi-input-language-get-default)
                  (function
-                  :tag "Function that returns language abbreviation string"
-                  :value jsi-transpiler-get-default)))
+                  :tag "Function that returns input language"
+                  :value jsi-input-language-get-default)))
 
 (defun jsi-input-language-get-default ()
   "Returns input language name abbreviation based on current buffer major mode.
@@ -93,13 +88,12 @@ If mode is not recognised, assumes JavaScript."
     (otherwise 'js)))
 
 ;;;###autoload
-(defun jsi-transpile-expression (js-expr)
+(defun jsi-transpile-expression (input)
   (interactive "sTranspile expression: ")
   (let ((transpiler (jsi--get jsi-transpiler)))
     (if (null transpiler)
         (error "`jsi-transpiler' is evaluated to nil.")
       (let* ((log-buffer (jsi--log-get-buffer))
-             (input js-expr)
              (transpiler-output (jsi-transpile-sync transpiler input)))
         (jsi-log-record-add
          (jsi--get jsi-input-language) input
@@ -200,7 +194,7 @@ If mode is not recognised, assumes JavaScript."
   (setq-local buffer-read-only t)
   (setq-local window-point-insertion-type t))
 
-;; TODO Fix code-blocks to ignore e.g. /b/ { in strings
+;; TODO: Fix code-blocks to ignore e.g. /b/ { in strings
 
 ;; (defun jsi-log-add-record
 ;;     (input-language input transpiler transpiler-output output)
@@ -231,7 +225,7 @@ If mode is not recognised, assumes JavaScript."
        (point-min) (point-max) nil))
     (buffer-string)))
 
-(defun jsi--log-fontify-mode (syntax)
+(defun jsi--log-fontify-major-mode (syntax)
   "Return mode used to fontify LANGUAGE."
   (case syntax
     (ts 'typescript-mode)
@@ -256,7 +250,7 @@ If mode is not recognised, assumes JavaScript."
                            " Input \n")
                    'face 'jsi-log-record-heading-highlight))
       (insert (jsi--log-fontify-string
-               input (jsi--log-fontify-mode input-language)))
+               input (jsi--log-fontify-major-mode input-language)))
       (insert "\n\n")
       (when transpiler
         (insert
@@ -266,8 +260,8 @@ If mode is not recognised, assumes JavaScript."
         (insert (jsi--log-fontify-string
                  (plist-get transpiler-output ':text)
                  (if (null (plist-get transpiler-output ':error))
-                     (jsi--log-fontify-mode 'js)
-                   (jsi--log-fontify-mode 'output))))
+                     (jsi--log-fontify-major-mode 'js)
+                   (jsi--log-fontify-major-mode 'output))))
         (insert "\n\n"))
       (when interpreter
         (insert
@@ -275,7 +269,7 @@ If mode is not recognised, assumes JavaScript."
                              " Output \n")
                      'face 'jsi-log-interpreter-heading-highlight))
         (insert (jsi--log-fontify-string
-                 interpreter-output (jsi--log-fontify-mode 'output)))
+                 interpreter-output (jsi--log-fontify-major-mode 'output)))
         (insert "\n\n")))))
 
 (defun jsi--log-get-buffer ()
@@ -305,13 +299,13 @@ If mode is not recognised, assumes JavaScript."
   "The directory from where Babel is executed."
   :group 'js-interaction
   :type '(choice (const
-                  :tag "Default function to auto-select babel run directory"
+                  :tag "Default function to auto-select Babel run directory"
                   jsi-babel-run-directory-get-default)
                  (string
-                  :tag "String literal with babel run directory"
+                  :tag "String literal with Babel run directory"
                   :value "~")
                  (const
-                  :tag "Function that returns string with babel run directory"
+                  :tag "Function that returns string with Babel run directory"
                   jsi-babel-run-directory-get-default)))
 
 ;; (defvar jsi-babel-skip-import nil
@@ -401,29 +395,29 @@ defined by `jsi-babel-run-directory'."
       (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
      (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
 
-(defun jsi--babel-import-only-p (input-string)
+(defun jsi--babel-imports-only-p (input-string)
   "Returns t if INPUT-STRING contains 'import' statements only."
   (with-temp-buffer
-    (delay-mode-hooks (typescript-mode))
+    (delay-mode-hooks (js-mode))
     (insert input-string)
     (goto-char (point-min))
     (let ((import-only t))
       (while (and import-only (not (eobp)))
-        (typescript--forward-syntactic-ws)
+        (js--forward-syntactic-ws)
         (when (looking-at ";")
           (forward-char)
-          (typescript--forward-syntactic-ws))
+          (js--forward-syntactic-ws))
         (unless (eobp)
           (if (looking-at "import")
-              (jsi--dwim-ts-forward-expression)
+              (jsi--dwim-js--forward-expression)
             (setq import-only nil))))
       import-only)))
 
 (defun jsi-babel-transpile-sync (input-string)
-  "Transpile STRING with Babel"
-  (if (jsi--babel-import-only-p input-string)
+  "Transpile STRING with Babel and magic."
+  (if (jsi--babel-imports-only-p input-string)
   ;; (if (and jsi-babel-skip-import
-  ;;          (jsi--babel-import-only-p input-string))
+  ;;          (jsi--babel-imports-only-p input-string))
       `(:text ,input-string
         :error nil)
 
@@ -441,17 +435,17 @@ defined by `jsi-babel-run-directory'."
               (replace-regexp-in-string "\\$" "\\\\$" input-string))
 
         ;; TODO: Remove the following await hiding logic once Babel can handle
-        ;; it. see https://github.com/babel/babel/issues/9329
+        ;;       it. see https://github.com/babel/babel/issues/9329
         ;;
         ;; "Hide" await keyword from Babel input-string
         (setq input-string
               (replace-regexp-in-string
                "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
-               "\\1/* __top_await__ */\\2" input-string))
+               "\\1/* __await_out__ */\\2" input-string))
         (setq input-string
               (replace-regexp-in-string
                "^\\(.*\\)await\\([[:blank:]\n\r]\\)"
-               "\\1/* __await__ */\\2" input-string))
+               "\\1/* __await_in__ */\\2" input-string))
 
         (setq
          arg-string
@@ -470,6 +464,9 @@ defined by `jsi-babel-run-directory'."
          output-string
          (string-trim
           (with-temp-buffer
+            ;; TODO: Instead of `shell-command' and script in arg-string
+            ;;       it can be `call-process' and Node.JS script. This should
+            ;;       make js-interaction more friendly to some sub-standard OSs.
             (shell-command arg-string t)
             (goto-char (point-max))
             (move-beginning-of-line 0)
@@ -483,16 +480,16 @@ defined by `jsi-babel-run-directory'."
           (setq output-error 'transpiler))
 
         ;; TODO: Remove the following await hiding logic once Babel can handle
-        ;; it. see https://github.com/babel/babel/issues/9329
+        ;;       it. see https://github.com/babel/babel/issues/9329
         ;;
         ;; Get await keyword back to Babel output-string.
         (setq output-string
               (replace-regexp-in-string
-               "/\\* __top_await__ \\*/[\n\r]+"
+               "/\\* __await_out__ \\*/[\n\r]+"
                "await " output-string))
         (setq output-string
               (replace-regexp-in-string
-               "[\n\r]*/\\* __await__ \\*/[\n\r]+"
+               "[\n\r]*/\\* __await_in__ \\*/[\n\r]+"
                " await " output-string))
 
         `(:text ,output-string
@@ -513,6 +510,18 @@ Only `babel' TRANSPILER value is currently supported."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+;; (defvar jsi-node-command "node"
+;;   "Command to start Node.JS")
+
+(defcustom jsi-node-command "node"
+  "Command to start Node.JS"
+  :group 'js-interaction
+  :type '(choice (string
+                  :tag "String literal with Node.JS command"
+                  :value "node")
+                 (const
+                  :tag "Function that returns string with Node.JS command")))
+
 (defcustom jsi-node-repl-prompt "> "
   "Node.js REPL prompt used in `jsi-node-repl-mode'"
   :group 'js-interaction
@@ -520,9 +529,6 @@ Only `babel' TRANSPILER value is currently supported."
 
 (defvar jsi-node-repl-process-name "jsi-node-repl"
   "Process name of Node.js REPL")
-
-(defvar jsi-node-command "node"
-  "Command to start Node.JS")
 
 (defvar jsi-node-command-require-esm nil
   "Allowes to use ES6 modules in modern Node.JS without mjs and with full
@@ -627,13 +633,14 @@ see https://github.com/standard-things/esm")
     (if process
         (setq buffer (process-buffer process))
       ;; TODO: convert to seq-copy and seq-concatenate in the future
+      ;;       when more emacs'es support it:
       (setq arguments (copy-sequence jsi-node-command-arguments))
       (when jsi-node-command-require-esm
         (setq arguments (append '("-r" "esm") arguments)))
       (setq buffer (eval
                     `(make-comint
                       jsi-node-repl-process-name
-                      jsi-node-command nil
+                      ,(jsi--get jsi-node-command) nil
                       ,@arguments
                       "-e" jsi-node-repl-start-js)))
       (with-current-buffer buffer (jsi-node-repl-mode))
@@ -784,18 +791,19 @@ see https://github.com/standard-things/esm")
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-;; see `typescript--forward-expression' comment.
-;; Looks like I have to write to js-mode maintainers too...
+;; Looks like I should write to js-mode maintainers too...
+;; see https://github.com/emacs-typescript/typescript.el/issues/105
 (defun jsi--dwim-js--forward-expression ()
   "Move forward over a whole JavaScript expression."
   (cl-loop
-   do (progn
-        (forward-comment most-positive-fixnum)
-        (cl-loop until (or (eolp)
-                           (progn
-                             (forward-comment most-positive-fixnum)
-                             (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
-                 do (forward-sexp)))
+   do
+   (forward-comment most-positive-fixnum)
+   (cl-loop
+    until (or (eolp)
+              (progn
+                (forward-comment most-positive-fixnum)
+                (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
+    do (forward-sexp))
 
    while (and (eq (char-after) ?\n)
               (save-excursion
@@ -820,25 +828,6 @@ Return value is an expression begging and end cons (BEG . END)"
       (setq end (point)))
     (cons beg end)))
 
-;; TODO: remove `jsi--dwim-ts-forward-expression' after
-;;       `typescript--forward-expression' is fixed
-;; see https://github.com/emacs-typescript/typescript.el/issues/105
-(defun jsi--dwim-ts-forward-expression ()
-  "Move forward over a whole typescript expression."
-  (cl-loop
-   do (progn
-        (forward-comment most-positive-fixnum)
-        (cl-loop until (or (eolp)
-                           (progn
-                             (forward-comment most-positive-fixnum)
-                             (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
-                 do (forward-sexp)))
-
-   while (and (eq (char-after) ?\n)
-              (save-excursion
-                (forward-char)
-                (typescript--continued-expression-p)))))
-
 (defun jsi--dwim-ts-expression-at-pos-beg-end (pos)
   "This function works only in typescript-mode. It tries to guess the TypeScript
 expression following POS which user wants to evaluate.
@@ -852,7 +841,7 @@ Return value is an expression begging and end cons (BEG . END)"
         (right-word)
         (typescript--forward-syntactic-ws))
       (setq beg (point))
-      (jsi--dwim-ts-forward-expression)
+      (typescript--forward-expression)
       (setq end (point)))
     (cons beg end)))
 
@@ -871,12 +860,12 @@ Return value is an expression begging and end cons (BEG . END)"
 (defun jsi--dwim-expression-at-pos-beg-end (pos)
   "This function may call an appropriate jsi--dwim-... function depending on
 POS surrounding text and current major mode:
-* when POS is inside symbol, return bounds (BEG . END) for that symbol;
-* at typescript-mode, call `jsi--dwim-ts-expression-at-pos-beg-end';
-* at js-mode and its derived modes, call
-  `jsi--dwim-js-expression-at-pos-beg-end';
-* for all other major modes, if point is at the beginning of the line
-  neglecting white space, return bounds of that line.
+ * when POS is inside symbol, return bounds (BEG . END) for that symbol;
+ * at typescript-mode, call `jsi--dwim-ts-expression-at-pos-beg-end';
+ * at js-mode and its derived modes, call
+   `jsi--dwim-js-expression-at-pos-beg-end';
+ * for all other major modes, if point is at the beginning of the line
+   neglecting white space, return bounds of that line.
 
 Return value is an expression begging and end cons (BEG . END)"
   (let (bounds)
