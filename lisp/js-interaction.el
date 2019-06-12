@@ -12,6 +12,7 @@
 
 (require 'cl-lib)
 (require 'js)
+(require 'typescript-mode nil t)
 
 (defgroup js-interaction nil
   "Node.js REPL and its minor interaction mode."
@@ -815,7 +816,7 @@ see https://github.com/standard-things/esm")
 It tries to guess the JavaScript expression following POS which user
 wants to evaluate.
 
-Return value is an expression begging and end cons (BEG . END)"
+Return value is (BEG . END) of expression at POS."
   (let (beg end)
     (save-excursion
       (goto-char pos)
