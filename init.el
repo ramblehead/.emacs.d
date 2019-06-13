@@ -13,7 +13,6 @@
    '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
    '((t :background "black" :foreground "white" :family "misc-fixed")))
- '(httpd-host "10.0.100.180" t)
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
@@ -41,7 +40,6 @@
  '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
  '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
- '(flycheck-warning ((t (:underline (:color "yellow4" :style wave)))))
  '(iedit-occurrence ((((background light)) (:background "lightblue"))))
  '(iedit-read-only-occurrence ((((background light)) (:background "pale turquoise"))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
@@ -321,16 +319,12 @@ when only symbol face names are needed."
 ;;           (when (file-exists-p setup-file-name)
 ;;             (load setup-file-name)))))))
 
-;; TODO: add trusted projects test (e.g. locations or repository), so it should
-;;       not be impossible to load rh-project setup and init files from
-;;       untrusted sources.
-(cl-defun rh-project-setup (&optional (setup-file-name "setup")
-                                      (init-file-name "init"))
+(cl-defun rh-project-setup ()
   (let ((rh-project-path (rh-project-get-path)))
     (when rh-project-path
       (message (concat "rh-project: " rh-project-path))
-      (let ((setup-file-path (concat rh-project-path setup-file-name ".el"))
-            (init-file-path (concat rh-project-path init-file-name ".el"))
+      (let ((setup-file-path (concat rh-project-path "setup.el"))
+            (init-file-path (concat rh-project-path "init.el"))
             (rh-project-id (directory-file-name
                             (expand-file-name rh-project-path))))
         (when (and (file-exists-p init-file-path)
@@ -347,6 +341,7 @@ when only symbol face names are needed."
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
 
+;; TODO: remove this function and related code
 (defun rh-project-get-include-path (language)
   (let* ((project-path (rh-project-get-path))
          (src-tree-root (concat project-path "../"))
@@ -969,6 +964,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
    (lambda ()
      (recenter)))
 
+  ;; TODO: create additional host system configuration files.
+  ;;       the name of the file should be deduced from the host OS
+  ;;       environment. These config files then could be used
+  ;;       to setup e.g. IP address of httpd-host used by skewer.
   ;; Load secrets from outside of public SCM
   (load "~/.emacs.d/secret.el" t)
 
@@ -2673,16 +2672,21 @@ fields which we need."
 ;; /b/{ flycheck
 
 (use-package flycheck
-  :custom
-  (flycheck-mode-line-prefix "Φ")
-  (flycheck-check-syntax-automatically '(save mode-enabled))
-  (flycheck-indication-mode nil)
+  ;; :custom
+  ;; (flycheck-mode-line-prefix "Φ")
+  ;; (flycheck-check-syntax-automatically '(save mode-enabled))
+  ;; (flycheck-indication-mode nil)
 
   :custom-face
   ;; (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
   (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
 
   :config
+  (customize-set-variable 'flycheck-mode-line-prefix "Φ")
+  (customize-set-variable 'flycheck-check-syntax-automatically
+                          '(save mode-enabled))
+  (customize-set-variable 'flycheck-indication-mode nil)
+
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
   :defer t
@@ -3719,10 +3723,11 @@ fields which we need."
 
 (use-package skewer-mode
   :config
-  (httpd-start)
   ;; Add host IP address to .emacs.d/secret.el as the following
   ;; (customize-set-variable 'httpd-host "10.0.100.180")
   ;; so httpd will use that IP instead of localhost
+
+  (httpd-start)
   :defer t
   :ensure t)
 
