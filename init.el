@@ -21,7 +21,11 @@
    '(eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
- '(safe-local-variable-values '((eval progn (linum-mode -1) (nlinum-mode 1))))
+ '(safe-local-variable-values
+   '((eval rh-project-setup)
+     (eval progn
+           (linum-mode -1)
+           (nlinum-mode 1))))
  '(tab-stop-list
    '(8 4 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
  '(visual-line-fringe-indicators '(nil right-curly-arrow))
@@ -3438,7 +3442,8 @@ fields which we need."
      (rh-cc-compile-setup)
      ;; (rh-c++-ac-setup)
      (rh-cc-company-setup)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   (add-hook
    'c-mode-hook
@@ -3448,7 +3453,8 @@ fields which we need."
      (rh-programming-minor-modes t)
      (rh-cc-rtags-setup)
      (rh-cc-compile-setup)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :bind (:map c-mode-base-map
          ("C-S-b" . recompile)
@@ -3499,7 +3505,8 @@ fields which we need."
      (company-mode 1)
 
      (rh-programming-minor-modes 1)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :bind (:map js-mode-map
          ("<f7>" . rh-nodejs-interaction))
@@ -3572,7 +3579,8 @@ fields which we need."
      (setq-local rm-blacklist (seq-copy rm-blacklist))
      (add-to-list 'rm-blacklist " jsi-node")
      (rh-programming-minor-modes 1)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :bind (:map typescript-mode-map
          ("{" . nil)
@@ -3802,7 +3810,8 @@ fields which we need."
    'css-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :ensure t)
 
@@ -3819,7 +3828,8 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes 1)
      (company-mode 1)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :bind (:map scss-mode-map
          ("C-S-b" . recompile)
@@ -3950,7 +3960,8 @@ fields which we need."
    'bazel-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (rh-project-setup)))
+     ;; (rh-project-setup)
+     ))
 
   :ensure t)
 
@@ -3983,7 +3994,8 @@ fields which we need."
      (setq cg-backward-list-original #'nxml-backward-element)
 
      (rh-programming-minor-modes 1)
-     (rh-project-setup))))
+     ;; (rh-project-setup)
+     )))
 
 ;; /b/} nxml-mode
 
@@ -4161,7 +4173,7 @@ fields which we need."
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
-     (rh-project-setup)
+     ;; (rh-project-setup)
 
      (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)
