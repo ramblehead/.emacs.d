@@ -964,12 +964,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
    (lambda ()
      (recenter)))
 
-  ;; TODO: create additional host system configuration files.
-  ;;       the name of the file should be deduced from the host OS
-  ;;       environment. These config files then could be used
-  ;;       to setup e.g. IP address of httpd-host used by skewer.
-  ;; Load secrets from outside of public SCM
-  (load "~/.emacs.d/secret.el" t)
+  (load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
+  (load "~/.emacs-private.d/secret.el" t)
 
   ;; (color-theme-sanityinc-tomorrow-blue)
   ;; (load-theme 'sanityinc-tomorrow-blue t)
@@ -3723,9 +3719,11 @@ fields which we need."
 
 (use-package skewer-mode
   :config
-  ;; Add host IP address to .emacs.d/secret.el as the following
-  ;; (customize-set-variable 'httpd-host "10.0.100.180")
+  ;; Add host IP address to
+  ;; (concat "~/.emacs-private.d/systems/" system-name ".el")
   ;; so httpd will use that IP instead of localhost
+  ;;
+  ;; e.g. (customize-set-variable 'httpd-host "10.0.100.180")
 
   (httpd-start)
   :defer t
