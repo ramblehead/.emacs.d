@@ -321,6 +321,9 @@ when only symbol face names are needed."
 ;;           (when (file-exists-p setup-file-name)
 ;;             (load setup-file-name)))))))
 
+;; TODO: add trusted projects test (e.g. locations or repository), so it should
+;;       not be impossible to load rh-project setup and init files from
+;;       untrusted sources.
 (cl-defun rh-project-setup (&optional (setup-file-name "setup")
                                       (init-file-name "init"))
   (let ((rh-project-path (rh-project-get-path)))
