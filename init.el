@@ -2454,40 +2454,6 @@ fields which we need."
   (defvar rh-company-display-permanent-doc-buffer nil)
 
   :config
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("*company-documentation*"
-  ;;                (lambda (buffer alist)
-  ;;                  (or (let ((win (display-buffer-below-selected buffer alist)))
-  ;;                        (message "*** ooo")
-  ;;                        (shrink-window-if-larger-than-buffer win)
-  ;;                        win)
-  ;;                      (display-buffer-reuse-window buffer alist)
-  ;;                      (display-buffer-use-some-window buffer alist)
-  ;;                      (display-buffer-pop-up-window buffer alist)))
-  ;;                ;; (display-buffer-below-selected
-  ;;                ;;  display-buffer-reuse-window
-  ;;                ;;  display-buffer-use-some-window
-  ;;                ;;  display-buffer-pop-up-window)
-  ;;                (inhibit-same-window . t)
-  ;;                (window-height . 0.3)))
-
-  ;; (add-to-list
-  ;;  'display-buffer-alist
-  ;;  '("*company-documentation*"
-  ;;    ((lambda (buffer alist)
-  ;;       (or (let ((win (display-buffer-below-selected buffer alist)))
-  ;;          (when win
-  ;;            (run-with-timer
-  ;;             0 nil
-  ;;             (lambda (win)
-  ;;               (shrink-window-if-larger-than-buffer win))
-  ;;             win))
-  ;;          win)
-  ;;        (display-buffer-use-some-window buffer alist)
-  ;;        (display-buffer-pop-up-window buffer alist))))
-  ;;    (inhibit-same-window . t)
-  ;;    (window-height . 0.3)))
-
   (add-to-list
    'display-buffer-alist
    '("*company-documentation*"
@@ -2499,6 +2465,10 @@ fields which we need."
      (inhibit-same-window . t)))
 
   (setq company-lighter-base "CA")
+
+  (setq company-backends
+        '((company-keywords company-dabbrev-code)
+          company-files (company-dabbrev company-ispell)))
 
   ;; TODO: write to https://github.com/company-mode/company-mode/issues/123
   (defun rh-company-pseudo-tooltip-on-explicit-action (command)
@@ -3339,12 +3309,8 @@ fields which we need."
   :config
   (require 'compile)
   (require 'auto-complete-c-headers)
-  (require 'auto-complete-clang)
   (require 'rtags)
   (require 'rh-cc-mode-config)
-
-  (defvar-local rh-c++-compiler "g++")
-  (defvar-local rh-c++-std "-std=c++1z")
 
   ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
   (defun rh-gcc-get-isystem-path (compiler)
@@ -3358,11 +3324,6 @@ fields which we need."
                                       (+ start-pos (length start-string))
                                       end-pos)))
       (split-string include-string)))
-
-  (defun rh-c++-auto-complete-clang ()
-    (interactive)
-    (message "auto-completing with clang...")
-    (auto-complete (append '(ac-source-clang) ac-sources)))
 
   (defun rh-cc-compile-setup ()
     (let ((project-path (rh-project-get-path)))
@@ -3389,49 +3350,6 @@ fields which we need."
     ;; (setq rtags-display-current-error-as-tooltip t)
     (rh-rtags-header-line-setup))
 
-  (defun rh-c++-ac-setup ()
-    ;; see https://github.com/mooz/auto-complete-c-headers
-
-    ;; #include auto-completion search paths
-    (set (make-local-variable 'achead:include-directories)
-         (append (rh-project-get-include-path "c++")
-                 (rh-gcc-get-isystem-path rh-c++-compiler)
-                 achead:include-directories))
-
-    ;; 'rtags-ac' is not as good as 'auto-complete-clang',
-    ;; so using 'auto-complete-clang'
-    ;; (require 'rtags-ac)
-    ;; (setq rtags-completions-enabled t)
-
-    ;; ;; see https://github.com/brianjcj/auto-complete-clang
-
-    ;; i.e. 'echo "" | g++ -v -x c++ -E -'
-    ;; (setq clang-completion-suppress-error 't)
-    ;; (setq ac-clang-executable (executable-find "clang-3.6"))
-    (set (make-local-variable 'ac-clang-flags)
-         (append `(,rh-c++-std)
-                 (mapcar (lambda (item) (concat "-I" item))
-                         (rh-project-get-include-path "c++"))
-                 (mapcar (lambda (item) (concat "-isystem" item))
-                         (rh-gcc-get-isystem-path rh-c++-compiler))))
-
-    (set (make-local-variable 'ac-sources)
-         (append '(ac-source-c-headers
-                   ;; Dynamic auto-completion is slow and interferes with
-                   ;; typing, whether it is 'c-source-clang' or
-                   ;; 'ac-source-rtags', therefore it is only activated on 'C-x
-                   ;; C-<tab>' (see key definitions below in this function) in
-                   ;; 'rh-c++-auto-complete-clang' function.  ac-source-clang
-                   ;; ac-source-rtags
-                   )
-                 ac-sources))
-
-    (let ((local-ac-completing-map (copy-keymap ac-completing-map)))
-      (set (make-local-variable 'ac-completing-map) local-ac-completing-map))
-    (local-set-key (kbd "C-x C-<tab>") #'rh-c++-auto-complete-clang)
-
-    (auto-complete-mode 1))
-
   (add-hook
    'c++-mode-hook
    (lambda ()
@@ -3444,10 +3362,7 @@ fields which we need."
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
      (rh-cc-compile-setup)
-     ;; (rh-c++-ac-setup)
-     (rh-cc-company-setup)
-     ;; (rh-project-setup)
-     ))
+     (rh-cc-company-setup)))
 
   (add-hook
    'c-mode-hook
@@ -3456,9 +3371,7 @@ fields which we need."
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
      (rh-cc-rtags-setup)
-     (rh-cc-compile-setup)
-     ;; (rh-project-setup)
-     ))
+     (rh-cc-compile-setup)))
 
   :bind (:map c-mode-base-map
          ("C-S-b" . recompile)
@@ -3503,14 +3416,10 @@ fields which we need."
   (add-hook
    'js-mode-hook
    (lambda ()
-     (setq-local company-backends
-                 '((company-keywords company-dabbrev-code)
-                   company-files (company-dabbrev company-ispell)))
+     (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
 
-     (rh-programming-minor-modes 1)
-     ;; (rh-project-setup)
-     ))
+     (rh-programming-minor-modes 1)))
 
   :bind (:map js-mode-map
          ("<f7>" . rh-nodejs-interaction))
@@ -3575,16 +3484,12 @@ fields which we need."
   (add-hook
    'typescript-mode-hook
    (lambda ()
-     (setq-local company-backends
-                 '((company-keywords company-dabbrev-code)
-                   company-files (company-dabbrev company-ispell)))
+     (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
 
      (setq-local rm-blacklist (seq-copy rm-blacklist))
      (add-to-list 'rm-blacklist " jsi-node")
-     (rh-programming-minor-modes 1)
-     ;; (rh-project-setup)
-     ))
+     (rh-programming-minor-modes 1)))
 
   :bind (:map typescript-mode-map
          ("{" . nil)
@@ -3645,16 +3550,16 @@ fields which we need."
 
 ;; /b/} tern
 
-;; /b/{ company-tern
+;; ;; /b/{ company-tern
 
-(use-package company-tern
-  :config
-  (add-to-list 'company-backends 'company-tern)
+;; (use-package company-tern
+;;   :config
+;;   (add-to-list 'company-backends 'company-tern)
 
-  :after tern
-  :ensure t)
+;;   :after tern
+;;   :ensure t)
 
-;; /b/} company-tern
+;; ;; /b/} company-tern
 
 ;; /b/{ ac-js2
 
@@ -3816,9 +3721,7 @@ fields which we need."
   (add-hook
    'css-mode-hook
    (lambda ()
-     (rh-programming-minor-modes 1)
-     ;; (rh-project-setup)
-     ))
+     (rh-programming-minor-modes 1)))
 
   :ensure t)
 
@@ -3834,9 +3737,7 @@ fields which we need."
    'scss-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (company-mode 1)
-     ;; (rh-project-setup)
-     ))
+     (company-mode 1)))
 
   :bind (:map scss-mode-map
          ("C-S-b" . recompile)
@@ -3966,9 +3867,7 @@ fields which we need."
   (add-hook
    'bazel-mode-hook
    (lambda ()
-     (rh-programming-minor-modes 1)
-     ;; (rh-project-setup)
-     ))
+     (rh-programming-minor-modes 1)))
 
   :ensure t)
 
@@ -4000,9 +3899,7 @@ fields which we need."
      (setq cg-forward-list-original #'nxml-forward-element)
      (setq cg-backward-list-original #'nxml-backward-element)
 
-     (rh-programming-minor-modes 1)
-     ;; (rh-project-setup)
-     )))
+     (rh-programming-minor-modes 1))))
 
 ;; /b/} nxml-mode
 
@@ -4173,14 +4070,11 @@ fields which we need."
   (add-hook
    'web-mode-hook
    (lambda ()
-     (setq-local company-backends
-                 '((company-keywords company-dabbrev-code)
-                   company-files (company-dabbrev company-ispell)))
+     (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
-     ;; (rh-project-setup)
 
      (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)

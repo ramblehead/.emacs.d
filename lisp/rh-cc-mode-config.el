@@ -37,16 +37,17 @@
 (require 'company-rtags)
 (require 'company-clang)
 
+;; (company-clang 'init)
+;; (company-rtags 'init)
+
 ;;;###autoload
 (defun rh-cc-company-setup ()
-  (interactive)
+  (setq company-backends
+        '((company-keywords company-dabbrev-code)
+          company-files (company-dabbrev company-ispell)))
 
-  (setq-local company-backends
-              '((company-keywords company-dabbrev-code)
-                ;; company-capf
-                company-files (company-dabbrev company-ispell)))
-
-  (bind-key "C-x C-<tab>" #'company-rtags c-mode-base-map)
+  (bind-key "C-c C-<tab>" #'company-rtags c-mode-base-map)
+  (bind-key "C-x C-<tab>" #'company-clang c-mode-base-map)
 
   (company-mode 1))
 
