@@ -2783,9 +2783,10 @@ fields which we need."
   (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
   (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
 
-  (defun rh-compile-toggle-display ()
+  (cl-defun rh-compile-toggle-display
+      (&optional (compilation-buffer-name "*compilation*"))
     (interactive)
-    (rh-toggle-display "*compilation*"))
+    (rh-toggle-display compilation-buffer-name))
 
   :bind (:map compilation-mode-map
          ("q" . g2w-quit-window)
