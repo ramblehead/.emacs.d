@@ -51,5 +51,24 @@
 
   (company-mode 1))
 
+;; (defun rh-c++-auto-complete-clang ()
+;;   (interactive)
+;;   (message "auto-completing with clang...")
+;;   (auto-complete (append '(ac-source-clang) ac-sources)))
+
+;; ;;;###autoload
+;; (defun rh-c++-auto-complete-setup ()
+;;   (require 'auto-complete-clang)
+;;   (setq-local ac-sources
+;;               (append '(ac-source-c-headers
+;;                         ;; Dynamic auto-completion is slow and interferes with
+;;                         ;; typing, whether it is 'c-source-clang' or
+;;                         ;; 'ac-source-rtags', therefore it is only activated on
+;;                         ;; 'C-x C-<tab>' (see key definitions below in this
+;;                         ;; function) in 'rh-c++-auto-complete-clang' function.
+;;                         ;; ac-source-clang ac-source-rtags
+;;                         )
+;;                       ac-sources)))
+
 (provide 'rh-cc-mode-config)
 ;;; rh-cc-mode-config.el ends here

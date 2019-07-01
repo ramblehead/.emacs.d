@@ -13,6 +13,7 @@
    '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
    '((t :background "black" :foreground "white" :family "misc-fixed")))
+ '(httpd-host "10.0.100.180" t)
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
@@ -40,6 +41,7 @@
  '(completion-dynamic-common-substring-face ((((class color) (background light)) (:background "light steel blue" :foreground "systemmenutext"))))
  '(completion-dynamic-prefix-alterations-face ((((class color) (background light)) (:background "cyan" :foreground "systemmenutext"))))
  '(completion-highlight-face ((((class color) (background light)) (:background "light sky blue" :underline t))))
+ '(flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
  '(iedit-occurrence ((((background light)) (:background "lightblue"))))
  '(iedit-read-only-occurrence ((((background light)) (:background "pale turquoise"))))
  '(rtags-errline ((((class color)) (:background "#ef8990"))))
@@ -3302,6 +3304,18 @@ fields which we need."
   :commands rh-c-style-setup
   :defer t
   :pin manual)
+
+;; (use-package auto-complete-clang
+;;   :defer t
+;;   :ensure t)
+
+;; (use-package irony
+;;   :defer t
+;;   :ensure t)
+
+;; (use-package company-irony
+;;   :defer t
+;;   :ensure t)
 
 (use-package cc-mode
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
