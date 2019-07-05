@@ -54,8 +54,50 @@
  '(whitespace-tab ((t (:foreground "lightgray")))))
 
 ;; ------------------------------------------------------------------
+;;; Bugs, TODO and R&D work packages
+;; ------------------------------------------------------------------
+;; /b/{
+
+;; Bugs:
+;; [ ] All compilation buffers should be marked as "bottom side window".
+;; [ ] All "bottom side window" buffers should iflipb-next-buffer().
+;; [ ] All "non-side window" buffers should be ingnored when
+;;     iflipb-next-buffer() in other windows.
+;; [ ] Bottom-side window should have tabs for all buffers marked as "bottom
+;;     side window".
+
+;; TODO:
+;; [ ] Switch to color-theme-sanityinc-tomorrow-blue.
+
+;; R&D:
+;; [?] Bring Emacs init back to terminal-friendly state. Possibly, switch to
+;;     text terminal as the default...
+
+;; /b/}
+
+;; ------------------------------------------------------------------
+;;; New packages to consider
+;; ------------------------------------------------------------------
+;; /b/{
+
+;; * Tabs to switch between compilation and other top/bottom side buffers
+;;   https://github.com/ema2159/centaur-tabs
+;;   https://github.com/manateelazycat/awesome-tab
+
+;; https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
+;; https://github.com/bmag/emacs-purpose
+
+;; see https://www.quicklisp.org/beta/ for lisp libraries
+;; Can then do magic like this:
+;; (ql:quickload "alexandria")
+;; (alexandria:flatten list)
+
+;; /b/}
+
+;; ------------------------------------------------------------------
 ;;; Emacs Version Variables
 ;; ------------------------------------------------------------------
+;; /b/{
 
 (setq vr-emacs-version-string
       (replace-regexp-in-string
@@ -65,9 +107,12 @@
 (setq vr-emacs-version
       (mapcar 'string-to-number (split-string vr-emacs-version-string "\\.")))
 
+;; /b/}
+
 ;; ------------------------------------------------------------------
 ;;; File Location Variables
 ;; ------------------------------------------------------------------
+;; /b/{
 
 (setq vr-site-start-file-paths ())
 
@@ -120,20 +165,14 @@
 (setq vr-user-site-start-file-path
       (concat vr-user-lisp-directory-path "site-start.el"))
 
+;; /b/}
+
 ;; ------------------------------------------------------------------
 ;;; Helper functions and common modules
 ;; ------------------------------------------------------------------
+;; /b/{
 
 (require 'cl-lib)
-
-;; TODO: investigate the following packages
-;;       see https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
-;;       https://github.com/bmag/emacs-purpose
-
-;; see https://www.quicklisp.org/beta/ for lisp libraries
-;; Can then do magic like this:
-;; (ql:quickload "alexandria")
-;; (alexandria:flatten list)
 
 ;; /b/{ Package initialisation and `use-package' bootstrap
 
@@ -285,6 +324,8 @@ when only symbol face names are needed."
 (defun rh-quit-window-kill ()
   (interactive)
   (quit-window t))
+
+;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Emacs Packages Tree (that is where ramblehead's packages grow)
@@ -2044,10 +2085,11 @@ fields which we need."
      (inhibit-same-window . t)))
 
   ;; (add-to-list 'g2w-display-buffer-reuse-window-commands 'ivy-occur-press-and-switch)
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
-  (add-to-list
-   'g2w-display-buffer-reuse-window-commands
-   'compilation-display-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'compile-goto-error)
+
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'compilation-display-error)
 
   ;; (defadvice ivy-occur-press-and-switch
   ;;     (after rh-ivy-occur-press-and-switch activate)

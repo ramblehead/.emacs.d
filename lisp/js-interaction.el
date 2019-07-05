@@ -1,12 +1,32 @@
 ;;; js-interaction.el --- Minor Node.JS Interaction Mode and Minimalist Node.JS REPL
 ;;
-;; Description: Execute JavaScript commands in Node.JS
-;;              directly from JavaScript buffers.
+;; Description: Execute JavaScript commands in Node.JS directly from JavaScript
+;;              buffers with optional transpilation.
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
 ;; TODO:
-;;  * When node output has no errors, colour it with TypeScript mode
+;;  [ ] When node output has no errors, colour it with TypeScript mode.
+;;  [ ] Add syntax highlight expression results displayed in minibuffer.
+;;  [ ] When interacting with JS REPL from jsi-node minor mode, there should be
+;;      the maximum minibuffer height after which the output is not displayed in
+;;      minibuffer. Instead, it should pop jsi-log buffer and scroll it to its
+;;      bottom.
+;;  [ ] Add code-blocks "tab-folding" to jsi-log.
+;;  [ ] Add skewer as alternative JS REPL jsi-node minor mode.
+;;  [ ] Implement scratch repository for pure Node.JS.
+;;  [ ] Implement scratch repository for Node.JS with Typescript.
+;;  [ ] Implement scratch repository for pure Skewer.
+;;  [ ] Implement scratch repository for Skewer with React.
+;;  [ ] Implement scratch repository for Skewer with Typescript and React.
+;;
+;; R&D:
+;;  [?] Should jsi-log use pretty-print on Node.JS and Skewer outputs when there
+;;      are no errors?
+;;  [?] Should jsi-log have inspector-like folding on JS Objects and Array which
+;;      nest beyond certain threshold?
+;;  [?] Should jsi-log use Emacs' compilation mode to format Node.JS output in
+;;      case of errors?
 
 ;; -------------------------------------------------------------------
 ;;; js-interaction common
@@ -511,7 +531,7 @@ Only `babel' TRANSPILER value is currently supported."
 ;; /b/}
 
 ;; -------------------------------------------------------------------
-;;; jsi-node-repl - minimalist Node.js REPL for jsi-node minor mode
+;;; jsi-node-repl - minimalist Node.JS REPL for jsi-node minor mode
 ;; -------------------------------------------------------------------
 ;; /b/{
 
