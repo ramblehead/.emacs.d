@@ -68,6 +68,12 @@
 
 ;; TODO:
 ;; [ ] Switch to color-theme-sanityinc-tomorrow-blue.
+;; [ ] Refactor skewer-mode config to rh-style.
+;; [ ] Refactor web-mode config to rh-style.
+;; [ ] Refactor auto-complete config to rh-style.
+;; [ ] Remove rh-scratch-js mode after js-interaction scratches are implemented.
+;; [ ] Convert abc functions to abc mode.
+;; [ ] Convert rh-project functions to rh-project mode.
 
 ;; R&D:
 ;; [?] Bring Emacs init back to terminal-friendly state. Possibly, switch to
@@ -2056,9 +2062,11 @@ fields which we need."
 
 ;; -------------------------------------------------------------------
 ;;; Completion, Regexps, Patterns and Highlighting
-;; /b/{ +++++++++ ----------------------------------------------------
+;; -------------------------------------------------------------------
+;; /b/{
 
-;; /b/{ ivy/swiper/counsel/etc.
+;;; DWIM modes such as ivy, swiper, counsel
+;;; /b/{
 
 ;; See the following links on some ivy hints
 ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
@@ -2236,9 +2244,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;; /b/} ivy/swiper/counsel/etc.
-
-;; /b/{ hi-lock-mode
+;;; /b/}
 
 (use-package hi-lock-mode
   :init
@@ -2246,17 +2252,9 @@ fields which we need."
 
   :defer t)
 
-;; /b/} hi-lock-mode
-
-;; /b/{ pcre2el
-
 (use-package pcre2el
   :demand t
   :ensure t)
-
-;; /b/} pcre2el
-
-;; /b/{ visual-regexp
 
 (use-package visual-regexp
   :config
@@ -2277,9 +2275,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} visual-regexp
-
-;; /b/{ yasnippet
+;;; yasnippet
+;;; /b/{
 
 (use-package yasnippet
   :delight (yas-minor-mode " ⵙ")
@@ -2301,9 +2298,7 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} yasnippet
-
-;; /b/{ pos-tip
+;;; /b/}
 
 (use-package pos-tip
   :config
@@ -2314,10 +2309,6 @@ fields which we need."
   ;;   "Default background color of pos-tip's tooltip.")
 
   :ensure t)
-
-;; /b/} pos-tip
-
-;; /b/{ popup
 
 (use-package popup
   :config
@@ -2346,9 +2337,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} popup
-
-;; /b/{ auto-complete
+;;; auto-complete
+;;; /b/{
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -2487,11 +2477,8 @@ fields which we need."
   )
 
 (global-set-key (kbd "C-<tab>") 'rh-ac-start-if-ac-mode)
-;; (global-set-key (kbd "<f7>") 'auto-complete-mode)
 
-;; /b/} auto-complete
-
-;; /b/{ company
+;;; /b/}
 
 (use-package company
   :init
@@ -2674,12 +2661,8 @@ fields which we need."
 
   :ensure t)
 
-;; (use-package company-quickhelp
-;;   :ensure)
-
-;; /b/} company
-
-;; /b/{ flycheck
+;;; flycheck
+;;; /b/{
 
 (use-package flycheck
   ;; :custom
@@ -2727,9 +2710,7 @@ fields which we need."
 ;;   :after (flycheck pos-tip)
 ;;   :ensure t)
 
-;; /b/} flycheck
-
-;; /b/{ dumb-jump
+;;; /b/}
 
 (use-package dumb-jump
   :config
@@ -2754,17 +2735,12 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} dumb-jump
-
-;; -------------------------------------------------------------------
-;;; Completion, Regexps, Patterns and Highlighting
-;; ++++++++++ /b/} ---------------------------------------------------
+;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
-;; /b/{ +++++++++ ----------------------------------------------------
-
-;; /b/{ sh-mode
+;; -------------------------------------------------------------------
+;; /b/{
 
 (use-package sh-script
   :config
@@ -2776,10 +2752,6 @@ fields which we need."
      (rh-programming-minor-modes 1)))
 
   :defer t)
-
-;; /b/} sh-mode
-
-;; /b/{ compile
 
 (use-package compile
   :config
@@ -2810,10 +2782,6 @@ fields which we need."
          ("M-<kp-enter>" . compilation-display-error))
   :defer)
 
-;; /b/} compile
-
-;; /b/{ eshell
-
 (use-package eshell
   :config
   (defun eshell-clear-buffer ()
@@ -2840,9 +2808,8 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} eshell
-
-;; /b/{ Line Numbers
+;;; Line Numbers
+;;; /b/{
 
 (use-package linum
   :init
@@ -2915,7 +2882,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;; /b/} Line Numbers
+;;; /b/}
 
 (use-package fill-column-indicator
   :ensure)
@@ -3129,8 +3096,6 @@ fields which we need."
 ;; (gdb-inferior-io           gdb-inferior-io-name        gdb-inferior-io-mode                           )
 ;; (gdb-partial-output-buffer gdb-partial-output-name                                                    )
 
-;; /b/{ gdb-mi
-
 (use-package gdb-mi
   ;; :init
   ;; (defvar vr-gdb-original-buffer nil)
@@ -3186,10 +3151,6 @@ fields which we need."
   (setq gdb-delete-out-of-scope nil)
   (gdb-speedbar-auto-raise))
 
-;; /b/} gdb-mi
-
-;; /b/{ realgud
-
 ;; Autoinstall from init is disabled until the following problem is solved:
 ;; https://github.com/syl20bnr/spacemacs/issues/5917
 (use-package realgud
@@ -3198,9 +3159,8 @@ fields which we need."
   :pin melpa
   :ensure t)
 
-;; /b/} realgud
-
-;; /b/{ C++
+;;; C++
+;;; /b/{
 
 (use-package rtags
   ;; :commands rtags-start-process-unless-running
@@ -3435,9 +3395,7 @@ fields which we need."
 
   :defer t)
 
-;; /b/} C++
-
-;; /b/{ js-mode
+;;; /b/}
 
 (use-package js
   ;; :mode ("\\.js\\'" . js-mode)
@@ -3481,10 +3439,6 @@ fields which we need."
          ("<f7>" . rh-nodejs-interaction))
   :defer t)
 
-;; /b/} js-mode
-
-;; /b/{ js2-mode
-
 (use-package js2-mode
   :mode "\\.js\\'"
   :interpreter "node"
@@ -3511,20 +3465,9 @@ fields which we need."
 
   :ensure t)
 
-;; (use-package js2-jsx-mode
-;;   :mode "\\.jsx\\'")
-
-;; /b/} js2-mode
-
-;; /b/{ js2-refactor
-
 (use-package js2-refactor
   :defer t
   :ensure t)
-
-;; /b/} js2-refactor
-
-;; /b/{ typescript-mode
 
 (use-package typescript-mode
   ;; :delight (typescript-mode "ts")
@@ -3561,10 +3504,6 @@ fields which we need."
          ("C-c b" . rh-compile-toggle-display))
   :defer t
   :ensure t)
-
-;; /b/} typescript-mode
-
-;; /b/{ tern
 
 (use-package tern
   :delight (tern-mode " ρ")
@@ -3604,21 +3543,6 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} tern
-
-;; ;; /b/{ company-tern
-
-;; (use-package company-tern
-;;   :config
-;;   (add-to-list 'company-backends 'company-tern)
-
-;;   :after tern
-;;   :ensure t)
-
-;; ;; /b/} company-tern
-
-;; /b/{ ac-js2
-
 (use-package ac-js2
   :commands (ac-js2-mode)
   :init
@@ -3627,9 +3551,8 @@ fields which we need."
   :disabled t
   :ensure t)
 
-;; /b/} ac-js2
-
-;; /b/{ skewer-mode
+;;; skewer-mode
+;;; /b/{
 
 (defun vr-skewer-eval-last-expression-or-region (start end)
   (interactive (rh-point-or-region))
@@ -3691,57 +3614,11 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} skewer-mode
-
-;; /b/{ nodejs-repl
-
-;; (use-package nodejs-repl
-;;   :config
-;;   (add-to-list 'rm-blacklist " NodeJS Interaction")
-
-;;   (setenv "NODE_NO_READLINE" "1")
-;;   (setenv "NODE_DISABLE_COLORS" "1")
-
-;;   ;; (add-to-list
-;;   ;;  'display-buffer-alist
-;;   ;;  '("*nodejs*"
-;;   ;;    (display-buffer-reuse-window
-;;   ;;     rh-display-buffer-reuse-right
-;;   ;;     rh-display-buffer-reuse-left
-;;   ;;     rh-display-buffer-reuse-down
-;;   ;;     rh-display-buffer-reuse-up
-;;   ;;     display-buffer-pop-up-window)))
-
-;;   (add-to-list
-;;    'display-buffer-alist
-;;    '("*nodejs*"
-;;      (display-buffer-reuse-window
-;;       display-buffer-same-window)))
-
-;;   (require 'config-nodejs-repl)
-;;   (require 'company)
-
-;;   (add-hook
-;;    'nodejs-repl-mode-hook
-;;    (lambda ()
-;;      (company-mode 1)))
-
-;;   :bind (:map nodejs-repl-mode-map
-;;          ("TAB" . #'company-complete))
-;;   :defer t
-;;   :ensure t)
-
-;; /b/} nodejs-repl
-
-;; /b/{ rh-scratch-js
+;;; /b/}
 
 (use-package rh-scratch-js
   :commands rh-scratch-js
   :pin manual)
-
-;; /b/} rh-scratch-js
-
-;; /b/{ js-interaction
 
 (use-package js-interaction
   :commands (jsi-node-mode
@@ -3765,10 +3642,6 @@ fields which we need."
   :defer t
   :pin manual)
 
-;; /b/} js-interaction
-
-;; /b/{ css-mode
-
 (use-package css-mode
   :mode "\\.css\\'"
   :config
@@ -3780,10 +3653,6 @@ fields which we need."
      (rh-programming-minor-modes 1)))
 
   :ensure t)
-
-;; /b/} css-mode
-
-;; /b/{ scss-mode
 
 (use-package scss-mode
   :mode "\\.scss\\'"
@@ -3801,16 +3670,11 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} scss-mode
-
-;; /b/{ web-beautify
-
 (use-package web-beautify
   :ensure t)
 
-;; /b/} web-beautify
-
-;; /b/{ lisp-mode
+;;; lisp-mode
+;;; /b/{
 
 (use-package ielm
   :config
@@ -3884,9 +3748,7 @@ fields which we need."
 ;;   :demand t
 ;;   :ensure t)
 
-;; /b/} lisp-mode
-
-;; /b/{ python-mode
+;;; /b/}
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
@@ -3911,10 +3773,6 @@ fields which we need."
 
   :defer t)
 
-;; /b/} python-mode
-
-;; /b/{ bazel-mode
-
 (use-package bazel-mode
   :mode "\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'"
   :config
@@ -3926,17 +3784,6 @@ fields which we need."
      (rh-programming-minor-modes 1)))
 
   :ensure t)
-
-;; /b/} bazel-mode
-
-;; /b/{ visual-basic-mode
-
-(autoload 'visual-basic-mode "visual-basic-mode" "Visual Basic mode." t)
-(add-to-list 'auto-mode-alist '("\\.vbs\\'" . visual-basic-mode))
-
-;; /b/} visual-basic-mode
-
-;; /b/{ nxml-mode
 
 (use-package nxml-mode
   :mode "\\.xml\\'"
@@ -3957,9 +3804,8 @@ fields which we need."
 
      (rh-programming-minor-modes 1))))
 
-;; /b/} nxml-mode
-
-;; /b/{ web-mode
+;;; web-mode
+;;; /b/{
 
 (defun vr-web-hs-html ()
   ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
@@ -4033,11 +3879,6 @@ fields which we need."
         (local-unset-key (kbd "M-<f5>"))
         (local-unset-key (kbd "S-<f5>"))
         (local-unset-key (kbd "<f6>"))))))
-
-;; (defun vr-web-hs-default-toggle-hiding ()
-;;   (interactive)
-;;   (vr-web-hs-default)
-;;   (hs-toggle-hiding))
 
 (defun vr-web-hs-toggle-hiding ()
   (interactive)
@@ -4142,9 +3983,7 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} web-mode
-
-;; /b/{ graphql-mode
+;;; /b/}
 
 (use-package graphql-mode
   :config
@@ -4161,16 +4000,8 @@ fields which we need."
 
   :ensure t)
 
-;; /b/} graphql-mode
-
-;; /b/{ json-mode
-
 (use-package json-mode
   :ensure)
-
-;; /b/{ json-mode
-
-;; /b/{ tide
 
 (use-package tide
   :delight (tide-mode " τ")
@@ -4246,9 +4077,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/} tide
-
-;; /b/{ JavaScript Environments Setup
+;;; JavaScript Environments Setup
+;;; /b/{
 
 (defun rh-setup-typescript-tide ()
   (interactive)
@@ -4288,16 +4118,13 @@ fields which we need."
   (setq company-backends (delq 'company-tern company-backends))
   (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
-;; /b/} JavaScript Environments Setup
+;;; /b/}
 
-;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
-;; ++++++++++ /b/} ---------------------------------------------------
+;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
 ;; -------------------------------------------------------------------
-
-;; /b/{ markdown-mode
 
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode)
@@ -4306,8 +4133,6 @@ fields which we need."
   :commands (markdown-mode gfm-mode)
   :init (setq markdown-command "multimarkdown")
   :ensure t)
-
-;; /b/} markdown-mode
 
 ;; == Org mode ==
 
