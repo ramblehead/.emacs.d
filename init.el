@@ -2774,8 +2774,14 @@ fields which we need."
     (interactive)
     (rh-toggle-display compilation-buffer-name))
 
+  (defun rh-kill-buffer-and-delete-window ()
+    (interactive)
+    (kill-buffer (current-buffer))
+    (delete-window))
+
   :bind (:map compilation-mode-map
-         ("q" . g2w-quit-window)
+         ("q" . delete-window)
+         ("M-q" . rh-kill-buffer-and-delete-window)
          ;; ("<return>" . compilation-display-error)
          ;; ("<kp-enter>" . compilation-display-error)
          ("M-<return>" . compilation-display-error)
