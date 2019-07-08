@@ -18,7 +18,8 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(forge beacon eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+ '(paradox-github-token t)
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
@@ -212,12 +213,19 @@
 ;; /b/} Package initialisation and `use-package' bootstrap
 
 (use-package paradox
+  ;; :custom
+  ;; (paradox-github-token (if (boundp 'rh-paradox-github-token)
+  ;;                           rh-paradox-github-token
+  ;;                         t))
+
   :config
+  (customize-set-variable 'paradox-github-token
+                          (if (boundp 'rh-paradox-github-token)
+                              rh-paradox-github-token
+                            t))
+
   (setq paradox-automatically-star nil)
   (paradox-enable)
-
-  (when (boundp 'rh-paradox-github-token)
-    (setq paradox-github-token rh-paradox-github-token))
 
   (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
 
@@ -1205,6 +1213,37 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (use-package total-lines
   :config (global-total-lines-mode 1)
   ;; :demand t
+  :ensure t)
+
+(use-package beacon
+  :config
+  (setq beacon-lighter
+    (cond
+     ((char-displayable-p ?Λ) " Λ")
+     (t " (*)")))
+
+  (add-to-list 'rm-blacklist " (*)")
+  (add-to-list 'rm-blacklist " Λ")
+
+  (beacon-mode 1)
+
+  (setq beacon-dont-blink-commands
+        '(pop-tag-mark
+          xref-pop-marker-stack
+          mouse-set-point
+          mouse-drag-region
+          ivy-done))
+
+  (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
+
+  (setq beacon-blink-delay 0.2)
+  ;; (setq beacon-color "gtk_selection_bg_color")
+  (setq beacon-color 0.3)
+  (setq beacon-blink-when-window-scrolls nil)
+  (setq beacon-blink-when-focused t)
+  ;; (setq beacon-push-mark 1)
+
+  :after rich-minority
   :ensure t)
 
 (use-package rich-minority
@@ -3039,6 +3078,9 @@ fields which we need."
 
   (setq magit-bury-buffer-function #'quit-window)
 
+  (add-hook 'magit-process-find-password-functions
+            'magit-process-password-auth-source)
+
   ;; See https://github.com/magit/magit/issues/2541
   ;; (setq magit-display-buffer-function
   ;;       (lambda (buffer)
@@ -3052,6 +3094,24 @@ fields which we need."
   ;;                                  magit-status-mode)))
   ;;                     nil
   ;;                   '(display-buffer-same-window)))))
+  :ensure t)
+
+(use-package ghub
+  :ensure t)
+
+(use-package forge
+  :config
+  ;; TODO: Remove the following function after https with user name issue is
+  ;;       resolved.
+  ;; see https://github.com/magit/forge/issues/169
+  (defun forge--url-regexp ()
+    (concat "\\`\\(?:git://\\|[^/@]+@\\|ssh://\\(?:[^/@]+@\\)?\\"
+            "|https?://\\(?:[^/@]+@\\)?\\)"
+            (regexp-opt (mapcar #'car forge-alist) t)
+            "[:/]\\(.+?\\)"
+            "\\(?:\\.git\\|/\\)?\\'"))
+
+  :after ghub
   :ensure t)
 
 (use-package git-timemachine
