@@ -219,18 +219,18 @@
   ;; (paradox-github-token (if (boundp 'rh-paradox-github-token)
   ;;                           rh-paradox-github-token
   ;;                         t))
-  :init
+  :config
   (customize-set-variable 'paradox-github-token
                           (if (boundp 'rh-paradox-github-token)
                               rh-paradox-github-token
                             t))
 
-  :config
   (setq paradox-automatically-star nil)
   (paradox-enable)
 
-  (define-key paradox-menu-mode-map (kbd "q") #'rh-quit-window-kill)
-
+  :bind (:map paradox-menu-mode-map
+         ("q" . rh-quit-window-kill))
+  :demand t
   :ensure t)
 
 (use-package async
