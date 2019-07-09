@@ -18,7 +18,8 @@
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(forge beacon eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+   '(github-review forge beacon eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
+ '(paradox-github-token "829b18939841327cd67368abc5b21f6a70ece337")
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
@@ -3105,14 +3106,19 @@ fields which we need."
   ;; TODO: Remove the following function after https with user name issue is
   ;;       resolved.
   ;; see https://github.com/magit/forge/issues/169
-  (defun forge--url-regexp ()
-    (concat "\\`\\(?:git://\\|[^/@]+@\\|ssh://\\(?:[^/@]+@\\)?\\"
-            "|https?://\\(?:[^/@]+@\\)?\\)"
+  (defun rh-forge--url-regexp ()
+    (concat "\\`\\(?:git://\\|[^/@]+@\\|ssh://\\(?:[^/@]+@\\)?"
+            "\\|https?://\\(?:[^/@]+@\\)?\\)"
             (regexp-opt (mapcar #'car forge-alist) t)
             "[:/]\\(.+?\\)"
             "\\(?:\\.git\\|/\\)?\\'"))
 
+  (advice-add 'forge--url-regexp :override #'rh-forge--url-regexp)
+
   :after ghub
+  :ensure t)
+
+(use-package github-review
   :ensure t)
 
 (use-package git-timemachine
