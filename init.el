@@ -19,7 +19,6 @@
  '(make-backup-files nil)
  '(package-selected-packages
    '(forge beacon eval-sexp-fu scss-mode lispy dumb-jump ivy-rich bazel-mode rainbow-mode company-quickhelp company-tern tern nodejs-repl counsel git-timemachine markdown-mode amx color-theme-sanityinc-tomorrow json-mode flycheck-popup-tip fill-column-indicator fci-mode findr ivy-hydra counsel-ag wgrep iedit realgud js2-refactor test-simple list-utils bm com-css-sort graphql-mode total-lines use-package-ensure-system-package unicode-fonts elisp-slime-nav delight diminish ace-window avy pcre2el flycheck-pos-tip smart-mode-line iflipb yasnippet-snippets typescript-mode flycheck company tide htmlize clang-format modern-cpp-font-lock which-key undo-tree google-c-style picture-mode nlinum-hl magit hlinum highlight-indent-guides nlinum ac-html web-mode async visual-regexp popwin sr-speedbar gdb-mix web-beautify ac-js2 skewer-mode moz js2-mode pos-tip fuzzy auto-complete paradox flx-ido use-package))
- '(paradox-github-token t)
  '(pop-up-windows nil)
  '(preview-scale-function 1.8)
  '(safe-local-variable-values
@@ -181,6 +180,9 @@
 
 (require 'cl-lib)
 
+(load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
+(load "~/.emacs-private.d/secret.el" t)
+
 ;; /b/{ Package initialisation and `use-package' bootstrap
 
 (require 'package)
@@ -217,13 +219,13 @@
   ;; (paradox-github-token (if (boundp 'rh-paradox-github-token)
   ;;                           rh-paradox-github-token
   ;;                         t))
-
-  :config
+  :init
   (customize-set-variable 'paradox-github-token
                           (if (boundp 'rh-paradox-github-token)
                               rh-paradox-github-token
                             t))
 
+  :config
   (setq paradox-automatically-star nil)
   (paradox-enable)
 
@@ -1021,9 +1023,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
    (lambda ()
      (recenter)))
 
-  (load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
-  (load "~/.emacs-private.d/secret.el" t)
-
   ;; (color-theme-sanityinc-tomorrow-blue)
   ;; (load-theme 'sanityinc-tomorrow-blue t)
 
@@ -1235,12 +1234,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
           ivy-done))
 
   (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
+  (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
 
   (setq beacon-blink-delay 0.2)
   ;; (setq beacon-color "gtk_selection_bg_color")
   (setq beacon-color 0.3)
   (setq beacon-blink-when-window-scrolls nil)
-  (setq beacon-blink-when-focused t)
+  ;; (setq beacon-blink-when-focused t)
   ;; (setq beacon-push-mark 1)
 
   :after rich-minority
