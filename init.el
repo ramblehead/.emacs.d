@@ -47,6 +47,9 @@
 ;; https://github.com/bmag/emacs-purpose
 ;; https://github.com/raxod502/straight.el
 
+;; * Steal backups and auto-saving strategy from the following config:
+;;   https://sriramkswamy.github.io/dotemacs/#orgheadline451
+
 ;; see https://www.quicklisp.org/beta/ for lisp libraries
 ;; Can then do magic like this:
 ;; (ql:quickload "alexandria")
