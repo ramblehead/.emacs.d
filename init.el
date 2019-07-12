@@ -79,6 +79,8 @@
 ;; R&D:
 ;; [?] Bring Emacs init back to terminal-friendly state. Possibly, switch to
 ;;     text terminal as the default...
+;; [?] Investigate how to fix beacon and hide-show overlays to overlap
+;;     without shifting one-another.
 
 ;; /b/}
 
