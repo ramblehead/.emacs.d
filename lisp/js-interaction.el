@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
 
 ;; ------------------------------------------------------------------
-;;; Bugs, TODO and R&D work packages
+;;; Bugs, TODO and R&D
 ;; ------------------------------------------------------------------
 ;; /b/{
 
