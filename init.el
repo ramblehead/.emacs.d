@@ -93,6 +93,7 @@
 
 ;; https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
 ;; https://github.com/bmag/emacs-purpose
+;; https://github.com/raxod502/straight.el
 
 ;; see https://www.quicklisp.org/beta/ for lisp libraries
 ;; Can then do magic like this:
@@ -1620,8 +1621,6 @@ Also sets SYMBOL to VALUE."
 ;;; Text Editor
 ;; -------------------------------------------------------------------
 
-;; == Basic Functionality ==
-
 (setq undo-limit (* 1024 1024))
 (setq undo-strong-limit (* undo-limit 2))
 (setq undo-outer-limit (* undo-limit 100))
@@ -1647,7 +1646,6 @@ Also sets SYMBOL to VALUE."
 (setq-default fill-column 80)
 
 (setq visible-bell t)
-;; see http://emacs.stackexchange.com/questions/10307/how-to-center-the-current-line-vertically-during-isearch
 
 (use-package color-theme-sanityinc-tomorrow
   :ensure t)
@@ -1688,8 +1686,6 @@ Also sets SYMBOL to VALUE."
   (add-hook 'post-self-insert-hook
             #'rh-electric-indent-post-self-insert-function))
 
-;; == smooth scrolling ==
-
 ;; Override text selection on typing
 ;; (i.e. non-persistent selection)
 (delete-selection-mode t)
@@ -1703,8 +1699,6 @@ Also sets SYMBOL to VALUE."
 (defun yank-pop-forwards (arg)
   (interactive "p")
   (yank-pop (- arg)))
-
-;; == smooth scrolling ==
 
 ;; (setq-default scroll-up-aggressively 0.01)
 ;; (setq-default scroll-down-aggressively 0.01)
@@ -2299,6 +2293,8 @@ fields which we need."
 
 (use-package visual-regexp
   :config
+  ;; see https://stackoverflow.com/questions/15895313/let-emacs-move-the-cursor-off-screen
+
   (setq vr/match-separator-use-custom-face t)
   ;; (custom-set-variables '(vr/match-separator-string " -> "))
 
