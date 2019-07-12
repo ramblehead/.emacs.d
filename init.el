@@ -24,6 +24,7 @@
 ;; [ ] Remove rh-scratch-js mode after js-interaction scratches are implemented.
 ;; [ ] Convert abc functions to abc mode.
 ;; [ ] Convert rh-project functions to rh-project mode.
+;; [ ] Convert code-groups functions to code-groups mode.
 
 ;; R&D:
 ;; [?] Bring Emacs init back to terminal-friendly state. Possibly, switch to
@@ -600,17 +601,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                       ".*[\r\n]?$"))
          (open-regex (concat "^.*" open-token desc-regex))
          (close-regex (concat "^.*" close-token desc-regex))
-         (data)
-         (template))
+         data template)
     (when (string-match close-regex current-line)
       (cg-search-backward-group-balanced-head)
       (setq current-line (thing-at-point 'line t)))
     (when (string-match open-regex current-line)
       (setq data (replace-regexp-in-string open-regex "\\1" current-line))
-      (setq template
-            (concat
-             (replace-regexp-in-string open-regex "\\2" current-line)
-             ".mako"))
+      (setq template (replace-regexp-in-string open-regex "\\2" current-line))
       (let ((start) (end))
         (move-beginning-of-line 2)
         (setq start (point))
