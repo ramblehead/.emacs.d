@@ -22,7 +22,6 @@
 ;; [ ] Refactor web-mode config to rh-style.
 ;; [ ] Refactor auto-complete config to rh-style.
 ;; [ ] Remove rh-scratch-js mode after js-interaction scratches are implemented.
-;; [ ] Convert abc functions to abc mode.
 ;; [ ] Convert rh-project functions to rh-project mode.
 ;; [ ] Convert code-groups functions to code-groups mode.
 
