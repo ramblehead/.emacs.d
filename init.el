@@ -2779,8 +2779,11 @@ fields which we need."
                  (inhibit-same-window . t)
                  (window-height . 15)))
 
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compile-goto-error)
-  (add-to-list 'g2w-display-buffer-reuse-window-commands 'compilation-display-error)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'compile-goto-error)
+
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'compilation-display-error)
 
   (cl-defun rh-compile-toggle-display
       (&optional (compilation-buffer-name "*compilation*"))
