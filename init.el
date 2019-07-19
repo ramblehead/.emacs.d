@@ -1191,6 +1191,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
           xref-pop-marker-stack
           mouse-set-point
           mouse-drag-region
+          compile-goto-error
+          compilation-display-error
           ivy-done))
 
   (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
@@ -2176,13 +2178,30 @@ fields which we need."
            (current-prefix-arg t))
       (counsel-ag default-text nil extra-ag-args)))
 
+  (defun rh-counsel-git-deduce (&optional initial-input)
+    (interactive)
+    (let* ((extra-ag-args (if current-prefix-arg nil ""))
+           (default-text (or initial-input (rh-deduce-default-text t)))
+           (current-prefix-arg t))
+      (counsel-git default-text)))
+
+  (defun rh-counsel-file-jump ()
+    (interactive)
+    (let* ((current-prefix-arg t))
+      (call-interactively #'counsel-file-jump)))
+
   (defun rh-counsel-ag ()
     (interactive)
     (rh-counsel-ag-deduce ""))
 
-  :bind (("C-c s" . rh-counsel-ag)
+  :bind (:map counsel-mode-map
+         ("C-c s" . rh-counsel-ag)
          ("C-c S" . rh-counsel-ag-deduce)
-         :map counsel-mode-map
+         ;; TODO: This key-bind should try rh-rpoject first
+         ;;       then git then offer dir selector.
+         ("C-c f" . counsel-git)
+         ("C-c F" . rh-counsel-git-deduce)
+         ("C-c C-f" . rh-counsel-file-jump)
          ("M-y" . rh-counsel-yank-pop))
 
   :demand t
