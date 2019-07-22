@@ -13,7 +13,6 @@
    '("display" "displaymath" "equation" "eqnarray" "gather" "multline" "align" "alignat" "xalignat" "empheq"))
  '(hfy-default-face-def
    '((t :background "black" :foreground "white" :family "misc-fixed")))
- '(httpd-host "10.0.100.180" t)
  '(indent-tabs-mode nil)
  '(longlines-show-hard-newlines t)
  '(make-backup-files nil)

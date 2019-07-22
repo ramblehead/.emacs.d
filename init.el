@@ -350,12 +350,16 @@ when only symbol face names are needed."
             (init-file-path (concat rh-project-path "init.el"))
             (rh-project-id (directory-file-name
                             (expand-file-name rh-project-path))))
-        (when (and (file-exists-p init-file-path)
-                   (not (member rh-project-id rh-project-initialised-projects)))
-          (add-to-list 'rh-project-initialised-projects rh-project-id)
-          (load init-file-path))
-        (when (file-exists-p setup-file-path)
-          (load setup-file-path))))))
+        (if (not (member rh-project-id rh-project-trusted-ids))
+            (message (concat "rh-project: '" rh-project-id
+                             "' is not trusted. "
+                             "Ignoring its 'init.el' and 'setup.el' files."))
+          (when (and (file-exists-p init-file-path)
+                     (not (member rh-project-id rh-project-initialised-projects)))
+            (add-to-list 'rh-project-initialised-projects rh-project-id)
+            (load init-file-path))
+          (when (file-exists-p setup-file-path)
+            (load setup-file-path)))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
