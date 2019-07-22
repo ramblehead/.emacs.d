@@ -147,8 +147,8 @@
 
 (require 'cl-lib)
 
-(load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
 (load "~/.emacs-private.d/secret.el" t)
+(load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
 
 ;; /b/{ Package initialisation and `use-package' bootstrap
 
