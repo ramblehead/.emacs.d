@@ -1866,6 +1866,13 @@ Also sets SYMBOL to VALUE."
 
 ;; /b/{ dired
 
+(use-package dired
+  :config
+  (add-hook
+   'dired-mode-hook
+   (lambda ()
+     (setq-local find-file-visit-truename nil))))
+
 (put 'dired-find-alternate-file 'disabled nil)
 
 (if (equal system-type 'windows-nt)
