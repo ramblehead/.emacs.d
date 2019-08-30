@@ -30,6 +30,9 @@
 ;;     text terminal as the default...
 ;; [?] Investigate how to fix beacon and hide-show overlays to overlap
 ;;     without shifting one-another.
+;; [?] Try using tabs for side windows:
+;;     https://github.com/manateelazycat/awesome-tab
+;; [?] Use instead of/with which-key?: https://gitlab.com/jjzmajic/hercules.el
 
 ;; /b/}
 
@@ -3088,18 +3091,23 @@ fields which we need."
   :ensure t)
 
 (use-package forge
+  :init
+  (customize-set-variable
+   'forge-bug-reference-hooks
+   '(git-commit-setup-hook magit-mode-hook))
+
   :config
   ;; TODO: Remove the following function after https with user name issue is
   ;;       resolved.
   ;; see https://github.com/magit/forge/issues/169
-  (defun rh-forge--url-regexp ()
-    (concat "\\`\\(?:git://\\|[^/@]+@\\|ssh://\\(?:[^/@]+@\\)?"
-            "\\|https?://\\(?:[^/@]+@\\)?\\)"
-            (regexp-opt (mapcar #'car forge-alist) t)
-            "[:/]\\(.+?\\)"
-            "\\(?:\\.git\\|/\\)?\\'"))
+  ;; (defun rh-forge--url-regexp ()
+  ;;   (concat "\\`\\(?:git://\\|[^/@]+@\\|ssh://\\(?:[^/@]+@\\)?"
+  ;;           "\\|https?://\\(?:[^/@]+@\\)?\\)"
+  ;;           (regexp-opt (mapcar #'car forge-alist) t)
+  ;;           "[:/]\\(.+?\\)"
+  ;;           "\\(?:\\.git\\|/\\)?\\'"))
 
-  (advice-add 'forge--url-regexp :override #'rh-forge--url-regexp)
+  ;; (advice-add 'forge--url-regexp :override #'rh-forge--url-regexp)
 
   :after ghub
   :ensure t)
@@ -3366,6 +3374,10 @@ fields which we need."
   :defer t
   :pin manual)
 
+(use-package company-c-headers
+  :defer t
+  :ensure t)
+
 ;; (use-package auto-complete-clang
 ;;   :defer t
 ;;   :ensure t)
@@ -3397,8 +3409,11 @@ fields which we need."
            (end-pos (string-match end-string command-result))
            (include-string (substring command-result
                                       (+ start-pos (length start-string))
-                                      end-pos)))
-      (split-string include-string)))
+                                      end-pos))
+           result)
+      (setq result (split-string include-string))
+      (add-to-list 'result "/usr/include" t)
+      (add-to-list 'result "/usr/local/include" t)))
 
   (defun rh-cc-compile-setup ()
     (let ((project-path (rh-project-get-path)))
