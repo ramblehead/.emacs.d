@@ -3682,7 +3682,7 @@ fields which we need."
   ;; (concat "~/.emacs-private.d/systems/" system-name ".el")
   ;; so httpd will use that IP instead of localhost
   ;;
-  ;; e.g. (customize-set-variable 'httpd-host "10.0.100.180")
+  ;; e.g. (setq httpd-host "10.0.100.180")
 
   (httpd-start)
   :defer t
