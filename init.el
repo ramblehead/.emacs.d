@@ -3035,8 +3035,8 @@ fields which we need."
                  (display-buffer-same-window
                   rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  rh-display-buffer-reuse-down
-                  rh-display-buffer-reuse-up
+                  ;; rh-display-buffer-reuse-down
+                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)))
 
   (add-to-list 'display-buffer-alist
@@ -3046,8 +3046,8 @@ fields which we need."
                             'magit-status-mode)))
                  (rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  rh-display-buffer-reuse-down
-                  rh-display-buffer-reuse-up
+                  ;; rh-display-buffer-reuse-down
+                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
 
@@ -3059,8 +3059,8 @@ fields which we need."
                  (display-buffer-reuse-mode-window
                   rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  rh-display-buffer-reuse-down
-                  rh-display-buffer-reuse-up
+                  ;; rh-display-buffer-reuse-down
+                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
 
