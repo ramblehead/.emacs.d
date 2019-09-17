@@ -317,6 +317,7 @@ when only symbol face names are needed."
 ;; /b/{ rh-project
 
 (defvar rh-project-initialised-projects '())
+(defvar rh-project-trusted-dir-marker ".rh-trusted")
 (defvar rh-project-dir-name ".project")
 (defvar rh-project-generators-relative-path "../gen/")
 (defvar rh-project-include-path-suffix "-include-path")
@@ -329,6 +330,12 @@ when only symbol face names are needed."
                              rh-project-dir-name))))
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
+
+(defun rh-project-in-trusted-dir ()
+  (and buffer-file-name
+       (locate-dominating-file
+        (file-name-directory buffer-file-name)
+        rh-project-trusted-dir-marker)))
 
 (defun rh-project-get-root ()
   (let ((rh-project (rh-project-get-path)))
@@ -353,7 +360,8 @@ when only symbol face names are needed."
             (init-file-path (concat rh-project-path "init.el"))
             (rh-project-id (directory-file-name
                             (expand-file-name rh-project-path))))
-        (if (not (member rh-project-id rh-project-trusted-ids))
+        (if (and (not (member rh-project-id rh-project-trusted-ids))
+                 (not (rh-project-in-trusted-dir)))
             (message (concat "rh-project: '" rh-project-id
                              "' is not trusted. "
                              "Ignoring its 'init.el' and 'setup.el' files."))
