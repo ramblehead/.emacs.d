@@ -599,21 +599,16 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
             (cg-hs-hide-group)))
       (hs-toggle-hiding))))
 
-(defun cg-generate-auto-code (data template)
-  (let* ((generators-path (rh-project-get-generators-path))
-         (code-gen (concat generators-path "auto-code")))
-    (when (and generators-path
-               (file-exists-p code-gen))
-      (setq code-gen (concat code-gen " " data " " template))
-      (insert (shell-command-to-string code-gen)))))
-
-(defun cg-generate-iauto-code (data template indent-str)
-  (let* ((generators-path (rh-project-get-generators-path))
-         (code-gen (concat generators-path "iauto-code")))
-    (when (and generators-path
-               (file-exists-p code-gen))
-      (setq code-gen (concat code-gen " " data " " template " '" indent-str "'"))
-      (insert (shell-command-to-string code-gen)))))
+(defun cg-generate-auto-code (generator data template indent-str)
+  (let ((generators-path (rh-project-get-generators-path))
+        (command generator))
+    (when generators-path
+      (setq command (concat generators-path command)))
+    (when (file-exists-p command)
+      (setq command (concat command " " data " " template))
+      (when indent-str
+        (setq command (concat command " '" indent-str "'")))
+      (insert (shell-command-to-string command)))))
 
 (defun cg-generate-auto-code-group ()
   (interactive)
@@ -623,25 +618,22 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
          (regex-begin
           "\\([[:blank:]]*\\)[^[:blank:]]+[[:blank:]]*")
          (regex-end
-          "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)")
-          ;; (concat
-          ;;  "\\([[:blank:]]*\\)[^[:blank:]].*\\(auto-code\\)[[:blank:]]+"
-          ;;  "\\([^[:blank:]]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"
-          ;;  ".*[\r\n]?$"))
+          (concat
+           "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
+           "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
          (open-regex (concat regex-begin open-token regex-end))
          (close-regex (concat regex-begin close-token regex-end))
-         data template indent-str)
+         generator data template indent-str)
     (when (string-match-p close-regex current-line)
       (cg-search-backward-group-balanced-head)
       (setq current-line (thing-at-point 'line t)))
     (save-match-data
       (when (string-match open-regex current-line)
+        (setq generator (match-string 2 current-line))
         (setq data (match-string 3 current-line))
         (setq template (match-string 4 current-line))
-        (when (string= "iauto-code" (match-string 2 current-line))
+        (when (string= "iauto-code" generator)
           (setq indent-str (match-string 1 current-line)))
-        ;; (setq data (replace-regexp-in-string open-regex "\\2" current-line))
-        ;; (setq template (replace-regexp-in-string open-regex "\\3" current-line))
         (let ((start) (end))
           (move-beginning-of-line 2)
           (setq start (point))
@@ -651,9 +643,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
           (setq end (point))
           (goto-char start)
           (delete-region start end))
-        (if indent-str
-            (cg-generate-iauto-code data template indent-str)
-          (cg-generate-auto-code data template))))))
+        (cg-generate-auto-code generator data template indent-str)))))
 
 (defun cg-forward-list (arg)
   (interactive "^p")
