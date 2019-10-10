@@ -45,6 +45,7 @@
 ;;   https://github.com/ema2159/centaur-tabs
 ;;   https://github.com/manateelazycat/awesome-tab
 
+;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
 ;; https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
 ;; https://github.com/bmag/emacs-purpose
 ;; https://github.com/raxod502/straight.el
@@ -319,7 +320,7 @@ when only symbol face names are needed."
 (defvar rh-project-initialised-projects '())
 (defvar rh-project-trusted-dir-marker ".rh-trusted")
 (defvar rh-project-dir-name ".project")
-(defvar rh-project-generators-relative-path "../gen/")
+(defvar rh-project-generators-relative-path "../auto-code/")
 (defvar rh-project-include-path-suffix "-include-path")
 
 (defun rh-project-get-path ()
@@ -601,14 +602,14 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (defun cg-generate-auto-code (generator data template indent-str)
   (let ((generators-path (rh-project-get-generators-path))
-        (command generator))
+        (auto-code-command generator))
     (when generators-path
-      (setq command (concat generators-path command)))
-    (when (file-exists-p command)
-      (setq command (concat command " " data " " template))
+      (setq auto-code-command (concat generators-path auto-code-command)))
+    (when (file-exists-p auto-code-command)
+      (setq auto-code-command (concat auto-code-command " " data " " template))
       (when indent-str
-        (setq command (concat command " '" indent-str "'")))
-      (insert (shell-command-to-string command)))))
+        (setq auto-code-command (concat auto-code-command " '" indent-str "'")))
+      (insert (shell-command-to-string auto-code-command)))))
 
 (defun cg-generate-auto-code-group ()
   (interactive)
@@ -632,7 +633,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
         (setq generator (match-string 2 current-line))
         (setq data (match-string 3 current-line))
         (setq template (match-string 4 current-line))
-        (when (string= "iauto-code" generator)
+        ;; The following condition should be removed
+        ;; once all templates are moved to automatic indentation
+        (when (string= (substring template -2) ".i")
+          (setq generator (concat generator ".i"))
           (setq indent-str (match-string 1 current-line)))
         (let ((start) (end))
           (move-beginning-of-line 2)
@@ -1951,6 +1955,12 @@ filename associated with it."
 (global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
 
 ;; /b/} dired
+
+;; /b/{ sunrise commander
+
+;; (use-package ivy)
+
+;; /b/} sunrise commander
 
 ;; /b/{ recentf
 
