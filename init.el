@@ -772,23 +772,23 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (cl-defmacro g2w-display (display-buffer-func
                           &optional (kill-on-quit nil))
-  `#'(lambda (buf alist)
-       (let ((win (funcall ,display-buffer-func buf alist)))
-         (when win
-           (with-current-buffer buf
-             (set (make-local-variable 'g2w-window-side)
-                  (window-parameter win 'window-side))
-             (put 'g2w-window-side 'permanent-local t)
-             (set (make-local-variable 'g2w-window-slot)
-                  (window-parameter win 'window-slot))
-             (put 'g2w-window-slot 'permanent-local t)
-             ;; (set (make-local-variable 'g2w-quit-restore-parameter)
-             ;;      (window-parameter win 'quit-restore))
-             ;; (put 'g2w-quit-restore-parameter 'permanent-local t)
-             (set (make-local-variable 'g2w-kill-on-quit)
-                  ,kill-on-quit)
-             (put 'g2w-kill-on-quit 'permanent-local t)))
-         win)))
+  `(lambda (buf alist)
+     (let ((win (funcall ,display-buffer-func buf alist)))
+       (when win
+         (with-current-buffer buf
+           (set (make-local-variable 'g2w-window-side)
+                (window-parameter win 'window-side))
+           (put 'g2w-window-side 'permanent-local t)
+           (set (make-local-variable 'g2w-window-slot)
+                (window-parameter win 'window-slot))
+           (put 'g2w-window-slot 'permanent-local t)
+           ;; (set (make-local-variable 'g2w-quit-restore-parameter)
+           ;;      (window-parameter win 'quit-restore))
+           ;; (put 'g2w-quit-restore-parameter 'permanent-local t)
+           (set (make-local-variable 'g2w-kill-on-quit)
+                ,kill-on-quit)
+           (put 'g2w-kill-on-quit 'permanent-local t)))
+       win)))
 
 (defun g2w-same-side-and-slot-buffers (buf)
   (with-current-buffer buf
@@ -856,19 +856,19 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (cl-defmacro g2w-condition
     (condition &optional (reuse-visible g2w-reuse-visible-default))
-  `#'(lambda (buffer-nm actions)
-       (when (if (stringp ,condition)
-                 (string-match-p ,condition buffer-nm)
-               (funcall ,condition buffer-nm actions))
-         (let ((current-window (frame-selected-window)))
-           (with-current-buffer buffer-nm
-             (set (make-local-variable 'g2w-destination-window)
-                  current-window)
-             (put 'g2w-destination-window 'permanent-local t)
-             (set (make-local-variable 'g2w-reuse-visible)
-                  ,reuse-visible)
-             (put 'g2w-reuse-visible 'permanent-local t))
-           t))))
+  `(lambda (buffer-nm actions)
+     (when (if (stringp ,condition)
+               (string-match-p ,condition buffer-nm)
+             (funcall ,condition buffer-nm actions))
+       (let ((current-window (frame-selected-window)))
+         (with-current-buffer buffer-nm
+           (set (make-local-variable 'g2w-destination-window)
+                current-window)
+           (put 'g2w-destination-window 'permanent-local t)
+           (set (make-local-variable 'g2w-reuse-visible)
+                ,reuse-visible)
+           (put 'g2w-reuse-visible 'permanent-local t))
+         t))))
 
 (defun g2w-set-destination-window (choice)
   (interactive
