@@ -1168,6 +1168,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
   (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
   (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
+  (add-to-list 'beacon-dont-blink-major-modes 'bs-mode t)
 
   (setq beacon-blink-delay 0.2)
   ;; (setq beacon-color "gtk_selection_bg_color")
@@ -4495,6 +4496,39 @@ with very limited support for special characters."
 
 ;; /b/{ bs
 
+(defun rh-bs-show (arg)
+  (interactive "P")
+  ;; (pop-to-buffer-same-window (get-buffer-create "*buffer-selection*") nil)
+  ;; (display-buffer
+  ;;  (get-buffer-create "*buffer-selection*")
+  ;;  '(display-buffer-same-window))
+  (switch-to-buffer "*buffer-selection*" t t)
+  (bs-show arg))
+
+(defun rh-bs-kill ()
+  (interactive)
+  (kill-buffer "*buffer-selection*"))
+
+(defun rh-bs--set-window-height (orig-fun) nil)
+
+(advice-add 'bs--set-window-height :around
+            #'rh-bs--set-window-height)
+
+;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
+(defun rh-bs--get-size-string (&rest ignored)
+  (let* ((size (buffer-size))
+         (str (number-to-string size)))
+    (when (> (length str) 3)
+      (setq size (/ size 1024.0)
+            str (format "%.1fk" size)))
+    (when (> (length str) 6)
+      (setq size (/ size 1024.0)
+            str (format "%.1fM" size)))
+    (when (> (length str) 6)
+      (setq size (/ size 1024.0)
+            str (format "%.1fG" size)))
+    str))
+
 (use-package bs
   :config
   ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
@@ -4523,27 +4557,12 @@ with very limited support for special characters."
      ;; Read-only buffers
      ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
 
-  ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
-  (defun vr-bs--get-size-string (&rest ignored)
-    (let* ((size (buffer-size))
-           (str (number-to-string size)))
-      (when (> (length str) 3)
-        (setq size (/ size 1024.0)
-              str (format "%.1fk" size)))
-      (when (> (length str) 6)
-        (setq size (/ size 1024.0)
-              str (format "%.1fM" size)))
-      (when (> (length str) 6)
-        (setq size (/ size 1024.0)
-              str (format "%.1fG" size)))
-      str))
-
   (setq
    bs-attributes-list
    '(("" 2 2 left bs--get-marked-string)
      ("M" 1 1 left bs--get-modified-string)
      ("R" 2 2 left bs--get-readonly-string)
-     ("Size" 6 6 right vr-bs--get-size-string)
+     ("Size" 6 6 right rh-bs--get-size-string)
      ("" 2 2 left "  ")
      ("Mode" 16 16 left bs--get-mode-name)
      ("" 2 2 left "  ")
@@ -4551,50 +4570,21 @@ with very limited support for special characters."
      ("" 2 2 left "  ")
      ("File" 1 255 left bs--get-file-name)))
 
-  (defun vr-bs-show (arg)
-    (interactive "P")
-    (let* ((up-window (selected-window))
-           (up-window-parent (window-parent up-window))
-           (down-height-orig -1)
-           (down-height-new -1)
-           (down-window (window-in-direction 'below))
-           (down-windows-preserved '())
-           (bs-show-result nil)
-           ;; (bs-window nil)
-           )
-      (when down-window
-        (setq down-height-orig (window-height down-window))
-        (select-window down-window)
-        (while (and (window-in-direction 'below)
-                    (eq up-window-parent
-                        (window-parent (window-in-direction 'below))))
-          (select-window (window-in-direction 'below))
-          (push (cons (selected-window) (window-preserved-size nil nil))
-                down-windows-preserved)
-          (window-preserve-size nil nil t))
-        (select-window up-window))
-      (setq bs-show-result (bs-show arg))
-      ;; (setq bs-window (selected-window))
-      (when down-window
-        (setq down-height-new (window-height down-window))
-        (if (> down-height-new down-height-orig)
-            (adjust-window-trailing-edge
-             up-window
-             (- down-height-new down-height-orig)))
-        (dolist (pair down-windows-preserved)
-          (window-preserve-size (car pair) nil (cdr pair))))
-      bs-show-result))
-
   (add-hook
    'bs-mode-hook
    (lambda ()
      (hl-line-mode 1)))
 
-  ;; (define-key bs-mode-map (kbd "<escape>") 'bs-kill)
-  (global-set-key (kbd "C-x C-b") 'vr-bs-show)
-
+  :bind (("C-x C-b" . rh-bs-show)
+         :map bs-mode-map
+         ;; ("q" . bury-buffer)
+         ("q" . rh-bs-kill))
   :demand t
   :ensure t)
+
+(use-package bs-ext
+  :demand t
+  :pin manual)
 
 ;; /b/} bs
 
