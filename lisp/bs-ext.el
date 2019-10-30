@@ -219,9 +219,8 @@ will be used."
   (bs--show-with-configuration "regexp"))
 
 ;; Set some new keys
-(define-key bs-mode-map (kbd "<left>") 'bs-ext-select-previous-configuration)
-(define-key bs-mode-map (kbd "<right>") 'bs-ext-select-next-configuration)
-(define-key bs-mode-map (kbd "x") 'bs-delete)
+(define-key bs-mode-map (kbd "<") 'bs-ext-select-previous-configuration)
+(define-key bs-mode-map (kbd ">") 'bs-ext-select-next-configuration)
 (define-key bs-mode-map (kbd "/") 'bs-ext-limit-by-regexp)
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
 (if (featurep 'color-moccur)

@@ -183,6 +183,10 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+(use-package gnu-elpa-keyring-update
+  :demand t
+  :ensure t)
+
 (use-package use-package-ensure-system-package
   :ensure t)
 
@@ -4534,13 +4538,13 @@ with very limited support for special characters."
   ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
   (setq
    bs-configurations
-   '(("all" nil nil nil nil nil)
+   '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
      ("files" nil nil nil
       (lambda (buf)
         (rh-string-match-regexp-list
          rh-ignore-buffers
          (buffer-name buf)))
-      nil)))
+      bs-sort-buffer-interns-are-last)))
 
   (setq bs-cycle-configuration-name "files")
 
