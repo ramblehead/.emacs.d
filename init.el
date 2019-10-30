@@ -247,15 +247,23 @@
         (when (string-match regexp str)
           (throw 'done t))))))
 
-(cl-defun rh-toggle-display (buffer-name &optional (dedicated nil))
+(cl-defun rh-toggle-display (buffer-name
+                             &optional
+                             dedicated display-buffer-alist-override)
   (let* ((buffer (get-buffer buffer-name))
-         (buffer-window (get-buffer-window buffer-name)))
+         (buffer-window-list (get-buffer-window-list buffer-name))
+         (buffer-window (seq-find
+                         (lambda (win)
+                           (window-parameter win 'window-side))
+                         buffer-window-list)))
     (if buffer
         (if buffer-window
             (delete-window buffer-window)
-          (if dedicated
-              (set-window-dedicated-p (display-buffer buffer-name) t)
-            (display-buffer buffer-name)))
+          (let ((display-buffer-alist (or display-buffer-alist-override
+                                          display-buffer-alist)))
+            (if dedicated
+                (set-window-dedicated-p (display-buffer buffer-name) t)
+              (display-buffer buffer-name))))
       (message (concat "\"" buffer-name "\""
                        " buffer does not exist.")))))
 
