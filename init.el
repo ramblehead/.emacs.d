@@ -2754,6 +2754,11 @@ fields which we need."
 
   :defer t)
 
+(cl-defun rh-compile-toggle-display
+    (&optional (compilation-buffer-name "*compilation*"))
+  (interactive)
+  (rh-toggle-display compilation-buffer-name))
+
 (use-package compile
   :config
   (setq compilation-scroll-output t)
@@ -2777,11 +2782,6 @@ fields which we need."
 
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'compilation-display-error)
-
-  (cl-defun rh-compile-toggle-display
-      (&optional (compilation-buffer-name "*compilation*"))
-    (interactive)
-    (rh-toggle-display compilation-buffer-name))
 
   :bind (:map compilation-mode-map
          ("q" . delete-window)
@@ -4465,6 +4465,13 @@ with very limited support for special characters."
    "^\\*httpd\\*$"
    help-mode
    debugger-mode
+   dired-mode
+   ;; magit
+   magit-diff-mode
+   magit-log-mode
+   magit-process-mode
+   magit-revision-mode
+   magit-status-mode
    ;; compilation
    compilation-mode
    ;; shells
