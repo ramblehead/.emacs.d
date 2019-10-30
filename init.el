@@ -2760,11 +2760,17 @@ fields which we need."
 
   (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*compilation*" nil 'compiler)
-                 (display-buffer-in-side-window)
-                 (inhibit-same-window . t)
-                 (window-height . ,g2w-side-window-height)))
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition
+       (lambda (buffer-nm action)
+         (eq (with-current-buffer buffer-nm major-mode)
+             'compilation-mode))
+       nil)
+     (display-buffer-reuse-window
+      display-buffer-in-side-window)
+     (inhibit-same-window . t)
+     (window-height . ,g2w-side-window-height)))
 
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'compile-goto-error)
@@ -4444,7 +4450,7 @@ with very limited support for special characters."
 ;; -------------------------------------------------------------------
 
 (setq
- rh-ignore-buffers
+ rh-buffers-not-files
  '("\\` "
    "^\\*Completions\\*$"
    "^\\*Quail Completions\\*$"
@@ -4457,10 +4463,16 @@ with very limited support for special characters."
    "^\\*Ido Completions\\*$"
    "^\\*buffer-selection\\*$"
    "^\\*httpd\\*$"
+   help-mode
+   debugger-mode
+   ;; compilation
+   compilation-mode
+   ;; shells
+   shell-mode
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
-   ;; compile/script outputs
+   ;; script outputs
    "^\\*skewer-error\\*$"
    "^\\*tide-server\\*$"
    ;; rtags buffers
@@ -4470,6 +4482,29 @@ with very limited support for special characters."
    "^\\*RTags Log\\*$"
    ;; AUCTeX output files
    " output\\*$"))
+
+(setq
+ rh-buffers-compilation
+ '(compilation-mode))
+
+(setq
+ rh-buffers-shells
+ '(shell-mode))
+
+(defun rh-buffer-match (regexp-or-mode-list buffer)
+  "Return non-nil if buffer either matches anything in listed regexps
+or has one of the listed major modes."
+  (let ((case-fold-search nil))
+    (catch 'done
+      (dolist (regexp-or-mode regexp-or-mode-list)
+        (if (stringp regexp-or-mode)
+            (let ((regexp regexp-or-mode)
+                  (name (buffer-name buffer)))
+              (when (string-match regexp name)
+                (throw 'done t)))
+          (let ((mode regexp-or-mode))
+            (when (eq (with-current-buffer buffer major-mode) mode)
+              (throw 'done t))))))))
 
 ;; Example:
 ;; Makefile.am, Makefile.am<3> etc.  to
@@ -4483,9 +4518,20 @@ with very limited support for special characters."
 
 ;; /b/{ ifilipb
 
+(defun rh-iflipb-make-ignore-buffers (regexp-or-mode-list-symbol)
+  (cl-mapcar
+   (lambda (regexp-or-mode)
+     `(lambda (buffer-nm)
+        (rh-buffer-match ,regexp-or-mode-list-symbol (get-buffer buffer-nm))))
+   (symbol-value regexp-or-mode-list-symbol)))
+
 (use-package iflipb
   :config
-  (setq iflipb-ignore-buffers rh-ignore-buffers)
+  (setq iflipb-ignore-buffers
+        '((lambda (buffer-nm)
+            (rh-buffer-match
+             rh-buffers-not-files
+             (get-buffer buffer-nm)))))
   (setq iflipb-wrap-around t)
 
   (global-set-key (kbd "C-<next>") #'iflipb-next-buffer)
@@ -4540,11 +4586,23 @@ with very limited support for special characters."
    bs-configurations
    '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
      ("files" nil nil nil
-      (lambda (buf)
-        (rh-string-match-regexp-list
-         rh-ignore-buffers
-         (buffer-name buf)))
-      bs-sort-buffer-interns-are-last)))
+      (lambda (buffer)
+        (rh-buffer-match
+         rh-buffers-not-files
+         buffer))
+      bs-sort-buffer-interns-are-last)
+     ("compilation" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffer-match
+              rh-buffers-compilation
+              buffer)))
+      nil)
+     ("shells" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffer-match
+              rh-buffers-shells
+              buffer)))
+      nil)))
 
   (setq bs-cycle-configuration-name "files")
 
