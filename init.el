@@ -2095,6 +2095,14 @@ fields which we need."
   (setq ivy-count-format "%d/%d ")
   (setq ivy-height 8)
 
+  (setq ivy-ignore-buffers
+        '((lambda (buffer-nm)
+            (let ((buffer (get-buffer buffer-nm)))
+              (when buffer
+                (rh-buffer-match
+                 rh-buffers-not-files
+                 buffer))))))
+
   (setq ivy-mode-map
         (let ((map (make-sparse-keymap)))
           (define-key map [remap switch-to-buffer-other-window]
@@ -4525,13 +4533,6 @@ or has one of the listed major modes."
 
 ;; /b/{ ifilipb
 
-(defun rh-iflipb-make-ignore-buffers (regexp-or-mode-list-symbol)
-  (cl-mapcar
-   (lambda (regexp-or-mode)
-     `(lambda (buffer-nm)
-        (rh-buffer-match ,regexp-or-mode-list-symbol (get-buffer buffer-nm))))
-   (symbol-value regexp-or-mode-list-symbol)))
-
 (use-package iflipb
   :config
   (setq iflipb-ignore-buffers
@@ -4539,6 +4540,7 @@ or has one of the listed major modes."
             (rh-buffer-match
              rh-buffers-not-files
              (get-buffer buffer-nm)))))
+
   (setq iflipb-wrap-around t)
 
   (global-set-key (kbd "C-<next>") #'iflipb-next-buffer)
