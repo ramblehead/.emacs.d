@@ -36,8 +36,8 @@
 ;; along with this program; see the file COPYING.
 ;; If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: 
-;; 
+;;; Commentary:
+;;
 ;; Bitcoin donations gratefully accepted: 13NyoPq3iusGsCtHNRT9xfA9jsqPjYtyyE
 ;;
 ;; Extensions to emacs buffer-selection library (bs.el)
@@ -62,7 +62,7 @@
 ;; Put bs-ext.el in a directory in your load-path, e.g. ~/.emacs.d/
 ;; You can add a directory to your load-path with the following line in ~/.emacs
 ;; (add-to-list 'load-path (expand-file-name "~/elisp"))
-;; where ~/elisp is the directory you want to add 
+;; where ~/elisp is the directory you want to add
 ;; (you don't need to do this for ~/.emacs.d - it's added by default).
 ;;
 ;; Add the following to your ~/.emacs startup file.
@@ -72,25 +72,25 @@
 ;;; Customize:
 ;;
 ;;  bs-ext-show-configs-header : whether or not to show the configs header line
-;;  bs-ext-config-keys : alist of keybindings and associated config names  
+;;  bs-ext-config-keys : alist of keybindings and associated config names
 ;;
 ;; All of the above can customized by:
 ;;      M-x customize-group RET bs RET
 ;;
 
 ;;; Change log:
-;;	
+;;
 ;; 2012/06/28
 ;;      * First released.
-;; 
+;;
 
 ;;; Acknowledgements:
 ;;
-;; 
+;;
 ;;
 
 ;;; TODO
-;; 
+;;
 ;; Exclude empty groups? Allow manually adding buffers to a group.
 ;; Create "fast" group that rebinds up/down arrow keys so that the buffers are show in the other window automatically?
 
@@ -217,7 +217,7 @@ will be used."
   (if (not (assoc "regexp" bs-configurations))
       (add-to-list 'bs-configurations bs-ext-regexp-config))
   (bs--show-with-configuration "regexp"))
-  
+
 ;; Set some new keys
 (define-key bs-mode-map (kbd "<left>") 'bs-ext-select-previous-configuration)
 (define-key bs-mode-map (kbd "<right>") 'bs-ext-select-next-configuration)
@@ -236,20 +236,24 @@ will be used."
   :group 'bs)
 
 ;; Set the mode-line
-(add-hook 'bs-mode-hook
-          (lambda nil
-            (setq mode-line-format bs-ext-mode-line-format
-                  header-line-format (if bs-ext-show-configs-header
-                                         (mapconcat (lambda (conf)
-                                                      (let* ((name (car conf))
-                                                             (key (car (rassoc name bs-ext-config-keys)))
-                                                             (item (if key (concat name "(" key ")")
-                                                                     (if (equal name "regexp") "regexp(/)"
-                                                                       name))))
-                                                        (if (equal name bs-current-configuration)
-                                                            (propertize item 'face font-lock-comment-face) 
-                                                          item)))
-                                                    bs-configurations " ")))))
+(add-hook
+ 'bs-mode-hook
+ (lambda ()
+   (setq mode-line-format
+         bs-ext-mode-line-format
+         header-line-format
+         (when bs-ext-show-configs-header
+           (mapconcat
+            (lambda (conf)
+              (let* ((name (car conf))
+                     (key (car (rassoc name bs-ext-config-keys)))
+                     (item (if key
+                               (concat name "(" key ")")
+                             (if (equal name "regexp") "regexp(/)" name))))
+                (if (equal name bs-current-configuration)
+                    (propertize item 'face font-lock-comment-face)
+                  item)))
+            bs-configurations " ")))))
 
 ;; This variable is used purely for the documentation string.
 (defvar bs-ext-help nil
@@ -317,4 +321,3 @@ to show always.
 ;; (yaoddmuse-post "EmacsWiki" "bs-ext.el" (buffer-name) (buffer-string) "update")
 
 ;;; bs-ext.el ends here
-
