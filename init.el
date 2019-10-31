@@ -4466,6 +4466,22 @@ with very limited support for special characters."
 ;; -------------------------------------------------------------------
 
 (setq
+ rh-buffers-compilation
+ '(compilation-mode))
+
+(setq
+ rh-buffers-shells
+ '(shell-mode))
+
+(setq
+ rh-buffers-magit
+ '(magit-diff-mode
+   magit-log-mode
+   magit-process-mode
+   magit-revision-mode
+   magit-status-mode))
+
+(setq
  rh-buffers-not-files
  '("\\` "
    "^\\*Completions\\*$"
@@ -4482,16 +4498,6 @@ with very limited support for special characters."
    help-mode
    debugger-mode
    dired-mode
-   ;; magit
-   magit-diff-mode
-   magit-log-mode
-   magit-process-mode
-   magit-revision-mode
-   magit-status-mode
-   ;; compilation
-   compilation-mode
-   ;; shells
-   shell-mode
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
@@ -4507,12 +4513,11 @@ with very limited support for special characters."
    " output\\*$"))
 
 (setq
- rh-buffers-compilation
- '(compilation-mode))
-
-(setq
- rh-buffers-shells
- '(shell-mode))
+ rh-buffers-not-files
+ (append rh-buffers-compilation
+         rh-buffers-magit
+         rh-buffers-shells
+         rh-buffers-not-files))
 
 (defun rh-buffer-match (regexp-or-mode-list buffer)
   "Return non-nil if buffer either matches anything in listed regexps
