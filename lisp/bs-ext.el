@@ -94,6 +94,40 @@
 ;; Exclude empty groups? Allow manually adding buffers to a group.
 ;; Create "fast" group that rebinds up/down arrow keys so that the buffers are show in the other window automatically?
 
+
+
+;; (mapconcat
+;;  (lambda (conf)
+;;    (let ((bs-current-configuration (nth 0 conf))
+;;          (bs-must-show-regexp      (nth 1 conf))
+;; 	 (bs-must-show-function    (nth 2 conf))
+;; 	 (bs-dont-show-regexp      (nth 3 conf))
+;; 	 (bs-dont-show-function    (nth 4 conf))
+;; 	 (bs-buffer-sort-function  (nth 5 conf)))
+;;      bs-current-configuration
+;;      ;; (if (equal name bs-current-configuration)
+;;      ;;     (propertize item 'face font-lock-comment-face)
+;;      ;;   item)
+;;      ))
+;;  bs-configurations " ")
+
+;; (seq-filter
+;;  (lambda (conf)
+;;    (let ((bs-current-configuration (nth 0 conf))
+;;          (bs-must-show-regexp      (nth 1 conf))
+;; 	 (bs-must-show-function    (nth 2 conf))
+;; 	 (bs-dont-show-regexp      (nth 3 conf))
+;; 	 (bs-dont-show-function    (nth 4 conf))
+;; 	 (bs-buffer-sort-function  (nth 5 conf)))
+;;      bs-current-configuration
+;;      ;; (if (equal name bs-current-configuration)
+;;      ;;     (propertize item 'face font-lock-comment-face)
+;;      ;;   item)
+;;      ))
+;;  bs-configurations)
+
+
+
 ;;; Require
 (require 'bs)
 
