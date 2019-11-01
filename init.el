@@ -4465,26 +4465,6 @@ with very limited support for special characters."
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
-;; (setq
-;;  rh-buffers-dired
-;;  '(dired-mode))
-
-;; (setq
-;;  rh-buffers-compilation
-;;  '(compilation-mode))
-
-;; (setq
-;;  rh-buffers-shells
-;;  '(shell-mode))
-
-;; (setq
-;;  rh-buffers-magit
-;;  '(magit-diff-mode
-;;    magit-log-mode
-;;    magit-process-mode
-;;    magit-revision-mode
-;;    magit-status-mode))
-
 (defvar rh-buffers-groups
   '(("dired"
      (dired-mode))
@@ -4532,14 +4512,6 @@ or buffer major mode symbol")
     " output\\*$")
   "Buffers used to create files filter in bs-configurations.
 The buffer value can be either buffer name regex or buffer major mode symbol")
-
-;; (setq
-;;  rh-buffers-not-files
-;;  (append rh-buffers-dired
-;;          rh-buffers-compilation
-;;          rh-buffers-magit
-;;          rh-buffers-shells
-;;          rh-buffers-not-files))
 
 (dolist (buffer-group rh-buffers-groups)
   (setq rh-buffers-not-files
@@ -4642,41 +4614,6 @@ or has one of the listed major modes."
 
 (use-package bs
   :config
-  ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
-  ;; (setq
-  ;;  bs-configurations
-  ;;  '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
-  ;;    ("files" nil nil nil
-  ;;     (lambda (buffer)
-  ;;       (rh-buffers-match
-  ;;        rh-buffers-not-files
-  ;;        buffer))
-  ;;     bs-sort-buffer-interns-are-last)
-  ;;    ("dired" nil nil nil
-  ;;     (lambda (buffer)
-  ;;       (not (rh-buffers-match
-  ;;             rh-buffers-dired
-  ;;             buffer)))
-  ;;     nil)
-  ;;    ("magit" nil nil nil
-  ;;     (lambda (buffer)
-  ;;       (not (rh-buffers-match
-  ;;             rh-buffers-magit
-  ;;             buffer)))
-  ;;     nil)
-  ;;    ("compilation" nil nil nil
-  ;;     (lambda (buffer)
-  ;;       (not (rh-buffers-match
-  ;;             rh-buffers-compilation
-  ;;             buffer)))
-  ;;     nil)
-  ;;    ("shells" nil nil nil
-  ;;     (lambda (buffer)
-  ;;       (not (rh-buffers-match
-  ;;             rh-buffers-shells
-  ;;             buffer)))
-  ;;     nil)))
-
   (setq
    bs-configurations
    '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
@@ -4805,7 +4742,7 @@ or has one of the listed major modes."
 ;; /b/} bm
 
 ;; -------------------------------------------------------------------
-;;; Load unscoped (e.g. without vr-) useful functions
+;;; Load unscoped (e.g. without rh-) useful functions
 ;; -------------------------------------------------------------------
 
 (load-file (concat user-emacs-directory "useful-functions.el"))
