@@ -4597,6 +4597,12 @@ or has one of the listed major modes."
 (advice-add 'bs--set-window-height :around
             #'rh--bs-set-window-height)
 
+(defun rh--bs-get-file-name (orig-fun _start-buffer _all-buffers)
+  (abbreviate-file-name (funcall orig-fun _start-buffer _all-buffers)))
+
+(advice-add 'bs--get-file-name :around
+            #'rh--bs-get-file-name)
+
 ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
 (defun rh--bs-get-size-string (&rest ignored)
   (let* ((size (buffer-size))
@@ -4612,17 +4618,74 @@ or has one of the listed major modes."
             str (format "%.1fG" size)))
     str))
 
+;; (defun rh-bs-sort-by-file-path-interns-are-last (b1 b2)
+;;   (let* ((b1-buffer-name (buffer-name b1))
+;;          (b2-buffer-name (buffer-name b2))
+;;          (b1-intern-p (string-match-p "^\\*" b1-buffer-name))
+;;          (b2-intern-p (string-match-p "^\\*" b2-buffer-name))
+;;          (b1-file-name (buffer-file-name b1))
+;;          (b2-file-name (buffer-file-name b2)))
+;;     (if (and b1-intern-p b2-intern-p)
+;;         (string< b1-buffer-name b2-buffer-name)
+;;       (or b2-intern-p
+;;           (if (and b1-file-name b2-file-name)
+;;               (string< b1-file-name b2-file-name)
+;;             b2-file-name)))))
+
+(defun rh-bs-sort-by-file-path-interns-are-last (b1 b2)
+  (let* ((b1-buffer-name (buffer-name b1))
+         (b2-buffer-name (buffer-name b2))
+         (b1-intern-p (string-match-p "^\\*" b1-buffer-name))
+         (b2-intern-p (string-match-p "^\\*" b2-buffer-name))
+         (b1-file-name (with-current-buffer b1
+                         (bs--get-file-name nil nil)))
+         (b2-file-name (with-current-buffer b2
+                         (bs--get-file-name nil nil))))
+    (setq b1-buffer-name (when b1-buffer-name (downcase b1-buffer-name)))
+    (setq b2-buffer-name (when b2-buffer-name (downcase b2-buffer-name)))
+    (setq b1-file-name (when b1-file-name (downcase b1-file-name)))
+    (setq b2-file-name (when b2-file-name (downcase b2-file-name)))
+    (if (and (not (string-empty-p b1-file-name))
+             (not (string-empty-p b2-file-name)))
+        (if (string= b1-file-name b2-file-name)
+            (string< b1-buffer-name b2-buffer-name)
+          (string< b1-file-name b2-file-name))
+      (if (and (string-empty-p b1-file-name)
+               (string-empty-p b2-file-name))
+          (if (string= b2-buffer-name "*scratch*") nil
+            (string< b1-buffer-name b2-buffer-name))
+        (string-empty-p b2-file-name)))))
+
 (use-package bs
   :config
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition
+       (lambda (buffer-nm action)
+         (eq (with-current-buffer buffer-nm major-mode)
+             'bsq-mode))
+       nil)
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      ;; rh-display-buffer-reuse-down
+      ;; rh-display-buffer-reuse-up
+      ;; display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
+
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'bs-tmp-select-other-window)
+
   (setq
    bs-configurations
-   '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
+   '(("all" nil nil nil nil rh-bs-sort-by-file-path-interns-are-last)
      ("files" nil nil nil
       (lambda (buffer)
         (rh-buffers-match
          rh-buffers-not-files
          buffer))
-      bs-sort-buffer-interns-are-last)))
+      rh-bs-sort-by-file-path-interns-are-last)))
 
   (dolist (buffer-group rh-buffers-groups)
     (add-to-list
