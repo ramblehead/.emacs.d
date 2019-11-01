@@ -152,24 +152,33 @@ Will return the last if START-NAME is at start."
 If START-NAME is nil the current configuration `bs-current-configuration'
 will be used."
   (interactive)
-  (let ((config (bs-ext-prev-config (or start-name bs-current-configuration))))
-    (bs-set-configuration (car config))
+  (let ((conf (bs-ext-prev-config (or start-name bs-current-configuration))))
+    (bs-set-configuration (car conf))
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)
     (bs--set-window-height)
-    (bs-message-without-log "Selected configuration: %s" (car config))))
+    (bs-message-without-log "Selected configuration: %s" (car conf))))
 
 (defun bs-ext-select-next-configuration (&optional start-name)
   "Apply next configuration START-NAME and refresh buffer list.
 If START-NAME is nil the current configuration `bs-current-configuration'
 will be used."
   (interactive)
-  (let ((config (bs-next-config (or start-name bs-current-configuration))))
-    (bs-set-configuration (car config))
+  (let* ((conf-first (bs-next-config (or start-name
+                                         bs-current-configuration)))
+         (conf conf-first)
+         all-empty)
+    (while (or (bs-ext-buffer-list-empty-p conf) all-empty)
+      (setq conf (bs-next-config (car conf)))
+      (when (eq conf conf-first)
+        (setq all-empty t)
+        (setq conf (or start-name
+                       bs-current-configuration))))
+    (bs-set-configuration (car conf))
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)
     (bs--set-window-height)
-    (bs-message-without-log "Selected configuration: %s" (car config))))
+    (bs-message-without-log "Selected configuration: %s" (car conf))))
 
 (defvar bs-ext-regexp ".*"
   "Regexp with which to match buffer names for buffer show `regexp' configuration.")
@@ -285,18 +294,12 @@ name."
                    (propertize name 'face 'bs-ext-other-config-face)))))
             (seq-filter
              (lambda (conf)
-               (let ((name (car conf))
-                     (bs-must-show-regexp     (nth 1 conf))
-                     (bs-must-show-function   (nth 2 conf))
-                     (bs-dont-show-regexp     (nth 3 conf))
-                     (bs-dont-show-function   (nth 4 conf))
-                     (bs-buffer-sort-function (nth 5 conf)))
+               (let ((name (car conf)))
                  (or (string= name bs-current-configuration)
-                     (let ((bs-current-configuration name))
-                       (bs-buffer-list)))))
+                     (not (bs-ext-buffer-list-empty-p conf)))))
              bs-configurations) " ")))))
 
-(defun bs-buffer-list-empty-p ()
+(defun bs-ext-buffer-list-empty-p (conf)
   (let ((bs-current-configuration (nth 0 conf))
         (bs-must-show-regexp      (nth 1 conf))
         (bs-must-show-function    (nth 2 conf))
