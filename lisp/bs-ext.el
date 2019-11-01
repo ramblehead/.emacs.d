@@ -152,7 +152,15 @@ Will return the last if START-NAME is at start."
 If START-NAME is nil the current configuration `bs-current-configuration'
 will be used."
   (interactive)
-  (let ((conf (bs-ext-prev-config (or start-name bs-current-configuration))))
+  (let* ((conf-first (bs-ext-prev-config (or start-name
+                                             bs-current-configuration)))
+         (conf conf-first)
+         (check-prev t))
+    (while (and (bs-ext-buffer-list-empty-p conf) check-prev)
+      (setq conf (bs-ext-prev-config (car conf)))
+      (when (eq conf conf-first)
+        (setq check-prev nil)
+        (setq conf bs-current-configuration)))
     (bs-set-configuration (car conf))
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)
@@ -167,13 +175,12 @@ will be used."
   (let* ((conf-first (bs-next-config (or start-name
                                          bs-current-configuration)))
          (conf conf-first)
-         all-empty)
-    (while (or (bs-ext-buffer-list-empty-p conf) all-empty)
+         (check-next t))
+    (while (and (bs-ext-buffer-list-empty-p conf) check-next)
       (setq conf (bs-next-config (car conf)))
       (when (eq conf conf-first)
-        (setq all-empty t)
-        (setq conf (or start-name
-                       bs-current-configuration))))
+        (setq check-next nil)
+        (setq conf bs-current-configuration)))
     (bs-set-configuration (car conf))
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)

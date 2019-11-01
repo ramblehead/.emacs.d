@@ -4466,6 +4466,10 @@ with very limited support for special characters."
 ;; -------------------------------------------------------------------
 
 (setq
+ rh-buffers-dired
+ '(dired-mode))
+
+(setq
  rh-buffers-compilation
  '(compilation-mode))
 
@@ -4497,7 +4501,6 @@ with very limited support for special characters."
    "^\\*httpd\\*$"
    help-mode
    debugger-mode
-   dired-mode
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
@@ -4514,7 +4517,8 @@ with very limited support for special characters."
 
 (setq
  rh-buffers-not-files
- (append rh-buffers-compilation
+ (append rh-buffers-dired
+         rh-buffers-compilation
          rh-buffers-magit
          rh-buffers-shells
          rh-buffers-not-files))
@@ -4613,6 +4617,18 @@ or has one of the listed major modes."
          rh-buffers-not-files
          buffer))
       bs-sort-buffer-interns-are-last)
+     ("dired" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffer-match
+              rh-buffers-dired
+              buffer)))
+      nil)
+     ("magit" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffer-match
+              rh-buffers-magit
+              buffer)))
+      nil)
      ("compilation" nil nil nil
       (lambda (buffer)
         (not (rh-buffer-match
