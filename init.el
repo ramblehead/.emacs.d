@@ -4576,10 +4576,6 @@ or has one of the listed major modes."
   (switch-to-buffer "*buffer-selection*" t t)
   (bs-show arg))
 
-(defun rh-bs-kill ()
-  (interactive)
-  (kill-buffer "*buffer-selection*"))
-
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
     (lambda (buffer)
@@ -4618,20 +4614,6 @@ or has one of the listed major modes."
             str (format "%.1fG" size)))
     str))
 
-;; (defun rh-bs-sort-by-file-path-interns-are-last (b1 b2)
-;;   (let* ((b1-buffer-name (buffer-name b1))
-;;          (b2-buffer-name (buffer-name b2))
-;;          (b1-intern-p (string-match-p "^\\*" b1-buffer-name))
-;;          (b2-intern-p (string-match-p "^\\*" b2-buffer-name))
-;;          (b1-file-name (buffer-file-name b1))
-;;          (b2-file-name (buffer-file-name b2)))
-;;     (if (and b1-intern-p b2-intern-p)
-;;         (string< b1-buffer-name b2-buffer-name)
-;;       (or b2-intern-p
-;;           (if (and b1-file-name b2-file-name)
-;;               (string< b1-file-name b2-file-name)
-;;             b2-file-name)))))
-
 (defun rh-bs-sort-by-file-path-interns-are-last (b1 b2)
   (let* ((b1-buffer-name (buffer-name b1))
          (b2-buffer-name (buffer-name b2))
@@ -4655,6 +4637,19 @@ or has one of the listed major modes."
           (if (string= b2-buffer-name "*scratch*") nil
             (string< b1-buffer-name b2-buffer-name))
         (string-empty-p b2-file-name)))))
+
+(defun rh-bs-tmp-ace-select-other-window ()
+  (interactive)
+  (with-selected-window (frame-selected-window)
+    (let ((buffer (bs--current-buffer)))
+      (ace-select-window)
+      (switch-to-buffer buffer))))
+
+(defun rh-bs-ace-select-other-window ()
+  (interactive)
+  (let ((buffer (bs--current-buffer)))
+    (ace-select-window)
+    (switch-to-buffer buffer)))
 
 (use-package bs
   :config
@@ -4728,8 +4723,11 @@ or has one of the listed major modes."
 
   :bind (("C-x C-b" . rh-bs-show)
          :map bs-mode-map
-         ;; ("q" . bury-buffer)
-         ("q" . rh-bs-kill))
+         ("M-<return>" . rh-bs-tmp-ace-select-other-window)
+         ("M-<kp-enter>" . rh-bs-tmp-ace-select-other-window)
+         ("C-<return>" . rh-bs-ace-select-other-window)
+         ("C-<kp-enter>" . rh-bs-ace-select-other-window)
+         ("q" . bury-buffer))
   :demand t
   :ensure t)
 
