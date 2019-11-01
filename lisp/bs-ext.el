@@ -268,6 +268,35 @@ will be used."
   :type 'boolean
   :group 'bs)
 
+(defface bs-ext-other-config-face
+  '((t (:inherit mode-line)))
+  "Face used for a non-current bs-configuration name."
+  :group 'bs)
+
+(defface bs-ext-current-config-face
+  ;; '((t (:inherit minibuffer-prompt)))
+  '((t (:inherit mode-line-emphasis)))
+  "Face used for the current bs-configuration name."
+  :group 'bs)
+
+(defcustom bs-ext-other-config-template
+  "%s"
+  "String template for displaying other bs-configurations.
+
+This is the template string that will be applied to a non-current
+bs-configuration name. Use string `%s' to refer to the bs-configuration
+name."
+  :group 'bs)
+
+(defcustom bs-ext-current-config-template
+  "[%s]"
+  "String template for displaying the current bs-configuration.
+
+This is the template string that will be applied to the current
+bs-configuration name. Use string `%s' to refer to the bs-configuration
+name."
+  :group 'bs)
+
 ;; Set the mode-line
 (add-hook
  'bs-mode-hook
@@ -278,15 +307,25 @@ will be used."
          (when bs-ext-show-configs-header
            (mapconcat
             (lambda (conf)
-              (let* ((name (car conf))
-                     (key (car (rassoc name bs-ext-config-keys)))
-                     (item (if key
-                               (concat name "(" key ")")
-                             (if (equal name "regexp") "regexp(/)" name))))
-                (if (equal name bs-current-configuration)
-                    (propertize item 'face font-lock-comment-face)
-                  item)))
-            bs-configurations " ")))))
+              (let ((name (car conf)))
+                name
+                (if (string= name bs-current-configuration)
+                    (format
+                     bs-ext-current-config-template
+                     (propertize name 'face 'bs-ext-current-config-face))
+                  (format
+                   bs-ext-other-config-template
+                   (propertize name 'face 'bs-ext-other-config-face)))))
+            (seq-filter
+             (lambda (conf)
+               (let ((bs-current-configuration (nth 0 conf))
+                     (bs-must-show-regexp      (nth 1 conf))
+                     (bs-must-show-function    (nth 2 conf))
+                     (bs-dont-show-regexp      (nth 3 conf))
+                     (bs-dont-show-function    (nth 4 conf))
+                     (bs-buffer-sort-function  (nth 5 conf)))
+                 (bs-buffer-list)))
+             bs-configurations) " ")))))
 
 ;; This variable is used purely for the documentation string.
 (defvar bs-ext-help nil
