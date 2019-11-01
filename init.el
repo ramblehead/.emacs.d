@@ -2107,7 +2107,7 @@ fields which we need."
         '((lambda (buffer-nm)
             (let ((buffer (get-buffer buffer-nm)))
               (when buffer
-                (rh-buffer-match
+                (rh-buffers-match
                  rh-buffers-not-files
                  buffer))))))
 
@@ -4465,65 +4465,88 @@ with very limited support for special characters."
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
-(setq
- rh-buffers-dired
- '(dired-mode))
+;; (setq
+;;  rh-buffers-dired
+;;  '(dired-mode))
 
-(setq
- rh-buffers-compilation
- '(compilation-mode))
+;; (setq
+;;  rh-buffers-compilation
+;;  '(compilation-mode))
 
-(setq
- rh-buffers-shells
- '(shell-mode))
+;; (setq
+;;  rh-buffers-shells
+;;  '(shell-mode))
 
-(setq
- rh-buffers-magit
- '(magit-diff-mode
-   magit-log-mode
-   magit-process-mode
-   magit-revision-mode
-   magit-status-mode))
+;; (setq
+;;  rh-buffers-magit
+;;  '(magit-diff-mode
+;;    magit-log-mode
+;;    magit-process-mode
+;;    magit-revision-mode
+;;    magit-status-mode))
 
-(setq
- rh-buffers-not-files
- '("\\` "
-   "^\\*Completions\\*$"
-   "^\\*Quail Completions\\*$"
-   "^\\*Messages\\*$"
-   "^\\*clang-output\\*$"
-   "^\\*clang error\\*$"
-   "^\\*Semantic SymRef\\*$"
-   "^\\*Recent Files\\*$"
-   "^\\*Directory\\*$"
-   "^\\*Ido Completions\\*$"
-   "^\\*buffer-selection\\*$"
-   "^\\*httpd\\*$"
-   help-mode
-   debugger-mode
-   ;; tide
-   "^\\*tide-server\\*.*$"
-   "^\\*node process\\*$"
-   ;; script outputs
-   "^\\*skewer-error\\*$"
-   "^\\*tide-server\\*$"
-   ;; rtags buffers
-   "^\\*rdm\\*$"
-   "^\\*RTags\\*$"
-   "^\\*RTags Diagnostics\\*$"
-   "^\\*RTags Log\\*$"
-   ;; AUCTeX output files
-   " output\\*$"))
+(defvar rh-buffers-groups
+  '(("dired"
+     (dired-mode))
+    ("compilation"
+     (compilation-mode))
+    ("shells"
+     (shell-mode))
+    ("magit"
+     (magit-diff-mode
+      magit-log-mode
+      magit-process-mode
+      magit-revision-mode
+      magit-status-mode)))
+  "Buffer groups used to create filters for bs-configurations.
+The group item values can be either buffer name regex
+or buffer major mode symbol")
 
-(setq
- rh-buffers-not-files
- (append rh-buffers-dired
-         rh-buffers-compilation
-         rh-buffers-magit
-         rh-buffers-shells
-         rh-buffers-not-files))
+(defvar rh-buffers-not-files
+  '("\\` "
+    "^\\*Completions\\*$"
+    "^\\*Quail Completions\\*$"
+    "^\\*Messages\\*$"
+    "^\\*clang-output\\*$"
+    "^\\*clang error\\*$"
+    "^\\*Semantic SymRef\\*$"
+    "^\\*Recent Files\\*$"
+    "^\\*Directory\\*$"
+    "^\\*Ido Completions\\*$"
+    "^\\*buffer-selection\\*$"
+    "^\\*httpd\\*$"
+    help-mode
+    debugger-mode
+    ;; tide
+    "^\\*tide-server\\*.*$"
+    "^\\*node process\\*$"
+    ;; script outputs
+    "^\\*skewer-error\\*$"
+    "^\\*tide-server\\*$"
+    ;; rtags buffers
+    "^\\*rdm\\*$"
+    "^\\*RTags\\*$"
+    "^\\*RTags Diagnostics\\*$"
+    "^\\*RTags Log\\*$"
+    ;; AUCTeX output files
+    " output\\*$")
+  "Buffers used to create files filter in bs-configurations.
+The buffer value can be either buffer name regex or buffer major mode symbol")
 
-(defun rh-buffer-match (regexp-or-mode-list buffer)
+;; (setq
+;;  rh-buffers-not-files
+;;  (append rh-buffers-dired
+;;          rh-buffers-compilation
+;;          rh-buffers-magit
+;;          rh-buffers-shells
+;;          rh-buffers-not-files))
+
+(dolist (buffer-group rh-buffers-groups)
+  (setq rh-buffers-not-files
+        (append (car (cdr buffer-group))
+                rh-buffers-not-files)))
+
+(defun rh-buffers-match (regexp-or-mode-list buffer)
   "Return non-nil if buffer either matches anything in listed regexps
 or has one of the listed major modes."
   (let ((case-fold-search nil))
@@ -4554,7 +4577,7 @@ or has one of the listed major modes."
   :config
   (setq iflipb-ignore-buffers
         '((lambda (buffer-nm)
-            (rh-buffer-match
+            (rh-buffers-match
              rh-buffers-not-files
              (get-buffer buffer-nm)))))
 
@@ -4585,13 +4608,25 @@ or has one of the listed major modes."
   (interactive)
   (kill-buffer "*buffer-selection*"))
 
-(defun rh-bs--set-window-height (orig-fun) nil)
+(defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
+  `(,buffer-group-name nil nil nil
+    (lambda (buffer)
+      (not (rh-buffers-match
+            (car (cdr
+                  (seq-find
+                   (lambda (buffer-group)
+                     (string= (car buffer-group) ,buffer-group-name))
+                   rh-buffers-groups)))
+            buffer)))
+    nil))
+
+(defun rh--bs-set-window-height (orig-fun) nil)
 
 (advice-add 'bs--set-window-height :around
-            #'rh-bs--set-window-height)
+            #'rh--bs-set-window-height)
 
 ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
-(defun rh-bs--get-size-string (&rest ignored)
+(defun rh--bs-get-size-string (&rest ignored)
   (let* ((size (buffer-size))
          (str (number-to-string size)))
     (when (> (length str) 3)
@@ -4608,39 +4643,55 @@ or has one of the listed major modes."
 (use-package bs
   :config
   ;; see http://scottfrazersblog.blogspot.co.uk/2010/01/emacs-filtered-buffer-switching.html
+  ;; (setq
+  ;;  bs-configurations
+  ;;  '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
+  ;;    ("files" nil nil nil
+  ;;     (lambda (buffer)
+  ;;       (rh-buffers-match
+  ;;        rh-buffers-not-files
+  ;;        buffer))
+  ;;     bs-sort-buffer-interns-are-last)
+  ;;    ("dired" nil nil nil
+  ;;     (lambda (buffer)
+  ;;       (not (rh-buffers-match
+  ;;             rh-buffers-dired
+  ;;             buffer)))
+  ;;     nil)
+  ;;    ("magit" nil nil nil
+  ;;     (lambda (buffer)
+  ;;       (not (rh-buffers-match
+  ;;             rh-buffers-magit
+  ;;             buffer)))
+  ;;     nil)
+  ;;    ("compilation" nil nil nil
+  ;;     (lambda (buffer)
+  ;;       (not (rh-buffers-match
+  ;;             rh-buffers-compilation
+  ;;             buffer)))
+  ;;     nil)
+  ;;    ("shells" nil nil nil
+  ;;     (lambda (buffer)
+  ;;       (not (rh-buffers-match
+  ;;             rh-buffers-shells
+  ;;             buffer)))
+  ;;     nil)))
+
   (setq
    bs-configurations
    '(("all" nil nil nil nil bs-sort-buffer-interns-are-last)
      ("files" nil nil nil
       (lambda (buffer)
-        (rh-buffer-match
+        (rh-buffers-match
          rh-buffers-not-files
          buffer))
-      bs-sort-buffer-interns-are-last)
-     ("dired" nil nil nil
-      (lambda (buffer)
-        (not (rh-buffer-match
-              rh-buffers-dired
-              buffer)))
-      nil)
-     ("magit" nil nil nil
-      (lambda (buffer)
-        (not (rh-buffer-match
-              rh-buffers-magit
-              buffer)))
-      nil)
-     ("compilation" nil nil nil
-      (lambda (buffer)
-        (not (rh-buffer-match
-              rh-buffers-compilation
-              buffer)))
-      nil)
-     ("shells" nil nil nil
-      (lambda (buffer)
-        (not (rh-buffer-match
-              rh-buffers-shells
-              buffer)))
-      nil)))
+      bs-sort-buffer-interns-are-last)))
+
+  (dolist (buffer-group rh-buffers-groups)
+    (add-to-list
+     'bs-configurations
+     (rh--bs-make-configuration-from-buffer-group (car buffer-group))
+     t))
 
   (setq bs-cycle-configuration-name "files")
 
@@ -4662,7 +4713,7 @@ or has one of the listed major modes."
    '(("" 2 2 left bs--get-marked-string)
      ("M" 1 1 left bs--get-modified-string)
      ("R" 2 2 left bs--get-readonly-string)
-     ("Size" 6 6 right rh-bs--get-size-string)
+     ("Size" 6 6 right rh--bs-get-size-string)
      ("" 2 2 left "  ")
      ("Mode" 16 16 left bs--get-mode-name)
      ("" 2 2 left "  ")
