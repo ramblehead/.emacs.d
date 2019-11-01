@@ -95,39 +95,6 @@
 ;; Create "fast" group that rebinds up/down arrow keys so that the buffers are show in the other window automatically?
 
 
-
-;; (mapconcat
-;;  (lambda (conf)
-;;    (let ((bs-current-configuration (nth 0 conf))
-;;          (bs-must-show-regexp      (nth 1 conf))
-;; 	 (bs-must-show-function    (nth 2 conf))
-;; 	 (bs-dont-show-regexp      (nth 3 conf))
-;; 	 (bs-dont-show-function    (nth 4 conf))
-;; 	 (bs-buffer-sort-function  (nth 5 conf)))
-;;      bs-current-configuration
-;;      ;; (if (equal name bs-current-configuration)
-;;      ;;     (propertize item 'face font-lock-comment-face)
-;;      ;;   item)
-;;      ))
-;;  bs-configurations " ")
-
-;; (seq-filter
-;;  (lambda (conf)
-;;    (let ((bs-current-configuration (nth 0 conf))
-;;          (bs-must-show-regexp      (nth 1 conf))
-;; 	 (bs-must-show-function    (nth 2 conf))
-;; 	 (bs-dont-show-regexp      (nth 3 conf))
-;; 	 (bs-dont-show-function    (nth 4 conf))
-;; 	 (bs-buffer-sort-function  (nth 5 conf)))
-;;      bs-current-configuration
-;;      ;; (if (equal name bs-current-configuration)
-;;      ;;     (propertize item 'face font-lock-comment-face)
-;;      ;;   item)
-;;      ))
-;;  bs-configurations)
-
-
-
 ;;; Require
 (require 'bs)
 
@@ -318,14 +285,25 @@ name."
                    (propertize name 'face 'bs-ext-other-config-face)))))
             (seq-filter
              (lambda (conf)
-               (let ((bs-current-configuration (nth 0 conf))
-                     (bs-must-show-regexp      (nth 1 conf))
-                     (bs-must-show-function    (nth 2 conf))
-                     (bs-dont-show-regexp      (nth 3 conf))
-                     (bs-dont-show-function    (nth 4 conf))
-                     (bs-buffer-sort-function  (nth 5 conf)))
-                 (bs-buffer-list)))
+               (let ((name (car conf))
+                     (bs-must-show-regexp     (nth 1 conf))
+                     (bs-must-show-function   (nth 2 conf))
+                     (bs-dont-show-regexp     (nth 3 conf))
+                     (bs-dont-show-function   (nth 4 conf))
+                     (bs-buffer-sort-function (nth 5 conf)))
+                 (or (string= name bs-current-configuration)
+                     (let ((bs-current-configuration name))
+                       (bs-buffer-list)))))
              bs-configurations) " ")))))
+
+(defun bs-buffer-list-empty-p ()
+  (let ((bs-current-configuration (nth 0 conf))
+        (bs-must-show-regexp      (nth 1 conf))
+        (bs-must-show-function    (nth 2 conf))
+        (bs-dont-show-regexp      (nth 3 conf))
+        (bs-dont-show-function    (nth 4 conf))
+        (bs-buffer-sort-function  (nth 5 conf)))
+    (null (bs-buffer-list))))
 
 ;; This variable is used purely for the documentation string.
 (defvar bs-ext-help nil
