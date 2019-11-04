@@ -4578,6 +4578,12 @@ or has one of the listed major modes."
   (switch-to-buffer "*buffer-selection*" t t)
   (bs-show arg))
 
+(defun rh-bs-show-in-bottom-0-side-window (arg)
+  (interactive "P")
+  (let ((window (rh-bs-reopen-bottom-0-side-window)))
+    (rh-bs-show arg)
+    (select-window window)))
+
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
     (lambda (buffer)
@@ -4709,11 +4715,6 @@ or has one of the listed major modes."
     (if side-window
         (rh-bs-delete-bottom-0-side-window)
       (rh-bs-tmp-reopen-bottom-0-side-window))))
-
-(defun rh-bs-show-in-bottom-0-side-window (arg)
-  (interactive "P")
-  (with-selected-window (rh-bs-reopen-bottom-0-side-window)
-    (rh-bs-show arg)))
 
 (use-package bs
   :config
