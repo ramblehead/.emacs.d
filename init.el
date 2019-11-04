@@ -4638,6 +4638,12 @@ or has one of the listed major modes."
             (string< b1-buffer-name b2-buffer-name))
         (string-empty-p b2-file-name)))))
 
+(defun rh-bs-ace-select-other-window ()
+  (interactive)
+  (let ((buffer (bs--current-buffer)))
+    (ace-select-window)
+    (switch-to-buffer buffer)))
+
 (defun rh-bs-tmp-ace-select-other-window ()
   (interactive)
   (with-selected-window (frame-selected-window)
@@ -4645,11 +4651,67 @@ or has one of the listed major modes."
       (ace-select-window)
       (switch-to-buffer buffer))))
 
-(defun rh-bs-ace-select-other-window ()
+(defvar rh--bs-bottom-0-side-window-buffer
+  nil)
+
+(defun rh--bs-display-buffer-in-bootom-0-side-window (buffer)
+  (display-buffer-in-side-window
+   buffer
+   `((side . bottom)
+     (slot . 0)
+     (inhibit-same-window . t)
+     (window-height . ,g2w-side-window-height))))
+
+(defun rh--bs-get-bootom-0-side-window ()
+  (let ((windows (window-list)))
+    (seq-find
+     (lambda (window)
+       (and (eq (window-parameter window 'window-side) 'bottom)
+            (eq (window-parameter window 'window-slot) 0)))
+     windows)))
+
+(defun rh-bs-tmp-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
-    (ace-select-window)
-    (switch-to-buffer buffer)))
+    (setq rh--bs-bottom-0-side-window-buffer buffer)
+    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
+
+(defun rh-bs-select-bottom-0-side-window ()
+  (interactive)
+  (let ((buffer (bs--current-buffer)))
+    (setq rh--bs-bottom-0-side-window-buffer buffer)
+    (select-window
+     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
+
+(defun rh-bs-delete-bottom-0-side-window ()
+  (interactive)
+  (let ((side-window (rh--bs-get-bootom-0-side-window)))
+    (when side-window (delete-window side-window))))
+
+(defun rh-bs-reopen-bottom-0-side-window ()
+  (interactive)
+  (let ((buffer (or rh--bs-bottom-0-side-window-buffer
+                    (window-buffer))))
+    (select-window
+     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
+
+(defun rh-bs-tmp-reopen-bottom-0-side-window ()
+  (interactive)
+  (let ((buffer (or rh--bs-bottom-0-side-window-buffer
+                    (window-buffer))))
+    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
+
+(defun rh-bs-tmp-toggle-bottom-0-side-window ()
+  (interactive)
+  (let ((side-window (rh--bs-get-bootom-0-side-window)))
+    (if side-window
+        (rh-bs-delete-bottom-0-side-window)
+      (rh-bs-tmp-reopen-bottom-0-side-window))))
+
+(defun rh-bs-show-in-bottom-0-side-window (arg)
+  (interactive "P")
+  (with-selected-window (rh-bs-reopen-bottom-0-side-window)
+    (rh-bs-show arg)))
 
 (use-package bs
   :config
@@ -4722,11 +4784,17 @@ or has one of the listed major modes."
      (hl-line-mode 1)))
 
   :bind (("C-x C-b" . rh-bs-show)
+         ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
+         ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
          :map bs-mode-map
          ("M-<return>" . rh-bs-tmp-ace-select-other-window)
          ("M-<kp-enter>" . rh-bs-tmp-ace-select-other-window)
          ("C-<return>" . rh-bs-ace-select-other-window)
          ("C-<kp-enter>" . rh-bs-ace-select-other-window)
+         ("S-<return>" . rh-bs-tmp-select-bottom-0-side-window)
+         ("S-<kp-enter>" . rh-bs-tmp-select-bottom-0-side-window)
+         ("S-C-<return>" . rh-bs-select-bottom-0-side-window)
+         ("S-C-<kp-enter>" . rh-bs-select-bottom-0-side-window)
          ("q" . bury-buffer))
   :demand t
   :ensure t)
