@@ -3454,8 +3454,10 @@ fields which we need."
      (rh-cc-compile-setup)))
 
   :bind (:map c-mode-base-map
+         ("C-c C-b" . nil)
          ("C-S-b" . recompile)
-         ("C-c b" . rh-compile-toggle-display))
+         ;; ("C-c b" . rh-compile-toggle-display)
+         )
 
   :defer t)
 
@@ -4651,12 +4653,12 @@ or has one of the listed major modes."
       (ace-select-window)
       (switch-to-buffer buffer))))
 
-(defvar rh--bs-bottom-0-side-window-buffer
+(defvar rh-bs-bottom-0-side-window-buffer
   nil)
 
-(defun rh--bs-display-buffer-in-bootom-0-side-window (buffer)
+(defun rh-bs-display-buffer-in-bootom-0-side-window (buffer-or-name)
   (display-buffer-in-side-window
-   buffer
+   (get-buffer-create buffer-or-name)
    `((side . bottom)
      (slot . 0)
      (inhibit-same-window . t)
@@ -4673,15 +4675,15 @@ or has one of the listed major modes."
 (defun rh-bs-tmp-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
-    (setq rh--bs-bottom-0-side-window-buffer buffer)
-    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
+    (setq rh-bs-bottom-0-side-window-buffer buffer)
+    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
-    (setq rh--bs-bottom-0-side-window-buffer buffer)
+    (setq rh-bs-bottom-0-side-window-buffer buffer)
     (select-window
-     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
+     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-delete-bottom-0-side-window ()
   (interactive)
@@ -4690,16 +4692,16 @@ or has one of the listed major modes."
 
 (defun rh-bs-reopen-bottom-0-side-window ()
   (interactive)
-  (let ((buffer (or rh--bs-bottom-0-side-window-buffer
+  (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
     (select-window
-     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
+     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-tmp-reopen-bottom-0-side-window ()
   (interactive)
-  (let ((buffer (or rh--bs-bottom-0-side-window-buffer
+  (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
-    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
+    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-tmp-toggle-bottom-0-side-window ()
   (interactive)
