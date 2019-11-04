@@ -4574,7 +4574,7 @@ or has one of the listed major modes."
                      (string= (car buffer-group) ,buffer-group-name))
                    rh-buffers-groups)))
             buffer)))
-    nil))
+    rh-bs-sort-by-file-path-interns-are-last))
 
 (defun rh--bs-set-window-height (orig-fun) nil)
 
