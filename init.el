@@ -702,22 +702,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (defvar g2w-side-window-height 15)
 
-(defvar g2w-buffer-groups
-  '((console . "Console Applications")
-    (compiler . "Compilers and Linters")))
-
-(defun g2w-set-buffer-group (buffer-nm group)
-  (with-current-buffer buffer-nm
-    (setq-local g2w-buffer-group group)
-    (put 'g2w-buffer-group 'permanent-local t)))
-
-(defun g2w-kill-buffer-and-delete-window ()
-  (interactive)
-  (kill-buffer (current-buffer))
-  (delete-window))
-
-;; (defvar g2w-next-display-buffer-ref nil)
-
 (defvar g2w-fallback-display-buffer-func
   ;; 'display-buffer-reuse-window)
   'display-buffer-pop-up-window)
@@ -805,8 +789,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (cl-defmacro g2w-condition
     (condition
      &optional
-     (reuse-visible g2w-reuse-visible-default)
-     (group nil))
+     (reuse-visible g2w-reuse-visible-default))
   `(lambda (buffer-nm actions)
      (when (if (stringp ,condition)
                (string-match-p ,condition buffer-nm)
@@ -816,10 +799,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            (setq-local g2w-destination-window current-window)
            (put 'g2w-destination-window 'permanent-local t)
            (setq-local g2w-reuse-visible ,reuse-visible)
-           (put 'g2w-reuse-visible 'permanent-local t)
-           (setq-local g2w-reuse-visible ,reuse-visible)
-           (put 'g2w-reuse-visible 'permanent-local t)
-           (g2w-set-buffer-group buffer-nm ,group))
+           (put 'g2w-reuse-visible 'permanent-local t))
          t))))
 
 (defun g2w-set-destination-window (choice)
@@ -2800,8 +2780,8 @@ fields which we need."
                'compilation-display-error)
 
   :bind (:map compilation-mode-map
-         ("q" . delete-window)
-         ("M-q" . g2w-kill-buffer-and-delete-window)
+         ("q" . rh-bs-bury-buffer-and-delete-window)
+         ("M-q" . rh-bs-kill-buffer-and-delete-window)
          ;; ("<return>" . compilation-display-error)
          ;; ("<kp-enter>" . compilation-display-error)
          ("M-<return>" . compilation-display-error)
@@ -4715,6 +4695,16 @@ or has one of the listed major modes."
     (if side-window
         (rh-bs-delete-bottom-0-side-window)
       (rh-bs-tmp-reopen-bottom-0-side-window))))
+
+(defun rh-bs-kill-buffer-and-delete-window ()
+  (interactive)
+  (kill-buffer (current-buffer))
+  (delete-window))
+
+(defun rh-bs-bury-buffer-and-delete-window ()
+  (interactive)
+  (bury-buffer (current-buffer))
+  (delete-window))
 
 (use-package bs
   :config
