@@ -4770,15 +4770,34 @@ originally do not list it."
                (eq (window-parameter window 'window-slot) 0))
       (delete-window))))
 
-(defface rh-bs-other-config-face
-  '((t (:inherit mode-line)))
-  "Face used for a non-current bs-configuration name."
+(defface rh-bs-current-config-face
+  '((((background light))
+     (:inherit mode-line
+      :weight bold)))
+  "Face used for the current bs-configuration name
+when bs window is active."
   :group 'bs)
 
-(defface rh-bs-current-config-face
-  ;; '((t (:inherit minibuffer-prompt)))
-  '((t (:inherit mode-line-emphasis)))
-  "Face used for the current bs-configuration name."
+(defface rh-bs-current-config-face-inactive
+  '((((background light))
+     (:inherit mode-line-inactive
+      :weight bold)))
+  "Face used for the current bs-configuration name
+when bs window is inactive."
+  :group 'bs)
+
+(defface rh-bs-other-config-face
+  '((((background light))
+     (:inherit mode-line)))
+  "Face used for a non-current bs-configuration name
+when bs window is active."
+  :group 'bs)
+
+(defface rh-bs-other-config-face-inactive
+  '((((background light))
+     (:inherit mode-line-inactive)))
+  "Face used for a non-current bs-configuration name
+when bs window is inactive."
   :group 'bs)
 
 (defcustom rh-bs-other-config-template
@@ -4799,28 +4818,85 @@ bs-configuration name. Use string `%s' to refer to the bs-configuration
 name."
   :group 'bs)
 
-;; Set the mode-line
+(defvar rh-bs-header-line-trim-indicator "›")
+
+(defun rh-bs-make-header-string ()
+  (let* ((active (rh-window-selected-interactively-p))
+         (face (if active
+                   'rh-bs-other-config-face
+                 'rh-bs-other-config-face-inactive))
+         (current-face (if active
+                           'rh-bs-current-config-face
+                         'rh-bs-current-config-face-inactive)))
+    (mapconcat
+     (lambda (conf)
+       (let ((name (car conf)))
+         name
+         (if (string= name bs-current-configuration)
+             (format
+              (propertize rh-bs-current-config-template 'face face)
+              (propertize name 'face current-face))
+           (format
+            (propertize rh-bs-other-config-template 'face face)
+            (propertize name 'face face)))))
+     (seq-filter
+      (lambda (conf)
+        (let ((name (car conf)))
+          (or (string= name bs-current-configuration)
+              (not (rh-bs-buffer-list-empty-p conf)))))
+      bs-configurations)
+     (propertize " " 'face face))))
+
+(defun rh-bs-header-line ()
+  (let* ((header-string (rh-bs-make-header-string))
+         (header-string-width (string-width header-string))
+         (header-filler-width (- (window-total-width) header-string-width)))
+    (if (< header-filler-width 0)
+        (concat
+         (substring header-string
+                    0 (- (window-total-width)
+                         (string-width rh-bs-header-line-trim-indicator)))
+         rh-bs-header-line-trim-indicator)
+      (concat header-string
+              (propertize
+               (make-string header-filler-width ?\ )
+               'face (if (rh-window-selected-interactively-p)
+                         'mode-line
+                       'mode-line-inactive))))))
+
 (add-hook
  'bs-mode-hook
  (lambda ()
-   (setq header-line-format
-         (mapconcat
-          (lambda (conf)
-            (let ((name (car conf)))
-              name
-              (if (string= name bs-current-configuration)
-                  (format
-                   rh-bs-current-config-template
-                   (propertize name 'face 'rh-bs-current-config-face))
-                (format
-                 rh-bs-other-config-template
-                 (propertize name 'face 'rh-bs-other-config-face)))))
-          (seq-filter
-           (lambda (conf)
-             (let ((name (car conf)))
-               (or (string= name bs-current-configuration)
-                   (not (rh-bs-buffer-list-empty-p conf)))))
-           bs-configurations) " "))))
+   (setq-local header-line-format '(:eval (rh-bs-header-line)))))
+
+;; Set the mode-line
+;; (add-hook
+;;  'bs-mode-hook
+;;  (lambda ()
+;;    (setq
+;;     header-line-format
+;;     (propertize
+;;      (mapconcat
+;;       (lambda (conf)
+;;         (let ((name (car conf))
+;;               (active (rh-window-selected-interactively-p)))
+;;           name
+;;           (if (string= name bs-current-configuration)
+;;               (format
+;;                rh-bs-current-config-template
+;;                (propertize name 'face 'rh-bs-current-config-face))
+;;             (format
+;;              rh-bs-other-config-template
+;;              (propertize name 'face 'rh-bs-other-config-face)))))
+;;       (seq-filter
+;;        (lambda (conf)
+;;          (let ((name (car conf)))
+;;            (or (string= name bs-current-configuration)
+;;                (not (rh-bs-buffer-list-empty-p conf)))))
+;;        bs-configurations) " ")
+;;      'face (if (rh-window-selected-interactively-p)
+;;                'mode-line
+;;              'mode-line-inactive)))))
 
 (defun rh-bs-buffer-list-empty-p (conf)
   (let ((bs-current-configuration (nth 0 conf))
