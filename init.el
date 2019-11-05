@@ -4756,7 +4756,7 @@ originally do not list it."
 
 (defun rh-bs-kill-buffer-and-delete-window-if-bottom-0-side ()
   (interactive)
-  (kill-buffer (current-buffer))
+  (kill-buffer)
   (let ((window (frame-selected-window)))
     (when (and (eq (window-parameter window 'window-side) 'bottom)
                (eq (window-parameter window 'window-slot) 0))
@@ -4764,7 +4764,7 @@ originally do not list it."
 
 (defun rh-bs-bury-buffer-and-delete-window-if-bottom-0-side ()
   (interactive)
-  (bury-buffer (current-buffer))
+  (bury-buffer)
     (let ((window (frame-selected-window)))
     (when (and (eq (window-parameter window 'window-side) 'bottom)
                (eq (window-parameter window 'window-slot) 0))
