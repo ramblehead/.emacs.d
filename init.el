@@ -2780,8 +2780,8 @@ fields which we need."
                'compilation-display-error)
 
   :bind (:map compilation-mode-map
-         ("q" . rh-bs-bury-buffer-and-delete-window)
-         ("M-q" . rh-bs-kill-buffer-and-delete-window)
+         ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
+         ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          ;; ("<return>" . compilation-display-error)
          ;; ("<kp-enter>" . compilation-display-error)
          ("M-<return>" . compilation-display-error)
@@ -4549,26 +4549,78 @@ or has one of the listed major modes."
 
 ;; /b/{ bs
 
+(defun rh-bs-buffer-list (orig-fun &optional list sort-description)
+  "Return a list of buffers to be shown.  LIST is a list of buffers to test for
+appearance in Buffer Selection Menu.  The result list depends on the global
+variables `bs-dont-show-regexp', `bs-must-show-regexp', `bs-dont-show-function',
+`bs-must-show-function' and `bs-buffer-sort-function'.  If SORT-DESCRIPTION
+isn't nil the list will be sorted by a special function.  SORT-DESCRIPTION is an
+element of `bs-sort-functions'.
+
+rh had to patch this funtion to remove current buffer from the configs which
+originally do not list it."
+  (setq sort-description (or sort-description bs--current-sort-function)
+	list (or list (buffer-list)))
+  (let ((result nil))
+    (dolist (buf list)
+      (let* ((buffername (buffer-name buf))
+	     (int-show-never (string-match-p bs--intern-show-never buffername))
+	     (ext-show-never (and bs-dont-show-regexp
+				  (string-match-p bs-dont-show-regexp
+						  buffername)))
+	     (extern-must-show (or (and bs-must-always-show-regexp
+					(string-match-p
+					 bs-must-always-show-regexp
+					 buffername))
+				   (and bs-must-show-regexp
+					(string-match-p bs-must-show-regexp
+							buffername))))
+	     (extern-show-never-from-fun (and bs-dont-show-function
+					      (funcall bs-dont-show-function
+						       buf)))
+	     (extern-must-show-from-fun (and bs-must-show-function
+					     (funcall bs-must-show-function
+						      buf)))
+	     (show-flag (buffer-local-value 'bs-buffer-show-mark buf)))
+	(when (or (eq show-flag 'always)
+		  (and (or bs--show-all (not (eq show-flag 'never)))
+		       (not int-show-never)
+		       (or bs--show-all
+			   extern-must-show
+			   extern-must-show-from-fun
+			   (and (not ext-show-never)
+				(not extern-show-never-from-fun)))))
+	  (setq result (cons buf result)))))
+    (setq result (reverse result))
+    ;; The current buffer which was the start point of bs should be an element
+    ;; of result list, so that we can leave with space and be back in the
+    ;; buffer we started bs-show.
+    ;; (when (and bs--buffer-coming-from
+    ;;            (buffer-live-p bs--buffer-coming-from)
+    ;;            (not (memq bs--buffer-coming-from result)))
+    ;;   (setq result (cons bs--buffer-coming-from result)))
+    ;; sorting
+    (if (and sort-description
+	     (nth 1 sort-description))
+	(setq result (sort result (nth 1 sort-description)))
+      ;; else standard sorting
+      (bs-buffer-sort result))))
+
+(advice-add 'bs-buffer-list :around
+            #'rh-bs-buffer-list)
+
 (defun rh-bs-show (arg)
   (interactive "P")
-  ;; (pop-to-buffer-same-window (get-buffer-create "*buffer-selection*") nil)
-  ;; (display-buffer
-  ;;  (get-buffer-create "*buffer-selection*")
-  ;;  '(display-buffer-same-window))
+  (setq bs--buffer-coming-from (current-buffer))
   (switch-to-buffer "*buffer-selection*" t t)
-  (setq bs--buffer-coming-from nil)
   (bs-show arg))
 
 (defun rh-bs-show-in-bottom-0-side-window (arg)
   (interactive "P")
+  (setq bs--buffer-coming-from (current-buffer))
   (select-window
    (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
-
-  ;; (let ((window (rh-bs-reopen-bottom-0-side-window)))
-  ;;   (switch-to-buffer "*buffer-selection*" t t)
-  ;;   (rh-bs-show arg)
-  ;;   (select-window window))
-  )
+  (bs-show arg))
 
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
@@ -4702,15 +4754,21 @@ or has one of the listed major modes."
         (rh-bs-delete-bottom-0-side-window)
       (rh-bs-tmp-reopen-bottom-0-side-window))))
 
-(defun rh-bs-kill-buffer-and-delete-window ()
+(defun rh-bs-kill-buffer-and-delete-window-if-bottom-0-side ()
   (interactive)
   (kill-buffer (current-buffer))
-  (delete-window))
+  (let ((window (frame-selected-window)))
+    (when (and (eq (window-parameter window 'window-side) 'bottom)
+               (eq (window-parameter window 'window-slot) 0))
+      (delete-window))))
 
-(defun rh-bs-bury-buffer-and-delete-window ()
+(defun rh-bs-bury-buffer-and-delete-window-if-bottom-0-side ()
   (interactive)
   (bury-buffer (current-buffer))
-  (delete-window))
+    (let ((window (frame-selected-window)))
+    (when (and (eq (window-parameter window 'window-side) 'bottom)
+               (eq (window-parameter window 'window-slot) 0))
+      (delete-window))))
 
 (defface rh-bs-other-config-face
   '((t (:inherit mode-line)))
@@ -4776,6 +4834,64 @@ name."
     (or (null list)
         (and (= (length list) 1)
              (eq (car list) bs--buffer-coming-from)))))
+
+(defun rh-bs-prev-config-aux (start-name list)
+  "Get the previous assoc before START-NAME in list LIST.
+Will return the last if START-NAME is at start."
+  (let ((assocs list)
+	(length (length list))
+	pos)
+    (while (and assocs (not pos))
+      (when (string= (car (car assocs)) start-name)
+	(setq pos (- length (length assocs))))
+      (setq assocs (cdr assocs)))
+    (if (eq pos 0)
+	(nth (1- length) list)
+      (nth (1- pos) list))))
+
+(defun rh-bs-prev-config (name)
+  "Return previous configuration with respect to configuration with name NAME."
+  (rh-bs-prev-config-aux name bs-configurations))
+
+(defun rh-bs-select-previous-configuration (&optional start-name)
+  "Apply previous configuration to START-NAME and refresh buffer list.
+If START-NAME is nil the current configuration `bs-current-configuration'
+will be used."
+  (interactive)
+  (let* ((conf-first
+          (rh-bs-prev-config (or start-name bs-current-configuration)))
+         (conf conf-first)
+         (check-prev t))
+    (while (and (rh-bs-buffer-list-empty-p conf) check-prev)
+      (setq conf (rh-bs-prev-config (car conf)))
+      (when (eq conf conf-first)
+        (setq check-prev nil)
+        (setq conf bs-current-configuration)))
+    (bs-set-configuration (car conf))
+    (setq bs-default-configuration bs-current-configuration)
+    (bs--redisplay t)
+    (bs--set-window-height)
+    (bs-message-without-log "Selected configuration: %s" (car conf))))
+
+(defun rh-bs-select-next-configuration (&optional start-name)
+  "Apply next configuration START-NAME and refresh buffer list.
+If START-NAME is nil the current configuration `bs-current-configuration'
+will be used."
+  (interactive)
+  (let* ((conf-first
+          (bs-next-config (or start-name bs-current-configuration)))
+         (conf conf-first)
+         (check-next t))
+    (while (and (rh-bs-buffer-list-empty-p conf) check-next)
+      (setq conf (bs-next-config (car conf)))
+      (when (eq conf conf-first)
+        (setq check-next nil)
+        (setq conf bs-current-configuration)))
+    (bs-set-configuration (car conf))
+    (setq bs-default-configuration bs-current-configuration)
+    (bs--redisplay t)
+    (bs--set-window-height)
+    (bs-message-without-log "Selected configuration: %s" (car conf))))
 
 (use-package bs
   :config
@@ -4851,6 +4967,8 @@ name."
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
          ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
          :map bs-mode-map
+         ("<" . rh-bs-select-previous-configuration)
+         (">" . rh-bs-select-next-configuration)
          ("M-<return>" . rh-bs-tmp-ace-select-other-window)
          ("M-<kp-enter>" . rh-bs-tmp-ace-select-other-window)
          ("C-<return>" . rh-bs-ace-select-other-window)
@@ -4859,7 +4977,8 @@ name."
          ("S-<kp-enter>" . rh-bs-tmp-select-bottom-0-side-window)
          ("S-C-<return>" . rh-bs-select-bottom-0-side-window)
          ("S-C-<kp-enter>" . rh-bs-select-bottom-0-side-window)
-         ("q" . bury-buffer))
+         ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
+         ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side))
   :demand t
   :ensure t)
 
