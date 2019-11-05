@@ -4869,35 +4869,6 @@ name."
  (lambda ()
    (setq-local header-line-format '(:eval (rh-bs-header-line)))))
 
-;; Set the mode-line
-;; (add-hook
-;;  'bs-mode-hook
-;;  (lambda ()
-;;    (setq
-;;     header-line-format
-;;     (propertize
-;;      (mapconcat
-;;       (lambda (conf)
-;;         (let ((name (car conf))
-;;               (active (rh-window-selected-interactively-p)))
-;;           name
-;;           (if (string= name bs-current-configuration)
-;;               (format
-;;                rh-bs-current-config-template
-;;                (propertize name 'face 'rh-bs-current-config-face))
-;;             (format
-;;              rh-bs-other-config-template
-;;              (propertize name 'face 'rh-bs-other-config-face)))))
-;;       (seq-filter
-;;        (lambda (conf)
-;;          (let ((name (car conf)))
-;;            (or (string= name bs-current-configuration)
-;;                (not (rh-bs-buffer-list-empty-p conf)))))
-;;        bs-configurations) " ")
-;;      'face (if (rh-window-selected-interactively-p)
-;;                'mode-line
-;;              'mode-line-inactive)))))
-
 (defun rh-bs-buffer-list-empty-p (conf)
   (let ((bs-current-configuration (nth 0 conf))
         (bs-must-show-regexp      (nth 1 conf))
