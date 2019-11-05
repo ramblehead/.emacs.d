@@ -4982,10 +4982,6 @@ will be used."
   :demand t
   :ensure t)
 
-;; (use-package bs-ext
-;;   :demand t
-;;   :pin manual)
-
 ;; /b/} bs
 
 ;; /b/{ bm
