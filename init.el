@@ -4556,13 +4556,19 @@ or has one of the listed major modes."
   ;;  (get-buffer-create "*buffer-selection*")
   ;;  '(display-buffer-same-window))
   (switch-to-buffer "*buffer-selection*" t t)
+  (setq bs--buffer-coming-from nil)
   (bs-show arg))
 
 (defun rh-bs-show-in-bottom-0-side-window (arg)
   (interactive "P")
-  (let ((window (rh-bs-reopen-bottom-0-side-window)))
-    (rh-bs-show arg)
-    (select-window window)))
+  (select-window
+   (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
+
+  ;; (let ((window (rh-bs-reopen-bottom-0-side-window)))
+  ;;   (switch-to-buffer "*buffer-selection*" t t)
+  ;;   (rh-bs-show arg)
+  ;;   (select-window window))
+  )
 
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
@@ -4706,6 +4712,71 @@ or has one of the listed major modes."
   (bury-buffer (current-buffer))
   (delete-window))
 
+(defface rh-bs-other-config-face
+  '((t (:inherit mode-line)))
+  "Face used for a non-current bs-configuration name."
+  :group 'bs)
+
+(defface rh-bs-current-config-face
+  ;; '((t (:inherit minibuffer-prompt)))
+  '((t (:inherit mode-line-emphasis)))
+  "Face used for the current bs-configuration name."
+  :group 'bs)
+
+(defcustom rh-bs-other-config-template
+  "%s"
+  "String template for displaying other bs-configurations.
+
+This is the template string that will be applied to a non-current
+bs-configuration name. Use string `%s' to refer to the bs-configuration
+name."
+  :group 'bs)
+
+(defcustom rh-bs-current-config-template
+  "[%s]"
+  "String template for displaying the current bs-configuration.
+
+This is the template string that will be applied to the current
+bs-configuration name. Use string `%s' to refer to the bs-configuration
+name."
+  :group 'bs)
+
+;; Set the mode-line
+(add-hook
+ 'bs-mode-hook
+ (lambda ()
+   (setq header-line-format
+         (mapconcat
+          (lambda (conf)
+            (let ((name (car conf)))
+              name
+              (if (string= name bs-current-configuration)
+                  (format
+                   rh-bs-current-config-template
+                   (propertize name 'face 'rh-bs-current-config-face))
+                (format
+                 rh-bs-other-config-template
+                 (propertize name 'face 'rh-bs-other-config-face)))))
+          (seq-filter
+           (lambda (conf)
+             (let ((name (car conf)))
+               (or (string= name bs-current-configuration)
+                   (not (rh-bs-buffer-list-empty-p conf)))))
+           bs-configurations) " "))))
+
+(defun rh-bs-buffer-list-empty-p (conf)
+  (let ((bs-current-configuration (nth 0 conf))
+        (bs-must-show-regexp      (nth 1 conf))
+        (bs-must-show-function    (nth 2 conf))
+        (bs-dont-show-regexp      (nth 3 conf))
+        (bs-dont-show-function    (nth 4 conf))
+        (bs-buffer-sort-function  (nth 5 conf))
+        list)
+    (setq list (bs-buffer-list))
+    (or (null list)
+        (and (= (length list) 1)
+             (eq (car list) bs--buffer-coming-from)))))
+
 (use-package bs
   :config
   (add-to-list
@@ -4792,9 +4863,9 @@ or has one of the listed major modes."
   :demand t
   :ensure t)
 
-(use-package bs-ext
-  :demand t
-  :pin manual)
+;; (use-package bs-ext
+;;   :demand t
+;;   :pin manual)
 
 ;; /b/} bs
 
