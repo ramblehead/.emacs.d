@@ -4470,7 +4470,7 @@ or buffer major mode symbol")
     "^\\*Quail Completions\\*$"
     "^\\*Messages\\*$"
     "^\\*clang-output\\*$"
-    "^\\*clang error\\*$"
+    "^\\*clang-error\\*$"
     "^\\*Semantic SymRef\\*$"
     "^\\*Recent Files\\*$"
     "^\\*Directory\\*$"
@@ -4548,6 +4548,8 @@ or has one of the listed major modes."
 ;; /b/} ifilipb
 
 ;; /b/{ bs
+
+;; (setq bs--intern-show-never "\\*buffer-selection\\*")
 
 (defun rh-bs-buffer-list (orig-fun &optional list sort-description)
   "Return a list of buffers to be shown.  LIST is a list of buffers to test for
