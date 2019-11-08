@@ -4551,6 +4551,26 @@ or has one of the listed major modes."
 
 ;; (setq bs--intern-show-never "\\*buffer-selection\\*")
 
+(defvar bs-rh-context-dir-marker ".rh-context")
+
+(defun bs-rh-get-buffer-context (buffer-or-name)
+  (let* ((buffer-path (with-current-buffer buffer-or-name
+                        (or buffer-file-name default-directory)))
+         (context-dir (locate-dominating-file
+                       (file-name-directory buffer-path)
+                       bs-rh-context-dir-marker)))
+    (when context-dir (abbreviate-file-name context-dir))))
+
+(defun bs-rh-get-available-buffer-contexts ()
+  (let ((buffers (buffer-list)))
+    (seq-reduce
+     (lambda (contexts buffer)
+       (let ((buffer-context (bs-rh-get-buffer-context buffer)))
+         (when buffer-context
+           (add-to-list 'contexts buffer-context t))
+         contexts))
+     buffers '())))
+
 (defun rh-bs-buffer-list (orig-fun &optional list sort-description)
   "Return a list of buffers to be shown.  LIST is a list of buffers to test for
 appearance in Buffer Selection Menu.  The result list depends on the global
