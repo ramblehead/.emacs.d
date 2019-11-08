@@ -4555,7 +4555,8 @@ or has one of the listed major modes."
 
 (defun bs-rh-get-buffer-context (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
-                        (or buffer-file-name default-directory)))
+                        (or buffer-file-name
+                            default-directory)))
          (context-dir (locate-dominating-file
                        (file-name-directory buffer-path)
                        bs-rh-context-dir-marker)))
