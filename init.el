@@ -4621,7 +4621,7 @@ originally do not list it."
   (interactive "P")
   (setq bs--buffer-coming-from (current-buffer))
   (select-window
-   (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
+   (rh--bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
   (bs-show arg))
 
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
@@ -4688,9 +4688,16 @@ originally do not list it."
 
 (defun rh-bs-ace-select-other-window ()
   (interactive)
-  (let ((buffer (bs--current-buffer)))
+  (let* ((bs-window (frame-selected-window))
+         (orig-window-bootom-0-side-p
+          (rh--bs-window-bootom-0-side-p bs-window))
+         (target-buffer (bs--current-buffer)))
     (ace-select-window)
-    (switch-to-buffer buffer)))
+    (switch-to-buffer target-buffer)
+    (if orig-window-bootom-0-side-p
+        (rh-bs-tmp-reopen-bottom-0-side-window)
+      (with-selected-window bs-window
+        (bury-buffer)))))
 
 (defun rh-bs-tmp-ace-select-other-window ()
   (interactive)
@@ -4702,7 +4709,7 @@ originally do not list it."
 (defvar rh-bs-bottom-0-side-window-buffer
   nil)
 
-(defun rh-bs-display-buffer-in-bootom-0-side-window (buffer-or-name)
+(defun rh--bs-display-buffer-in-bootom-0-side-window (buffer-or-name)
   (display-buffer-in-side-window
    (get-buffer-create buffer-or-name)
    `((side . bottom)
@@ -4718,18 +4725,22 @@ originally do not list it."
             (eq (window-parameter window 'window-slot) 0)))
      windows)))
 
+(defun rh--bs-window-bootom-0-side-p (window)
+  (and (eq (window-parameter window 'window-side) 'bottom)
+       (eq (window-parameter window 'window-slot) 0)))
+
 (defun rh-bs-tmp-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (setq rh-bs-bottom-0-side-window-buffer buffer)
-    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
+    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (setq rh-bs-bottom-0-side-window-buffer buffer)
     (select-window
-     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
+     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-delete-bottom-0-side-window ()
   (interactive)
@@ -4741,13 +4752,13 @@ originally do not list it."
   (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
     (select-window
-     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
+     (rh--bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-tmp-reopen-bottom-0-side-window ()
   (interactive)
   (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
-    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
+    (rh--bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-tmp-toggle-bottom-0-side-window ()
   (interactive)
@@ -4949,7 +4960,7 @@ will be used."
    `(,(g2w-condition
        (lambda (buffer-nm action)
          (eq (with-current-buffer buffer-nm major-mode)
-             'bsq-mode))
+             'bs-mode))
        nil)
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
