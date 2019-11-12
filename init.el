@@ -4500,20 +4500,31 @@ The buffer value can be either buffer name regex or buffer major mode symbol")
         (append (car (cdr buffer-group))
                 rh-buffers-not-files)))
 
+;; (defun rh-buffers-match (regexp-or-mode-list buffer)
+;;   "Return non-nil if buffer either matches anything in listed regexps
+;; or has one of the listed major modes."
+;;   (let ((case-fold-search nil))
+;;     (catch 'done
+;;       (dolist (regexp-or-mode regexp-or-mode-list)
+;;         (if (stringp regexp-or-mode)
+;;             (let ((regexp regexp-or-mode)
+;;                   (name (buffer-name buffer)))
+;;               (when (string-match-p regexp name)
+;;                 (throw 'done t)))
+;;           (let ((mode regexp-or-mode))
+;;             (when (eq (with-current-buffer buffer major-mode) mode)
+;;               (throw 'done t))))))))
+
 (defun rh-buffers-match (regexp-or-mode-list buffer)
   "Return non-nil if buffer either matches anything in listed regexps
 or has one of the listed major modes."
   (let ((case-fold-search nil))
-    (catch 'done
-      (dolist (regexp-or-mode regexp-or-mode-list)
-        (if (stringp regexp-or-mode)
-            (let ((regexp regexp-or-mode)
-                  (name (buffer-name buffer)))
-              (when (string-match regexp name)
-                (throw 'done t)))
-          (let ((mode regexp-or-mode))
-            (when (eq (with-current-buffer buffer major-mode) mode)
-              (throw 'done t))))))))
+    (seq-find
+     (lambda (regexp-or-mode)
+       (if (stringp regexp-or-mode)
+           (string-match-p regexp-or-mode (buffer-name buffer))
+         (eq (with-current-buffer buffer major-mode) regexp-or-mode)))
+     regexp-or-mode-list)))
 
 ;; Example:
 ;; Makefile.am, Makefile.am<3> etc.  to
@@ -4698,6 +4709,19 @@ originally do not list it."
   (select-window
    (rh--bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
   (bs-show arg))
+
+;; (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
+;;   `(,buffer-group-name nil nil nil
+;;     (lambda (buffer)
+;;       (not (and (rh-bs-context-show-buffer-p buffer)
+;;                 (rh-buffers-match
+;;                  (car (cdr
+;;                        (seq-find
+;;                         (lambda (buffer-group)
+;;                           (string= (car buffer-group) ,buffer-group-name))
+;;                         rh-buffers-groups)))
+;;                  buffer))))
+;;     rh-bs-sort-by-file-path-interns-are-last))
 
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
