@@ -4551,23 +4551,78 @@ or has one of the listed major modes."
 
 ;; (setq bs--intern-show-never "\\*buffer-selection\\*")
 
-(defvar bs-rh-context-dir-marker ".rh-context")
+(defvar rh-bs-context-enabled t)
+(defvar rh-bs-context-show-buffers-whith-no-contexts t)
+(defvar rh-bs-context-current nil)
+(defvar rh-bs-context-dir-name ".rh-context")
 
-(defun bs-rh-get-buffer-context (buffer-or-name)
+(defun rh-bs-context-show-buffer-p (buffer)
+  (if (or (not rh-bs-context-enabled)
+          (null rh-bs-context-current))
+      t
+    (let ((buffer-contexts (rh-bs-context-get-buffer-contexts buffer)))
+      (if (null buffer-contexts)
+          (if rh-bs-context-show-buffers-whith-no-contexts t nil)
+        (member rh-bs-context-current buffer-contexts)))))
+
+(defun rh-bs-context-select (context)
+  (interactive
+   (let ((available-contexts (rh-bs-context-get-available-contexts))
+         (completion-ignore-case  t))
+     (if available-contexts
+         (list (completing-read "rh-context: "
+                                available-contexts
+                                nil t nil nil rh-bs-context-current))
+       '(nil))))
+  (if (not context)
+      (message "Opened buffers have no rh-context.")
+    (setq rh-bs-context-current context)
+    ;; TODO: update all bs windows
+    (message "Selected rh-context: %s" context)))
+
+(defun rh-bs-context-unselect ()
+  (interactive)
+  (setq rh-bs-context-current nil)
+  (message "Unselected all rh-contexts."))
+
+(defun rh-bs-context-get-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
                         (or buffer-file-name default-directory)))
          (context-dir (locate-dominating-file
-                       (file-name-directory buffer-path)
-                       bs-rh-context-dir-marker)))
-    (when context-dir (abbreviate-file-name context-dir))))
+                       (file-name-as-directory buffer-path)
+                       rh-bs-context-dir-name))
+         context-dir-symlinks contexts)
+    (when context-dir
+      (setq context-dir
+            (file-name-as-directory
+             (concat context-dir rh-bs-context-dir-name)))
+      (setq context-dir-symlinks
+            (seq-filter
+             #'file-symlink-p
+             (directory-files context-dir t nil t)))
+      (when context-dir-symlinks
+        (setq contexts
+              (seq-map
+               (lambda (symlink)
+                 (abbreviate-file-name (file-chase-links symlink)))
+               context-dir-symlinks)))
+      (add-to-list
+       'contexts
+       (directory-file-name
+        (abbreviate-file-name
+         (file-chase-links
+          (file-name-directory (directory-file-name context-dir)))))
+       t #'string=)
+      contexts)))
 
-(defun bs-rh-get-available-buffer-contexts ()
+(defun rh-bs-context-get-available-contexts ()
   (let ((buffers (buffer-list)))
     (seq-reduce
      (lambda (contexts buffer)
-       (let ((buffer-context (bs-rh-get-buffer-context buffer)))
-         (when buffer-context
-           (add-to-list 'contexts buffer-context t))
+       (let ((buffer-contexts (rh-bs-context-get-buffer-contexts buffer)))
+         (when buffer-contexts
+           (dolist (buffer-context buffer-contexts)
+             (add-to-list 'contexts buffer-context t)))
          contexts))
      buffers '())))
 
@@ -4589,7 +4644,7 @@ originally do not list it."
 	     (int-show-never (string-match-p bs--intern-show-never buffername))
 	     (ext-show-never (and bs-dont-show-regexp
 				  (string-match-p bs-dont-show-regexp
-						  buffername)))
+					  buffername)))
 	     (extern-must-show (or (and bs-must-always-show-regexp
 					(string-match-p
 					 bs-must-always-show-regexp
