@@ -4560,43 +4560,51 @@ or has one of the listed major modes."
 
 ;; /b/{ bs
 
-;; (setq bs--intern-show-never "\\*buffer-selection\\*")
+(setq bs--intern-show-never "\\*buffer-selection\\*")
 
-(defvar rh-bs-context-enabled t)
-(defvar rh-bs-context-show-buffers-whith-no-contexts t)
-(defvar rh-bs-context-current nil)
+(defvar rh-bs-context-current nil
+  "RH-BS-CONTEXT-CURRENT can be either:
+* rh-context string id to only show buffers from that rh-context;
+* no-context symbol to only show buffers with no rh-context;
+* nil to show all buffers regardless of their rh-context.")
+
 (defvar rh-bs-context-dir-name ".rh-context")
 
 (defun rh-bs-context-show-buffer-p (buffer)
-  (if (or (not rh-bs-context-enabled)
-          (null rh-bs-context-current))
+  (if (null rh-bs-context-current)
       t
     (let ((buffer-contexts (rh-bs-context-get-buffer-contexts buffer)))
       (if (null buffer-contexts)
-          (if rh-bs-context-show-buffers-whith-no-contexts t nil)
+          (if (eq rh-bs-context-current 'no-context) t nil)
         (member rh-bs-context-current buffer-contexts)))))
 
 (defun rh-bs-context-select (context)
   (interactive
-   (let ((available-contexts (rh-bs-context-get-available-contexts))
-         (completion-ignore-case  t))
-     (if available-contexts
-         (list (completing-read "rh-context: "
-                                available-contexts
-                                nil t nil nil rh-bs-context-current))
-       '(nil))))
-  (if (not context)
-      (message "Opened buffers have no rh-context.")
-    (setq rh-bs-context-current context)
-    ;; TODO: update all bs windows
-    (message "Selected rh-context: %s" context)))
+   (let* ((any-context-message "nil (all buffers regardless of rh-context)")
+          (no-context-message "no-context (buffers with no rh-context)")
+          (available-contexts
+           (append (list any-context-message no-context-message)
+                   (rh-bs-context-get-available-contexts)))
+          (completion-ignore-case  t)
+          read-result)
+     (setq read-result
+           (completing-read
+            "rh-context: "
+            available-contexts
+            nil t nil nil
+            (cond
+             ((eq rh-bs-context-current nil) any-context-message)
+             ((eq rh-bs-context-current 'no-context) no-context-message)
+             (t rh-bs-context-current))))
+     (list (cond
+             ((string= read-result any-context-message) nil)
+             ((string= read-result no-context-message) 'no-context)
+             (t read-result)))))
+  (setq rh-bs-context-current context)
+  ;; TODO: update all bs windows or add update hook
+  (message "Current rh-context: %s" context))
 
-(defun rh-bs-context-unselect ()
-  (interactive)
-  (setq rh-bs-context-current nil)
-  (message "Unselected all rh-contexts."))
-
-(defun rh-bs-context-get-buffer-contexts (buffer-or-name)
+(defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
                         (or buffer-file-name default-directory)))
          (context-dir (locate-dominating-file
@@ -4625,6 +4633,23 @@ or has one of the listed major modes."
           (file-name-directory (directory-file-name context-dir)))))
        t #'string=)
       contexts)))
+
+(defun rh-bs-context-compute-all-buffers-contexts ()
+  (interactive)
+  (let ((buffers (buffer-list)))
+    (seq-do
+     (lambda (buffer)
+       (with-current-buffer buffer
+         (setq-local rh-bs-context-buffer-contexts
+                     (rh-bs-context-compute-buffer-contexts buffer))))
+     buffers)))
+
+(defun rh-bs-context-get-buffer-contexts (buffer-or-name)
+  (with-current-buffer buffer-or-name
+    (if (local-variable-p 'rh-bs-context-buffer-contexts)
+        rh-bs-context-buffer-contexts
+      (setq-local rh-bs-context-buffer-contexts
+                  (rh-bs-context-compute-buffer-contexts buffer-or-name)))))
 
 (defun rh-bs-context-get-available-contexts ()
   (let ((buffers (buffer-list)))
@@ -4710,30 +4735,30 @@ originally do not list it."
    (rh--bs-display-buffer-in-bootom-0-side-window "*buffer-selection*"))
   (bs-show arg))
 
-;; (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
-;;   `(,buffer-group-name nil nil nil
-;;     (lambda (buffer)
-;;       (not (and (rh-bs-context-show-buffer-p buffer)
-;;                 (rh-buffers-match
-;;                  (car (cdr
-;;                        (seq-find
-;;                         (lambda (buffer-group)
-;;                           (string= (car buffer-group) ,buffer-group-name))
-;;                         rh-buffers-groups)))
-;;                  buffer))))
-;;     rh-bs-sort-by-file-path-interns-are-last))
-
 (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
     (lambda (buffer)
-      (not (rh-buffers-match
-            (car (cdr
-                  (seq-find
-                   (lambda (buffer-group)
-                     (string= (car buffer-group) ,buffer-group-name))
-                   rh-buffers-groups)))
-            buffer)))
+      (not (and (rh-bs-context-show-buffer-p buffer)
+                (rh-buffers-match
+                 (car (cdr
+                       (seq-find
+                        (lambda (buffer-group)
+                          (string= (car buffer-group) ,buffer-group-name))
+                        rh-buffers-groups)))
+                 buffer))))
     rh-bs-sort-by-file-path-interns-are-last))
+
+;; (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
+;;   `(,buffer-group-name nil nil nil
+;;     (lambda (buffer)
+;;       (not (rh-buffers-match
+;;             (car (cdr
+;;                   (seq-find
+;;                    (lambda (buffer-group)
+;;                      (string= (car buffer-group) ,buffer-group-name))
+;;                    rh-buffers-groups)))
+;;             buffer)))
+;;     rh-bs-sort-by-file-path-interns-are-last))
 
 (defun rh--bs-set-window-height (orig-fun) nil)
 
@@ -4976,9 +5001,13 @@ name."
                          'mode-line
                        'mode-line-inactive))))))
 
+(defun rh-bs-mode-line ()
+  (concat "rh-context: " rh-bs-context-current))
+
 (add-hook
  'bs-mode-hook
  (lambda ()
+   (setq-local mode-line-format '(:eval (rh-bs-mode-line)))
    (setq-local header-line-format '(:eval (rh-bs-header-line)))))
 
 (defun rh-bs-buffer-list-empty-p (conf)
@@ -5078,9 +5107,8 @@ will be used."
    '(("all" nil nil nil nil rh-bs-sort-by-file-path-interns-are-last)
      ("files" nil nil nil
       (lambda (buffer)
-        (rh-buffers-match
-         rh-buffers-not-files
-         buffer))
+        (or (not (rh-bs-context-show-buffer-p buffer))
+            (rh-buffers-match rh-buffers-not-files buffer)))
       rh-bs-sort-by-file-path-interns-are-last)))
 
   (dolist (buffer-group rh-buffers-groups)
