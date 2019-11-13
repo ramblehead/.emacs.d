@@ -5002,7 +5002,11 @@ name."
                        'mode-line-inactive))))))
 
 (defun rh-bs-mode-line ()
-  (concat "rh-context: " rh-bs-context-current))
+  (concat
+   "of "
+   (number-to-string (length (bs-buffer-list)))
+   " rh-context: "
+   rh-bs-context-current))
 
 (add-hook
  'bs-mode-hook
