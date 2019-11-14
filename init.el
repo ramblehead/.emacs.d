@@ -2062,7 +2062,9 @@ fields which we need."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  ;; (add-to-list 'g2w-display-buffer-reuse-window-commands 'ivy-occur-press-and-switch)
+  (add-to-list 'g2w-display-buffer-reuse-window-commands
+               'ivy-occur-press-and-switch)
+
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'compile-goto-error)
 
@@ -2104,9 +2106,9 @@ fields which we need."
          ("C-v" . nil)
          ("M-v" . nil)
          :map ivy-occur-grep-mode-map
-         ("RET" . compile-goto-error)
-         ("M-<return>" . compilation-display-error)
-         ("M-<kp-enter>" . compilation-display-error))
+         ("RET" . ivy-occur-press-and-switch)
+         ("M-<return>" . ivy-occur-press)
+         ("M-<kp-enter>" . ivy-occur-press))
 
   :demand t
   :ensure t)
@@ -4562,47 +4564,37 @@ or has one of the listed major modes."
 
 (setq bs--intern-show-never "\\*buffer-selection\\*")
 
-(defvar rh-bs-context-current nil
+(defvar rh-bs-context-current "any"
   "RH-BS-CONTEXT-CURRENT can be either:
 * rh-context string id to only show buffers from that rh-context;
-* no-context symbol to only show buffers with no rh-context;
-* nil to show all buffers regardless of their rh-context.")
+* \"any\" symbol to show all buffers regardless of their rh-context.
+* \"none\" to only show buffers with no rh-context;")
 
 (defvar rh-bs-context-dir-name ".rh-context")
 
 (defun rh-bs-context-show-buffer-p (buffer)
-  (if (null rh-bs-context-current)
+  (if (string= rh-bs-context-current "any")
       t
     (let ((buffer-contexts (rh-bs-context-get-buffer-contexts buffer)))
       (if (null buffer-contexts)
-          (if (eq rh-bs-context-current 'no-context) t nil)
+          (if (string= rh-bs-context-current "none") t nil)
         (member rh-bs-context-current buffer-contexts)))))
 
 (defun rh-bs-context-select (context)
   (interactive
-   (let* ((any-context-message "nil (all buffers regardless of rh-context)")
-          (no-context-message "no-context (buffers with no rh-context)")
-          (available-contexts
-           (append (list any-context-message no-context-message)
-                   (rh-bs-context-get-available-contexts)))
-          (completion-ignore-case  t)
-          read-result)
-     (setq read-result
-           (completing-read
+   (let ((available-contexts
+          (append '("any" "none")
+                  (rh-bs-context-get-available-contexts)))
+         (completion-ignore-case  t)
+         read-result)
+     (list (completing-read
             "rh-context: "
             available-contexts
             nil t nil nil
-            (cond
-             ((eq rh-bs-context-current nil) any-context-message)
-             ((eq rh-bs-context-current 'no-context) no-context-message)
-             (t rh-bs-context-current))))
-     (list (cond
-             ((string= read-result any-context-message) nil)
-             ((string= read-result no-context-message) 'no-context)
-             (t read-result)))))
+            rh-bs-context-current))))
   (setq rh-bs-context-current context)
   ;; TODO: update all bs windows or add update hook
-  (message "Current rh-context: %s" context))
+  (message "Current rh-context: %s" rh-bs-context-current))
 
 (defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
@@ -4721,6 +4713,13 @@ originally do not list it."
 
 (advice-add 'bs-buffer-list :around
             #'rh-bs-buffer-list)
+
+(setq bs-header-lines-length 0)
+
+(defun rh--bs-show-header (orig-fun) nil)
+
+(advice-add 'bs--show-header :around
+            #'rh--bs-show-header)
 
 (defun rh-bs-show (arg)
   (interactive "P")
@@ -5002,11 +5001,12 @@ name."
                        'mode-line-inactive))))))
 
 (defun rh-bs-mode-line ()
-  (concat
-   "of "
-   (number-to-string (length (bs-buffer-list)))
-   " rh-context: "
-   rh-bs-context-current))
+  (let ((buffer (bs--current-buffer))
+        (buffer-list (bs-buffer-list)))
+    (concat
+     (number-to-string (length buffer-list))
+     " buffers in rh-context: "
+     rh-bs-context-current)))
 
 (add-hook
  'bs-mode-hook
@@ -5108,7 +5108,13 @@ will be used."
 
   (setq
    bs-configurations
-   '(("all" nil nil nil nil rh-bs-sort-by-file-path-interns-are-last)
+   '(("sys" nil nil nil nil
+      rh-bs-sort-by-file-path-interns-are-last)
+     ("all" nil nil nil
+      (lambda (buffer)
+        (or (not (rh-bs-context-show-buffer-p buffer))
+            (rh-buffers-match '("\\` ") buffer)))
+      rh-bs-sort-by-file-path-interns-are-last)
      ("files" nil nil nil
       (lambda (buffer)
         (or (not (rh-bs-context-show-buffer-p buffer))
