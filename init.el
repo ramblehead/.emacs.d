@@ -4596,9 +4596,8 @@ rh-context changed.")
             rh-bs-context-current))))
   (unless (string= rh-bs-context-current context)
     (setq rh-bs-context-current context)
-    (run-hooks 'rh-bs-context-changed-hook))
-  ;; TODO: update all bs windows or add update hook
-  (message "Current rh-context: %s" rh-bs-context-current))
+    (run-hooks 'rh-bs-context-changed-hook)
+    (message "Selected rh-context: %s" rh-bs-context-current)))
 
 (defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
