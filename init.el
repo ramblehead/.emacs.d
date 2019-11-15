@@ -4562,7 +4562,9 @@ or has one of the listed major modes."
 
 ;; /b/{ bs
 
-(setq bs--intern-show-never "\\*buffer-selection\\*")
+(defvar rh-bs-context-changed-hook nil
+  "List of hook functions that are called by `rh-bs-context-select' after
+rh-context changed.")
 
 (defvar rh-bs-context-current "any"
   "RH-BS-CONTEXT-CURRENT can be either:
@@ -4592,7 +4594,9 @@ or has one of the listed major modes."
             available-contexts
             nil t nil nil
             rh-bs-context-current))))
-  (setq rh-bs-context-current context)
+  (unless (string= rh-bs-context-current context)
+    (setq rh-bs-context-current context)
+    (run-hooks 'rh-bs-context-changed-hook))
   ;; TODO: update all bs windows or add update hook
   (message "Current rh-context: %s" rh-bs-context-current))
 
@@ -4654,7 +4658,11 @@ or has one of the listed major modes."
          contexts))
      buffers '())))
 
-(defun rh-bs-buffer-list (orig-fun &optional list sort-description)
+;; /b/{ bs patches
+
+(setq bs--intern-show-never "\\*buffer-selection\\*")
+
+(defun rh-bs-buffer-list (&optional list sort-description)
   "Return a list of buffers to be shown.  LIST is a list of buffers to test for
 appearance in Buffer Selection Menu.  The result list depends on the global
 variables `bs-dont-show-regexp', `bs-must-show-regexp', `bs-dont-show-function',
@@ -4697,6 +4705,9 @@ originally do not list it."
 				(not extern-show-never-from-fun)))))
 	  (setq result (cons buf result)))))
     (setq result (reverse result))
+    ;; ***** ramblehead does not agree with the following statement as
+    ;;       the current buffer should respect bs-configurations - the same as
+    ;;       all other buffers - no exceptions!
     ;; The current buffer which was the start point of bs should be an element
     ;; of result list, so that we can leave with space and be back in the
     ;; buffer we started bs-show.
@@ -4711,15 +4722,76 @@ originally do not list it."
       ;; else standard sorting
       (bs-buffer-sort result))))
 
-(advice-add 'bs-buffer-list :around
+(advice-add 'bs-buffer-list :override
             #'rh-bs-buffer-list)
 
-(setq bs-header-lines-length 0)
+;; (setq bs-header-lines-length 0)
 
-(defun rh--bs-show-header (orig-fun) nil)
+;; (defun rh--bs-show-header () nil)
 
-(advice-add 'bs--show-header :around
-            #'rh--bs-show-header)
+;; (advice-add 'bs--show-header :override
+;;             #'rh--bs-show-header)
+
+;; (defun rh-bs-show-in-buffer (list)
+;;   "Display buffer list LIST in buffer *buffer-selection*.
+;; Select buffer *buffer-selection* and display buffers according to current
+;; configuration `bs-current-configuration'.  Set window height, fontify buffer
+;; and move point to current buffer."
+;;   (setq bs-current-list list)
+;;   (switch-to-buffer (get-buffer-create "*buffer-selection*"))
+;;   (bs-mode)
+;;   (let* ((inhibit-read-only t)
+;; 	 (map-fun (lambda (entry)
+;; 		    (string-width (buffer-name entry))))
+;; 	 (max-length-of-names (apply 'max
+;; 				     (cons 0 (mapcar map-fun list))))
+;; 	 (name-entry-length (min bs-maximal-buffer-name-column
+;; 				 (max bs-minimal-buffer-name-column
+;; 				      max-length-of-names))))
+;;     (erase-buffer)
+;;     (setq bs--name-entry-length name-entry-length)
+;;     (bs--show-header)
+;;     (dolist (buffer list)
+;;       (bs--insert-one-entry buffer)
+;;       (insert "\n"))
+;;     ;; ***** ramblehead added the following unless condition
+;;     ;;       to safeguard cases when bs header is not shown
+;;     ;;       and the buffer list is empty.
+;;     (unless (bobp) (delete-char -1))
+;;     (bs--set-window-height)
+;;     (bs--goto-current-buffer)
+;;     (font-lock-ensure)
+;;     (bs-apply-sort-faces)
+;;     (set-buffer-modified-p nil)))
+
+;; (advice-add 'bs-show-in-buffer :override
+;;             #'rh-bs-show-in-buffer)
+
+;; (defun rh-bs-delete ()
+;;   "Kill buffer on current line."
+;;   (interactive)
+;;   (let ((current (bs--current-buffer))
+;; 	(inhibit-read-only t))
+;;     (unless (kill-buffer current)
+;;       (error "Buffer was not deleted"))
+;;     (setq bs-current-list (delq current bs-current-list))
+;;     (beginning-of-line)
+;;     (delete-region (point) (save-excursion
+;; 			     (end-of-line)
+;; 			     (if (eobp) (point) (1+ (point)))))
+;;     (when (eobp)
+;;       ;; ***** ramblehead added the following unless condition
+;;       ;;       to safeguard cases when bs header is not shown
+;;       ;;       and the buffer list is empty.
+;;       (unless (bobp) (backward-delete-char 1))
+;;       (beginning-of-line)
+;;       (recenter -1))
+;;     (bs--set-window-height)))
+
+;; (advice-add 'bs-delete :override
+;;             #'rh-bs-delete)
+
+;; /b/} bs patches
 
 (defun rh-bs-show (arg)
   (interactive "P")
@@ -5001,12 +5073,10 @@ name."
                        'mode-line-inactive))))))
 
 (defun rh-bs-mode-line ()
-  (let ((buffer (bs--current-buffer))
-        (buffer-list (bs-buffer-list)))
-    (concat
-     (number-to-string (length buffer-list))
-     " buffers in rh-context: "
-     rh-bs-context-current)))
+  (concat
+   (number-to-string (length (bs-buffer-list)))
+   " buffers in rh-context: "
+   rh-bs-context-current))
 
 (add-hook
  'bs-mode-hook
@@ -5108,7 +5178,9 @@ will be used."
 
   (setq
    bs-configurations
-   '(("sys" nil nil nil nil
+   '(("sys" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffers-match '("\\` ") buffer)))
       rh-bs-sort-by-file-path-interns-are-last)
      ("all" nil nil nil
       (lambda (buffer)
@@ -5160,6 +5232,14 @@ will be used."
    (lambda ()
      (hl-line-mode 1)))
 
+  (add-hook
+   'rh-bs-context-changed-hook
+   #'bs-refresh)
+  ;; (add-hook
+  ;;  'rh-bs-context-changed-hook
+  ;;  (lambda ()
+  ;;    (bs-refresh)))
+
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
          ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
@@ -5175,7 +5255,8 @@ will be used."
          ("S-C-<return>" . rh-bs-select-bottom-0-side-window)
          ("S-C-<kp-enter>" . rh-bs-select-bottom-0-side-window)
          ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
-         ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side))
+         ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
+         ("c" . rh-bs-context-select))
   :demand t
   :ensure t)
 
