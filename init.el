@@ -4574,6 +4574,8 @@ rh-context changed.")
 
 (defvar rh-bs-context-dir-name ".rh-context")
 
+(defvar rh-bs-context-window-config-alist nil)
+
 (defun rh-bs-context-show-buffer-p (buffer)
   (if (string= rh-bs-context-current "any")
       t
@@ -4582,22 +4584,73 @@ rh-context changed.")
           (if (string= rh-bs-context-current "none") t nil)
         (member rh-bs-context-current buffer-contexts)))))
 
+(defun rh--bs-context-completing-read ()
+  (let ((available-contexts
+         (append '("any" "none")
+                 (rh-bs-context-get-available-contexts)))
+        (completion-ignore-case  t)
+        read-result)
+    (list (completing-read
+           "rh-context: "
+           available-contexts
+           nil t nil nil
+           rh-bs-context-current))))
+
 (defun rh-bs-context-select (context)
-  (interactive
-   (let ((available-contexts
-          (append '("any" "none")
-                  (rh-bs-context-get-available-contexts)))
-         (completion-ignore-case  t)
-         read-result)
-     (list (completing-read
-            "rh-context: "
-            available-contexts
-            nil t nil nil
-            rh-bs-context-current))))
+  (interactive (rh--bs-context-completing-read))
   (unless (string= rh-bs-context-current context)
     (setq rh-bs-context-current context)
     (run-hooks 'rh-bs-context-changed-hook)
     (message "Selected rh-context: %s" rh-bs-context-current)))
+
+(defun rh-bs-context-windows-config-save (&optional context)
+  (interactive)
+  (when (null context) (setq context rh-bs-context-current))
+  (let* ((prev-context-window-config
+          (assoc context rh-bs-context-window-config-alist #'string=))
+         (new-window-config (current-window-configuration))
+         (new-context-window-config (cons context new-window-config)))
+    (if prev-context-window-config
+        (setf (cdr prev-context-window-config) new-window-config)
+      (push new-context-window-config rh-bs-context-window-config-alist))
+    (message "Saved window configuration for rh-context: %s" context)
+    new-context-window-config))
+
+(defun rh-bs-context-windows-config-restore (&optional context)
+  (interactive)
+  (when (null context) (setq context rh-bs-context-current))
+  (let ((context-window-config
+         (assoc context rh-bs-context-window-config-alist #'string=)))
+    (if context-window-config
+        (progn
+          (set-window-configuration (cdr context-window-config))
+          (message "Restored window configuration for rh-context: %s" context)
+          context-window-config)
+      (message "No window configuration found for rh-context: %s" context)
+      nil)))
+
+(defun rh-bs-context-window-config-switch (context)
+  (interactive (rh--bs-context-completing-read))
+  (rh-bs-context-windows-config-save)
+  (rh-bs-context-select context)
+  (rh-bs-context-windows-config-restore))
+
+;; (defun rh-bs-context-select (context)
+;;   (interactive
+;;    (let ((available-contexts
+;;           (append '("any" "none")
+;;                   (rh-bs-context-get-available-contexts)))
+;;          (completion-ignore-case  t)
+;;          read-result)
+;;      (list (completing-read
+;;             "rh-context: "
+;;             available-contexts
+;;             nil t nil nil
+;;             rh-bs-context-current))))
+;;   (unless (string= rh-bs-context-current context)
+;;     (setq rh-bs-context-current context)
+;;     (run-hooks 'rh-bs-context-changed-hook)
+;;     (message "Selected rh-context: %s" rh-bs-context-current)))
 
 (defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
@@ -4797,6 +4850,17 @@ originally do not list it."
   (setq bs--buffer-coming-from (current-buffer))
   (switch-to-buffer "*buffer-selection*" t t)
   (bs-show arg))
+
+(defun rh-bs-refresh-if-visible ()
+  (interactive)
+  (let ((bs-window (get-window-with-predicate
+                    (lambda (w)
+                      (string= (buffer-name (window-buffer w))
+	                       "*buffer-selection*"))
+                    nil t)))
+    (when bs-window
+      (with-selected-window bs-window
+        (bs-refresh)))))
 
 (defun rh-bs-show-in-bottom-0-side-window (arg)
   (interactive "P")
@@ -5233,11 +5297,7 @@ will be used."
 
   (add-hook
    'rh-bs-context-changed-hook
-   #'bs-refresh)
-  ;; (add-hook
-  ;;  'rh-bs-context-changed-hook
-  ;;  (lambda ()
-  ;;    (bs-refresh)))
+   #'rh-bs-refresh-if-visible)
 
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
