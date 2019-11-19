@@ -4897,6 +4897,9 @@ originally do not list it."
             str (format "%.1fG" size)))
     str))
 
+(defun rh--bs-get-buffer-process (&rest ignored)
+  (if (get-buffer-process (current-buffer)) "ⵛ" " "))
+
 (defun rh-bs-sort-by-file-path-interns-are-last (b1 b2)
   (let* ((b1-buffer-name (buffer-name b1))
          (b2-buffer-name (buffer-name b2))
@@ -5263,6 +5266,7 @@ will be used."
      ("" 2 2 left "  ")
      ("Mode" 16 16 left bs--get-mode-name)
      ("" 2 2 left "  ")
+     ("P" 2 2 left rh--bs-get-buffer-process)
      ("Buffer" bs--get-name-length 100 left bs--get-name)
      ("" 2 2 left "  ")
      ("File" 1 255 left bs--get-file-name)))
@@ -5275,6 +5279,35 @@ will be used."
   (add-hook
    'rh-bs-context-changed-hook
    #'rh-bs-refresh-if-visible)
+
+  ;; Split this hook into callback functions instead of lambdas
+  ;; and make this add-hook run when compilation module is loaded.
+  (add-hook
+   'compilation-start-hook
+   (lambda (proc)
+     (rh-bs-refresh-if-visible)
+     (when (process-live-p proc)
+       (set-process-sentinel
+        proc
+        (lambda (process signal)
+          (compilation-sentinel process signal)
+          (when (memq (process-status process) '(exit signal))
+            (rh-bs-refresh-if-visible)))))))
+
+
+;; (defun do-something (process signal)
+;;   (when (memq (process-status process) '(exit signal))
+;;     (message "Do something!")
+;;     (shell-command-sentinel process signal)))
+
+;; (let* ((output-buffer (generate-new-buffer "*Async shell command*"))
+;;        (proc (progn
+;;                (async-shell-command "sleep 10; echo Finished" output-buffer)
+;;                (get-buffer-process output-buffer))))
+;;   (if (process-live-p proc)
+;;       (set-process-sentinel proc #'do-something)
+;;     (message "No process running.")))
+
 
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
