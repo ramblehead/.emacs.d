@@ -4584,27 +4584,29 @@ rh-context changed.")
           (if (string= rh-bs-context-current "none") t nil)
         (member rh-bs-context-current buffer-contexts)))))
 
-(defun rh--bs-context-completing-read ()
+(defun rh--bs-context-completing-read (prompt)
   (let ((available-contexts
          (append '("any" "none")
                  (rh-bs-context-get-available-contexts)))
         (completion-ignore-case  t)
         read-result)
     (list (completing-read
-           "rh-context: "
+           prompt
            available-contexts
            nil t nil nil
            rh-bs-context-current))))
 
 (defun rh-bs-context-select (context)
-  (interactive (rh--bs-context-completing-read))
+  (interactive (rh--bs-context-completing-read
+                "Select rh-context: "))
   (unless (string= rh-bs-context-current context)
     (setq rh-bs-context-current context)
     (run-hooks 'rh-bs-context-changed-hook)
     (message "Selected rh-context: %s" rh-bs-context-current)))
 
-(defun rh-bs-context-windows-config-save (&optional context)
-  (interactive)
+(defun rh-bs-context-window-config-save (&optional context)
+  (interactive (rh--bs-context-completing-read
+                "Save window configuration for rh-context: "))
   (when (null context) (setq context rh-bs-context-current))
   (let* ((prev-context-window-config
           (assoc context rh-bs-context-window-config-alist #'string=))
@@ -4616,8 +4618,9 @@ rh-context changed.")
     (message "Saved window configuration for rh-context: %s" context)
     new-context-window-config))
 
-(defun rh-bs-context-windows-config-restore (&optional context)
-  (interactive)
+(defun rh-bs-context-window-config-restore (&optional context)
+  (interactive (rh--bs-context-completing-read
+                "Restore window configuration for rh-context: "))
   (when (null context) (setq context rh-bs-context-current))
   (let ((context-window-config
          (assoc context rh-bs-context-window-config-alist #'string=)))
@@ -4630,29 +4633,14 @@ rh-context changed.")
       nil)))
 
 (defun rh-bs-context-window-config-switch (context)
-  (interactive (rh--bs-context-completing-read))
-  (rh-bs-context-windows-config-save)
-  (rh-bs-context-select context)
-  (rh-bs-context-windows-config-restore))
+  (interactive (rh--bs-context-completing-read
+                "Switch window configuration and rh-context: "))
+  (unless (string= context rh-bs-context-current)
+    (rh-bs-context-window-config-save rh-bs-context-current)
+    (rh-bs-context-select context)
+    (rh-bs-context-window-config-restore context)))
 
-;; (defun rh-bs-context-select (context)
-;;   (interactive
-;;    (let ((available-contexts
-;;           (append '("any" "none")
-;;                   (rh-bs-context-get-available-contexts)))
-;;          (completion-ignore-case  t)
-;;          read-result)
-;;      (list (completing-read
-;;             "rh-context: "
-;;             available-contexts
-;;             nil t nil nil
-;;             rh-bs-context-current))))
-;;   (unless (string= rh-bs-context-current context)
-;;     (setq rh-bs-context-current context)
-;;     (run-hooks 'rh-bs-context-changed-hook)
-;;     (message "Selected rh-context: %s" rh-bs-context-current)))
-
-(defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
+(defun rh-bs-context-update-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
                         (or buffer-file-name default-directory)))
          (context-dir (locate-dominating-file
@@ -4682,22 +4670,23 @@ rh-context changed.")
        t #'string=)
       contexts)))
 
-(defun rh-bs-context-compute-all-buffers-contexts ()
+(defun rh-bs-context-update-all-buffers-contexts ()
   (interactive)
   (let ((buffers (buffer-list)))
     (seq-do
      (lambda (buffer)
        (with-current-buffer buffer
          (setq-local rh-bs-context-buffer-contexts
-                     (rh-bs-context-compute-buffer-contexts buffer))))
-     buffers)))
+                     (rh-bs-context-update-buffer-contexts buffer))))
+     buffers))
+  (message "Updated all buffers contexts."))
 
 (defun rh-bs-context-get-buffer-contexts (buffer-or-name)
   (with-current-buffer buffer-or-name
     (if (local-variable-p 'rh-bs-context-buffer-contexts)
         rh-bs-context-buffer-contexts
       (setq-local rh-bs-context-buffer-contexts
-                  (rh-bs-context-compute-buffer-contexts buffer-or-name)))))
+                  (rh-bs-context-update-buffer-contexts buffer-or-name)))))
 
 (defun rh-bs-context-get-available-contexts ()
   (let ((buffers (buffer-list)))
@@ -4776,6 +4765,17 @@ originally do not list it."
 
 (advice-add 'bs-buffer-list :override
             #'rh-bs-buffer-list)
+
+(defun rh--bs-set-window-height (orig-fun) nil)
+
+(advice-add 'bs--set-window-height :around
+            #'rh--bs-set-window-height)
+
+(defun rh--bs-get-file-name (orig-fun _start-buffer _all-buffers)
+  (abbreviate-file-name (funcall orig-fun _start-buffer _all-buffers)))
+
+(advice-add 'bs--get-file-name :around
+            #'rh--bs-get-file-name)
 
 ;; (setq bs-header-lines-length 0)
 
@@ -4881,29 +4881,6 @@ originally do not list it."
                         rh-buffers-groups)))
                  buffer))))
     rh-bs-sort-by-file-path-interns-are-last))
-
-;; (defun rh--bs-make-configuration-from-buffer-group (buffer-group-name)
-;;   `(,buffer-group-name nil nil nil
-;;     (lambda (buffer)
-;;       (not (rh-buffers-match
-;;             (car (cdr
-;;                   (seq-find
-;;                    (lambda (buffer-group)
-;;                      (string= (car buffer-group) ,buffer-group-name))
-;;                    rh-buffers-groups)))
-;;             buffer)))
-;;     rh-bs-sort-by-file-path-interns-are-last))
-
-(defun rh--bs-set-window-height (orig-fun) nil)
-
-(advice-add 'bs--set-window-height :around
-            #'rh--bs-set-window-height)
-
-(defun rh--bs-get-file-name (orig-fun _start-buffer _all-buffers)
-  (abbreviate-file-name (funcall orig-fun _start-buffer _all-buffers)))
-
-(advice-add 'bs--get-file-name :around
-            #'rh--bs-get-file-name)
 
 ;; see http://www.warmenhoven.org/src/emacs.el/ew-buffer.el.html
 (defun rh--bs-get-size-string (&rest ignored)
@@ -5302,6 +5279,11 @@ will be used."
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
          ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
+         ("<menu>" . rh-bs-context-window-config-switch)
+         ("s-<menu>" . rh-bs-context-window-config-save)
+         ("C-<menu>" . rh-bs-context-window-config-restore)
+         ("S-<menu>" . rh-bs-context-select)
+         ("C-S-<menu>" . rh-bs-context-update-all-buffers-contexts)
          :map bs-mode-map
          ("<" . rh-bs-select-previous-configuration)
          (">" . rh-bs-select-next-configuration)
