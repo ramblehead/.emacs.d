@@ -5198,6 +5198,16 @@ will be used."
     (bs--set-window-height)
     (bs-message-without-log "Selected configuration: %s" (car conf))))
 
+(defun rh-bs-compilation-sentinel (process signal)
+  (compilation-sentinel process signal)
+  (when (memq (process-status process) '(exit signal))
+    (rh-bs-refresh-if-visible)))
+
+(defun rh-bs-compilation-start-handler (proc)
+  (rh-bs-refresh-if-visible)
+  (when (process-live-p proc)
+    (set-process-sentinel proc #'rh-bs-compilation-sentinel)))
+
 (use-package bs
   :config
   (add-to-list
@@ -5280,34 +5290,20 @@ will be used."
    'rh-bs-context-changed-hook
    #'rh-bs-refresh-if-visible)
 
-  ;; Split this hook into callback functions instead of lambdas
-  ;; and make this add-hook run when compilation module is loaded.
-  (add-hook
-   'compilation-start-hook
-   (lambda (proc)
-     (rh-bs-refresh-if-visible)
-     (when (process-live-p proc)
-       (set-process-sentinel
-        proc
-        (lambda (process signal)
-          (compilation-sentinel process signal)
-          (when (memq (process-status process) '(exit signal))
-            (rh-bs-refresh-if-visible)))))))
+  (require 'compile)
+  (add-hook 'compilation-start-hook #'rh-bs-compilation-start-handler)
 
-
-;; (defun do-something (process signal)
-;;   (when (memq (process-status process) '(exit signal))
-;;     (message "Do something!")
-;;     (shell-command-sentinel process signal)))
-
-;; (let* ((output-buffer (generate-new-buffer "*Async shell command*"))
-;;        (proc (progn
-;;                (async-shell-command "sleep 10; echo Finished" output-buffer)
-;;                (get-buffer-process output-buffer))))
-;;   (if (process-live-p proc)
-;;       (set-process-sentinel proc #'do-something)
-;;     (message "No process running.")))
-
+  ;; (add-hook
+  ;;  'compilation-start-hook
+  ;;  (lambda (proc)
+  ;;    (rh-bs-refresh-if-visible)
+  ;;    (when (process-live-p proc)
+  ;;      (set-process-sentinel
+  ;;       proc
+  ;;       (lambda (process signal)
+  ;;         (compilation-sentinel process signal)
+  ;;         (when (memq (process-status process) '(exit signal))
+  ;;           (rh-bs-refresh-if-visible)))))))
 
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
