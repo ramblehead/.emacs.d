@@ -1,0 +1,14 @@
+/.cask/
+/ac-comphist.dat
+/amx-items
+/auto-save-list/
+/bookmarks
+/elpa/
+/forge-database.sqlite
+/history
+/irony/
+/recentf
+/semanticdb/
+/transient/
+
+/session.*
