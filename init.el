@@ -4640,7 +4640,7 @@ rh-context changed.")
     (rh-bs-context-select context)
     (rh-bs-context-window-config-restore context)))
 
-(defun rh-bs-context-update-buffer-contexts (buffer-or-name)
+(defun rh-bs-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
                         (or buffer-file-name default-directory)))
          (context-dir (locate-dominating-file
@@ -4654,7 +4654,8 @@ rh-context changed.")
       (setq context-dir-symlinks
             (seq-filter
              #'file-symlink-p
-             (directory-files context-dir t nil t)))
+             (when (file-directory-p context-dir)
+               (directory-files context-dir t nil t))))
       (when context-dir-symlinks
         (setq contexts
               (seq-map
@@ -4677,7 +4678,7 @@ rh-context changed.")
      (lambda (buffer)
        (with-current-buffer buffer
          (setq-local rh-bs-context-buffer-contexts
-                     (rh-bs-context-update-buffer-contexts buffer))))
+                     (rh-bs-context-compute-buffer-contexts buffer))))
      buffers))
   (message "Updated all buffers contexts."))
 
@@ -4686,7 +4687,7 @@ rh-context changed.")
     (if (local-variable-p 'rh-bs-context-buffer-contexts)
         rh-bs-context-buffer-contexts
       (setq-local rh-bs-context-buffer-contexts
-                  (rh-bs-context-update-buffer-contexts buffer-or-name)))))
+                  (rh-bs-context-compute-buffer-contexts buffer-or-name)))))
 
 (defun rh-bs-context-get-available-contexts ()
   (let ((buffers (buffer-list)))
