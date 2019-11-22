@@ -86,6 +86,12 @@ originally do not list it."
 (advice-add 'bs--set-window-height :around
             #'rh-bs--set-window-height)
 
+;; (defun rh-bs--get-file-name (orig-fun _start-buffer _all-buffers)
+;;   (let ((name (funcall orig-fun _start-buffer _all-buffers)))
+;;     (when (string= "" name)
+;;       (setq name default-directory))
+;;     (abbreviate-file-name name)))
+
 (defun rh-bs--get-file-name (orig-fun _start-buffer _all-buffers)
   (abbreviate-file-name (funcall orig-fun _start-buffer _all-buffers)))
 
@@ -291,12 +297,28 @@ name."
       (with-selected-window bs-window
         (bs-refresh)))))
 
-(defun rh-bs-show-in-bottom-0-side-window (arg)
+
+(defun rh-bs-toggle-bs-in-bottom-0-side-window (arg)
   (interactive "P")
-  (setq bs--buffer-coming-from (current-buffer))
-  (select-window
-   (rh-bs--display-buffer-in-bootom-0-side-window "*buffer-selection*"))
-  (bs-show arg))
+  (let* ((bootom-0-side-window (rh-bs-get-bootom-0-side-window))
+         (bootom-0-side-buffer-name
+          (when bootom-0-side-window
+            (with-current-buffer (window-buffer bootom-0-side-window)
+              (buffer-name)))))
+    (if (and bootom-0-side-buffer-name
+             (string= bootom-0-side-buffer-name "*buffer-selection*"))
+        (rh-bs-tmp-reopen-bottom-0-side-window)
+      (setq bs--buffer-coming-from (current-buffer))
+      (select-window
+       (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*" t))
+      (bs-show arg))))
+
+;; (defun rh-bs-toggle-bs-in-bottom-0-side-window (arg)
+;;   (interactive "P")
+;;   (setq bs--buffer-coming-from (current-buffer))
+;;   (select-window
+;;    (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*" t))
+;;   (bs-show arg))
 
 (defun rh-bs-make-configuration-from-buffer-group (buffer-group-name)
   `(,buffer-group-name nil nil nil
@@ -339,7 +361,7 @@ name."
   (interactive)
   (let* ((bs-window (frame-selected-window))
          (orig-window-bootom-0-side-p
-          (rh-bs--window-bootom-0-side-p bs-window))
+          (rh-bs-window-bootom-0-side-p bs-window))
          (target-buffer (bs--current-buffer)))
     (ace-select-window)
     (switch-to-buffer target-buffer)
@@ -355,15 +377,19 @@ name."
       (ace-select-window)
       (switch-to-buffer buffer))))
 
-(defun rh-bs--display-buffer-in-bootom-0-side-window (buffer-or-name)
-  (display-buffer-in-side-window
-   (get-buffer-create buffer-or-name)
-   `((side . bottom)
-     (slot . 0)
-     (inhibit-same-window . t)
-     (window-height . ,g2w-side-window-height))))
+(defun rh-bs-display-buffer-in-bootom-0-side-window
+    (buffer-or-name &optional do-not-set-last-side-window)
+  (let ((buffer (get-buffer-create buffer-or-name)))
+    (unless do-not-set-last-side-window
+      (setq rh-bs-bottom-0-side-window-buffer buffer))
+    (display-buffer-in-side-window
+     buffer
+     `((side . bottom)
+       (slot . 0)
+       (inhibit-same-window . t)
+       (window-height . ,g2w-side-window-height)))))
 
-(defun rh-bs--get-bootom-0-side-window ()
+(defun rh-bs-get-bootom-0-side-window ()
   (let ((windows (window-list)))
     (seq-find
      (lambda (window)
@@ -371,26 +397,24 @@ name."
             (eq (window-parameter window 'window-slot) 0)))
      windows)))
 
-(defun rh-bs--window-bootom-0-side-p (window)
+(defun rh-bs-window-bootom-0-side-p (window)
   (and (eq (window-parameter window 'window-side) 'bottom)
        (eq (window-parameter window 'window-slot) 0)))
 
 (defun rh-bs-tmp-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
-    (setq rh-bs-bottom-0-side-window-buffer buffer)
-    (rh-bs--display-buffer-in-bootom-0-side-window buffer)))
+    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-select-bottom-0-side-window ()
   (interactive)
   (let ((buffer (bs--current-buffer)))
-    (setq rh-bs-bottom-0-side-window-buffer buffer)
     (select-window
-     (rh-bs--display-buffer-in-bootom-0-side-window buffer))))
+     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-delete-bottom-0-side-window ()
   (interactive)
-  (let ((side-window (rh-bs--get-bootom-0-side-window)))
+  (let ((side-window (rh-bs-get-bootom-0-side-window)))
     (when side-window (delete-window side-window))))
 
 (defun rh-bs-reopen-bottom-0-side-window ()
@@ -398,17 +422,17 @@ name."
   (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
     (select-window
-     (rh-bs--display-buffer-in-bootom-0-side-window buffer))))
+     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
 
 (defun rh-bs-tmp-reopen-bottom-0-side-window ()
   (interactive)
   (let ((buffer (or rh-bs-bottom-0-side-window-buffer
                     (window-buffer))))
-    (rh-bs--display-buffer-in-bootom-0-side-window buffer)))
+    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
 
 (defun rh-bs-tmp-toggle-bottom-0-side-window ()
   (interactive)
-  (let ((side-window (rh-bs--get-bootom-0-side-window)))
+  (let ((side-window (rh-bs-get-bootom-0-side-window)))
     (if side-window
         (rh-bs-delete-bottom-0-side-window)
       (rh-bs-tmp-reopen-bottom-0-side-window))))
@@ -487,10 +511,11 @@ name."
         (bs-dont-show-function    (nth 4 conf))
         (bs-buffer-sort-function  (nth 5 conf))
         list)
-    (setq list (bs-buffer-list))
-    (or (null list)
-        (and (= (length list) 1)
-             (eq (car list) bs--buffer-coming-from)))))
+    ;; (setq list (bs-buffer-list))
+    ;; (or (null list)
+    ;;     (and (= (length list) 1)
+    ;;          (eq (car list) bs--buffer-coming-from)))
+    (null (bs-buffer-list))))
 
 (defun rh-bs-prev-config-aux (start-name list)
   "Get the previous assoc before START-NAME in list LIST.
@@ -560,6 +585,30 @@ will be used."
   (when (process-live-p proc)
     (set-process-sentinel proc #'rh-bs-compilation-sentinel)))
 
+(add-hook
+ 'compilation-start-hook
+ #'rh-bs-compilation-start-handler)
+
+(defun rh-bs-async-shell-command-sentinel (process signal)
+  (when (memq (process-status process) '(exit signal))
+    (rh-bs-refresh-if-visible))
+  (shell-command-sentinel process signal))
+
+(defun rh-bs-async-shell-command-start-handler (proc)
+  (rh-bs-refresh-if-visible)
+  (when (process-live-p proc)
+    (set-process-sentinel proc #'rh-bs-async-shell-command-sentinel)))
+
+(defun rh-bs-async-shell-command (command &optional output-buffer error-buffer)
+  (let (proc)
+    (async-shell-command command output-buffer error-buffer)
+    (setq proc (get-buffer-process output-buffer))
+    (rh-bs-async-shell-command-start-handler proc)
+    proc))
+
+(put 'rh-bs-async-shell-command 'interactive-form
+     (interactive-form 'async-shell-command))
+
 (defun rh-bs-mode-and-header-lines-setup ()
   (setq-local mode-line-format '(:eval (rh-bs-mode-line)))
   (setq-local header-line-format '(:eval (rh-bs-header-line))))
@@ -571,10 +620,6 @@ will be used."
 (add-hook
  'rh-context-changed-hook
  #'rh-bs-refresh-if-visible)
-
-(add-hook
- 'compilation-start-hook
- #'rh-bs-compilation-start-handler)
 
 ;; /b/}
 

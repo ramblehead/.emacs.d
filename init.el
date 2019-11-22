@@ -394,6 +394,24 @@ when only symbol face names are needed."
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
 
+(defun rh-project-restart-shell-command (project-command output-buffer-or-name)
+  (let* ((project-path (rh-project-get-path))
+         (output-buffer (get-buffer-create output-buffer-or-name))
+         (full-command (concat project-path project-command))
+         (proc (get-buffer-process output-buffer)))
+    (unless (get-buffer-window output-buffer 'visible)
+      (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
+    (when proc (delete-process proc))
+    (rh-bs-async-shell-command full-command output-buffer)
+    (get-buffer-process output-buffer)))
+
+(defun rh-project-kill-shell-process (output-buffer-or-name)
+  (let ((buffer (get-buffer output-buffer-or-name))
+        (proc (get-buffer-process output-buffer-or-name)))
+    (when (and buffer (not (get-buffer-window buffer 'visible)))
+      (rh-bs-display-buffer-in-bootom-0-side-window buffer))
+    (when proc (kill-process proc))))
+
 ;; /b/} rh-project
 
 ;; /b/{ code-groups
@@ -2816,6 +2834,12 @@ fields which we need."
 
   :ensure t)
 
+(use-package shell
+  :bind (:map shell-mode-map
+          ("C-c C-b" . nil))
+  :defer
+  :ensure t)
+
 ;;; Line Numbers
 ;;; /b/{
 
@@ -4629,7 +4653,7 @@ or has one of the listed major modes."
      (hl-line-mode 1)))
 
   :bind (("C-x C-b" . rh-bs-show)
-         ("C-c C-b" . rh-bs-show-in-bottom-0-side-window)
+         ("C-c C-b" . rh-bs-toggle-bs-in-bottom-0-side-window)
          ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
          ("<menu>" . rh-context-window-config-switch)
          ("s-<menu>" . rh-context-window-config-save)
@@ -4637,7 +4661,7 @@ or has one of the listed major modes."
          ("S-<menu>" . rh-context-select)
          ("C-S-<menu>" . rh-context-update-all-buffers-contexts))
   :demand t
-  :ensure t)
+  :pin manual)
 
 ;; /b/} rh-bs
 

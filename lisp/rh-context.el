@@ -89,7 +89,13 @@ rh-context changed.")
 
 (defun rh-context-compute-buffer-contexts (buffer-or-name)
   (let* ((buffer-path (with-current-buffer buffer-or-name
-                        (or buffer-file-name default-directory)))
+                        ;; (or buffer-file-name default-directory)
+                        (or buffer-file-name
+                            (if (or (eq major-mode 'compilation-mode)
+                                    (eq major-mode 'shell-mode))
+                                default-directory
+                              "/"))
+                        ))
          (context-dir (locate-dominating-file
                        (file-name-as-directory buffer-path)
                        rh-context-dir-name))
