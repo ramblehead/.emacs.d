@@ -297,9 +297,20 @@ name."
       (with-selected-window bs-window
         (bs-refresh)))))
 
+(defun rh-bs-show-bs-in-bottom-0-side-window (&optional configuration-name)
+  (interactive)
+  (unless configuration-name
+    (setq configuration-name bs-default-configuration))
+  (setq bs--buffer-coming-from (current-buffer))
+  (select-window
+   (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*" t))
+  (bs-set-configuration configuration-name)
+  (setq bs-default-configuration bs-current-configuration)
+  (setq bs--marked-buffers nil)
+  (bs--show-with-configuration configuration-name))
 
-(defun rh-bs-toggle-bs-in-bottom-0-side-window (arg)
-  (interactive "P")
+(defun rh-bs-toggle-bs-in-bottom-0-side-window (&optional configuration-name)
+  (interactive)
   (let* ((bootom-0-side-window (rh-bs-get-bootom-0-side-window))
          (bootom-0-side-buffer-name
           (when bootom-0-side-window
@@ -308,20 +319,11 @@ name."
     (if (and bootom-0-side-buffer-name
              (string= bootom-0-side-buffer-name "*buffer-selection*"))
         (rh-bs-tmp-reopen-bottom-0-side-window)
-      (setq bs--buffer-coming-from (current-buffer))
-      (select-window
-       (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*" t))
-      (bs-show arg))))
-
-;; (defun rh-bs-toggle-bs-in-bottom-0-side-window (arg)
-;;   (interactive "P")
-;;   (setq bs--buffer-coming-from (current-buffer))
-;;   (select-window
-;;    (rh-bs-display-buffer-in-bootom-0-side-window "*buffer-selection*" t))
-;;   (bs-show arg))
+      (rh-bs-show-bs-in-bottom-0-side-window configuration-name))))
 
 (defun rh-bs-make-configuration-from-buffer-group (buffer-group-name)
-  `(,buffer-group-name nil nil nil
+  `(,buffer-group-name
+    nil nil nil
     (lambda (buffer)
       (not (and (rh-context-show-buffer-p buffer)
                 (rh-buffers-match
