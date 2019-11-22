@@ -41,6 +41,8 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; https://github.com/10sr/git-walktree-el
+
 ;; * Tabs to switch between compilation and other top/bottom side buffers
 ;;   https://github.com/ema2159/centaur-tabs
 ;;   https://github.com/manateelazycat/awesome-tab
