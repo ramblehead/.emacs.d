@@ -1,15 +1,18 @@
 /.cask/
+/.tern-port
 /ac-comphist.dat
 /amx-items
 /auto-save-list/
 /bookmarks
 /elpa/
+/eshell/
 /forge-database.sqlite
 /history
 /irony/
 /recentf
 /semanticdb/
+/sm
+/smex-items
 /transient/
-/eshell/
 
 /session.*
