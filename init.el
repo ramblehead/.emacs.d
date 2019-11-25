@@ -4492,6 +4492,8 @@ with very limited support for special characters."
 The group item values can be either buffer name regex
 or buffer major mode symbol")
 
+(defvar rh-buffers-groups rh-buffers-semantic-not-file-groups)
+
 (defvar rh-buffers-not-file-group
   '("\\` "
     "^\\*Completions\\*$"
@@ -4523,7 +4525,7 @@ or buffer major mode symbol")
   "Buffers used to create files filter in bs-configurations.
 The buffer value can be either buffer name regex or buffer major mode symbol")
 
-(dolist (buffer-group rh-buffers-semantic-not-file-groups)
+(dolist (buffer-group rh-buffers-groups)
   (setq rh-buffers-not-file-group
         (append (car (cdr buffer-group))
                 rh-buffers-not-file-group)))
@@ -4567,7 +4569,7 @@ or has one of the listed major modes."
 ;; /b/{ ifilipb
 
 (defun rh-ifilipb-get-buffer-group (buffer)
-  "Can return either one of the rh-buffers-semantic-not-file-groups name,
+  "Can return either one of the rh-buffers-groups name,
 \"files\", \"all\" or \"sys\"")
 
 (use-package iflipb
@@ -4632,7 +4634,7 @@ or has one of the listed major modes."
             (rh-buffers-match rh-buffers-not-file-group buffer)))
       rh-bs-sort-by-file-path-interns-are-last)))
 
-  (dolist (buffer-group rh-buffers-semantic-not-file-groups)
+  (dolist (buffer-group rh-buffers-groups)
     (add-to-list
      'bs-configurations
      (rh-bs-make-configuration-from-buffer-group (car buffer-group))
