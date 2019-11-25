@@ -2110,7 +2110,7 @@ fields which we need."
             (let ((buffer (get-buffer buffer-nm)))
               (when buffer
                 (rh-buffers-match
-                 rh-buffers-not-files
+                 rh-buffers-not-file-group
                  buffer))))))
 
   (setq ivy-mode-map
@@ -4475,7 +4475,7 @@ with very limited support for special characters."
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
-(defvar rh-buffers-groups
+(defvar rh-buffers-semantic-not-file-groups
   '(("dired"
      (dired-mode))
     ("compilation"
@@ -4492,7 +4492,7 @@ with very limited support for special characters."
 The group item values can be either buffer name regex
 or buffer major mode symbol")
 
-(defvar rh-buffers-not-files
+(defvar rh-buffers-not-file-group
   '("\\` "
     "^\\*Completions\\*$"
     "^\\*Quail Completions\\*$"
@@ -4523,10 +4523,10 @@ or buffer major mode symbol")
   "Buffers used to create files filter in bs-configurations.
 The buffer value can be either buffer name regex or buffer major mode symbol")
 
-(dolist (buffer-group rh-buffers-groups)
-  (setq rh-buffers-not-files
+(dolist (buffer-group rh-buffers-semantic-not-file-groups)
+  (setq rh-buffers-not-file-group
         (append (car (cdr buffer-group))
-                rh-buffers-not-files)))
+                rh-buffers-not-file-group)))
 
 ;; (defun rh-buffers-match (regexp-or-mode-list buffer)
 ;;   "Return non-nil if buffer either matches anything in listed regexps
@@ -4566,12 +4566,16 @@ or has one of the listed major modes."
 
 ;; /b/{ ifilipb
 
+(defun rh-ifilipb-get-buffer-group (buffer)
+  "Can return either one of the rh-buffers-semantic-not-file-groups name,
+\"files\", \"all\" or \"sys\"")
+
 (use-package iflipb
   :config
   (setq iflipb-ignore-buffers
         '((lambda (buffer-nm)
             (rh-buffers-match
-             rh-buffers-not-files
+             rh-buffers-not-file-group
              (get-buffer buffer-nm)))))
 
   (setq iflipb-wrap-around t)
@@ -4625,10 +4629,10 @@ or has one of the listed major modes."
      ("files" nil nil nil
       (lambda (buffer)
         (or (not (rh-context-show-buffer-p buffer))
-            (rh-buffers-match rh-buffers-not-files buffer)))
+            (rh-buffers-match rh-buffers-not-file-group buffer)))
       rh-bs-sort-by-file-path-interns-are-last)))
 
-  (dolist (buffer-group rh-buffers-groups)
+  (dolist (buffer-group rh-buffers-semantic-not-file-groups)
     (add-to-list
      'bs-configurations
      (rh-bs-make-configuration-from-buffer-group (car buffer-group))

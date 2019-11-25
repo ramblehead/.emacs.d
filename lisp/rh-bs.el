@@ -36,7 +36,7 @@ originally do not list it."
 	     (int-show-never (string-match-p bs--intern-show-never buffername))
 	     (ext-show-never (and bs-dont-show-regexp
 				  (string-match-p bs-dont-show-regexp
-					  buffername)))
+					          buffername)))
 	     (extern-must-show (or (and bs-must-always-show-regexp
 					(string-match-p
 					 bs-must-always-show-regexp
@@ -511,12 +511,7 @@ name."
         (bs-must-show-function    (nth 2 conf))
         (bs-dont-show-regexp      (nth 3 conf))
         (bs-dont-show-function    (nth 4 conf))
-        (bs-buffer-sort-function  (nth 5 conf))
-        list)
-    ;; (setq list (bs-buffer-list))
-    ;; (or (null list)
-    ;;     (and (= (length list) 1)
-    ;;          (eq (car list) bs--buffer-coming-from)))
+        (bs-buffer-sort-function  (nth 5 conf)))
     (null (bs-buffer-list))))
 
 (defun rh-bs-prev-config-aux (start-name list)
