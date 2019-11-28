@@ -3706,7 +3706,7 @@ fields which we need."
      (display-buffer-reuse-window
       display-buffer-same-window)))
 
-  (setq jsi-node-command-require-esm t)
+  ;; (setq jsi-node-command-require-esm t)
   (setq jsi-babel-skip-import t)
 
   ;; Using company-capf until a proper company back-end is implemented
@@ -4052,8 +4052,9 @@ fields which we need."
      (local-set-key (kbd "C-M-n") #'forward-sexp)
      (local-set-key (kbd "C-M-p") #'backward-sexp)
 
-     (local-set-key (kbd "C-S-b") #'recompile)
-     (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)))
+     ;; (local-set-key (kbd "C-S-b") #'recompile)
+     ;; (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)
+     ))
 
   :ensure t)
 
@@ -4480,6 +4481,9 @@ with very limited support for special characters."
      (dired-mode))
     ("compilation"
      (compilation-mode))
+    ("REPLs"
+     (jsi-log-mode
+      jsi-node-repl-mode))
     ("shells"
      (shell-mode))
     ("magit"
@@ -4492,7 +4496,12 @@ with very limited support for special characters."
 The group item values can be either buffer name regex
 or buffer major mode symbol")
 
-(defvar rh-buffers-groups rh-buffers-semantic-not-file-groups)
+(defvar rh-buffers-groups '())
+
+(dolist (buffer-group rh-buffers-semantic-not-file-groups)
+  (setq rh-buffers-groups
+        (append (list (copy-tree buffer-group)) rh-buffers-groups)))
+(setq rh-buffers-groups (nreverse rh-buffers-groups))
 
 (defvar rh-buffers-not-file-group
   '("\\` "
@@ -4525,7 +4534,7 @@ or buffer major mode symbol")
   "Buffers used to create files filter in bs-configurations.
 The buffer value can be either buffer name regex or buffer major mode symbol")
 
-(dolist (buffer-group rh-buffers-groups)
+(dolist (buffer-group rh-buffers-semantic-not-file-groups)
   (setq rh-buffers-not-file-group
         (append (car (cdr buffer-group))
                 rh-buffers-not-file-group)))
@@ -4556,6 +4565,18 @@ or has one of the listed major modes."
          (eq (with-current-buffer buffer major-mode) regexp-or-mode)))
      regexp-or-mode-list)))
 
+(defun rh-buffers-get-group-name (buffer)
+  "Return group name to which BUFFER belongs or nil if BUFFER has no group."
+  (catch 'found
+    (dolist (buffer-group rh-buffers-semantic-not-file-groups)
+      (when (rh-buffers-match (car (cdr buffer-group)) buffer)
+        (throw 'found (car buffer-group))))
+    (unless (rh-buffers-match rh-buffers-not-file-group buffer)
+      (throw 'found "files"))
+    (when (rh-buffers-match '("\\` ") buffer)
+      (throw 'found "sys"))
+    "none"))
+
 ;; Example:
 ;; Makefile.am, Makefile.am<3> etc.  to
 ;; Makefile.am|path1, Makefile.am|path2
@@ -4576,9 +4597,22 @@ or has one of the listed major modes."
   :config
   (setq iflipb-ignore-buffers
         '((lambda (buffer-nm)
-            (rh-buffers-match
-             rh-buffers-not-file-group
-             (get-buffer buffer-nm)))))
+            (let ((buffer (get-buffer buffer-nm)))
+              (not (and (string=
+                         (rh-buffers-get-group-name (window-buffer))
+                         (rh-buffers-get-group-name buffer))
+                        (rh-context-show-buffer-p buffer))))
+
+            ;; (let ((buffer (get-buffer buffer-nm)))
+            ;;   (and (not (rh-context-show-buffer-p buffer))
+            ;;        (not (string=
+            ;;              (rh-buffers-get-group-name (window-buffer))
+            ;;              (rh-buffers-get-group-name buffer)))))
+
+            ;; (rh-buffers-match
+            ;;  rh-buffers-not-file-group
+            ;;  (get-buffer buffer-nm))
+            ))))
 
   (setq iflipb-wrap-around t)
 

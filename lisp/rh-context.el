@@ -92,7 +92,9 @@ rh-context changed.")
                         ;; (or buffer-file-name default-directory)
                         (or buffer-file-name
                             (if (or (eq major-mode 'compilation-mode)
-                                    (eq major-mode 'shell-mode))
+                                    (eq major-mode 'shell-mode)
+                                    (eq major-mode 'jsi-node-repl-mode)
+                                    (eq major-mode 'jsi-log-mode))
                                 default-directory
                               "/"))
                         ))
