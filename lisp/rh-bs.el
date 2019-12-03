@@ -591,9 +591,17 @@ will be used."
     (rh-bs-refresh-if-visible))
   (shell-command-sentinel process signal))
 
+(defun rh-bs-async-shell-command-insertion-filter (proc string)
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (goto-char (process-mark proc))
+      (insert string)
+      (set-marker (process-mark proc) (point)))))
+
 (defun rh-bs-async-shell-command-start-handler (proc)
   (rh-bs-refresh-if-visible)
   (when (process-live-p proc)
+    (set-process-filter proc #'rh-bs-async-shell-command-insertion-filter)
     (set-process-sentinel proc #'rh-bs-async-shell-command-sentinel)))
 
 (defun rh-bs-async-shell-command (command &optional output-buffer error-buffer)

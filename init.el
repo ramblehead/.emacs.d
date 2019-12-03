@@ -4612,7 +4612,7 @@ or has one of the listed major modes."
             ;; (rh-buffers-match
             ;;  rh-buffers-not-file-group
             ;;  (get-buffer buffer-nm))
-            ))))
+            )))
 
   (setq iflipb-wrap-around t)
 
