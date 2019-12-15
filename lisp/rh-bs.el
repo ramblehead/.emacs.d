@@ -359,18 +359,26 @@ name."
             (string< b1-buffer-name b2-buffer-name))
         (string-empty-p b2-file-name)))))
 
+;; (defun rh-bs-ace-select-other-window ()
+;;   (interactive)
+;;   (let* ((bs-window (frame-selected-window))
+;;          (orig-window-bootom-0-side-p
+;;           (rh-bs-window-bootom-0-side-p bs-window))
+;;          (target-buffer (bs--current-buffer)))
+;;     (ace-select-window)
+;;     (switch-to-buffer target-buffer)
+;;     (if orig-window-bootom-0-side-p
+;;         (rh-bs-tmp-reopen-bottom-0-side-window)
+;;       (with-selected-window bs-window
+;;         (bury-buffer)))))
+
 (defun rh-bs-ace-select-other-window ()
   (interactive)
   (let* ((bs-window (frame-selected-window))
-         (orig-window-bootom-0-side-p
-          (rh-bs-window-bootom-0-side-p bs-window))
          (target-buffer (bs--current-buffer)))
     (ace-select-window)
     (switch-to-buffer target-buffer)
-    (if orig-window-bootom-0-side-p
-        (rh-bs-tmp-reopen-bottom-0-side-window)
-      (with-selected-window bs-window
-        (bury-buffer)))))
+    (delete-window bs-window)))
 
 (defun rh-bs-tmp-ace-select-other-window ()
   (interactive)
