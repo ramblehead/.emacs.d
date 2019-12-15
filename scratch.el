@@ -7,5 +7,3 @@
     (balance-windows (window-parent window))
     (push window windows))
   (window-make-atom (window-parent window)))
-
-(balance-windows (window-atom-root (frame-selected-window)))
