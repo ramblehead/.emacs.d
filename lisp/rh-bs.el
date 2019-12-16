@@ -602,12 +602,12 @@ will be used."
   (with-selected-window (frame-selected-window)
     (let* ((windows '())
            (n (1- count)))
-      (when (null (window-parent window))
-        (setq window (pop-to-buffer
-                      (current-buffer)
-                      '((display-buffer-pop-up-window)
-                        (inhibit-same-window . t)
-                        (inhibit-switch-frame . t)))))
+      ;; (when (null (window-parent window))
+      ;;   (setq window (pop-to-buffer
+      ;;                 (current-buffer)
+      ;;                 '((display-buffer-pop-up-window)
+      ;;                   (inhibit-same-window . t)
+      ;;                   (inhibit-switch-frame . t)))))
       (push window windows)
       (dotimes (i n)
         (setq window (split-window))
