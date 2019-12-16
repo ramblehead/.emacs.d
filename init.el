@@ -405,6 +405,9 @@ when only symbol face names are needed."
       (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
     (when proc (delete-process proc))
     (rh-bs-async-shell-command full-command output-buffer)
+    (with-current-buffer output-buffer
+      (setq-local buffer-read-only t)
+      (local-set-key (kbd "q") #'rh-bs-delete-sibling-windows))
     (get-buffer-process output-buffer)))
 
 (defun rh-project-kill-shell-process (output-buffer-or-name)

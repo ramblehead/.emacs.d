@@ -215,6 +215,8 @@ originally do not list it."
   (define-key map (kbd "S-<kp-enter>") #'rh-bs-tmp-select-bottom-0-side-window)
   (define-key map (kbd "S-C-<return>") #'rh-bs-select-bottom-0-side-window)
   (define-key map (kbd "S-C-<kp-enter>") #'rh-bs-select-bottom-0-side-window)
+  (define-key map (kbd "A") #'rh-bs-display-all)
+  (define-key map (kbd "M") #'rh-bs-display-marked)
   (define-key map (kbd "q") #'rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
   (define-key map (kbd "M-q") #'rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
   (define-key map (kbd "c") #'rh-context-select))
@@ -600,23 +602,28 @@ will be used."
 
 (defun rh-bs-split-window-n (window count)
   (with-selected-window (frame-selected-window)
-    (let* ((windows '())
-           (n (1- count)))
+    (let ((first-window window)
+          (windows '())
+          (n (1- count)))
       ;; (when (null (window-parent window))
       ;;   (setq window (pop-to-buffer
       ;;                 (current-buffer)
       ;;                 '((display-buffer-pop-up-window)
       ;;                   (inhibit-same-window . t)
       ;;                   (inhibit-switch-frame . t)))))
-      (push window windows)
+      ;; (push window windows)
       (dotimes (i n)
         (setq window (split-window))
         (balance-windows (window-parent window))
         (push window windows))
+      (push first-window windows)
       windows)))
 
-(defun rh-bs-delete-sibling-windows (window &optional predicate)
-  (let* ((first (window-child (window-parent window)))
+(defun rh-bs-delete-sibling-windows (&optional window predicate)
+  (interactive)
+  (let* ((window (or window
+                     (frame-selected-window)))
+         (first (window-child (window-parent window)))
          (next (window-next-sibling first))
          windows)
     (while next
@@ -626,7 +633,52 @@ will be used."
         (push next windows))
       (setq next (window-next-sibling next)))
     (dolist (window windows)
-      (delete-window window))))
+      (delete-window window))
+    (when (window-live-p first)
+      (switch-to-prev-buffer first))))
+
+;; (defun rh-bs-display-all ()
+;;   (interactive)
+;;   (let* ((buffers (bs-buffer-list))
+;;          (count (length buffers))
+;;          windows)
+;;     (ace-select-window)
+;;     (setq windows
+;;           (rh-bs-split-window-n (frame-selected-window) count))
+;;     (dotimes (i count)
+;;       (set-window-buffer (nth i windows) (nth i buffers)))))
+
+(defun rh-bs-ace-select-display-multiple (buffers)
+  (let* ((count (length buffers))
+         windows)
+    (ace-select-window)
+    (setq windows
+          (rh-bs-split-window-n (frame-selected-window) count))
+    (dotimes (i count)
+      (set-window-buffer (nth i windows) (nth i buffers)))))
+
+(defun rh-bs-display-all ()
+  (interactive)
+  (let ((orig-window (frame-selected-window))
+        (buffers (bs-buffer-list)))
+    (when buffers
+      (rh-bs-ace-select-display-multiple buffers)
+      (when (string= (buffer-name (window-buffer orig-window))
+	             "*buffer-selection*")
+        (with-selected-window orig-window
+          (rh-bs-bury-buffer-and-delete-window-if-bottom-0-side))))))
+
+(defun rh-bs-display-marked ()
+  (interactive)
+  (let ((orig-window (frame-selected-window)))
+    (when bs--marked-buffers
+      (setq bs--marked-buffers
+            (sort bs--marked-buffers #'rh-bs-sort-by-file-path-interns-are-last))
+      (rh-bs-ace-select-display-multiple bs--marked-buffers)
+      (when (string= (buffer-name (window-buffer orig-window))
+	             "*buffer-selection*")
+        (with-selected-window orig-window
+          (rh-bs-bury-buffer-and-delete-window-if-bottom-0-side))))))
 
 (defun rh-bs-compilation-sentinel (process signal)
   (compilation-sentinel process signal)
@@ -650,9 +702,10 @@ will be used."
 (defun rh-bs-async-shell-command-insertion-filter (proc string)
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (goto-char (process-mark proc))
-      (insert string)
-      (set-marker (process-mark proc) (point)))))
+      (let ((inhibit-read-only t))
+        (goto-char (process-mark proc))
+        (insert string)
+        (set-marker (process-mark proc) (point))))))
 
 (defun rh-bs-async-shell-command-start-handler (proc)
   (rh-bs-refresh-if-visible)
