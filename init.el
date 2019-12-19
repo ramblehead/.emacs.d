@@ -43,10 +43,6 @@
 
 ;; https://github.com/10sr/git-walktree-el
 
-;; * Tabs to switch between compilation and other top/bottom side buffers
-;;   https://github.com/ema2159/centaur-tabs
-;;   https://github.com/manateelazycat/awesome-tab
-
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
 ;; https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
 ;; https://github.com/bmag/emacs-purpose
