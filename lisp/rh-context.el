@@ -94,7 +94,9 @@ rh-context changed.")
                             (if (or (eq major-mode 'compilation-mode)
                                     (eq major-mode 'shell-mode)
                                     (eq major-mode 'jsi-node-repl-mode)
-                                    (eq major-mode 'jsi-log-mode))
+                                    (eq major-mode 'jsi-log-mode)
+                                    (string-match-p
+                                     "^magit-" (symbol-name major-mode)))
                                 default-directory
                               "/"))
                         ))

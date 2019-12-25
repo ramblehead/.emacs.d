@@ -3875,7 +3875,11 @@ fields which we need."
      (setq cg-forward-list-original #'nxml-forward-element)
      (setq cg-backward-list-original #'nxml-backward-element)
 
-     (rh-programming-minor-modes 1))))
+     (rh-programming-minor-modes 1)))
+
+  :bind (:map nxml-mode-map
+         ("C-c C-b" . nil))
+  :defer t)
 
 ;;; web-mode
 ;;; /b/{
@@ -4587,10 +4591,6 @@ or has one of the listed major modes."
 (require 'help-fns+)
 
 ;; /b/{ ifilipb
-
-(defun rh-ifilipb-get-buffer-group (buffer)
-  "Can return either one of the rh-buffers-groups name,
-\"files\", \"all\" or \"sys\"")
 
 (use-package iflipb
   :config
