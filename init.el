@@ -3572,9 +3572,7 @@ fields which we need."
          (";" . nil)
          ("," . nil)
          ("\"" . nil)
-         ("'" . nil)
-         ("C-S-b" . recompile)
-         ("C-c b" . rh-compile-toggle-display))
+         ("'" . nil))
   :defer t
   :ensure t)
 
