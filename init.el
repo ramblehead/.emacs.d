@@ -392,10 +392,18 @@ when only symbol face names are needed."
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
 
-(defun rh-project-restart-shell-command (project-command output-buffer-or-name)
+(defun rh-project-compile (command compilation-buffer-name)
+  (let* ((project-path (rh-project-get-path))
+         (full-command (concat project-path command))
+         (compilation-buffer-name-function
+          (lambda (name-of-mode) compilation-buffer-name)))
+    (setq rh-bs-bottom-0-side-window-buffer
+          (compile full-command))))
+
+(defun rh-project-restart-shell-command (command output-buffer-or-name)
   (let* ((project-path (rh-project-get-path))
          (output-buffer (get-buffer-create output-buffer-or-name))
-         (full-command (concat project-path project-command))
+         (full-command (concat project-path command))
          (proc (get-buffer-process output-buffer)))
     (unless (get-buffer-window output-buffer 'visible)
       (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
@@ -404,6 +412,7 @@ when only symbol face names are needed."
     (with-current-buffer output-buffer
       (setq-local buffer-read-only t)
       (local-set-key (kbd "q") #'rh-bs-delete-sibling-windows))
+    (setq rh-bs-bottom-0-side-window-buffer output-buffer)
     (get-buffer-process output-buffer)))
 
 (defun rh-project-kill-shell-process (output-buffer-or-name)
@@ -2782,6 +2791,9 @@ fields which we need."
 
   (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
+  (require 'compile-eslint)
+  (push 'eslint compilation-error-regexp-alist)
+
   (add-to-list
    'display-buffer-alist
    `(,(g2w-condition
@@ -2808,6 +2820,10 @@ fields which we need."
          ("M-<return>" . compilation-display-error)
          ("M-<kp-enter>" . compilation-display-error))
   :defer)
+
+(use-package compile-eslint
+  :defer t
+  :pin manual)
 
 (use-package eshell
   :config
