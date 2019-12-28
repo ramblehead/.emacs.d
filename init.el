@@ -2794,6 +2794,13 @@ fields which we need."
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
 
+  (require 'ansi-color)
+  (defun rh-ansi-colorize-buffer ()
+    (let ((buffer-read-only nil))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+
+  (add-hook 'compilation-filter-hook #'rh-ansi-colorize-buffer)
+
   (add-to-list
    'display-buffer-alist
    `(,(g2w-condition
