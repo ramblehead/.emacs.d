@@ -4504,63 +4504,76 @@ with very limited support for special characters."
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
 
-(defvar rh-buffers-semantic-not-file-groups
-  '(("dired"
-     (dired-mode))
-    ("compilation"
-     (compilation-mode))
-    ("REPLs"
-     (jsi-log-mode
-      jsi-node-repl-mode))
-    ("shells"
-     (shell-mode))
-    ("magit"
-     (magit-diff-mode
-      magit-log-mode
-      magit-process-mode
-      magit-revision-mode
-      magit-status-mode)))
+(defvar rh-buffers-groups nil
   "Buffer groups used to create filters for bs-configurations.
 The group item values can be either buffer name regex
 or buffer major mode symbol")
 
-(defvar rh-buffers-groups '())
+(defvar rh-buffers-not-file-group nil
+  "Not-file buffers used to create files filter in bs-configurations.
+The buffer value can be either buffer name regex or buffer major mode symbol")
+
+(defvar rh-buffers-semantic-not-file-groups nil
+  "Not-file buffer groups used to create filters for bs-configurations.
+The group item values can be either buffer name regex
+or buffer major mode symbol")
+
+(setq
+ rh-buffers-semantic-not-file-groups
+ '(("dired"
+    (dired-mode))
+   ("compilation"
+    (compilation-mode))
+   ("REPLs"
+    (jsi-log-mode
+     jsi-node-repl-mode))
+   ("shells"
+    (shell-mode))
+   ("magit"
+    (magit-diff-mode
+     magit-log-mode
+     magit-process-mode
+     magit-revision-mode
+     magit-status-mode
+     magit-submodule-list-mode))))
+
+(setq
+ rh-buffers-not-file-group
+ '("\\` "
+   "^\\*Completions\\*$"
+   "^\\*Quail Completions\\*$"
+   "^\\*Messages\\*$"
+   "^\\*clang-output\\*$"
+   "^\\*clang-error\\*$"
+   "^\\*Semantic SymRef\\*$"
+   "^\\*Recent Files\\*$"
+   "^\\*Directory\\*$"
+   "^\\*Ido Completions\\*$"
+   "^\\*buffer-selection\\*$"
+   "^\\*httpd\\*$"
+   help-mode
+   debugger-mode
+   ;; tide
+   "^\\*tide-server\\*.*$"
+   "^\\*node process\\*$"
+   ;; script outputs
+   "^\\*skewer-error\\*$"
+   "^\\*tide-server\\*$"
+   ;; rtags buffers
+   "^\\*rdm\\*$"
+   "^\\*RTags\\*$"
+   "^\\*RTags Diagnostics\\*$"
+   "^\\*RTags Log\\*$"
+   ;; AUCTeX output files
+   " output\\*$"))
+
+(setq rh-buffers-groups '())
 
 (dolist (buffer-group rh-buffers-semantic-not-file-groups)
   (setq rh-buffers-groups
         (append (list (copy-tree buffer-group)) rh-buffers-groups)))
-(setq rh-buffers-groups (nreverse rh-buffers-groups))
 
-(defvar rh-buffers-not-file-group
-  '("\\` "
-    "^\\*Completions\\*$"
-    "^\\*Quail Completions\\*$"
-    "^\\*Messages\\*$"
-    "^\\*clang-output\\*$"
-    "^\\*clang-error\\*$"
-    "^\\*Semantic SymRef\\*$"
-    "^\\*Recent Files\\*$"
-    "^\\*Directory\\*$"
-    "^\\*Ido Completions\\*$"
-    "^\\*buffer-selection\\*$"
-    "^\\*httpd\\*$"
-    help-mode
-    debugger-mode
-    ;; tide
-    "^\\*tide-server\\*.*$"
-    "^\\*node process\\*$"
-    ;; script outputs
-    "^\\*skewer-error\\*$"
-    "^\\*tide-server\\*$"
-    ;; rtags buffers
-    "^\\*rdm\\*$"
-    "^\\*RTags\\*$"
-    "^\\*RTags Diagnostics\\*$"
-    "^\\*RTags Log\\*$"
-    ;; AUCTeX output files
-    " output\\*$")
-  "Buffers used to create files filter in bs-configurations.
-The buffer value can be either buffer name regex or buffer major mode symbol")
+(setq rh-buffers-groups (nreverse rh-buffers-groups))
 
 (dolist (buffer-group rh-buffers-semantic-not-file-groups)
   (setq rh-buffers-not-file-group
