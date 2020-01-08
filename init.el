@@ -415,12 +415,16 @@ when only symbol face names are needed."
     (setq rh-bs-bottom-0-side-window-buffer output-buffer)
     (get-buffer-process output-buffer)))
 
-(defun rh-project-kill-shell-process (output-buffer-or-name)
+(defun rh-project-kill-shell-process
+    (output-buffer-or-name &optional interrupt)
   (let ((buffer (get-buffer output-buffer-or-name))
         (proc (get-buffer-process output-buffer-or-name)))
     (when (and buffer (not (get-buffer-window buffer 'visible)))
       (rh-bs-display-buffer-in-bootom-0-side-window buffer))
-    (when proc (kill-process proc))))
+    (when proc
+      (if interrupt
+          (interrupt-process proc)
+        (kill-process proc)))))
 
 ;; /b/} rh-project
 
@@ -2797,7 +2801,7 @@ fields which we need."
   (require 'ansi-color)
   (defun rh-ansi-colorize-buffer ()
     (let ((buffer-read-only nil))
-      (ansi-color-apply-on-region (point-min) (point-max))))
+      (ansi-color-apply-on-region compilation-filter-start (point))))
 
   (add-hook 'compilation-filter-hook #'rh-ansi-colorize-buffer)
 
