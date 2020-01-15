@@ -4088,6 +4088,8 @@ fields which we need."
      ;; (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)
      ))
 
+  :bind (:map web-mode-map
+         ("C-c C-b" . nil))
   :ensure t)
 
 ;;; /b/}
