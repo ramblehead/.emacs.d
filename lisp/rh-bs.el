@@ -718,7 +718,15 @@ will be used."
            (lambda ()
              (let ((inhibit-read-only t))
                (goto-char (process-mark proc))
-               (insert (ansi-color-apply string))
+               ;; Strip ASCII Terminal Escape Sequences
+               ;; \x1b is ^[ - RET ESCAPE
+               ;; \x0d is ^M - RET CARRIAGE RETURN
+               ;; (setq string
+               ;;       (replace-regexp-in-string
+               ;;        "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
+               (setq string (replace-regexp-in-string "\x0d" "" string))
+               (let (overwrite-mode t)
+                 (insert (ansi-color-apply string)))
                (set-marker (process-mark proc) (point))))))
       (if (eobp)
           (funcall update)
