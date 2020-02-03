@@ -725,7 +725,7 @@ will be used."
                ;;       (replace-regexp-in-string
                ;;        "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
                (setq string (replace-regexp-in-string "\x0d" "" string))
-               (let (overwrite-mode t)
+               (let (overwrite-mode)
                  (insert (ansi-color-apply string)))
                (set-marker (process-mark proc) (point))))))
       (if (eobp)
