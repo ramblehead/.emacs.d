@@ -2798,9 +2798,10 @@ fields which we need."
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
 
-  (require 'compile-nextjs)
-  (push 'nextjs-typecheck compilation-error-regexp-alist)
-  (push 'nextjs-compiling compilation-error-regexp-alist)
+  ;; This occasionally hungs emacs for some reason...
+  ;; (require 'compile-nextjs)
+  ;; (push 'nextjs-typecheck compilation-error-regexp-alist)
+  ;; (push 'nextjs-compiling compilation-error-regexp-alist)
 
   (require 'ansi-color)
   (defun rh-ansi-colorize-buffer ()
