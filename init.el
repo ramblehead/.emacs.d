@@ -41,15 +41,20 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; * REST clients
+;;   https://github.com/federicotdn/verb
+;;   https://github.com/pashky/restclient.el
+;;   https://emacs.stackexchange.com/questions/2427/how-to-test-rest-api-with-emacs
+
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
-;; https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
-;; https://github.com/bmag/emacs-purpose
-;; https://github.com/raxod502/straight.el
-;; https://github.com/yuutayamada/suggestion-box-el
-;; https://github.com/syohex/emacs-quickrun
-;; https://github.com/zk-phi/indent-guide
+;;   https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice
+;;   https://github.com/bmag/emacs-purpose
+;;   https://github.com/raxod502/straight.el
+;;   https://github.com/yuutayamada/suggestion-box-el
+;;   https://github.com/syohex/emacs-quickrun
+;;   https://github.com/zk-phi/indent-guide
 
 ;; * Steal backups and auto-saving strategy from the following config:
 ;;   https://sriramkswamy.github.io/dotemacs/#orgheadline451
