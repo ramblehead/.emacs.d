@@ -411,7 +411,8 @@ when only symbol face names are needed."
     (rh-bs-async-shell-command full-command output-buffer)
     (with-current-buffer output-buffer
       (setq-local buffer-read-only t)
-      (local-set-key (kbd "q") #'rh-bs-delete-sibling-windows))
+      (local-set-key (kbd "C-q") #'rh-bs-delete-sibling-windows)
+      (local-set-key (kbd "q") #'delete-window))
     (setq rh-bs-bottom-0-side-window-buffer output-buffer)
     (get-buffer-process output-buffer)))
 
