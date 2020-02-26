@@ -712,35 +712,35 @@ will be used."
 ;;             (funcall update)
 ;;           (save-excursion (funcall update)))))))
 
-(defun rh-bs-async-shell-command-insertion-filter (proc string)
-  (with-current-buffer (process-buffer proc)
-    (let ((update
-           (lambda ()
-             (let ((inhibit-read-only t))
-               (goto-char (process-mark proc))
-               ;; Strip ASCII Terminal Escape Sequences
-               ;; \x1b is ^[ - RET ESCAPE
-               ;; \x0d is ^M - RET CARRIAGE RETURN
-               ;; (setq string
-               ;;       (replace-regexp-in-string
-               ;;        "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
-               (setq string (replace-regexp-in-string "\x0d" "" string))
-               (let (overwrite-mode)
-                 (insert (ansi-color-apply string)))
-               (set-marker (process-mark proc) (point))))))
-      (if (eobp)
-          (funcall update)
-        (save-excursion (funcall update)))))
+;; (defun rh-bs-async-shell-command-insertion-filter (proc string)
+;;   (with-current-buffer (process-buffer proc)
+;;     (let ((update
+;;            (lambda ()
+;;              (let ((inhibit-read-only t))
+;;                (goto-char (process-mark proc))
+;;                ;; Strip ASCII Terminal Escape Sequences
+;;                ;; \x1b is ^[ - RET ESCAPE
+;;                ;; \x0d is ^M - RET CARRIAGE RETURN
+;;                ;; (setq string
+;;                ;;       (replace-regexp-in-string
+;;                ;;        "\x1b\\[[0-9;]*[a-zA-Z]\\|\x0d" "" string))
+;;                (setq string (replace-regexp-in-string "\x0d" "" string))
+;;                (let (overwrite-mode)
+;;                  (insert (ansi-color-apply string)))
+;;                (set-marker (process-mark proc) (point))))))
+;;       (if (eobp)
+;;           (funcall update)
+;;         (save-excursion (funcall update)))))
 
-  (when (string-match "^\\[sudo\\] password.*$" string)
-    (process-send-string
-     proc
-     (concat (read-passwd (match-string 0 string)) "\n"))))
+;;   (when (string-match "^\\[sudo\\] password.*$" string)
+;;     (process-send-string
+;;      proc
+;;      (concat (read-passwd (match-string 0 string)) "\n"))))
 
 (defun rh-bs-async-shell-command-start-handler (proc)
   (rh-bs-refresh-if-visible)
   (when (process-live-p proc)
-    (set-process-filter proc #'rh-bs-async-shell-command-insertion-filter)
+    ;; (set-process-filter proc #'rh-bs-async-shell-command-insertion-filter)
     (set-process-sentinel proc #'rh-bs-async-shell-command-sentinel)))
 
 (defun rh-bs-async-shell-command (command &optional output-buffer error-buffer)
