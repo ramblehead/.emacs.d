@@ -8,14 +8,6 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
-;; Bugs:
-;; [ ] All compilation buffers should be marked as "bottom side window".
-;; [ ] All "bottom side window" buffers should iflipb-next-buffer().
-;; [ ] All "non-side window" buffers should be ingnored when
-;;     iflipb-next-buffer() in other windows.
-;; [ ] Bottom-side window should have tabs for all buffers marked as "bottom
-;;     side window".
-
 ;; TODO:
 ;; [ ] Switch to color-theme-sanityinc-tomorrow-blue.
 ;; [ ] Refactor skewer-mode config to rh-style.
