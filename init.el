@@ -1,7 +1,7 @@
 ;;; init.el --- ramblehead's emacs configuration
 ;;
 ;; Author: Victor Rybynok
-;; Copyright (C) 2019, Victor Rybynok, all rights reserved.
+;; Copyright (C) 2019, 2020, Victor Rybynok, all rights reserved.
 
 ;; ------------------------------------------------------------------
 ;;; Bugs, TODO and R&D
