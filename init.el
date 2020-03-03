@@ -4210,7 +4210,8 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
-  (setq company-backends (delq 'company-tide company-backends))
+  ;; (setq company-backends (delq 'company-tide company-backends))
+  (add-to-list 'company-backends 'company-tide)
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
 (defun rh-setup-javascript-tern ()
