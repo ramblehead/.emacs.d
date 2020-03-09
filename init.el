@@ -2888,8 +2888,28 @@ fields which we need."
   :ensure t)
 
 (use-package shell
+  :config
+  (add-to-list 'display-buffer-alist
+               ;; '((lambda (buffer-nm action)
+               ;;     (eq (with-current-buffer buffer-nm major-mode)
+               ;;         'shell-mode))
+               '("*shell*"
+                 (display-buffer-same-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  rh-display-buffer-reuse-down
+                  rh-display-buffer-reuse-up
+                  display-buffer-pop-up-window)))
+
   :bind (:map shell-mode-map
           ("C-c C-b" . nil))
+  :defer
+  :ensure t)
+
+(use-package man
+  :config
+  (setq Man-notify-method 'pushy)
+
   :defer
   :ensure t)
 
