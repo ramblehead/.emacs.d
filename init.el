@@ -179,6 +179,8 @@
   (package-install 'use-package))
 
 (use-package gnu-elpa-keyring-update
+  :config
+  (gnu-elpa-keyring-update)
   :demand t
   :ensure t)
 
@@ -1855,12 +1857,32 @@ Also sets SYMBOL to VALUE."
 
 ;; /b/{ dired
 
+(defun rh-dired-ace-select-other-window ()
+  (interactive)
+  (let ((file-name (dired-get-file-for-visit)))
+    (ace-select-window)
+    (find-file file-name)))
+
+(defun rh-dired-tmp-ace-select-other-window ()
+  (interactive)
+  (with-selected-window (frame-selected-window)
+    (let ((name (dired-get-file-for-visit)))
+      (ace-select-window)
+      (find-file name))))
+
 (use-package dired
   :config
+  (require 'ace-window)
+
   (add-hook
    'dired-mode-hook
    (lambda ()
-     (setq-local find-file-visit-truename nil))))
+     (setq-local find-file-visit-truename nil)))
+
+  :bind (:map dired-mode-map
+         ("C-RET" . rh-dired-ace-select-other-window)
+         ("M-RET" . rh-dired-tmp-ace-select-other-window))
+  :demand t)
 
 (put 'dired-find-alternate-file 'disabled nil)
 
