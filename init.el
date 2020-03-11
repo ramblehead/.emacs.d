@@ -1098,8 +1098,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
         (require 'saveplace)
         (setq-default save-place t))
     (save-place-mode 1))
-  ;; :config
-  ;; (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
+
+  :config
+  (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
+
   :demand t)
 
 (setq default-input-method "russian-computer")
@@ -1161,12 +1163,37 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 ;; Do not copy font and font faces on yank
 ;; http://stackoverflow.com/questions/22024765/how-to-copy-paste-without-source-font-lock-in-emacs
-(setq yank-excluded-properties (append '(font face font-lock-face)
-                                       yank-excluded-properties))
+(setq yank-excluded-properties
+      (append '(font face font-lock-face) yank-excluded-properties))
+
+(defface rh-hl-line-inactive
+  '((t nil))
+  "Inactive variant of `hl-line'."
+  :group 'hl-line)
+
+(defun rh-hl-line-update-face (window)
+  "Update the `hl-line' face in WINDOW to indicate whether
+the window is selected."
+  (with-current-buffer (window-buffer window)
+    (when hl-line-mode
+      (if (eq (current-buffer) (window-buffer (selected-window)))
+          (face-remap-reset-base 'hl-line)
+        (face-remap-set-base
+         'hl-line (face-all-attributes 'rh-hl-line-inactive))))))
+
+(add-hook
+ 'buffer-list-update-hook
+ (lambda ()
+   (walk-windows #'rh-hl-line-update-face nil t)))
+
+(use-package hl-line
+  :config
+  (setq hl-line-sticky-flag nil)
+  :ensure t)
 
 (use-package total-lines
-  :config (global-total-lines-mode 1)
-  ;; :demand t
+  :config
+  (global-total-lines-mode 1)
   :ensure t)
 
 (use-package beacon
@@ -1857,31 +1884,111 @@ Also sets SYMBOL to VALUE."
 
 ;; /b/{ dired
 
-(defun rh-dired-ace-select-other-window ()
+(defun rh-dired-find-file ()
   (interactive)
-  (let ((file-name (dired-get-file-for-visit)))
-    (ace-select-window)
-    (find-file file-name)))
+  (let* ((filename (dired-get-file-for-visit))
+         (filename-after
+          (if (string= (file-name-nondirectory filename) "..")
+              (dired-current-directory)
+            (concat (file-name-as-directory filename) ".."))))
+    (if (not (file-directory-p filename))
+        (find-alternate-file filename)
+      (if (not (file-accessible-directory-p filename))
+          (error (format "Directory '%s' is not accessible" filename))
+        (if (= (length (get-buffer-window-list)) 1)
+            (find-alternate-file filename)
+          (bury-buffer)
+          (find-file filename)))
+      (dired-goto-file filename-after)
+      (recenter))))
 
-(defun rh-dired-tmp-ace-select-other-window ()
+(defun rh-dired-change-to-file (filename)
+  (interactive "FFind file: ")
+  (find-alternate-file filename))
+
+;; (defun rh-dired-ace-select-other-window ()
+;;   (interactive)
+;;   (let ((file-name (dired-get-file-for-visit)))
+;;     (when (ace-select-window)
+;;       (find-file file-name))))
+
+(defun rh-get-buffer-mode-window-list (&optional buffer-or-name mode all-frames)
+  (setq mode (or mode major-mode))
+  (let ((window-list '()))
+    (dolist (win (window-list-1 nil nil all-frames))
+      (when (eq (with-selected-window win major-mode) mode)
+        (push win window-list)))
+    (nreverse window-list)))
+
+(defun rh-dired-select-next-dired-window ()
+  (interactive)
+  (let ((window-list (rh-get-buffer-mode-window-list)))
+    (if (> (length window-list) 1)
+        (select-window (nth 1 window-list))
+      (let ((directory (dired-current-directory))
+            (pos (point)))
+        (when (ace-select-window)
+          (find-file directory)
+          (goto-char pos))))))
+
+(defun rh-dired-alt-ace-select-other-window ()
   (interactive)
   (with-selected-window (frame-selected-window)
     (let ((name (dired-get-file-for-visit)))
-      (ace-select-window)
-      (find-file name))))
+      (when (ace-select-window)
+        (find-file name)))))
+
+(defun rh-dired-change-to-parent-dir ()
+  (interactive)
+  (dired-goto-file (concat (dired-current-directory) ".."))
+  (rh-dired-find-file))
+
+(defun rh-dired-guess-dir ()
+  "Starts dired in buffer-file-name directory or in '~', if buffer has no
+filename associated with it."
+  (interactive)
+  (progn
+    (dired (let ((fnm (buffer-file-name)))
+             (if fnm
+                 (file-name-directory fnm)
+               "~")))))
 
 (use-package dired
   :config
   (require 'ace-window)
 
+  ;; copy from one dired dir to the next dired dir shown in a split window
+  (setq dired-dwim-target t)
+
   (add-hook
    'dired-mode-hook
    (lambda ()
-     (setq-local find-file-visit-truename nil)))
+     (hl-line-mode 1)
+     (setq-local coding-system-for-read vr-dired-coding-system)
+     (setq-local find-file-visit-truename nil)
+     ;; (add-hook
+     ;;  'window-selection-change-functions
+     ;;  (lambda (win)
+     ;;    (when (eq (with-selected-window win major-mode) 'dired-mode)
+     ;;      (if (eq win (frame-selected-window))
+     ;;          (hl-line-mode 1)
+     ;;        (with-selected-window win
+     ;;          (when (= (length (get-buffer-window-list)) 1)
+     ;;            (hl-line-mode -1))))))
+     ;;  nil t)
+     ))
 
   :bind (:map dired-mode-map
-         ("C-RET" . rh-dired-ace-select-other-window)
-         ("M-RET" . rh-dired-tmp-ace-select-other-window))
+         ("RET" . rh-dired-find-file)
+         ("TAB" . rh-dired-select-next-dired-window)
+         ("<backspace>" . rh-dired-change-to-parent-dir)
+         ("<return>" . rh-dired-find-file)
+         ("<kp-return>" . rh-dired-find-file)
+         ("C-x C-f" . rh-dired-change-to-file)
+         ;; ("C-<return>" . rh-dired-ace-select-other-window)
+         ;; ("C-<kp-return>" . rh-dired-ace-select-other-window)
+         ("M-<return>" . rh-dired-alt-ace-select-other-window)
+         ("M-<kp-return>" . rh-dired-alt-ace-select-other-window))
   :demand t)
 
 (put 'dired-find-alternate-file 'disabled nil)
@@ -1899,47 +2006,7 @@ Also sets SYMBOL to VALUE."
           "--group-directories-first --time-style=long-iso -alhD")
     (setq vr-dired-coding-system nil)))
 
-(defun vr-no-ido-find-alternate-file (file)
-  (interactive "FFind file: ")
-  (find-alternate-file file))
-
-(defun vr-dired-cancel ()
-  (interactive)
-  (kill-buffer (current-buffer))
-  (message "dired canceled"))
-
-(defun vr-dired-guess-dir ()
-  "Starts dired in buffer-file-name directory or in '~', if buffer has no
-filename associated with it."
-  (interactive)
-  (progn
-    (dired (let ((fnm (buffer-file-name)))
-             (if fnm
-                 (file-name-directory fnm)
-               "~")))))
-
-(defun vr-move-to-parent-dir ()
-  (interactive)
-  (find-alternate-file ".."))
-
-(defun vr-dired-mode-setup ()
-  (set (make-local-variable 'coding-system-for-read) vr-dired-coding-system)
-  ;; (save-place-local-mode -1)
-  (hl-line-mode 1)
-  (define-key dired-mode-map (kbd "C-x C-f") 'vr-no-ido-find-alternate-file)
-  (define-key dired-mode-map (kbd "<escape>") 'vr-dired-cancel)
-  (define-key dired-mode-map (kbd "<backspace>") 'vr-move-to-parent-dir)
-  ;; The following solution does not work,
-  ;; investigate alternative implementations.
-  ;;  (define-key dired-mode-map (kbd "<mouse-1>") 'dired-mouse-find-file-other-window)
-  (define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file)
-  (define-key dired-mode-map (kbd "<kp-enter>") 'dired-find-alternate-file)
-  (define-key dired-mode-map (kbd "C-<return>") 'dired-find-file)
-  (define-key dired-mode-map (kbd "C-<kp-enter>") 'dired-find-file))
-
-(add-hook 'dired-mode-hook 'vr-dired-mode-setup)
-
-(global-set-key (kbd "C-x d") 'vr-dired-guess-dir)
+(global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
 
 ;; /b/} dired
 
