@@ -1181,6 +1181,13 @@ the window is selected."
         (face-remap-set-base
          'hl-line (face-all-attributes 'rh-hl-line-inactive))))))
 
+;; see https://emacs.stackexchange.com/questions/14638/change-highlight-color-when-window-isnt-in-focus/14658#14658
+;; This hook is required as hl-line-sticky-flag alone is not sufficient - it
+;; does not always disable line highlight in e.g. windows displaying different
+;; dired buffers (although works fine when different windows are showing the
+;; same dired buffer).
+;; TODO: Such behaviour is probably a bug in hl-line mode - report it to
+;;       upstream...
 (add-hook
  'buffer-list-update-hook
  (lambda ()
