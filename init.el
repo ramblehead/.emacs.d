@@ -1602,7 +1602,8 @@ Also sets SYMBOL to VALUE."
   :ensure t)
 
 (use-package ace-window
-  :bind (("C-c a o" . ace-window)
+  :bind (("C-c a a" . ace-window)
+         ("C-c a o" . ace-select-window)
          ("C-c a s" . ace-swap-window)
          ("C-c a d" . ace-delete-window))
   :demand t
@@ -1916,11 +1917,11 @@ Also sets SYMBOL to VALUE."
   (interactive "FFind file: ")
   (find-alternate-file filename))
 
-;; (defun rh-dired-ace-select-other-window ()
-;;   (interactive)
-;;   (let ((file-name (dired-get-file-for-visit)))
-;;     (when (ace-select-window)
-;;       (find-file file-name))))
+(defun rh-dired-ace-select-other-window ()
+  (interactive)
+  (let ((file-name (dired-get-file-for-visit)))
+    (when (ace-select-window)
+      (find-file file-name))))
 
 (defun rh-get-buffer-mode-window-list (&optional buffer-or-name mode all-frames)
   (setq mode (or mode major-mode))
@@ -1995,10 +1996,10 @@ filename associated with it."
          ("<return>" . rh-dired-find-file)
          ("<kp-return>" . rh-dired-find-file)
          ("C-x C-f" . rh-dired-change-to-file)
-         ;; ("C-<return>" . rh-dired-ace-select-other-window)
-         ;; ("C-<kp-return>" . rh-dired-ace-select-other-window)
          ("M-<return>" . rh-dired-alt-ace-select-other-window)
-         ("M-<kp-return>" . rh-dired-alt-ace-select-other-window))
+         ("M-<enter>" . rh-dired-alt-ace-select-other-window)
+         ("C-M-<return>" . rh-dired-ace-select-other-window)
+         ("C-M-<enter>" . rh-dired-ace-select-other-window))
   :demand t)
 
 (put 'dired-find-alternate-file 'disabled nil)
@@ -2017,6 +2018,16 @@ filename associated with it."
     (setq vr-dired-coding-system nil)))
 
 (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
+
+;; (use-package dired-subtree
+;;   :config
+;;   (setq dired-subtree-use-backgrounds nil)
+;;   ;; :bind (:map which-key-mode-map
+;;   ;;         ("<f1>" . which-key-show-top-level))
+
+;;   :after dired
+;;   :demand t
+;;   :ensure t)
 
 ;; /b/} dired
 
