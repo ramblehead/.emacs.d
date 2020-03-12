@@ -1954,6 +1954,14 @@ Also sets SYMBOL to VALUE."
   (dired-goto-file (concat (dired-current-directory) ".."))
   (rh-dired-find-file))
 
+(defun rh-dired-open-file ()
+  "In dired, open the file named on this line."
+  (interactive)
+  (let* ((file (dired-get-filename nil t)))
+    (message "Opening %s..." file)
+    (call-process "xdg-open" nil 0 nil file)
+    (message "Opening %s done" file)))
+
 (defun rh-dired-guess-dir ()
   "Starts dired in buffer-file-name directory or in '~', if buffer has no
 filename associated with it."
@@ -1999,7 +2007,8 @@ filename associated with it."
          ("M-<return>" . rh-dired-alt-ace-select-other-window)
          ("M-<enter>" . rh-dired-alt-ace-select-other-window)
          ("C-M-<return>" . rh-dired-ace-select-other-window)
-         ("C-M-<enter>" . rh-dired-ace-select-other-window))
+         ("C-M-<enter>" . rh-dired-ace-select-other-window)
+         ("e" . rh-dired-open-file))
   :demand t)
 
 (put 'dired-find-alternate-file 'disabled nil)
@@ -2029,15 +2038,12 @@ filename associated with it."
 ;;   :demand t
 ;;   :ensure t)
 
+;; (use-package dired-open
+;;   :after dired
+;;   :demand t
+;;   :ensure t)
+
 ;; /b/} dired
-
-;; /b/{ sunrise commander
-
-;; (use-package ivy)
-
-;; /b/} sunrise commander
-
-;; /b/{ recentf
 
 (use-package recentf
   :config
