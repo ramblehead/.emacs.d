@@ -1957,10 +1957,9 @@ Also sets SYMBOL to VALUE."
 (defun rh-dired-open-file ()
   "In dired, open the file named on this line."
   (interactive)
-  (let* ((file (dired-get-filename nil t)))
+  (let ((file (dired-get-filename nil t)))
     (message "Opening %s..." file)
-    (call-process "xdg-open" nil 0 nil file)
-    (message "Opening %s done" file)))
+    (call-process "xdg-open" nil 0 nil file)))
 
 (defun rh-dired-guess-dir ()
   "Starts dired in buffer-file-name directory or in '~', if buffer has no
