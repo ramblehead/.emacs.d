@@ -1191,7 +1191,10 @@ the window is selected."
 (add-hook
  'buffer-list-update-hook
  (lambda ()
-   (walk-windows #'rh-hl-line-update-face nil t)))
+   (run-with-timer
+    0 nil
+    (lambda ()
+      (walk-windows #'rh-hl-line-update-face nil t)))))
 
 (use-package hl-line
   :config
