@@ -1998,9 +1998,10 @@ filename associated with it."
 
   :bind (:map dired-mode-map
          ("RET" . rh-dired-find-file)
-         ("TAB" . rh-dired-select-next-dired-window)
-         ("<backspace>" . rh-dired-change-to-parent-dir)
          ("<return>" . rh-dired-find-file)
+         ("f" . rh-dired-find-file)
+         ("<backspace>" . rh-dired-change-to-parent-dir)
+         ("TAB" . rh-dired-select-next-dired-window)
          ("<kp-return>" . rh-dired-find-file)
          ("C-x C-f" . rh-dired-change-to-file)
          ("M-<return>" . rh-dired-alt-ace-select-other-window)
