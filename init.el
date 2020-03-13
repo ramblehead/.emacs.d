@@ -2018,13 +2018,14 @@ filename associated with it."
     (progn
       (setq dired-listing-switches "-alhgG")
       (setq vr-dired-coding-system 'cp1251))
-  (progn
-    ;; In unix-like systems
-    ;; Sort dirs and files in dired as in "C"
-    (setenv "LC_COLLATE" "C")
-    (setq dired-listing-switches
-          "--group-directories-first --time-style=long-iso -alhD")
-    (setq vr-dired-coding-system nil)))
+  ;; In unix-like systems
+  ;; Sort dirs and files in dired as in "C"
+  (setenv "LC_COLLATE" "C")
+  (setq dired-listing-switches
+        ;; "--group-directories-first --time-style=long-iso -alhD"
+        "--group-directories-first --time-style=long-iso -alh"
+        )
+  (setq vr-dired-coding-system nil))
 
 (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
 
@@ -2187,6 +2188,61 @@ fields which we need."
 ;; See the following links on some ivy hints
 ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
 ;; https://oremacs.com/2015/04/16/ivy-mode/
+
+(defun rh-ivy--virtual-buffers ()
+  "Adapted from `ido-add-virtual-buffers-to-list'."
+  (require 'bookmark)
+  (unless recentf-mode
+    (recentf-mode 1))
+  (bookmark-maybe-load-default-file)
+  (let* ((vb-bkm (delete "   - no file -"
+                         (delq nil (mapcar #'bookmark-get-filename
+                                           bookmark-alist))))
+         (vb-recent-dirs (delete-dups
+                          (mapcar (lambda (file)
+                                    (if (file-directory-p file)
+                                        file
+                                      (file-name-directory file)))
+                                  recentf-list)))
+         (vb-list (cond ((eq ivy-use-virtual-buffers 'recentf)
+                         recentf-list)
+                        ((eq ivy-use-virtual-buffers 'bookmarks)
+                         vb-bkm)
+                        (ivy-use-virtual-buffers
+                         (append recentf-list vb-bkm vb-recent-dirs))
+                        (t nil)))
+         virtual-buffers)
+    (dolist (head vb-list)
+      (let* ((file-name (if (stringp head)
+                            head
+                          (cdr head)))
+             (name (cond ((eq ivy-virtual-abbreviate 'name)
+                          (file-name-nondirectory file-name))
+                         ((eq ivy-virtual-abbreviate 'abbreviate)
+                          (abbreviate-file-name file-name))
+                         (t
+                          (expand-file-name file-name)))))
+        (when (equal name "")
+          (setq name
+                (if (consp head)
+                    (car head)
+                  (file-name-nondirectory (directory-file-name file-name)))))
+        (unless (or (equal name "")
+                    (get-file-buffer file-name)
+                    (assoc name virtual-buffers))
+          (push (cons (copy-sequence name) file-name) virtual-buffers))))
+    (when virtual-buffers
+      (dolist (comp virtual-buffers)
+        (put-text-property 0 (length (car comp))
+                           'face 'ivy-virtual
+                           (car comp)))
+      (setq ivy--virtual-buffers (nreverse virtual-buffers))
+      (mapcar #'car ivy--virtual-buffers))))
+
+;; Adding recent dirs to virtual buffers.
+;; TODO: Send patch/PR to ivy upstream.
+(advice-add 'ivy--virtual-buffers :override
+            #'rh-ivy--virtual-buffers)
 
 (use-package ivy
   :config
