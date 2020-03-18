@@ -280,10 +280,10 @@ continuing (not first) item"
    'statement-cont
    (lambda (langelem)
      (cond
-      ((rh-c-style-examine-at-langelem
-        langelem
-        #'rh-c++-looking-at-return)
-       (rh-c++-get-offset-return langelem))
+      ;; ((rh-c-style-examine-at-langelem
+      ;;   langelem
+      ;;   #'rh-c++-looking-at-return)
+      ;;  (rh-c++-get-offset-return langelem))
       ((rh-c-style-examine-at-langelem
         nil
         #'rh-c++-looking-at-uniform_init_block_closing_brace_line)
