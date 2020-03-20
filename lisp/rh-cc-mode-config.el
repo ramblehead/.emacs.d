@@ -34,7 +34,7 @@
 ;;
 ;;; Code:
 
-(require 'company-rtags)
+(require 'company-rtags nil t)
 (require 'company-clang)
 (require 'company-c-headers)
 
@@ -47,7 +47,8 @@
         '(company-c-headers (company-keywords company-dabbrev-code)
           company-files (company-dabbrev company-ispell)))
 
-  (bind-key "C-c C-<tab>" #'company-rtags c-mode-base-map)
+  (when (boundp 'c-mode-base-map)
+    (bind-key "C-c C-<tab>" #'company-rtags c-mode-base-map))
   (bind-key "C-x C-<tab>" #'company-clang c-mode-base-map)
 
   (company-mode 1))

@@ -3615,7 +3615,7 @@ fields which we need."
   :config
   (require 'compile)
   (require 'auto-complete-c-headers)
-  (require 'rtags)
+  (require 'rtags nil t)
   (require 'rh-cc-mode-config)
 
   ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
