@@ -40,6 +40,8 @@
 
 ;; * Terminal
 ;;   https://github.com/CyberShadow/term-keys
+;;   * Combine compilation-mode and ansi-term-mode
+;;     https://superuser.com/questions/416567/combine-compilation-mode-and-ansi-term-mode-in-emacs
 
 ;; https://github.com/10sr/git-walktree-el
 
