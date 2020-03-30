@@ -3284,7 +3284,8 @@ fields which we need."
                  (inhibit-same-window . t)))
 
   (setq transient-display-buffer-action
-        '(display-buffer-below-selected (side . bottom)))
+        ;; '(display-buffer-below-selected (side . bottom)))
+        '(display-buffer-in-side-window (side . bottom)))
 
   (setq magit-bury-buffer-function #'quit-window)
 
