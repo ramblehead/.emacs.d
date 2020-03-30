@@ -38,6 +38,9 @@
 ;;   https://github.com/pashky/restclient.el
 ;;   https://emacs.stackexchange.com/questions/2427/how-to-test-rest-api-with-emacs
 
+;; * Terminal
+;;   https://github.com/CyberShadow/term-keys
+
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
@@ -3290,7 +3293,8 @@ fields which we need."
                  (inhibit-same-window . t)))
 
   (setq transient-display-buffer-action
-        '(display-buffer-below-selected (side . bottom)))
+        ;; '(display-buffer-below-selected (side . bottom)))
+        '(display-buffer-in-side-window (side . bottom)))
 
   (setq magit-bury-buffer-function #'quit-window)
 
