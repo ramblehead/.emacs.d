@@ -2943,6 +2943,12 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+(use-package eterm-fn
+  :config
+  (eterm-fn-mode 1)
+  :demand t
+  :ensure t)
+
 (use-package sh-script
   :config
   (add-hook
