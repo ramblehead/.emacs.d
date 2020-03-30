@@ -38,6 +38,9 @@
 ;;   https://github.com/pashky/restclient.el
 ;;   https://emacs.stackexchange.com/questions/2427/how-to-test-rest-api-with-emacs
 
+;; * Terminal
+;;   https://github.com/CyberShadow/term-keys
+
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
