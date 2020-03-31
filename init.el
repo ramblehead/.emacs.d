@@ -40,6 +40,9 @@
 
 ;; * Terminal
 ;;   https://github.com/CyberShadow/term-keys
+;;   https://github.com/akermu/emacs-libvterm and https://apt.kitware.com/
+;;   http://rash-lang.org/
+;;   https://github.com/emacsmirror/equake
 ;;   * Combine compilation-mode and ansi-term-mode
 ;;     https://superuser.com/questions/416567/combine-compilation-mode-and-ansi-term-mode-in-emacs
 
@@ -2948,11 +2951,15 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-(use-package eterm-fn
-  :config
-  (eterm-fn-mode 1)
-  :demand t
-  :ensure t)
+;; (use-package eterm-fn
+;;   :config
+;;   (eterm-fn-mode 1)
+;;   :demand t
+;;   :ensure t)
+
+;; (use-package vterm
+;;   ;; :demand t
+;;   :ensure t)
 
 (use-package sh-script
   :config
