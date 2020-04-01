@@ -2951,15 +2951,11 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
-;; (use-package eterm-fn
-;;   :config
-;;   (eterm-fn-mode 1)
-;;   :demand t
-;;   :ensure t)
-
-;; (use-package vterm
-;;   ;; :demand t
-;;   :ensure t)
+(use-package vterm
+  :if (locate-library "vterm")
+  :commands vterm
+  :defer t
+  :pin manual)
 
 (use-package sh-script
   :config
@@ -3468,8 +3464,9 @@ fields which we need."
 ;;; /b/{
 
 (use-package rtags
-  ;; :commands rtags-start-process-unless-running
+  :if (locate-library "rtags")
   :config
+  ;; (message "******************************************************* rtags")
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
@@ -3600,7 +3597,9 @@ fields which we need."
   :pin manual)
 
 (use-package clang-format
-  :load-path "/usr/share/emacs/site-lisp/clang-format-5.0"
+  :if (locate-library "clang-format")
+  ;; :load-path "/usr/share/emacs/site-lisp/clang-format-9.0"
+  :defer t
   :pin manual)
 
 (use-package google-c-style
@@ -3630,8 +3629,9 @@ fields which we need."
 
 (use-package cc-mode
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
-  :mode "/hpp\\'\\|\\.ipp\\'"
+  :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
   :config
+  ;; (message "******************************************************* cc-mode")
   (require 'compile)
   (require 'auto-complete-c-headers)
   (require 'rtags nil t)
