@@ -31,8 +31,8 @@
   (shell-command (concat "texcount " "\"" (buffer-file-name) "\"")))
 
 ;; http://stackoverflow.com/questions/9288181/converting-from-camelcase-to-in-emacs
-(defun toggle-camelcase-underscores ()
-  "Toggle between camcelcase and underscore notation for the symbol at point."
+(defun toggle-camel-snake-case ()
+  "Toggle between camel and snake case."
   (interactive)
   (save-excursion
     (let* ((bounds (bounds-of-thing-at-point 'symbol))
@@ -47,6 +47,9 @@
             (replace-string "_" "" nil start end)
             (downcase-region start (1+ start)))
         (replace-regexp "\\([A-Z]\\)" "_\\1" nil (1+ start) end)
+        (setq bounds (bounds-of-thing-at-point 'symbol))
+        (setq start (car bounds))
+        (setq end (cdr bounds))
         (downcase-region start end)))))
 
 (defun insert-file-path-at-point ()

@@ -1604,7 +1604,7 @@ Also sets SYMBOL to VALUE."
   (setq avy-all-windows 'all-frames)
 
   :bind (("C-c a w" . avy-goto-subword-1)
-         ("M-f" . avy-goto-subword-1)
+         ("M-f" . avy-goto-char)
          ("C-c a l" . avy-goto-line))
   :demand t
   :ensure t)
