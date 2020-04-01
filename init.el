@@ -1603,9 +1603,8 @@ Also sets SYMBOL to VALUE."
   ;;   (font-lock-flush))
   (setq avy-all-windows 'all-frames)
 
-  :bind (("C-c a w" . avy-goto-subword-1)
-         ("M-f" . avy-goto-char)
-         ("C-c a l" . avy-goto-line))
+  :bind (("M-f" . avy-goto-char)
+         ("M-d" . avy-goto-line))
   :demand t
   :ensure t)
 
