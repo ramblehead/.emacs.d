@@ -2953,6 +2953,14 @@ fields which we need."
 (use-package vterm
   :if (locate-library "vterm")
   :commands vterm
+  :config
+  (require 'config-vterm)
+
+  :bind (:map vterm-mode-map
+         ;; ("<end>" . rh-vterm-send-end)
+         ("<kp-end>" . rh-vterm-send-kp-end)
+         ;; ("<home>" . rh-vterm-send-home)
+         ("<kp-home>" . rh-vterm-send-kp-home))
   :defer t
   :pin manual)
 
