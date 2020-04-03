@@ -2956,11 +2956,13 @@ fields which we need."
   :config
   (require 'config-vterm)
 
+  (vterm-send-C-d)
   :bind (:map vterm-mode-map
          ;; ("<end>" . rh-vterm-send-end)
          ("<kp-end>" . rh-vterm-send-kp-end)
          ;; ("<home>" . rh-vterm-send-home)
-         ("<kp-home>" . rh-vterm-send-kp-home))
+         ("<kp-home>" . rh-vterm-send-kp-home)
+         ("<deletechar>" . vterm-send-C-d))
   :defer t
   :pin manual)
 
