@@ -2962,7 +2962,10 @@ fields which we need."
          ("<kp-end>" . rh-vterm-send-kp-end)
          ;; ("<home>" . rh-vterm-send-home)
          ("<kp-home>" . rh-vterm-send-kp-home)
-         ("<deletechar>" . vterm-send-C-d))
+         ("<deletechar>" . vterm-send-C-d)
+         ("<kp-begin>" . vterm-copy-mode)
+         :map vterm-copy-mode-map
+         ("<kp-begin>" . vterm-copy-mode))
   :defer t
   :pin manual)
 
@@ -2990,6 +2993,7 @@ fields which we need."
 
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
+  (push 'typescript-eslint compilation-error-regexp-alist)
 
   ;; This occasionally hungs emacs for some reason...
   ;; (require 'compile-nextjs)

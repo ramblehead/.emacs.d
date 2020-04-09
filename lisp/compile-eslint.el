@@ -39,6 +39,27 @@
         (list (match-string 1))))))
 
 ;;;###autoload
+(defun compile-typescript-eslint--find-filename ()
+  "Find the filename for current error."
+  (save-match-data
+    (save-excursion
+      (move-beginning-of-line 1)
+      (re-search-forward
+       "^\\(.+\\):[[:digit:]]+:[[:digit:]]+ - error TS[[:digit:]]+:")
+      (list (concat default-directory (match-string 1))))))
+
+;;;###autoload
+(let ((form `(typescript-eslint
+              ,(concat
+                "^\\(.+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\) - "
+                "error TS[[:digit:]]+:.*$")
+              compile-typescript-eslint--find-filename
+              2 3 2 nil (1 'error))))
+  (if (assq 'typescript-eslint compilation-error-regexp-alist-alist)
+      (setf (cdr (assq 'typescript-eslint compilation-error-regexp-alist-alist)) (cdr form))
+    (push form compilation-error-regexp-alist-alist)))
+
+;;;###autoload
 (let ((form `(eslint
               ,(rx-to-string
                 '(and (group (group (+ digit)) ":" (group (+ digit)))
@@ -48,6 +69,12 @@
   (if (assq 'eslint compilation-error-regexp-alist-alist)
       (setf (cdr (assq 'eslint compilation-error-regexp-alist-alist)) (cdr form))
     (push form compilation-error-regexp-alist-alist)))
+
+(setq compilation-error-regexp-alist-alist
+      (seq-remove
+       (lambda (elt)
+         (eq (car elt) 'typescript-tsc-pretty))
+       compilation-error-regexp-alist-alist))
 
 (provide 'compile-eslint)
 ;;; compile-eslint.el ends here
