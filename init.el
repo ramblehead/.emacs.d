@@ -2993,7 +2993,7 @@ fields which we need."
 
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
-  (push 'typescript-eslint compilation-error-regexp-alist)
+  ;; (push 'typescript-eslint compilation-error-regexp-alist)
 
   ;; This occasionally hungs emacs for some reason...
   ;; (require 'compile-nextjs)
@@ -3797,25 +3797,24 @@ fields which we need."
   :ensure t)
 
 (use-package typescript-mode
-  ;; :delight (typescript-mode "ts")
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
                       "ts"))
              :major)
   :config
-  (require 'company)
+  (require 'config-typescript-mode)
 
-  (setq typescript-indent-level 2)
+  ;; (setq typescript-indent-level 2)
 
-  (add-hook
-   'typescript-mode-hook
-   (lambda ()
-     (setq-local company-backends (copy-tree company-backends))
-     (company-mode 1)
+  ;; (add-hook
+  ;;  'typescript-mode-hook
+  ;;  (lambda ()
+  ;;    (setq-local company-backends (copy-tree company-backends))
+  ;;    (company-mode 1)
 
-     (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " jsi-node")
-     (rh-programming-minor-modes 1)))
+  ;;    (setq-local rm-blacklist (seq-copy rm-blacklist))
+  ;;    (add-to-list 'rm-blacklist " jsi-node")
+  ;;    (rh-programming-minor-modes 1)))
 
   :bind (:map typescript-mode-map
          ("{" . nil)
