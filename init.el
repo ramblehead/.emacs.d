@@ -40,7 +40,6 @@
 
 ;; * Terminal
 ;;   https://github.com/CyberShadow/term-keys
-;;   https://github.com/akermu/emacs-libvterm and https://apt.kitware.com/
 ;;   http://rash-lang.org/
 ;;   https://github.com/emacsmirror/equake
 ;;   * Combine compilation-mode and ansi-term-mode
@@ -3681,9 +3680,20 @@ fields which we need."
 
   (defun rh-cc-rtags-setup ()
     (rtags-start-process-unless-running)
-    ;; The following does not work with my clang-auto-complete setting
     ;; (setq rtags-display-current-error-as-tooltip t)
     (rh-rtags-header-line-setup))
+
+  ;; (defun rh-cc-rtags-setup ()
+  ;;   (require 'flycheck-rtags)
+  ;;   (flycheck-select-checker 'rtags)
+  ;;   ;; RTags creates more accurate overlays
+  ;;   (setq-local flycheck-highlighting-mode nil)
+  ;;   (setq-local flycheck-check-syntax-automatically nil)
+  ;;   (rtags-start-process-unless-running)
+  ;;   ;; The following does not work with my clang-auto-complete setting
+  ;;   ;; (setq rtags-display-current-error-as-tooltip t)
+  ;;   (rh-rtags-header-line-setup)
+  ;;   (flycheck-mode 1))
 
   (add-hook
    'c++-mode-hook
