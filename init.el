@@ -2955,11 +2955,16 @@ fields which we need."
   :config
   (require 'config-vterm)
 
+  (vterm-send-C-d)
   :bind (:map vterm-mode-map
          ;; ("<end>" . rh-vterm-send-end)
          ("<kp-end>" . rh-vterm-send-kp-end)
          ;; ("<home>" . rh-vterm-send-home)
-         ("<kp-home>" . rh-vterm-send-kp-home))
+         ("<kp-home>" . rh-vterm-send-kp-home)
+         ("<deletechar>" . vterm-send-C-d)
+         ("<kp-begin>" . vterm-copy-mode)
+         :map vterm-copy-mode-map
+         ("<kp-begin>" . vterm-copy-mode))
   :defer t
   :pin manual)
 
@@ -2987,6 +2992,7 @@ fields which we need."
 
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
+  ;; (push 'typescript-eslint compilation-error-regexp-alist)
 
   ;; This occasionally hungs emacs for some reason...
   ;; (require 'compile-nextjs)
@@ -3801,25 +3807,24 @@ fields which we need."
   :ensure t)
 
 (use-package typescript-mode
-  ;; :delight (typescript-mode "ts")
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
                       "ts"))
              :major)
   :config
-  (require 'company)
+  (require 'config-typescript-mode)
 
-  (setq typescript-indent-level 2)
+  ;; (setq typescript-indent-level 2)
 
-  (add-hook
-   'typescript-mode-hook
-   (lambda ()
-     (setq-local company-backends (copy-tree company-backends))
-     (company-mode 1)
+  ;; (add-hook
+  ;;  'typescript-mode-hook
+  ;;  (lambda ()
+  ;;    (setq-local company-backends (copy-tree company-backends))
+  ;;    (company-mode 1)
 
-     (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " jsi-node")
-     (rh-programming-minor-modes 1)))
+  ;;    (setq-local rm-blacklist (seq-copy rm-blacklist))
+  ;;    (add-to-list 'rm-blacklist " jsi-node")
+  ;;    (rh-programming-minor-modes 1)))
 
   :bind (:map typescript-mode-map
          ("{" . nil)
