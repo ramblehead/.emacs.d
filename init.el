@@ -1609,6 +1609,9 @@ Also sets SYMBOL to VALUE."
   :ensure t)
 
 (use-package ace-window
+  :config
+  (setq aw-dispatch-when-more-than 1)
+
   :bind (("C-c a a" . ace-window)
          ("C-c a o" . ace-select-window)
          ("C-c a s" . ace-swap-window)
