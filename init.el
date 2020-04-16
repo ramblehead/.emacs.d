@@ -2966,6 +2966,12 @@ fields which we need."
          ("<kp-home>" . rh-vterm-send-kp-home)
          ("<deletechar>" . vterm-send-C-d)
          ("<kp-begin>" . vterm-copy-mode)
+         ("<insert>" . rh-vterm-send-insert)
+         ("*" . rh-vterm-send-*)
+         ("C-<up>" . rh-vterm-send-C-up)
+         ("C-<down>" . rh-vterm-send-C-down)
+         ("C-<kp-up>" . rh-vterm-send-C-up)
+         ("C-<kp-down>" . rh-vterm-send-C-down)
          :map vterm-copy-mode-map
          ("<kp-begin>" . vterm-copy-mode))
   :defer t
