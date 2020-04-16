@@ -346,9 +346,10 @@ when only symbol face names are needed."
                                 (locate-dominating-file
                                  (file-name-directory buffer-file-name)
                                  rh-project-dir-name))
-                           (locate-dominating-file
-                            default-directory
-                            rh-project-dir-name))))
+                           (and (eq major-mode 'compilation-mode)
+                                (locate-dominating-file
+                                 default-directory
+                                 rh-project-dir-name)))))
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
