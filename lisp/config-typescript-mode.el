@@ -20,11 +20,12 @@
       (move-beginning-of-line 1)
       (re-search-forward
        "^\\([^(\r\n)]+\\):[[:digit:]]+:[[:digit:]]+ - error TS[[:digit:]]+:")
-      (list (concat default-directory (match-string 1))))))
+      (let ((path (substring-no-properties (match-string 1))))
+        (list (concat (file-truename (rh-project-get-root)) path))))))
 
 (let ((form `(typescript-tsc-pretty
               ,(concat
-                "^\\(.+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\) - "
+                "^\\([^(\r\n)]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\) - "
                 "error TS[[:digit:]]+:.*$")
               typescript-tsc-pretty-error--find-filename
               2 3 2 nil (1 'error))))

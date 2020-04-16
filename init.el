@@ -342,11 +342,13 @@ when only symbol face names are needed."
 (defvar rh-project-generators-relative-path "../auto-code/")
 
 (defun rh-project-get-path ()
-  (let ((src-tree-root (and buffer-file-name
-                            (locate-dominating-file
-                             ;; (file-truename default-directory)
-                             (file-name-directory buffer-file-name)
-                             rh-project-dir-name))))
+  (let ((src-tree-root (or (and buffer-file-name
+                                (locate-dominating-file
+                                 (file-name-directory buffer-file-name)
+                                 rh-project-dir-name))
+                           (locate-dominating-file
+                            default-directory
+                            rh-project-dir-name))))
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
