@@ -1973,15 +1973,15 @@ Also sets SYMBOL to VALUE."
     (message "Opening %s..." file)
     (call-process "xdg-open" nil 0 nil file)))
 
-(defun rh-dired-guess-dir ()
-  "Starts dired in buffer-file-name directory or in '~', if buffer has no
-filename associated with it."
-  (interactive)
-  (progn
-    (dired (let ((fnm (buffer-file-name)))
-             (if fnm
-                 (file-name-directory fnm)
-               "~")))))
+;; (defun rh-dired-guess-dir ()
+;;   "Starts dired in buffer-file-name directory or in '~', if buffer has no
+;; filename associated with it."
+;;   (interactive)
+;;   (progn
+;;     (dired (let ((fnm (buffer-file-name)))
+;;              (if fnm
+;;                  (file-name-directory fnm)
+;;                "~")))))
 
 (use-package dired
   :config
@@ -2039,7 +2039,8 @@ filename associated with it."
         )
   (setq vr-dired-coding-system nil))
 
-(global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
+;; (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
+(global-set-key (kbd "C-x d") #'dired-jump)
 
 ;; (use-package dired-subtree
 ;;   :config
