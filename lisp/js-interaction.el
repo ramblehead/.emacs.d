@@ -404,6 +404,29 @@ calls would return the cached value."
                   :tag "String literal with config file"
                   :value "babel.config.js")))
 
+(defcustom jsi-babel-imports-only-config-file
+  #'jsi-babel-imports-only-config-file-get-default
+  "Config file used to run Babel."
+  :group 'js-interaction
+  :type `(choice (const
+                  :tag "Do use Babel for imports-only statements"
+                  nil)
+                 (const
+                  :tag ,(concat
+                         "Default function to auto-select Babel "
+                         "config file for imports-only statements")
+                  jsi-babel-imports-only-config-file-get-default)
+                 (function
+                  :tag ,(concat
+                         "Function that returns string with Babel"
+                         " config file for imports-only statements")
+                  :value jsi-babel-imports-only-config-file-get-default)
+                 (string
+                  :tag ,(concat
+                         "String literal with Babel config "
+                         "file for imports-only statements")
+                  :value "babel.config.js")))
+
 (defun jsi--babel-locate-dominating-config (dir file-name)
   "Walk up DIR and find the first parent directory which containes FILE-NAME.
 Returns full path of the found file or nil if none was found."
@@ -419,13 +442,21 @@ Returns full path of the found file or nil if none was found."
 is `typescript-mode'. For all other major modes returns default
 jsi.babel.config.js file path.
 
-Default babel config files are searched by waling up the directory
+Default babel config files are searched by walking up the directory
 defined by `jsi-babel-run-directory'."
   (let ((dir (jsi--get jsi-babel-run-directory)))
     (cond
      ((eq major-mode 'typescript-mode)
       (jsi--babel-locate-dominating-config dir "jsi-ts.babel.config.js"))
      (t (jsi--babel-locate-dominating-config dir "jsi.babel.config.js")))))
+
+(defun jsi-babel-imports-only-config-file-get-default ()
+  "Returns default jsi-import.babel.config.js file path.
+
+Default babel config files are searched by walking up the directory
+defined by `jsi-babel-run-directory'."
+  (let ((dir (jsi--get jsi-babel-run-directory)))
+    (jsi--babel-locate-dominating-config dir "jsi-import.babel.config.js")))
 
 (defun jsi--babel-imports-only-p (input-string)
   "Returns t if INPUT-STRING contains 'import' statements only."
@@ -448,8 +479,6 @@ defined by `jsi-babel-run-directory'."
 (defun jsi-babel-transpile-sync (input-string)
   "Transpile STRING with Babel and magic."
   (if (jsi--babel-imports-only-p input-string)
-  ;; (if (and jsi-babel-skip-import
-  ;;          (jsi--babel-imports-only-p input-string))
       `(:text ,input-string
         :error nil)
 
@@ -567,7 +596,7 @@ Only `babel' TRANSPILER value is currently supported."
 (defvar jsi-node-repl-process-name "jsi-node-repl"
   "Process name of Node.js REPL")
 
-(defvar jsi-node-command-require-esm nil
+(defvar jsi-node-command-require-esm t
   "Allowes to use ES6 modules in modern Node.JS without mjs and with full
 commonjs compatibility.
 see https://github.com/standard-things/esm")
