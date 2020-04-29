@@ -478,83 +478,82 @@ defined by `jsi-babel-run-directory'."
 
 (defun jsi-babel-transpile-sync (input-string)
   "Transpile STRING with Babel and magic."
-  (if (jsi--babel-imports-only-p input-string)
-      `(:text ,input-string
-        :error nil)
+  (let ((babel-command (jsi--get jsi-babel-command))
+        (imports-only (jsi--babel-imports-only-p input-string))
+        arg-string output-string output-error exit-code)
+    (if (null babel-command)
+        (error "jsi-babel: Babel command not found.")
+      (setq input-string
+            (replace-regexp-in-string "[\\]" "\\\\\\\\" input-string))
+      (setq input-string
+            (replace-regexp-in-string "\"" "\\\\\"" input-string))
+      (setq input-string
+            (replace-regexp-in-string "`" "\\\\`" input-string))
+      (setq input-string
+            (replace-regexp-in-string "\\$" "\\\\$" input-string))
 
-    (let ((babel-command (jsi--get jsi-babel-command))
-          arg-string output-string output-error exit-code)
-      (if (null babel-command)
-          (error "jsi-babel: Babel command not found.")
-        (setq input-string
-              (replace-regexp-in-string "[\\]" "\\\\\\\\" input-string))
-        (setq input-string
-              (replace-regexp-in-string "\"" "\\\\\"" input-string))
-        (setq input-string
-              (replace-regexp-in-string "`" "\\\\`" input-string))
-        (setq input-string
-              (replace-regexp-in-string "\\$" "\\\\$" input-string))
+      ;; TODO: Remove the following await hiding logic once Babel can handle
+      ;;       it. see https://github.com/babel/babel/issues/9329
+      ;;
+      ;; "Hide" await keyword from Babel input-string
+      (setq input-string
+            (replace-regexp-in-string
+             "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
+             "\\1/* __await_out__ */\\2" input-string))
+      (setq input-string
+            (replace-regexp-in-string
+             "^\\(.*\\)await\\([[:blank:]\n\r]\\)"
+             "\\1/* __await_in__ */\\2" input-string))
 
-        ;; TODO: Remove the following await hiding logic once Babel can handle
-        ;;       it. see https://github.com/babel/babel/issues/9329
-        ;;
-        ;; "Hide" await keyword from Babel input-string
-        (setq input-string
-              (replace-regexp-in-string
-               "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
-               "\\1/* __await_out__ */\\2" input-string))
-        (setq input-string
-              (replace-regexp-in-string
-               "^\\(.*\\)await\\([[:blank:]\n\r]\\)"
-               "\\1/* __await_in__ */\\2" input-string))
+      (setq
+       arg-string
+       (concat
+        "set -euo pipefail;"
+        "cd " (jsi--get jsi-babel-run-directory) ";"
+        "set +e;"
+        "echo \"" input-string "\""
+        "|"
+        (jsi--get jsi-babel-command)
+        " --no-babelrc "
+        (let ((config-file (jsi--get (if imports-only
+                                         jsi-babel-imports-only-config-file
+                                       jsi-babel-config-file))))
+          (if config-file (concat "--config-file " config-file) ""))
+        " -f stdin.ts; echo $?"))
+      (setq
+       output-string
+       (string-trim
+        (with-temp-buffer
+          ;; TODO: Instead of `shell-command' and script in arg-string
+          ;;       it can be `call-process' and Node.JS script. This should
+          ;;       make js-interaction more friendly to some sub-standard OSs.
+          (shell-command arg-string t)
+          (goto-char (point-max))
+          (move-beginning-of-line 0)
+          (setq exit-code
+                (string-to-number (buffer-substring-no-properties
+                                   (point) (line-end-position))))
+          (delete-region (point) (line-end-position))
+          (buffer-string))))
+      (if (= exit-code 0)
+          (setq output-error nil)
+        (setq output-error 'transpiler))
 
-        (setq
-         arg-string
-         (concat
-          "set -euo pipefail;"
-          "cd " (jsi--get jsi-babel-run-directory) ";"
-          "set +e;"
-          "echo \"" input-string "\""
-          "|"
-          (jsi--get jsi-babel-command)
-          " --no-babelrc "
-          (let ((config-file (jsi--get jsi-babel-config-file)))
-            (if config-file (concat "--config-file " config-file) ""))
-          " -f stdin.ts; echo $?"))
-        (setq
-         output-string
-         (string-trim
-          (with-temp-buffer
-            ;; TODO: Instead of `shell-command' and script in arg-string
-            ;;       it can be `call-process' and Node.JS script. This should
-            ;;       make js-interaction more friendly to some sub-standard OSs.
-            (shell-command arg-string t)
-            (goto-char (point-max))
-            (move-beginning-of-line 0)
-            (setq exit-code
-                  (string-to-number (buffer-substring-no-properties
-                                     (point) (line-end-position))))
-            (delete-region (point) (line-end-position))
-            (buffer-string))))
-        (if (= exit-code 0)
-            (setq output-error nil)
-          (setq output-error 'transpiler))
+      ;; TODO: Remove the following await hiding logic once Babel can handle
+      ;;       it. see https://github.com/babel/babel/issues/9329
+      ;;
+      ;; Get await keyword back to Babel output-string.
+      (setq output-string
+            (replace-regexp-in-string
+             "/\\* __await_out__ \\*/[\n\r]+"
+             "await " output-string))
+      (setq output-string
+            (replace-regexp-in-string
+             "[\n\r]*/\\* __await_in__ \\*/[\n\r]+"
+             " await " output-string))
 
-        ;; TODO: Remove the following await hiding logic once Babel can handle
-        ;;       it. see https://github.com/babel/babel/issues/9329
-        ;;
-        ;; Get await keyword back to Babel output-string.
-        (setq output-string
-              (replace-regexp-in-string
-               "/\\* __await_out__ \\*/[\n\r]+"
-               "await " output-string))
-        (setq output-string
-              (replace-regexp-in-string
-               "[\n\r]*/\\* __await_in__ \\*/[\n\r]+"
-               " await " output-string))
-
-        `(:text ,output-string
-          :error ,output-error)))))
+      `(:text ,output-string
+        :error ,output-error))))
 
 (defun jsi-transpile-sync (transpiler string)
   "Transpile STRING using TRANSPILER.
