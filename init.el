@@ -33,6 +33,10 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; * Reference emacs configs
+;;   * See the following for LSP
+;;     https://github.com/ianpan870102/.personal-emacs.d/blob/master/init.el
+
 ;; * REST clients
 ;;   https://github.com/federicotdn/verb
 ;;   https://github.com/pashky/restclient.el
@@ -341,23 +345,46 @@ when only symbol face names are needed."
 (defvar rh-project-dir-name ".project")
 (defvar rh-project-generators-relative-path "../auto-code/")
 
+(defun rh-project-buffer-dir ()
+  (or (and buffer-file-name
+           (file-name-directory buffer-file-name))
+      ;; (and (eq major-mode 'compilation-mode)
+      (and (or (eq major-mode 'compilation-mode)
+               (eq major-mode 'dired-mode))
+           default-directory)))
+
+;; (defun rh-project-get-path ()
+;;   (let ((src-tree-root (or (and buffer-file-name
+;;                                 (locate-dominating-file
+;;                                  (file-name-directory buffer-file-name)
+;;                                  rh-project-dir-name))
+;;                            (and (or (eq major-mode 'compilation-mode)
+;;                                     (eq major-mode 'dired-mode))
+;;                                 (locate-dominating-file
+;;                                  default-directory
+;;                                  rh-project-dir-name)))))
+;;     (when src-tree-root
+;;       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
+
 (defun rh-project-get-path ()
-  (let ((src-tree-root (or (and buffer-file-name
-                                (locate-dominating-file
-                                 (file-name-directory buffer-file-name)
-                                 rh-project-dir-name))
-                           (and (eq major-mode 'compilation-mode)
-                                (locate-dominating-file
-                                 default-directory
-                                 rh-project-dir-name)))))
+  (let* ((buffer-dir (rh-project-buffer-dir))
+         (src-tree-root (and buffer-dir
+                             (locate-dominating-file
+                              buffer-dir
+                              rh-project-dir-name))))
     (when src-tree-root
       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
+;; (defun rh-project-in-trusted-dir ()
+;;   (and buffer-file-name
+;;        (locate-dominating-file
+;;         (file-name-directory buffer-file-name)
+;;         rh-project-trusted-dir-marker)))
+
 (defun rh-project-in-trusted-dir ()
-  (and buffer-file-name
-       (locate-dominating-file
-        (file-name-directory buffer-file-name)
-        rh-project-trusted-dir-marker)))
+  (locate-dominating-file
+   (rh-project-buffer-dir)
+   rh-project-trusted-dir-marker))
 
 (defun rh-project-get-root ()
   (let ((rh-project (rh-project-get-path)))
@@ -377,7 +404,8 @@ when only symbol face names are needed."
 (cl-defun rh-project-setup ()
   (let ((rh-project-path (rh-project-get-path)))
     (when rh-project-path
-      (message (concat "rh-project: " rh-project-path))
+      (when buffer-file-name
+        (message (concat "rh-project: " rh-project-path)))
       (let ((setup-file-path (concat rh-project-path "setup.el"))
             (init-file-path (concat rh-project-path "init.el"))
             (rh-project-id (directory-file-name
@@ -392,7 +420,7 @@ when only symbol face names are needed."
             (add-to-list 'rh-project-initialised-projects rh-project-id)
             (load init-file-path))
           (when (file-exists-p setup-file-path)
-            (load setup-file-path)))))))
+            (load setup-file-path nil t)))))))
 
 (defun rh-project-get-generators-path ()
   (let ((generators-path (concat
