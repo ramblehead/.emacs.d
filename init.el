@@ -927,17 +927,26 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (setq read-only-cursor-type 'hbar)
     (setq normal-cursor-type 'bar)
 
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+    ;; (add-to-list 'default-frame-alist
+    ;;              '(font . "Hack-10.5"))
+
     ;; HiDPI
     (let ((pixel-width
            (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
-      (when (> pixel-width 1920)
+      (cond
+       ((= pixel-width 1920)
+        ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+        (add-to-list 'default-frame-alist
+                     '(font . "Hack-10.5"))
+
         (fringe-mode '(16 . 16))
         (setq read-only-cursor-type '(hbar . 4))
-        (setq normal-cursor-type '(bar . 4))))
+        (setq normal-cursor-type '(bar . 4)))
 
-    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-    (add-to-list 'default-frame-alist
-                 '(font . "Hack-10.5"))
+       ((= pixel-width 2560)
+        (add-to-list 'default-frame-alist
+                     '(font . "Hack-8")))))
 
     ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
     ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
