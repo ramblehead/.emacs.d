@@ -1659,6 +1659,19 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+(defun rh-aw-copy-window (window)
+  "Copy the current buffer to WINDOW - including window-start and point."
+  (let ((buffer (current-buffer))
+        (window-start (window-start))
+        (point (point)))
+    (aw-switch-to-window window)
+    (switch-to-buffer buffer)
+    (set-window-start (frame-selected-window) window-start)
+    (goto-char point)))
+
+(advice-add 'aw-copy-window :override
+            #'rh-aw-copy-window)
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
