@@ -1576,7 +1576,7 @@ Also sets SYMBOL to VALUE."
   :config
   (custom-set-faces
    '(iedit-occurrence
-     ((((background light)) (:background "light blue"))))
+     ((((background light)) (:background "deep sky blue"))))
    '(iedit-read-only-occurrence
      ((((background light)) (:background "pale turquoise")))))
 
