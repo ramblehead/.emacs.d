@@ -158,7 +158,7 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
-(require 'cl-lib)
+;; (require 'cl-lib)
 
 (load "~/.emacs-private.d/secret.el" t)
 (load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
@@ -219,10 +219,10 @@
   :ensure t)
 
 (use-package cl-lib
-  :ensure t)
+  :demand t)
 
-(use-package cl
-  :ensure t)
+;; (use-package cl
+;;   :demand t)
 
 (use-package list-utils
   :ensure t)
@@ -2940,10 +2940,14 @@ fields which we need."
   (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
 
   :config
-  (customize-set-variable 'flycheck-mode-line-prefix "Φ")
-  (customize-set-variable 'flycheck-check-syntax-automatically
-                          '(save mode-enabled))
-  (customize-set-variable 'flycheck-indication-mode nil)
+  ;; (customize-set-variable 'flycheck-mode-line-prefix "Φ")
+  ;; (customize-set-variable 'flycheck-check-syntax-automatically
+  ;;                         '(save mode-enabled))
+  ;; (customize-set-variable 'flycheck-indication-mode nil)
+
+  (setq flycheck-mode-line-prefix "Φ")
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-indication-mode nil)
 
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
@@ -3052,7 +3056,7 @@ fields which we need."
   :config
   (setq compilation-scroll-output t)
 
-  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  ;; (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (require 'compile-eslint)
   (push 'eslint compilation-error-regexp-alist)
@@ -3530,11 +3534,11 @@ fields which we need."
 
 ;; Autoinstall from init is disabled until the following problem is solved:
 ;; https://github.com/syl20bnr/spacemacs/issues/5917
-(use-package realgud
-  :commands (realgud:gdb realgud:gdb-pid realgud:pdb realgud:ipdb)
+;; (use-package realgud
+;;   :commands (realgud:gdb realgud:gdb-pid realgud:pdb realgud:ipdb)
 
-  :pin melpa
-  :ensure t)
+;;   :pin melpa
+;;   :ensure t)
 
 ;;; C++
 ;;; /b/{
@@ -3542,7 +3546,6 @@ fields which we need."
 (use-package rtags
   :if (locate-library "rtags")
   :config
-  ;; (message "******************************************************* rtags")
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
