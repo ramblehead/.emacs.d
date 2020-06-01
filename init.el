@@ -955,39 +955,25 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;;                     :box '(:line-width (-1 . -1)
     ;;                            :color "gtk_selection_bg_color"
     ;;                            :style nil))
+
     (unwind-protect
         (condition-case ex
             (progn
              (set-face-attribute
               'region nil
               :box '(:line-width (-1 . -1)
-                     :color "gtk_selection_bg_color"
-                     :style nil))
-             ;; ;; see https://www.reddit.com/r/emacs/comments/345by9/having_the_background_face_for_selection_region/
-             ;; (setq redisplay-highlight-region-function
-             ;;       (lambda (start end window rol)
-             ;;         (if (not (overlayp rol))
-             ;;             (let ((nrol (make-overlay start end)))
-             ;;               (funcall redisplay-unhighlight-region-function rol)
-             ;;               (overlay-put nrol 'window window)
-             ;;               (overlay-put nrol 'face 'region)
-             ;;               ;; Low priority so that a large region always stays
-             ;;               ;; behind other regions. The box face should make it
-             ;;               ;; visible.
-             ;;               (overlay-put nrol 'priority '(-100 . -100))
-             ;;               nrol)
-             ;;           (unless (and (eq (overlay-buffer rol) (current-buffer))
-             ;;                        (eq (overlay-start rol) start)
-             ;;                        (eq (overlay-end rol) end))
-             ;;             (move-overlay rol start end (current-buffer)))
-             ;;           rol)))
-             )
+                     ;; :color "gtk_selection_bg_color"
+                     :color "light blue"
+                     :style nil)
+              :background "light blue"))
           ('error
            (set-face-attribute
             'region nil
             :box '(:line-width -1
-                   :color "gtk_selection_bg_color"
-                   :style nil)))))
+                   ;; :color "gtk_selection_bg_color"
+                   :color "light blue"
+                   :style nil)
+            :background "light blue"))))
 
     ;; face-font-family-alternatives
 
@@ -2543,6 +2529,11 @@ fields which we need."
 ;;; yasnippet
 ;;; /b/{
 
+(use-package yasnippet-snippets
+  :commands yasnippet-snippets-initialize
+  :defer t
+  :ensure t)
+
 (use-package yasnippet
   :delight (yas-minor-mode " ⵙ")
   :config
@@ -2556,11 +2547,6 @@ fields which we need."
          ("C-`" . yas-expand)
          ("C-~" . yas-prev-field))
   :demand t
-  :ensure t)
-
-(use-package yasnippet-snippets
-  :commands yasnippet-snippets-initialize
-  :defer t
   :ensure t)
 
 ;;; /b/}
