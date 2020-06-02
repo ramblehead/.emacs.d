@@ -963,17 +963,19 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               'region nil
               :box '(:line-width (-1 . -1)
                      ;; :color "gtk_selection_bg_color"
-                     :color "light blue"
+                     ;; :color "light blue"
                      :style nil)
-              :background "light blue"))
+              ;; :background "light blue"
+              ))
           ('error
            (set-face-attribute
             'region nil
             :box '(:line-width -1
                    ;; :color "gtk_selection_bg_color"
-                   :color "light blue"
+                   ;; :color "light blue"
                    :style nil)
-            :background "light blue"))))
+            ;; :background "light blue"
+            ))))
 
     ;; face-font-family-alternatives
 
@@ -1012,7 +1014,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
    (lambda ()
      (recenter)))
 
-  ;; (color-theme-sanityinc-tomorrow-blue)
+  (color-theme-sanityinc-tomorrow-blue)
   ;; (load-theme 'sanityinc-tomorrow-blue t)
 
   ;; (customize-set-variable 'find-file-visit-truename t)
