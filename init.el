@@ -1148,7 +1148,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 ;; emacs is not good in GUI. However, menu can be good for learning
 ;; new commands.
-;; (menu-bar-mode 1)
+(menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
@@ -1418,7 +1418,8 @@ Also sets SYMBOL to VALUE."
              ,(propertize " " 'face 'sml/numbers-separator)))))
 
   ;; (setq sml/theme 'light)
-  (setq sml/theme 'automatic)
+  ;; (setq sml/theme 'automatic)
+  (setq sml/theme 'respectful)
   ;; (setq sml/theme nil)
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
