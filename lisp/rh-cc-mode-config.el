@@ -34,43 +34,5 @@
 ;;
 ;;; Code:
 
-(require 'company-rtags nil t)
-(require 'company-clang)
-(require 'company-c-headers)
-
-;; (company-clang 'init)
-;; (company-rtags 'init)
-
-;;;###autoload
-(defun rh-cc-company-setup ()
-  (setq company-backends
-        '(company-c-headers (company-keywords company-dabbrev-code)
-          company-files (company-dabbrev company-ispell)))
-
-  (when (boundp 'c-mode-base-map)
-    (bind-key "C-c C-<tab>" #'company-rtags c-mode-base-map))
-  (bind-key "C-x C-<tab>" #'company-clang c-mode-base-map)
-
-  (company-mode 1))
-
-;; (defun rh-c++-auto-complete-clang ()
-;;   (interactive)
-;;   (message "auto-completing with clang...")
-;;   (auto-complete (append '(ac-source-clang) ac-sources)))
-
-;; ;;;###autoload
-;; (defun rh-c++-auto-complete-setup ()
-;;   (require 'auto-complete-clang)
-;;   (setq-local ac-sources
-;;               (append '(ac-source-c-headers
-;;                         ;; Dynamic auto-completion is slow and interferes with
-;;                         ;; typing, whether it is 'c-source-clang' or
-;;                         ;; 'ac-source-rtags', therefore it is only activated on
-;;                         ;; 'C-x C-<tab>' (see key definitions below in this
-;;                         ;; function) in 'rh-c++-auto-complete-clang' function.
-;;                         ;; ac-source-clang ac-source-rtags
-;;                         )
-;;                       ac-sources)))
-
 (provide 'rh-cc-mode-config)
 ;;; rh-cc-mode-config.el ends here

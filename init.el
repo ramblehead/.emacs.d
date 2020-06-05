@@ -993,6 +993,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
     (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
+    (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
     (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
     (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
@@ -2697,34 +2698,34 @@ fields which we need."
   :after (fuzzy pos-tip)
   :ensure t)
 
-(defun rh-ac-start-if-ac-mode ()
-  (interactive)
-  (cond
-   ((cg-looking-at-auto-code-group-head-or-tail)
-    (cg-generate-auto-code-group))
-   ((bound-and-true-p auto-complete-mode)
-    (auto-complete))
-   ((bound-and-true-p company-mode)
-    (company-complete))
+;; (defun rh-ac-start-if-ac-mode ()
+;;   (interactive)
+;;   (cond
+;;    ((cg-looking-at-auto-code-group-head-or-tail)
+;;     (cg-generate-auto-code-group))
+;;    ((bound-and-true-p auto-complete-mode)
+;;     (auto-complete))
+;;    ((bound-and-true-p company-mode)
+;;     (company-complete))
 
-    ;; (ignore-errors
-    ;;   (auto-complete))
-    ;; nil)
+;;     ;; (ignore-errors
+;;     ;;   (auto-complete))
+;;     ;; nil)
 
-    ;; (unwind-protect
-    ;;     (auto-complete)
-    ;;   (message "Cleaning up...")))
+;;     ;; (unwind-protect
+;;     ;;     (auto-complete)
+;;     ;;   (message "Cleaning up...")))
 
-    ;; (message "Cleaning up..."))
-   (t
-    (message "No auto-completion engine is running or nothing to complete.")))
+;;     ;; (message "Cleaning up..."))
+;;    (t
+;;     (message "No auto-completion engine is running or nothing to complete.")))
 
-  ;; (if (bound-and-true-p auto-complete-mode)
-  ;;     (auto-complete)
-  ;;   (message "No auto-completion running or nothing to complete."))
-  )
+;;   ;; (if (bound-and-true-p auto-complete-mode)
+;;   ;;     (auto-complete)
+;;   ;;   (message "No auto-completion running or nothing to complete."))
+;;   )
 
-(global-set-key (kbd "C-<tab>") 'rh-ac-start-if-ac-mode)
+;; (global-set-key (kbd "C-<tab>") 'rh-ac-start-if-ac-mode)
 
 ;;; /b/}
 
@@ -3537,14 +3538,15 @@ fields which we need."
         '("-j=6"
           "--background-index"
           "--completion-style=detailed"
-          ;; "--query-driver=/usr/bin/clang*,/usr/bin/g*-8"
-          "--log=info"))
+          "--log=verbose"))
   :defer t
   :ensure t)
 
 (use-package rtags
   :if (locate-library "rtags")
   :config
+  (require 'config-rtags)
+
   ;; Idea is taken from:
   ;; https://www.reddit.com/r/emacs/comments/345vtl/make_helm_window_at_the_bottom_without_using_any/
   (add-to-list 'display-buffer-alist
@@ -3593,9 +3595,10 @@ fields which we need."
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'rtags-references-tree)
 
-  (defun rh-rtags-toggle-rdm-display ()
-    (interactive)
-    (rh-toggle-display "*rdm*" t))
+  (setq rtags-autostart-diagnostics t)
+  (setq rtags-reindex-on-save t)
+  ;; (setq rtags-completions-enabled t)
+  ;; (setq rtags-process-flags "-R")
 
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'
@@ -3611,51 +3614,7 @@ fields which we need."
                     custom-gcc-toolchain
                     "\""))))
 
-  ;; (setq rtags-autostart-diagnostics t)
-
-  (custom-set-faces
-   '(rtags-errline ((((class color)) (:background "#ef8990"))))
-   '(rtags-fixitline ((((class color)) (:background "#ecc5a8"))))
-   '(rtags-warnline ((((class color)) (:background "#efdd6f"))))
-   '(rtags-skippedline ((((class color)) (:background "#c2fada")))))
-
-  (setq rtags-other-window-function (lambda () (other-window -1)))
-  (setq rtags-results-buffer-other-window t)
-  (setq rtags-bury-buffer-function 'quit-window)
-
-  (add-hook
-   'rtags-references-tree-mode-hook
-   (lambda ()
-     (setq-local truncate-lines t)))
-
-  (add-hook
-   'rtags-diagnostics-mode-hook
-   (lambda ()
-     (setq-local truncate-lines t)))
-
-  (add-hook
-   'rtags-mode-hook
-   (lambda ()
-     (setq-local truncate-lines t)))
-
-  (setq rtags-reindex-on-save t)
-  (setq rtags-completions-enabled t)
-  ;; (setq rtags-process-flags "-R")
-
-  (require 'rh-rtags-eldoc)
-
   (rtags-enable-standard-keybindings)
-  (bind-key "C-c r d" #'rh-rtags-toggle-rdm-display c-mode-base-map)
-  (bind-key "M-[" #'rtags-location-stack-back c-mode-base-map)
-  (bind-key "M-]" #'rtags-location-stack-forward c-mode-base-map)
-  (bind-key "M-." #'rtags-find-symbol-at-point c-mode-base-map)
-  (bind-key "M->" #'rtags-next-match c-mode-base-map)
-  (bind-key "M-<" #'rtags-previous-match c-mode-base-map)
-  (bind-key "M-," #'rtags-references-tree c-mode-base-map)
-  (bind-key "C-M-," #'rtags-find-virtuals-at-point c-mode-base-map)
-  (bind-key "M-i" #'rtags-imenu c-mode-base-map)
-  (bind-key "C-." #'rtags-find-symbol c-mode-base-map)
-  (bind-key "C-," #'rtags-find-references c-mode-base-map)
 
   :defer t
   :pin manual)
@@ -3709,11 +3668,10 @@ fields which we need."
   :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
   :config
   (require 'compile)
-  ;; (require 'auto-complete-c-headers)
-  (require 'rtags nil t)
+  (require 'lsp-mode)
   (require 'rh-cc-mode-config)
 
-  (require 'lsp-mode)
+  (require 'rtags nil t)
 
   ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
   (defun rh-gcc-get-isystem-path (compiler)
@@ -3750,22 +3708,10 @@ fields which we need."
   (defun rh-c++-indentation-setup ()
     (rh-c-style-setup))
 
-  (defun rh-cc-rtags-setup ()
-    (rtags-start-process-unless-running)
-    ;; (setq rtags-display-current-error-as-tooltip t)
-    (rh-rtags-header-line-setup))
-
   ;; (defun rh-cc-rtags-setup ()
-  ;;   (require 'flycheck-rtags)
-  ;;   (flycheck-select-checker 'rtags)
-  ;;   ;; RTags creates more accurate overlays
-  ;;   (setq-local flycheck-highlighting-mode nil)
-  ;;   (setq-local flycheck-check-syntax-automatically nil)
   ;;   (rtags-start-process-unless-running)
-  ;;   ;; The following does not work with my clang-auto-complete setting
   ;;   ;; (setq rtags-display-current-error-as-tooltip t)
-  ;;   (rh-rtags-header-line-setup)
-  ;;   (flycheck-mode 1))
+  ;;   (rh-rtags-header-line-setup))
 
   (add-hook
    'c++-mode-hook
@@ -3773,13 +3719,12 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
-     (rh-cc-rtags-setup)
+     ;; (rh-cc-rtags-setup)
      ;; (rh-rtags-eldoc-setup)
      (rh-c++-indentation-setup)
      (rh-c++-font-lock-setup)
      (rh-c++-yas-setup)
-     (rh-cc-compile-setup)
-     (rh-cc-company-setup)))
+     (rh-cc-compile-setup)))
 
   (add-hook
    'c-mode-hook
@@ -3787,14 +3732,11 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
-     (rh-cc-rtags-setup)
      (rh-cc-compile-setup)))
 
   :bind (:map c-mode-base-map
          ("C-c C-b" . nil)
-         ("C-S-b" . recompile)
-         ;; ("C-c b" . rh-compile-toggle-display)
-         )
+         ("C-S-b" . recompile))
 
   :defer t)
 
@@ -4103,10 +4045,6 @@ fields which we need."
           (eval-region (region-beginning) (region-end)))
       (eval-last-sexp current-prefix-arg)))
 
-  (define-key lisp-mode-shared-map (kbd "<f5>") 'rh-lisp-eval-region-or-last-sexp)
-  (define-key lisp-mode-shared-map (kbd "C-<f5>") 'eval-print-last-sexp)
-  (define-key lisp-mode-shared-map (kbd "S-<f5>") 'rh-ielm-split-window)
-
   (add-hook
    'emacs-lisp-mode-hook
    (lambda ()
@@ -4115,6 +4053,11 @@ fields which we need."
      (auto-complete-mode 1)
      (set (make-local-variable 'vr-elisp-mode) t)))
 
+  :bind (:map lisp-mode-shared-map
+         ("<f5>" . rh-lisp-eval-region-or-last-sexp)
+         ("C-<f5>" . eval-print-last-sexp)
+         ("S-<f5>" . rh-ielm-split-window)
+         ("C-<tab>" . auto-complete))
   :after ielm
   :demand t)
 

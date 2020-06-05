@@ -87,8 +87,8 @@
 ;;    (when (bound-and-true-p rtags-track-container)
 ;;      (rtags-update-current-container-cache))))
 
-(defun rh-rtags-header-line-find-file-handler ()
-  (setq-local header-line-format '(:eval (rh-rtags-header-line))))
+;; (defun rh-rtags-header-line-find-file-handler ()
+;;   (setq-local header-line-format '(:eval (rh-rtags-header-line))))
 
 ;;;###autoload
 (defun rh-rtags-header-line-setup ()
@@ -96,7 +96,8 @@
   ;; https://github.com/Andersbakken/rtags/issues/435
   (setq-local rtags-cached-current-container "")
   (setq-local rtags-track-container t)
-  (add-hook 'find-file-hook #'rh-rtags-header-line-find-file-handler nil t))
+  ;; (add-hook 'find-file-hook #'rh-rtags-header-line-find-file-handler nil t)
+  (setq-local header-line-format '(:eval (rh-rtags-header-line))))
 
 (provide 'rh-rtags-header-line)
 ;;; rh-rtags-header-line.el ends here
