@@ -158,10 +158,15 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
-;; (require 'cl-lib)
-
-(load "~/.emacs-private.d/secret.el" t)
-(load (concat "~/.emacs-private.d/systems/" system-name ".el") t)
+;; TODO: Remove cond clause when all rh systems are
+;;       migrated from `~/.emacs-private.d' to `~/woods/pit/emacs'
+(cond
+ ((file-directory-p "~/.emacs-private.d")
+  (load "~/.emacs-private.d/secret.el" t)
+  (load (concat "~/.emacs-private.d/systems/" system-name ".el") t))
+ ((file-directory-p "~/woods/pit/emacs")
+  (load "~/woods/pit/emacs/secret.el" t)
+  (load (concat "~/woods/pit/emacs/systems/" system-name ".el") t)))
 
 ;; /b/{ Package initialisation and `use-package' bootstrap
 
@@ -963,23 +968,21 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               'region nil
               :box '(:line-width (-1 . -1)
                      ;; :color "gtk_selection_bg_color"
-                     ;; :color "light blue"
+                     :color "#ea5e30"
                      :style nil)
-              ;; :background "light blue"
-              ))
+              :background "#ea5e30"))
           ('error
            (set-face-attribute
             'region nil
             :box '(:line-width -1
                    ;; :color "gtk_selection_bg_color"
-                   ;; :color "light blue"
+                   :color "#ea5e30"
                    :style nil)
-            ;; :background "light blue"
-            ))))
+            :background "#ea5e30"))))
 
     ;; face-font-family-alternatives
 
-    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 110)
+    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
     ;; (set-face-attribute 'default nil
     ;;                     :family "Hack"
     ;;                     :height 110
@@ -1014,8 +1017,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
    (lambda ()
      (recenter)))
 
-  (color-theme-sanityinc-tomorrow-blue)
+  ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
+  ;; (color-theme-sanityinc-tomorrow-blue)
   ;; (load-theme 'sanityinc-tomorrow-blue t)
+  ;; (disable-theme 'sanityinc-tomorrow-blue)
+  ;; (enable-theme 'sanityinc-tomorrow-blue)
 
   ;; (customize-set-variable 'find-file-visit-truename t)
   (customize-set-value 'find-file-visit-truename t)
@@ -1155,18 +1161,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 ;; better frame titles
 (setq frame-title-format
       (concat "%b - emacs@" system-name))
-
-;; Zoom as in Firefox (almost)
-;; (require 'zoom-frm)
-
-;; (global-set-key (kbd "C--") 'zoom-frm-out)
-;; (global-set-key (kbd "C-=") 'zoom-frm-in)
-;; (global-set-key (kbd "C-0") 'zoom-frm-unzoom)
-;; (global-set-key (kbd "C-<kp-subtract>") 'zoom-frm-out)
-;; (global-set-key (kbd "C-<kp-add>") 'zoom-frm-in)
-;; (global-set-key (kbd "C-<kp-0>") 'zoom-frm-unzoom)
-;; (global-set-key (kbd "C-<wheel-up>") 'zoom-frm-in)
-;; (global-set-key (kbd "C-<wheel-down>") 'zoom-frm-out)
 
 ;; http://www.emacswiki.org/emacs/SaveHist
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2011-11/msg00213.html
@@ -1418,8 +1412,8 @@ Also sets SYMBOL to VALUE."
              ,(propertize " " 'face 'sml/numbers-separator)))))
 
   ;; (setq sml/theme 'light)
-  ;; (setq sml/theme 'automatic)
-  (setq sml/theme 'respectful)
+  (setq sml/theme 'automatic)
+  ;; (setq sml/theme 'respectful)
   ;; (setq sml/theme nil)
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
@@ -3532,6 +3526,17 @@ fields which we need."
 ;;; C++
 ;;; /b/{
 
+(use-package lsp-mode
+  :config
+  (setq lsp-clients-clangd-args
+        '("-j=6"
+          "--background-index"
+          "--completion-style=detailed"
+          "--query-driver=/usr/bin/clang*-10,/usr/bin/g*-8"
+          "--log=info"))
+  :defer t
+  :ensure t)
+
 (use-package rtags
   :if (locate-library "rtags")
   :config
@@ -3628,10 +3633,9 @@ fields which we need."
    (lambda ()
      (setq-local truncate-lines t)))
 
-  ;; TODO: file an issue to rtags GitHub about bug with
-  ;;       multiple paths in compilation database.
   (setq rtags-reindex-on-save t)
   (setq rtags-completions-enabled t)
+  (setq rtags-process-flags "-R")
 
   (require 'rh-rtags-eldoc)
 
@@ -3699,11 +3703,12 @@ fields which we need."
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
   :config
-  ;; (message "******************************************************* cc-mode")
   (require 'compile)
-  (require 'auto-complete-c-headers)
+  ;; (require 'auto-complete-c-headers)
   (require 'rtags nil t)
   (require 'rh-cc-mode-config)
+
+  (require 'lsp-mode)
 
   ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
   (defun rh-gcc-get-isystem-path (compiler)
@@ -3745,6 +3750,9 @@ fields which we need."
     ;; (setq rtags-display-current-error-as-tooltip t)
     (rh-rtags-header-line-setup))
 
+  (defun rh-cc-lsp-mode-setup ()
+    (lsp))
+
   ;; (defun rh-cc-rtags-setup ()
   ;;   (require 'flycheck-rtags)
   ;;   (flycheck-select-checker 'rtags)
@@ -3763,6 +3771,7 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
+     (rh-cc-lsp-mode-setup)
      (rh-cc-rtags-setup)
      ;; (rh-rtags-eldoc-setup)
      (rh-c++-indentation-setup)
@@ -4752,7 +4761,7 @@ with very limited support for special characters."
 ;; -------------------------------------------------------------------
 
 (cond
- ((equal system-type 'windows-nt)
+ ((eq system-type 'windows-nt)
   (progn
     (defun vr-maximize-frame ()
       (interactive)
@@ -4777,7 +4786,7 @@ with very limited support for special characters."
 
     (defalias 'fullscreen 'vr-toggle-max-res-frame)))
 
- ((equal system-type 'gnu/linux)
+ ((eq system-type 'gnu/linux)
   (progn
     (defun fullscreen ()
       (interactive)
@@ -4921,7 +4930,7 @@ or has one of the listed major modes."
 ;; (setq uniquify-buffer-name-style 'post-forward)
 
 ;; Provides additional help functions such as describe-keymap bound to C-h M-k
-(require 'help-fns+)
+;; (require 'help-fns+)
 
 ;; /b/{ ifilipb
 
