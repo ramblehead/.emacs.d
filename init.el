@@ -3526,13 +3526,18 @@ fields which we need."
 ;;; C++
 ;;; /b/{
 
+(defun rh-lsp-clangd-p ()
+  "Checks if lsp-mode is loaded and clangd is present on the system"
+  (and (executable-find "clangd")
+       (boundp 'lsp-mode)))
+
 (use-package lsp-mode
   :config
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
           "--completion-style=detailed"
-          "--query-driver=/usr/bin/clang*-10,/usr/bin/g*-8"
+          ;; "--query-driver=/usr/bin/clang*,/usr/bin/g*-8"
           "--log=info"))
   :defer t
   :ensure t)
@@ -3750,9 +3755,6 @@ fields which we need."
     ;; (setq rtags-display-current-error-as-tooltip t)
     (rh-rtags-header-line-setup))
 
-  (defun rh-cc-lsp-mode-setup ()
-    (lsp))
-
   ;; (defun rh-cc-rtags-setup ()
   ;;   (require 'flycheck-rtags)
   ;;   (flycheck-select-checker 'rtags)
@@ -3771,7 +3773,6 @@ fields which we need."
      ;; Using yas instead
      (abbrev-mode -1)
      (rh-programming-minor-modes t)
-     (rh-cc-lsp-mode-setup)
      (rh-cc-rtags-setup)
      ;; (rh-rtags-eldoc-setup)
      (rh-c++-indentation-setup)
