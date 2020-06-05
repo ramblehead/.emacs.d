@@ -3636,10 +3636,9 @@ fields which we need."
    (lambda ()
      (setq-local truncate-lines t)))
 
-  ;; TODO: file an issue to rtags GitHub about bug with
-  ;;       multiple paths in compilation database.
   (setq rtags-reindex-on-save t)
   (setq rtags-completions-enabled t)
+  (setq rtags-process-flags "-R")
 
   (require 'rh-rtags-eldoc)
 
