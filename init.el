@@ -3640,7 +3640,7 @@ fields which we need."
 
   (setq rtags-reindex-on-save t)
   (setq rtags-completions-enabled t)
-  (setq rtags-process-flags "-R")
+  ;; (setq rtags-process-flags "-R")
 
   (require 'rh-rtags-eldoc)
 
