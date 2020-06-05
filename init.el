@@ -3538,7 +3538,7 @@ fields which we need."
         '("-j=6"
           "--background-index"
           "--completion-style=detailed"
-          "--log=verbose"))
+          "--log=info"))
   :defer t
   :ensure t)
 
