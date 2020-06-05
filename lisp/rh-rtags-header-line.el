@@ -36,7 +36,7 @@
 ;;; Code:
 
 (require 'rtags)
-(require 'cl)
+(require 'cl-lib)
 (require 'rh-window-selected-interactively-p)
 
 (defvar rh-header-line-trim-indicator "›")

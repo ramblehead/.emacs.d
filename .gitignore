@@ -17,3 +17,4 @@
 /transient/
 
 /session.*
+/.lsp-session-*
