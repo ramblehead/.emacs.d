@@ -3611,7 +3611,7 @@ fields which we need."
                     custom-gcc-toolchain
                     "\""))))
 
-  (setq rtags-autostart-diagnostics t)
+  ;; (setq rtags-autostart-diagnostics t)
 
   (custom-set-faces
    '(rtags-errline ((((class color)) (:background "#ef8990"))))
