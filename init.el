@@ -3527,14 +3527,20 @@ fields which we need."
 ;;; C++
 ;;; /b/{
 
-(defun rh-lsp-clangd-p ()
-  "Checks if lsp-mode is loaded and clangd is present on the system"
-  (and (executable-find "clangd")
-       (boundp 'lsp-mode)))
+(defun rh-lsp-clangd-executable-find ()
+  "Finds clangd executable if present."
+  (let ((path (or (executable-find "clangd-10")
+                  (executable-find "clangd-9")
+                  (executable-find "clangd-8")
+                  (executable-find "clangd"))))
+    (when path (file-name-nondirectory path))))
 
 (use-package lsp-mode
+  :if (rh-lsp-clangd-executable-find)
   :config
   (require 'company-capf)
+
+  (setq lsp-clients-clangd-executable (rh-lsp-clangd-executable-find))
 
   (setq lsp-clients-clangd-args
         '("-j=6"
