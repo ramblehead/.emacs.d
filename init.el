@@ -3534,6 +3534,8 @@ fields which we need."
 
 (use-package lsp-mode
   :config
+  (require 'company-capf)
+
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
@@ -3667,11 +3669,7 @@ fields which we need."
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
   :config
-  (require 'compile)
-  (require 'lsp-mode)
   (require 'rh-cc-mode-config)
-
-  (require 'rtags nil t)
 
   ;; Adopted from http://www.emacswiki.org/emacs/auto-complete-clang-extension.el
   (defun rh-gcc-get-isystem-path (compiler)

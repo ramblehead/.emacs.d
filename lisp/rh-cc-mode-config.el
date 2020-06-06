@@ -34,5 +34,9 @@
 ;;
 ;;; Code:
 
+(require 'compile)
+(require 'lsp-mode)
+(require 'rtags nil t)
+
 (provide 'rh-cc-mode-config)
 ;;; rh-cc-mode-config.el ends here
