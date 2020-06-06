@@ -46,6 +46,17 @@
     (define-key map (kbd "C-,") #'rtags-find-references)
     map))
 
+(defvar rh-rtags-mode-default-enabled nil
+  "Suggests C++ projects whether they should activate rh-rtags-mode by default")
+
+(defun rh-rtags-mode-toggle-default-enabled ()
+  "Toggle `rh-rtags-mode-default-enabled'"
+  (interactive)
+  (setq rh-rtags-mode-default-enabled (not rh-rtags-mode-default-enabled))
+  (if rh-rtags-mode-default-enabled
+      (message "rh-rtags-mode should be enabled by default")
+    (message "rh-rtags-mode should be disabled by default")))
+
 (define-minor-mode rh-rtags-mode
   "Minor mode to start rtags."
   :lighter " ℜ"
