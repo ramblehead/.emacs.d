@@ -53,4 +53,10 @@
   (rtags-start-process-unless-running)
   (rh-rtags-header-line-setup))
 
+(defun rh-rtags-after-save-hook (orig-fun)
+  (when rh-rtags-mode (funcall orig-fun)))
+
+(advice-add 'rtags-after-save-hook :around
+            #'rh-rtags-after-save-hook)
+
 (provide 'config-rtags)
