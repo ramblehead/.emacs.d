@@ -3040,9 +3040,12 @@ fields which we need."
   :config
   (setq compilation-scroll-output t)
 
-  ;; (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (require 'compile-eslint)
+
+  ;; TODO: Move the following push to (use-package compile-eslint ...)
+  ;;       config section and make `compile-eslint' load after `compile'
   (push 'eslint compilation-error-regexp-alist)
   ;; (push 'typescript-eslint compilation-error-regexp-alist)
 
@@ -3537,9 +3540,13 @@ fields which we need."
 
 (use-package lsp-mode
   :if (rh-lsp-clangd-executable-find)
+  :init
+  (defvar lsp-keymap-prefix "C-c l")
+
   :config
   (require 'company-capf)
 
+  (setq lsp-enable-on-type-formatting nil)
   (setq lsp-clients-clangd-executable (rh-lsp-clangd-executable-find))
 
   (setq lsp-clients-clangd-args
