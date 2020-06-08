@@ -37,6 +37,10 @@
 ;;   * See the following for LSP
 ;;     https://github.com/ianpan870102/.personal-emacs.d/blob/master/init.el
 
+;; * Package managers
+;;   https://github.com/raxod502/straight.el
+;;   https://github.com/emacscollective/borg
+
 ;; * REST clients
 ;;   https://github.com/federicotdn/verb
 ;;   https://github.com/pashky/restclient.el
