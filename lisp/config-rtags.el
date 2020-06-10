@@ -34,20 +34,20 @@
 (defvar rh-rtags-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c r d") #'rh-rtags-toggle-rdm-display)
-    (define-key map (kbd "M-[") #'rtags-location-stack-back)
-    (define-key map (kbd "M-]") #'rtags-location-stack-forward)
-    (define-key map (kbd "M-.") #'rtags-find-symbol-at-point)
-    (define-key map (kbd "M->") #'rtags-next-match)
-    (define-key map (kbd "M-<") #'rtags-previous-match)
-    (define-key map (kbd "M-,") #'rtags-references-tree)
-    (define-key map (kbd "C-M-,") #'rtags-find-virtuals-at-point)
-    (define-key map (kbd "M-i") #'rtags-imenu)
-    (define-key map (kbd "C-.") #'rtags-find-symbol)
-    (define-key map (kbd "C-,") #'rtags-find-references)
+    (define-key map (kbd "s-[") #'rtags-location-stack-back)
+    (define-key map (kbd "s-]") #'rtags-location-stack-forward)
+    (define-key map (kbd "s-.") #'rtags-find-symbol-at-point)
+    (define-key map (kbd "s->") #'rtags-next-match)
+    (define-key map (kbd "s-<") #'rtags-previous-match)
+    (define-key map (kbd "s-,") #'rtags-references-tree)
+    (define-key map (kbd "M-s-,") #'rtags-find-virtuals-at-point)
+    ;; (define-key map (kbd "M-i") #'rtags-imenu)
+    ;; (define-key map (kbd "C-.") #'rtags-find-symbol)
+    ;; (define-key map (kbd "C-,") #'rtags-find-references)
     map))
 
-(defvar rh-rtags-mode-default-enabled nil
-  "Suggests C++ projects whether they should activate rh-rtags-mode by default")
+;; (defvar rh-rtags-mode-default-enabled nil
+;;   "Suggests C++ projects whether they should activate rh-rtags-mode by default")
 
 (defun rh-rtags-mode-toggle-default-enabled ()
   "Toggle `rh-rtags-mode-default-enabled'"

@@ -1464,6 +1464,7 @@ Also sets SYMBOL to VALUE."
 
   :after (linum total-lines)
   :demand t
+  ;; :disabled t
   :ensure t)
 
 (use-package rainbow-mode
@@ -2914,6 +2915,23 @@ fields which we need."
 
   :ensure t)
 
+;;; flymake
+;;; /b/{
+
+(use-package flymake
+  ;; :config
+  ;; (setq flymake-no-changes-timeout nil)
+  :defer t)
+
+(defun rh-flymake--mode-line-format (result)
+  (setf (nth 1 (car result)) " φ")
+  result)
+
+(advice-add 'flymake--mode-line-format :filter-return
+            #'rh-flymake--mode-line-format)
+
+;;; /b/}
+
 ;;; flycheck
 ;;; /b/{
 
@@ -3534,7 +3552,7 @@ fields which we need."
 ;;; C++
 ;;; /b/{
 
-(defun rh-lsp-clangd-executable-find ()
+(defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
   (let ((path (or (executable-find "clangd-10")
                   (executable-find "clangd-9")
@@ -3542,8 +3560,47 @@ fields which we need."
                   (executable-find "clangd"))))
     (when path (file-name-nondirectory path))))
 
+;;; eglot
+;;; /b/{
+
+(use-package eglot
+  :if (rh-clangd-executable-find)
+
+  :config
+  (setf
+   (cdr (assoc '(c++-mode c-mode) eglot-server-programs))
+   `(,(or (rh-clangd-executable-find) "clangd")
+     "-j=6"
+     "--background-index"
+     "--completion-style=detailed"
+     "--log=info"))
+
+  (defun rh-eglot-display-local-help ()
+    (interactive)
+    (display-local-help))
+
+  :bind (:map eglot-mode-map
+         ("C-<tab>" . company-complete)
+         ("C-h C-." . rh-eglot-display-local-help))
+
+  :defer t
+  :ensure t)
+
+;; (defun rh-eglot-help-at-point (orig-fun)
+;;   (interactive)
+;;   (let ((face-name (symbol-name (get-char-property (point) 'face))))
+;;     (if (string-match-p "^flymake-.*" face-name)
+;;         (display-local-help)
+;;       (funcall orig-fun))))
+
+;; (advice-add 'eglot-help-at-point :around
+;;             #'rh-eglot-help-at-point)
+
+;;; /b/}
+
 (use-package lsp-mode
-  :if (rh-lsp-clangd-executable-find)
+  :if (rh-clangd-executable-find)
+
   :init
   (defvar lsp-keymap-prefix "C-c l")
 
@@ -3551,13 +3608,17 @@ fields which we need."
   (require 'company-capf)
 
   (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-clients-clangd-executable (rh-lsp-clangd-executable-find))
+  (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
 
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
           "--completion-style=detailed"
           "--log=info"))
+
+  :bind (:map lsp-mode-map
+         ("C-<tab>" . company-capf))
+
   :defer t
   :ensure t)
 
@@ -3618,6 +3679,7 @@ fields which we need."
   (setq rtags-reindex-on-save t)
   ;; (setq rtags-completions-enabled t)
   ;; (setq rtags-process-flags "-R")
+  (setq rtags-process-flags "--job-count=12")
 
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'
