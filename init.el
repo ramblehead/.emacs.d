@@ -2796,6 +2796,27 @@ fields which we need."
   (setq company-tooltip-minimum-width 35)
   (setq company-tooltip-offset-display 'lines)
 
+  ;; TODO: instead of filtering "•", this mark should be at the end
+  ;;       of a completion candidate.
+  ;;       This might be possible to achieve by passing appropriate
+  ;;       parameters to clangd or by filtering candidates
+  ;;       somewhere in company mode.
+  (defun rh-company-preview-frontend (command)
+    "`company-mode' frontend showing the selection as if it had been inserted."
+    (pcase command
+      (`pre-command (company-preview-hide))
+      (`post-command
+       (company-preview-show-at-point
+        (point)
+        (let ((selection (nth company-selection company-candidates)))
+          (if (string= (substring-no-properties selection 0 1) "•")
+              (substring selection 1)
+            selection))))
+      (`hide (company-preview-hide))))
+
+  (advice-add 'company-preview-frontend :override
+              #'rh-company-preview-frontend)
+
   ;; Use "M-h" for company-show-doc-buffer
   (define-key company-active-map (kbd "<f1>") nil)
   (define-key company-active-map (kbd "C-h") nil)
