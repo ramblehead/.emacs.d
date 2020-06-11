@@ -1590,17 +1590,17 @@ Also sets SYMBOL to VALUE."
   :config
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*xref*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+                 (display-buffer-below-selected)
+                 ;; (window-height . 0.3)
+                 (window-height . shrink-window-if-larger-than-buffer)
+                 (inhibit-same-window . t)))
 
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-goto-xref)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-show-location-at-point)
 
-  ;; :bind (:map xref--xref-buffer-mode-map
-  ;;        ("q" . quit-window))
+  :bind (("M-[" . xref-pop-marker-stack))
   :demand t)
 
 (use-package bind-key
@@ -3653,8 +3653,8 @@ fields which we need."
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*RTags*" nil)
                  (display-buffer-below-selected)
-                 (inhibit-same-window . t)
-                 (window-height . 0.3)))
+                 (window-height . 0.3)
+                 (inhibit-same-window . t)))
 
   ;; If following symbol without completion buffer, do it in the same window
   (add-to-list 'display-buffer-alist
