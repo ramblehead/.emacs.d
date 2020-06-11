@@ -46,9 +46,6 @@
     ;; (define-key map (kbd "C-,") #'rtags-find-references)
     map))
 
-;; (defvar rh-rtags-mode-default-enabled nil
-;;   "Suggests C++ projects whether they should activate rh-rtags-mode by default")
-
 (defun rh-rtags-mode-toggle-default-enabled ()
   "Toggle `rh-rtags-mode-default-enabled'"
   (interactive)
