@@ -1426,6 +1426,8 @@ Also sets SYMBOL to VALUE."
   (setq sml/shorten-mode-string "")
   (setq sml/shorten-modes nil)
 
+  ;; (setq-local sml/name-width 10)
+
   (setq rh-sml/position-percentage-format sml/position-percentage-format)
   (setq sml/position-percentage-format nil)
 
@@ -1623,6 +1625,8 @@ Also sets SYMBOL to VALUE."
   (setq auto-revert-mode-text " ⭯")
   (setq auto-revert-tail-mode-text " ⭳")
 
+  (add-to-list 'rm-blacklist " ⭯")
+
   :defer t)
 
 (use-package avy
@@ -1647,19 +1651,6 @@ Also sets SYMBOL to VALUE."
          ("C-c a d" . ace-delete-window))
   :demand t
   :ensure t)
-
-;; (defun rh-aw-copy-window (window)
-;;   "Copy the current buffer to WINDOW - including window-start and point."
-;;   (let ((buffer (current-buffer))
-;;         (window-start (window-start))
-;;         (point (point)))
-;;     (aw-switch-to-window window)
-;;     (switch-to-buffer buffer)
-;;     (set-window-start (frame-selected-window) window-start)
-;;     (goto-char point)))
-
-;; (advice-add 'aw-copy-window :override
-;;             #'rh-aw-copy-window)
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -2619,8 +2610,9 @@ fields which we need."
   :ensure t)
 
 (use-package auto-complete
-  ;; :delight (auto-complete-mode " A")
   :config
+  (add-to-list 'rm-blacklist " AC")
+
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
   (setq ac-modes (delq 'javascript-mode ac-modes))
@@ -2751,6 +2743,8 @@ fields which we need."
 
   (setq company-lighter-base "CA")
 
+  (add-to-list 'rm-blacklist " CA")
+
   (setq company-backends
         '((company-keywords company-dabbrev-code)
           company-files (company-dabbrev company-ispell)))
@@ -2795,27 +2789,6 @@ fields which we need."
   (setq company-tooltip-maximum-width 80)
   (setq company-tooltip-minimum-width 35)
   (setq company-tooltip-offset-display 'lines)
-
-  ;; TODO: instead of filtering "•", this mark should be at the end
-  ;;       of a completion candidate.
-  ;;       This might be possible to achieve by passing appropriate
-  ;;       parameters to clangd or by filtering candidates
-  ;;       somewhere in company mode.
-  (defun rh-company-preview-frontend (command)
-    "`company-mode' frontend showing the selection as if it had been inserted."
-    (pcase command
-      (`pre-command (company-preview-hide))
-      (`post-command
-       (company-preview-show-at-point
-        (point)
-        (let ((selection (nth company-selection company-candidates)))
-          (if (string= (substring-no-properties selection 0 1) "•")
-              (substring selection 1)
-            selection))))
-      (`hide (company-preview-hide))))
-
-  (advice-add 'company-preview-frontend :override
-              #'rh-company-preview-frontend)
 
   ;; Use "M-h" for company-show-doc-buffer
   (define-key company-active-map (kbd "<f1>") nil)
@@ -3588,6 +3561,8 @@ fields which we need."
   :if (rh-clangd-executable-find)
 
   :config
+  (require 'config-eglot)
+
   (setf
    (cdr (assoc '(c++-mode c-mode) eglot-server-programs))
    `(,(or (rh-clangd-executable-find) "clangd")
@@ -3596,26 +3571,12 @@ fields which we need."
      "--completion-style=detailed"
      "--log=info"))
 
-  (defun rh-eglot-display-local-help ()
-    (interactive)
-    (display-local-help))
-
   :bind (:map eglot-mode-map
          ("C-<tab>" . company-complete)
          ("C-h C-." . rh-eglot-display-local-help))
 
   :defer t
   :ensure t)
-
-;; (defun rh-eglot-help-at-point (orig-fun)
-;;   (interactive)
-;;   (let ((face-name (symbol-name (get-char-property (point) 'face))))
-;;     (if (string-match-p "^flymake-.*" face-name)
-;;         (display-local-help)
-;;       (funcall orig-fun))))
-
-;; (advice-add 'eglot-help-at-point :around
-;;             #'rh-eglot-help-at-point)
 
 ;;; /b/}
 
