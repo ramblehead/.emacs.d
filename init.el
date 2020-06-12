@@ -1130,6 +1130,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   ;;   (when ad-do-it
   ;;     (run-with-idle-timer 0 nil #'recenter)))
 
+  ;; TODO: update to the new advice style
   (defadvice save-place-find-file-hook
       (around rh-save-place-find-file-hook activate)
     (when ad-do-it
@@ -1140,6 +1141,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            (with-selected-window win (recenter))))
        (current-buffer))))
 
+  ;; TODO: remove old emacs support
   (if (version< emacs-version "25.0")
       (progn
         (require 'saveplace)

@@ -2,6 +2,17 @@
 
 (require 'company-capf)
 
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (buffer-nm actions)
+     (and (eq (with-current-buffer buffer-nm major-mode) 'help-mode)
+          (string-match-p "^\\*eglot-help for.*\\*$" buffer-nm)))
+   (rh-display-buffer-reuse-right
+    rh-display-buffer-reuse-left
+    rh-display-buffer-reuse-down
+    rh-display-buffer-reuse-up
+    display-buffer-pop-up-window)))
+
 (defun rh-eglot-display-local-help ()
   (interactive)
   (display-local-help))
@@ -170,20 +181,48 @@
 
 ;; (advice-remove 'eglot-completion-at-point #'rh-eglot-completion-at-point)
 
-(defun rh-company-preview-frontend (command)
-  "`company-mode' frontend showing the selection as if it had been inserted."
-  (pcase command
-    (`pre-command (company-preview-hide))
-    (`post-command
-     (company-preview-show-at-point
-      (point)
-      (let ((selection (nth company-selection company-candidates)))
-        (if (string= (substring-no-properties selection -1) "•")
-            (substring selection 0 -1)
-          selection))))
-    (`hide (company-preview-hide))))
+;; (defun rh-company-preview-frontend (command)
+;;   "`company-mode' frontend showing the selection as if it had been inserted."
+;;   (pcase command
+;;     (`pre-command (company-preview-hide))
+;;     (`post-command
+;;      (company-preview-show-at-point
+;;       (point)
+;;       (let ((selection (nth company-selection company-candidates)))
+;;         (if (string= (substring-no-properties selection -1) "•")
+;;             (substring selection 0 -1)
+;;           selection))))
+;;     (`hide (company-preview-hide))))
 
-(advice-add 'company-preview-frontend :override
-            #'rh-company-preview-frontend)
+;; (advice-add 'company-preview-frontend :override
+;;             #'rh-company-preview-frontend)
+
+(defun rh-eglot-rename (newname)
+  "Rename the current symbol to NEWNAME."
+  (interactive
+   (let ((initial (symbol-name (symbol-at-point))))
+     (run-with-timer
+      0 nil
+      (lambda ()
+        (let ((old-mark (or (cdr-safe transient-mark-mode)
+                            transient-mark-mode)))
+          (set-mark (point-max))
+          (goto-char (minibuffer-prompt-end))
+          ;; see https://emacs.stackexchange.com/questions/22162/how-to-set-mark-in-elisp-and-have-shift-selection
+          ;;     for the explanation of the following line
+          (setq transient-mark-mode (cons 'only old-mark)))))
+     (list (read-from-minibuffer
+            (format "Rename `%s' to: " initial)
+            (substring-no-properties initial)))))
+  (unless (eglot--server-capable :renameProvider)
+    (eglot--error "Server can't rename!"))
+  (eglot--apply-workspace-edit
+   (jsonrpc-request (eglot--current-server-or-lose)
+                    :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+                                           :newName ,newname))
+   current-prefix-arg))
+
+(advice-add 'eglot-rename :override
+            #'rh-eglot-rename)
 
 (provide 'config-eglot)
