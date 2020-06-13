@@ -37,6 +37,10 @@
 ;;   * See the following for LSP
 ;;     https://github.com/ianpan870102/.personal-emacs.d/blob/master/init.el
 
+;; * Package managers
+;;   https://github.com/raxod502/straight.el
+;;   https://github.com/emacscollective/borg
+
 ;; * REST clients
 ;;   https://github.com/federicotdn/verb
 ;;   https://github.com/pashky/restclient.el
@@ -1126,6 +1130,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   ;;   (when ad-do-it
   ;;     (run-with-idle-timer 0 nil #'recenter)))
 
+  ;; TODO: update to the new advice style
   (defadvice save-place-find-file-hook
       (around rh-save-place-find-file-hook activate)
     (when ad-do-it
@@ -1136,6 +1141,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            (with-selected-window win (recenter))))
        (current-buffer))))
 
+  ;; TODO: remove old emacs support
   (if (version< emacs-version "25.0")
       (progn
         (require 'saveplace)
@@ -1422,6 +1428,8 @@ Also sets SYMBOL to VALUE."
   (setq sml/shorten-mode-string "")
   (setq sml/shorten-modes nil)
 
+  ;; (setq-local sml/name-width 10)
+
   (setq rh-sml/position-percentage-format sml/position-percentage-format)
   (setq sml/position-percentage-format nil)
 
@@ -1460,6 +1468,7 @@ Also sets SYMBOL to VALUE."
 
   :after (linum total-lines)
   :demand t
+  ;; :disabled t
   :ensure t)
 
 (use-package rainbow-mode
@@ -1585,17 +1594,17 @@ Also sets SYMBOL to VALUE."
   :config
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*xref*")
-                 ,(g2w-display #'display-buffer-in-side-window t)
-                 (inhibit-same-window . t)
-                 (window-height . 15)))
+                 (display-buffer-below-selected)
+                 ;; (window-height . 0.3)
+                 (window-height . shrink-window-if-larger-than-buffer)
+                 (inhibit-same-window . t)))
 
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-goto-xref)
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-show-location-at-point)
 
-  ;; :bind (:map xref--xref-buffer-mode-map
-  ;;        ("q" . quit-window))
+  :bind (("M-[" . xref-pop-marker-stack))
   :demand t)
 
 (use-package bind-key
@@ -1617,6 +1626,8 @@ Also sets SYMBOL to VALUE."
   :config
   (setq auto-revert-mode-text " ⭯")
   (setq auto-revert-tail-mode-text " ⭳")
+
+  (add-to-list 'rm-blacklist " ⭯")
 
   :defer t)
 
@@ -1642,19 +1653,6 @@ Also sets SYMBOL to VALUE."
          ("C-c a d" . ace-delete-window))
   :demand t
   :ensure t)
-
-(defun rh-aw-copy-window (window)
-  "Copy the current buffer to WINDOW - including window-start and point."
-  (let ((buffer (current-buffer))
-        (window-start (window-start))
-        (point (point)))
-    (aw-switch-to-window window)
-    (switch-to-buffer buffer)
-    (set-window-start (frame-selected-window) window-start)
-    (goto-char point)))
-
-(advice-add 'aw-copy-window :override
-            #'rh-aw-copy-window)
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
@@ -2614,8 +2612,9 @@ fields which we need."
   :ensure t)
 
 (use-package auto-complete
-  ;; :delight (auto-complete-mode " A")
   :config
+  (add-to-list 'rm-blacklist " AC")
+
   (setq ac-modes (delq 'js2-mode ac-modes))
   (setq ac-modes (delq 'js-mode ac-modes))
   (setq ac-modes (delq 'javascript-mode ac-modes))
@@ -2745,6 +2744,8 @@ fields which we need."
      (inhibit-same-window . t)))
 
   (setq company-lighter-base "CA")
+
+  (add-to-list 'rm-blacklist " CA")
 
   (setq company-backends
         '((company-keywords company-dabbrev-code)
@@ -2910,6 +2911,23 @@ fields which we need."
 
   :ensure t)
 
+;;; flymake
+;;; /b/{
+
+(use-package flymake
+  ;; :config
+  ;; (setq flymake-no-changes-timeout nil)
+  :defer t)
+
+(defun rh-flymake--mode-line-format (result)
+  (setf (nth 1 (car result)) " φ")
+  result)
+
+(advice-add 'flymake--mode-line-format :filter-return
+            #'rh-flymake--mode-line-format)
+
+;;; /b/}
+
 ;;; flycheck
 ;;; /b/{
 
@@ -3040,9 +3058,12 @@ fields which we need."
   :config
   (setq compilation-scroll-output t)
 
-  ;; (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (require 'compile-eslint)
+
+  ;; TODO: Move the following push to (use-package compile-eslint ...)
+  ;;       config section and make `compile-eslint' load after `compile'
   (push 'eslint compilation-error-regexp-alist)
   ;; (push 'typescript-eslint compilation-error-regexp-alist)
 
@@ -3527,7 +3548,7 @@ fields which we need."
 ;;; C++
 ;;; /b/{
 
-(defun rh-lsp-clangd-executable-find ()
+(defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
   (let ((path (or (executable-find "clangd-10")
                   (executable-find "clangd-9")
@@ -3535,18 +3556,53 @@ fields which we need."
                   (executable-find "clangd"))))
     (when path (file-name-nondirectory path))))
 
+;;; eglot
+;;; /b/{
+
+(use-package eglot
+  :if (rh-clangd-executable-find)
+
+  :config
+  (require 'config-eglot)
+
+  (setf
+   (cdr (assoc '(c++-mode c-mode) eglot-server-programs))
+   `(,(or (rh-clangd-executable-find) "clangd")
+     "-j=6"
+     "--background-index"
+     "--completion-style=detailed"
+     "--log=info"))
+
+  :bind (:map eglot-mode-map
+         ("C-<tab>" . company-complete)
+         ("C-h C-." . rh-eglot-display-local-help))
+
+  :defer t
+  :ensure t)
+
+;;; /b/}
+
 (use-package lsp-mode
-  :if (rh-lsp-clangd-executable-find)
+  :if (rh-clangd-executable-find)
+
+  :init
+  (defvar lsp-keymap-prefix "C-c l")
+
   :config
   (require 'company-capf)
 
-  (setq lsp-clients-clangd-executable (rh-lsp-clangd-executable-find))
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
 
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
           "--completion-style=detailed"
           "--log=info"))
+
+  :bind (:map lsp-mode-map
+         ("C-<tab>" . company-capf))
+
   :defer t
   :ensure t)
 
@@ -3560,8 +3616,8 @@ fields which we need."
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*RTags*" nil)
                  (display-buffer-below-selected)
-                 (inhibit-same-window . t)
-                 (window-height . 0.3)))
+                 (window-height . 0.3)
+                 (inhibit-same-window . t)))
 
   ;; If following symbol without completion buffer, do it in the same window
   (add-to-list 'display-buffer-alist
@@ -3607,6 +3663,7 @@ fields which we need."
   (setq rtags-reindex-on-save t)
   ;; (setq rtags-completions-enabled t)
   ;; (setq rtags-process-flags "-R")
+  (setq rtags-process-flags "--job-count=12")
 
   ;; see https://github.com/Andersbakken/rtags/issues/304
   ;; for flag '-M'

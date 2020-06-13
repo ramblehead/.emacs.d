@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'compile)
+(require 'eglot)
 (require 'lsp-mode)
 (require 'rtags nil t)
 
