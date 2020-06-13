@@ -3058,7 +3058,7 @@ fields which we need."
   :config
   (setq compilation-scroll-output t)
 
-  (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  ;; (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
 
   (require 'compile-eslint)
 
