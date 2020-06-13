@@ -159,14 +159,14 @@
 ;; /b/{
 
 ;; TODO: Remove cond clause when all rh systems are
-;;       migrated from `~/.emacs-private.d' to `~/woods/pit/emacs'
+;;       migrated from `~/.emacs-private.d' to `~/box/woods/pit/emacs'
 (cond
  ((file-directory-p "~/.emacs-private.d")
   (load "~/.emacs-private.d/secret.el" t)
   (load (concat "~/.emacs-private.d/systems/" system-name ".el") t))
- ((file-directory-p "~/woods/pit/emacs")
-  (load "~/woods/pit/emacs/secret.el" t)
-  (load (concat "~/woods/pit/emacs/systems/" system-name ".el") t)))
+ ((file-directory-p "~/.config/emacs-private")
+  (load "~/.config/emacs-private/secret.el" t)
+  (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)))
 
 ;; /b/{ Package initialisation and `use-package' bootstrap
 
