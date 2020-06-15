@@ -3054,11 +3054,25 @@ fields which we need."
   (interactive)
   (rh-toggle-display compilation-buffer-name))
 
+
 (use-package compile
   :config
   (setq compilation-scroll-output t)
 
-  ;; (setf (cdr (assq 'compilation-in-progress minor-mode-alist)) '(" ⵛ"))
+  (let ((progress-in-minor-mode-alist
+         (assq 'compilation-in-progress minor-mode-alist)))
+    (if progress-in-minor-mode-alist
+        ;; Before Emacs 28
+        (setf (cdr progress-in-minor-mode-alist) '(" ⵛ"))
+      ;; Since Emacs 28
+      (setf (car (cdr (assq 'compilation-in-progress mode-line-modes)))
+            (propertize "ⵛ "
+	                'help-echo "Compiling; mouse-2: Goto Buffer"
+                        'mouse-face 'mode-line-highlight
+                        'local-map
+                        (make-mode-line-mouse-map
+                         'mouse-2
+		         #'compilation-goto-in-progress-buffer)))))
 
   (require 'compile-eslint)
 
