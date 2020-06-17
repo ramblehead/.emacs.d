@@ -1604,8 +1604,24 @@ Also sets SYMBOL to VALUE."
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-show-location-at-point)
 
-  :bind (("M-[" . xref-pop-marker-stack))
+  ;; :bind (("M-[" . xref-pop-marker-stack))
   :demand t)
+
+;; TODO: add backward/forward functionality to xref
+;;       instead of using backward-forward package.
+(use-package backward-forward
+  :config
+  (backward-forward-mode t)
+
+  :bind (:map backward-forward-mode-map
+         ("C-<left>" . nil)
+         ("C-<right>" . nil)
+         ("M-[" . backward-forward-previous-location)
+         ("M-]" . backward-forward-next-location))
+
+  :after xref
+  :demand t
+  :ensure t)
 
 (use-package bind-key
   :config
@@ -3611,6 +3627,9 @@ fields which we need."
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
+          "--all-scopes-completion"
+          "--limit-results=0"
+          "--suggest-missing-includes"
           "--completion-style=detailed"
           "--log=info"))
 
