@@ -3600,6 +3600,9 @@ fields which we need."
    `(,(or (rh-clangd-executable-find) "clangd")
      "-j=6"
      "--background-index"
+     "--all-scopes-completion"
+     "--limit-results=0"
+     "--suggest-missing-includes"
      "--completion-style=detailed"
      "--log=info"))
 
