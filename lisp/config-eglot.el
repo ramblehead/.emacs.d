@@ -2,17 +2,6 @@
 
 (require 'company-capf)
 
-(add-to-list
- 'display-buffer-alist
- '((lambda (buffer-nm actions)
-     (and (eq (with-current-buffer buffer-nm major-mode) 'help-mode)
-          (string-match-p "^\\*eglot-help for.*\\*$" buffer-nm)))
-   (rh-display-buffer-reuse-right
-    rh-display-buffer-reuse-left
-    rh-display-buffer-reuse-down
-    rh-display-buffer-reuse-up
-    display-buffer-pop-up-window)))
-
 (defun rh-eglot-display-local-help ()
   (interactive)
   (display-local-help))

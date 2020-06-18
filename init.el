@@ -921,6 +921,19 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (use-package emacs
   :config
+  (setq display-buffer-fallback-action
+    '((display-buffer--maybe-same-window  ;FIXME: why isn't this redundant?
+       display-buffer-reuse-window
+       rh-display-buffer-reuse-right
+       rh-display-buffer-reuse-left
+       rh-display-buffer-reuse-down
+       rh-display-buffer-reuse-up
+       display-buffer--maybe-pop-up-frame-or-window
+       display-buffer-in-previous-window
+       display-buffer-use-some-window
+       ;; If all else fails, pop up a new frame.
+       display-buffer-pop-up-frame)))
+
   ;; (add-to-list 'display-buffer-alist
   ;;              `("*Warnings*"
   ;;                ,(g2w-display #'display-buffer-in-side-window t)
@@ -1490,15 +1503,15 @@ Also sets SYMBOL to VALUE."
 
 (use-package help-mode
   :config
-  (add-to-list
-   'display-buffer-alist
-   '("*Help*"
-     (display-buffer-reuse-window
-      rh-display-buffer-reuse-right
-      rh-display-buffer-reuse-left
-      rh-display-buffer-reuse-down
-      rh-display-buffer-reuse-up
-      display-buffer-pop-up-window)))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*Help*"
+  ;;    (display-buffer-reuse-window
+  ;;     rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up
+  ;;     display-buffer-pop-up-window)))
 
   (setq help-window-select t)
 
@@ -1506,15 +1519,15 @@ Also sets SYMBOL to VALUE."
 
 (use-package apropos
   :config
-  (add-to-list
-   'display-buffer-alist
-   '("*Apropos*"
-     (display-buffer-reuse-window
-      rh-display-buffer-reuse-right
-      rh-display-buffer-reuse-left
-      rh-display-buffer-reuse-down
-      rh-display-buffer-reuse-up
-      display-buffer-pop-up-window)))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("*Apropos*"
+  ;;    (display-buffer-reuse-window
+  ;;     rh-display-buffer-reuse-right
+  ;;     rh-display-buffer-reuse-left
+  ;;     rh-display-buffer-reuse-down
+  ;;     rh-display-buffer-reuse-up
+  ;;     display-buffer-pop-up-window)))
 
   :defer t)
 
@@ -1526,8 +1539,6 @@ Also sets SYMBOL to VALUE."
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
-      ;; rh-display-buffer-reuse-down
-      ;; rh-display-buffer-reuse-up
       ;; display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
@@ -1559,7 +1570,7 @@ Also sets SYMBOL to VALUE."
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
-      display-buffer-use-some-window
+      ;; display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
@@ -2320,8 +2331,6 @@ fields which we need."
      (display-buffer-reuse-window
       rh-display-buffer-reuse-right
       rh-display-buffer-reuse-left
-      ;; rh-display-buffer-reuse-down
-      ;; rh-display-buffer-reuse-up
       ;; display-buffer-use-some-window
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
@@ -3168,17 +3177,17 @@ fields which we need."
 
 (use-package shell
   :config
-  (add-to-list 'display-buffer-alist
-               ;; '((lambda (buffer-nm action)
-               ;;     (eq (with-current-buffer buffer-nm major-mode)
-               ;;         'shell-mode))
-               '("*shell*"
-                 (display-buffer-same-window
-                  rh-display-buffer-reuse-right
-                  rh-display-buffer-reuse-left
-                  rh-display-buffer-reuse-down
-                  rh-display-buffer-reuse-up
-                  display-buffer-pop-up-window)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              ;; '((lambda (buffer-nm action)
+  ;;              ;;     (eq (with-current-buffer buffer-nm major-mode)
+  ;;              ;;         'shell-mode))
+  ;;              '("*shell*"
+  ;;                (display-buffer-same-window
+  ;;                 rh-display-buffer-reuse-right
+  ;;                 rh-display-buffer-reuse-left
+  ;;                 rh-display-buffer-reuse-down
+  ;;                 rh-display-buffer-reuse-up
+  ;;                 display-buffer-pop-up-window)))
 
   :bind (:map shell-mode-map
           ("C-c C-b" . nil))
@@ -3383,8 +3392,6 @@ fields which we need."
                  (display-buffer-same-window
                   rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  ;; rh-display-buffer-reuse-down
-                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)))
 
   (add-to-list 'display-buffer-alist
@@ -3394,8 +3401,6 @@ fields which we need."
                             'magit-status-mode)))
                  (rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  ;; rh-display-buffer-reuse-down
-                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
 
@@ -3407,8 +3412,6 @@ fields which we need."
                  (display-buffer-reuse-mode-window
                   rh-display-buffer-reuse-right
                   rh-display-buffer-reuse-left
-                  ;; rh-display-buffer-reuse-down
-                  ;; rh-display-buffer-reuse-up
                   display-buffer-pop-up-window)
                  (inhibit-same-window . t)))
 
