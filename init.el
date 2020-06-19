@@ -921,18 +921,21 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 (use-package emacs
   :config
-  (setq display-buffer-fallback-action
-    '((display-buffer--maybe-same-window  ;FIXME: why isn't this redundant?
-       display-buffer-reuse-window
-       rh-display-buffer-reuse-right
-       rh-display-buffer-reuse-left
-       rh-display-buffer-reuse-down
-       rh-display-buffer-reuse-up
-       display-buffer--maybe-pop-up-frame-or-window
-       display-buffer-in-previous-window
-       display-buffer-use-some-window
-       ;; If all else fails, pop up a new frame.
-       display-buffer-pop-up-frame)))
+  (setq split-height-threshold nil)
+  (setq split-width-threshold 170)
+
+  (setq
+   display-buffer-fallback-action
+   '((display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      rh-display-buffer-reuse-down
+      rh-display-buffer-reuse-up
+      ;; display-buffer--maybe-pop-up-frame-or-window
+      display-buffer-in-previous-window
+      ;; display-buffer-use-some-window
+      display-buffer-pop-up-window
+      display-buffer-pop-up-frame)))
 
   ;; (add-to-list 'display-buffer-alist
   ;;              `("*Warnings*"
@@ -1128,11 +1131,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   (load file-path nil t t))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
-
-;; (setq split-height-threshold nil)
-;; (setq split-width-threshold nil)
-;; (setq split-height-threshold 20)
-;; (setq split-width-threshold 90)
 
 (use-package saveplace
   :init
