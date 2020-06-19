@@ -934,7 +934,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
       ;; display-buffer--maybe-pop-up-frame-or-window
       display-buffer-in-previous-window
       ;; display-buffer-use-some-window
-      ;; If all else fails, pop up a new frame.
       display-buffer-pop-up-window
       display-buffer-pop-up-frame)))
 
