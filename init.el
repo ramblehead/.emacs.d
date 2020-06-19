@@ -1620,19 +1620,19 @@ Also sets SYMBOL to VALUE."
 
 ;; TODO: add backward/forward functionality to xref
 ;;       instead of using backward-forward package.
-(use-package backward-forward
-  :config
-  (backward-forward-mode t)
+;; (use-package backward-forward
+;;   :config
+;;   (backward-forward-mode t)
 
-  :bind (:map backward-forward-mode-map
-         ("C-<left>" . nil)
-         ("C-<right>" . nil)
-         ("M-[" . backward-forward-previous-location)
-         ("M-]" . backward-forward-next-location))
+;;   :bind (:map backward-forward-mode-map
+;;          ("C-<left>" . nil)
+;;          ("C-<right>" . nil)
+;;          ("M-[" . backward-forward-previous-location)
+;;          ("M-]" . backward-forward-next-location))
 
-  :after xref
-  :demand t
-  :ensure t)
+;;   :after xref
+;;   :demand t
+;;   :ensure t)
 
 (use-package bind-key
   :config
