@@ -74,29 +74,6 @@
       (set-marker marker nil nil)
       (run-hooks 'xref-after-return-hook))))
 
-;; (defun rh-xref-return ()
-;;   (interactive)
-;;   (let* ((undo-ring rh-xref--return-undo-ring)
-;;          (undo-ring-not-empty (not (ring-empty-p undo-ring)))
-;;          (undo-ring-0
-;;           (when undo-ring-not-empty (ring-ref undo-ring 0))))
-;;     (if (not (equal undo-ring-0 (point-marker)))
-;;         (switch-to-buffer
-;;          (or (marker-buffer undo-ring-0)
-;;              (user-error "The marked buffer has been deleted")))
-;;         (goto-char (marker-position undo-ring-0))
-;;       (let ((ring xref--marker-ring))
-;;         (when (ring-empty-p ring)
-;;           (user-error "Marker stack is empty"))
-;;         (let ((marker (ring-remove ring 0)))
-;;           (switch-to-buffer
-;;            (or (marker-buffer marker)
-;;                (user-error "The marked buffer has been deleted")))
-;;           (ring-insert rh-xref--return-undo-ring (copy-marker marker))
-;;           (goto-char (marker-position marker))
-;;           (set-marker marker nil nil)
-;;           (run-hooks 'xref-after-return-hook))))))
-
 (advice-add 'xref-pop-marker-stack :override
             #'rh-xref-return)
 
@@ -112,7 +89,6 @@
 
 (defun rh-elisp-slime-nav-find-elisp-thing-at-point-after (&rest _)
   (rh-xref-reset-return-undo-ring)
-  ;; (rh-xref-recenter-sensibly)
   (run-hooks 'xref-after-jump-hook))
 
 (eval-after-load 'elisp-slime-nav
