@@ -1601,6 +1601,8 @@ Also sets SYMBOL to VALUE."
 
 (use-package xref
   :config
+  (require 'config-xref)
+
   (add-to-list 'display-buffer-alist
                `(,(g2w-condition "*xref*")
                  (display-buffer-below-selected)
@@ -1613,7 +1615,8 @@ Also sets SYMBOL to VALUE."
   (add-to-list 'g2w-display-buffer-reuse-window-commands
                'xref-show-location-at-point)
 
-  ;; :bind (("M-[" . xref-pop-marker-stack))
+  :bind (("M-[" . rh-xref-return)
+         ("M-]" . rh-xref-undo-return))
   :demand t)
 
 ;; TODO: add backward/forward functionality to xref
