@@ -1267,10 +1267,10 @@ the window is selected."
   (beacon-mode 1)
 
   (setq beacon-dont-blink-commands
-        '(pop-tag-mark
-          xref-pop-marker-stack
-          mouse-set-point
+        '(mouse-set-point
           mouse-drag-region
+          ;; pop-tag-mark
+          ;; xref-pop-marker-stack
           compile-goto-error
           compilation-display-error
           ivy-done))

@@ -87,12 +87,15 @@
 
 (add-hook 'xref-after-jump-hook #'rh-xref-reset-return-undo-ring)
 
-(defun rh-elisp-slime-nav-find-elisp-thing-at-point-after (&rest _)
-  (rh-xref-reset-return-undo-ring)
+(defun rh-xref-run-after-jump-hook (&rest _)
   (run-hooks 'xref-after-jump-hook))
 
 (eval-after-load 'elisp-slime-nav
   (advice-add 'elisp-slime-nav-find-elisp-thing-at-point :after
-              #'rh-elisp-slime-nav-find-elisp-thing-at-point-after))
+              #'rh-xref-run-after-jump-hook))
+
+(eval-after-load 'tide
+  (advice-add 'tide-jump-to-filespan :after
+              #'rh-xref-run-after-jump-hook))
 
 (provide 'config-xref)
