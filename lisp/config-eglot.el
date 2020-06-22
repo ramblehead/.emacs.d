@@ -190,18 +190,22 @@
   "Rename the current symbol to NEWNAME."
   (interactive
    (let ((initial (symbol-name (symbol-at-point))))
-     (run-with-timer
-      0 nil
-      (lambda ()
-        (let ((old-mark (or (cdr-safe transient-mark-mode)
-                            transient-mark-mode)))
-          (set-mark (point-max))
-          (goto-char (minibuffer-prompt-end))
-          ;; see https://emacs.stackexchange.com/questions/22162/how-to-set-mark-in-elisp-and-have-shift-selection
-          ;;     for the explanation of the following line
-          (setq transient-mark-mode (cons 'only old-mark)))))
+     ;; (run-with-timer
+     ;;  0 nil
+     ;;  (lambda ()
+     ;;    (let ((old-mark (or (cdr-safe transient-mark-mode)
+     ;;                        transient-mark-mode)))
+     ;;      (set-mark (point-max))
+     ;;      (goto-char (minibuffer-prompt-end))
+     ;;      ;; see https://emacs.stackexchange.com/questions/22162/how-to-set-mark-in-elisp-and-have-shift-selection
+     ;;      ;;     for the explanation of the following line
+     ;;      (setq transient-mark-mode (cons 'only old-mark)))))
+     ;; (list (read-from-minibuffer
+     ;;        (format "Rename `%s' to: " initial)
+     ;;        (substring-no-properties initial)))
      (list (read-from-minibuffer
             (format "Rename `%s' to: " initial)
+            nil nil nil nil
             (substring-no-properties initial)))))
   (unless (eglot--server-capable :renameProvider)
     (eglot--error "Server can't rename!"))
