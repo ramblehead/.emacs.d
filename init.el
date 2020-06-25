@@ -1005,7 +1005,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
     ;; (set-face-attribute 'default nil
     ;;                     :family "Hack"
-    ;;                     :height 110
+    ;;                     :height 90
     ;;                     :width 'semi-condensed
     ;;                     :weight 'normal)
 
@@ -1488,16 +1488,18 @@ Also sets SYMBOL to VALUE."
 
 (use-package facemenu
   :config
-  (add-to-list 'display-buffer-alist
-               '("*Colors*"
-                 (display-buffer-same-window)))
+  (add-to-list
+   'display-buffer-alist
+   '("*Colors*"
+     (display-buffer-same-window)))
   :defer t)
 
 (use-package faces
   :config
-  (add-to-list 'display-buffer-alist
-               '("*Faces*"
-                 (display-buffer-same-window))))
+  (add-to-list
+   'display-buffer-alist
+   '("*Faces*"
+     (display-buffer-same-window))))
 
 (use-package help-mode
   :config
@@ -1516,17 +1518,6 @@ Also sets SYMBOL to VALUE."
   :defer t)
 
 (use-package apropos
-  :config
-  ;; (add-to-list
-  ;;  'display-buffer-alist
-  ;;  '("*Apropos*"
-  ;;    (display-buffer-reuse-window
-  ;;     rh-display-buffer-reuse-right
-  ;;     rh-display-buffer-reuse-left
-  ;;     rh-display-buffer-reuse-down
-  ;;     rh-display-buffer-reuse-up
-  ;;     display-buffer-pop-up-window)))
-
   :defer t)
 
 (use-package grep
@@ -1755,10 +1746,10 @@ Also sets SYMBOL to VALUE."
 ;; (i.e. non-persistent selection)
 (delete-selection-mode t)
 
-(defun vr-kill-ring-save-after-keep-mark (&rest _)
+(defun rh-kill-ring-save-after-keep-mark (&rest _)
   (setq deactivate-mark nil))
 
-(advice-add 'kill-ring-save :after #'vr-kill-ring-save-after-keep-mark)
+(advice-add 'kill-ring-save :after #'rh-kill-ring-save-after-keep-mark)
 
 ;; see https://www.emacswiki.org/emacs/KillingAndYanking
 (defun yank-pop-forwards (arg)
@@ -1807,20 +1798,20 @@ Also sets SYMBOL to VALUE."
 ;; (global-set-key (kbd "<down>") 'next-one-line)
 ;; (global-set-key (kbd "<up>") 'previous-one-line)
 
-(defun vr-scroll-down-one-line ()
+(defun rh-scroll-down-one-line ()
   (interactive)
   (scroll-down 1))
 
-(defun vr-scroll-up-one-line ()
+(defun rh-scroll-up-one-line ()
   (interactive)
   (scroll-up 1))
 
 ;; TODO: Review  these keys for windows resizing
 ;; up/down keys "like in Adobe Reader"
-(global-set-key (kbd "M-<down>") 'vr-scroll-up-one-line)
-(global-set-key (kbd "M-<kp-down>") 'vr-scroll-up-one-line)
-(global-set-key (kbd "M-<up>") 'vr-scroll-down-one-line)
-(global-set-key (kbd "M-<kp-up>") 'vr-scroll-down-one-line)
+(global-set-key (kbd "M-<down>") 'rh-scroll-up-one-line)
+(global-set-key (kbd "M-<kp-down>") 'rh-scroll-up-one-line)
+(global-set-key (kbd "M-<up>") 'rh-scroll-down-one-line)
+(global-set-key (kbd "M-<kp-up>") 'rh-scroll-down-one-line)
 
 ;; == Mouse Operations ==
 
@@ -1955,8 +1946,9 @@ Also sets SYMBOL to VALUE."
      ;; (setq which-key-side-window-slot 1)
      (setq which-key-side-window-max-height 15)))
 
-  :bind (:map which-key-mode-map
-          ("<f1>" . which-key-show-top-level))
+  ;; :bind (:map which-key-mode-map
+  ;;         ("<f1>" . which-key-show-top-level))
+  :bind (("<f1>" . which-key-show-top-level))
   :demand t
   :ensure t)
 
@@ -3059,6 +3051,9 @@ fields which we need."
          ("C-<down>" . rh-vterm-send-C-down)
          ("C-<kp-up>" . rh-vterm-send-C-up)
          ("C-<kp-down>" . rh-vterm-send-C-down)
+         ("S-<f2>" . rh-vterm-send-S-f2)
+         ("<f1>" . rh-vterm-send-f1)
+         ("<f12>" . what-face)
          :map vterm-copy-mode-map
          ("<kp-begin>" . vterm-copy-mode))
   :defer t

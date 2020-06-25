@@ -40,4 +40,14 @@
   (interactive)
   (vterm-send-key "<down>" nil nil t))
 
+(defun rh-vterm-send-S-f2 ()
+  "Sends `S-<f2>' to the libvterm."
+  (interactive)
+  (vterm-send-key "<f2>" t))
+
+(defun rh-vterm-send-f1 ()
+  "Sends `<f1>' to the libvterm."
+  (interactive)
+  (vterm-send-key "<f1>"))
+
 (provide 'config-vterm)
