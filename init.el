@@ -3590,9 +3590,6 @@ fields which we need."
                   (executable-find "clangd"))))
     (when path (file-name-nondirectory path))))
 
-;;; eglot
-;;; /b/{
-
 (use-package eglot
   :if (rh-clangd-executable-find)
 
@@ -3616,8 +3613,6 @@ fields which we need."
 
   :defer t
   :ensure t)
-
-;;; /b/}
 
 (use-package lsp-mode
   :if (rh-clangd-executable-find)
