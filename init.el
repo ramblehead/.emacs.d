@@ -1594,17 +1594,21 @@ Also sets SYMBOL to VALUE."
   :config
   (require 'config-xref)
 
-  (add-to-list 'display-buffer-alist
-               `(,(g2w-condition "*xref*")
-                 (display-buffer-below-selected)
-                 ;; (window-height . 0.3)
-                 (window-height . shrink-window-if-larger-than-buffer)
-                 (inhibit-same-window . t)))
+  (add-to-list
+   'display-buffer-alist
+   `(,(g2w-condition "*xref*")
+     (display-buffer-below-selected)
+     ;; (window-height . 0.3)
+     (window-height . shrink-window-if-larger-than-buffer)
+     (inhibit-same-window . t)))
 
-  (add-to-list 'g2w-display-buffer-reuse-window-commands
-               'xref-goto-xref)
-  (add-to-list 'g2w-display-buffer-reuse-window-commands
-               'xref-show-location-at-point)
+  (add-to-list
+   'g2w-display-buffer-reuse-window-commands
+   'xref-goto-xref)
+
+  (add-to-list
+   'g2w-display-buffer-reuse-window-commands
+   'xref-show-location-at-point)
 
   :bind (("M-[" . rh-xref-return)
          ("M-]" . rh-xref-undo-return))
@@ -4486,6 +4490,14 @@ fields which we need."
      ;; (window-height . shrink-window-if-larger-than-buffer)
      ))
 
+  (add-to-list
+   'display-buffer-alist
+   '((lambda (buffer-nm actions)
+       (and (with-current-buffer buffer-nm
+              (memq 'tide-mode minor-mode-list))
+            (eq last-command 'tide-jump-to-definition)))
+     (display-buffer-same-window)))
+
   (flycheck-add-mode 'typescript-tslint 'web-mode)
 
   ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
@@ -4502,6 +4514,7 @@ fields which we need."
   (setq tide-completion-ignore-case t)
   (setq tide-always-show-documentation t)
   (setq tide-completion-enable-autoimport-suggestions nil)
+  ;; (setq tide-jump-to-definition-reuse-window nil)
 
   ;; company-tide is loaded after company
   (bind-key "C-x C-<tab>" #'company-tide tide-mode-map)

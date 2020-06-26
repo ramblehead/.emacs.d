@@ -1,5 +1,6 @@
 ;;; ramblehead's xref configuration
 
+
 (defcustom xref-after-undo-return-hook
   '(rh-xref-recenter-sensibly
     xref-pulse-momentarily)
