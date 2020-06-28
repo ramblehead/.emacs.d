@@ -33,6 +33,19 @@
 ;;  [?] Should jsi-log use Emacs' compilation mode to format Node.JS output in
 ;;      case of errors?
 
+
+;; Yarn 2 refactoring
+;; (setq jsi-node-command-require-esm nil)
+;; (setq jsi-babel-command "yarn babel")
+;; (setq jsi-node-command "yarn")
+;; (setq jsi-node-command-arguments
+;;       '("node"
+;;         "-r" "esm"
+;;         "--experimental-repl-await"
+;;         "--throw-deprecation"
+;;         "--abort-on-uncaught-exception"))
+
+
 ;; /b/}
 
 ;; -------------------------------------------------------------------
@@ -48,6 +61,11 @@
   "Node.js REPL and its minor interaction mode."
   :prefix "jsi-"
   :group 'processes)
+
+(defcustom jsi-use-yarn2 t
+  "Use yarn2 to start node, babel and other tools."
+  :group 'js-interaction
+  :type 'boolean)
 
 (defun jsi--get (var)
   "Returns (funcall `VAR') if `VAR' is a function or `VAR' if not."
@@ -176,10 +194,12 @@ If mode is not recognised, assumes JavaScript."
   '((((class color) (background light))
      :background "grey75"
      :foreground "grey30"
+     :extend t
      :weight bold)
     (((class color) (background dark))
      :background "grey35"
      :foreground "grey70"
+     :extend t
      :weight bold))
   "Face for log record heading."
   :group 'js-interaction)
@@ -188,10 +208,12 @@ If mode is not recognised, assumes JavaScript."
   '((((class color) (background light))
      :background "#ffffcc"
      :foreground "#aaaa11"
+     :extend t
      :weight bold)
     (((class color) (background dark))
      :background "#555522"
      :foreground "#ffffcc"
+     :extend t
      :weight bold))
   "Face for log transpiler heading."
   :group 'js-interaction)
@@ -200,10 +222,12 @@ If mode is not recognised, assumes JavaScript."
   '((((class color) (background light))
      :background "#cceecc"
      :foreground "#22aa22"
+     :extend t
      :weight bold)
     (((class color) (background dark))
      :background "#336633"
      :foreground "#cceecc"
+     :extend t
      :weight bold))
   "Face for log interpreter heading."
   :group 'js-interaction)
@@ -279,7 +303,7 @@ If mode is not recognised, assumes JavaScript."
       (goto-char (point-max))
       (insert
        (propertize (concat "@ " (jsi--log-symbol-text input-language)
-                           " Input \n")
+                           " Input\n")
                    'face 'jsi-log-record-heading-highlight))
       (insert (jsi--log-fontify-string
                input (jsi--log-fontify-major-mode input-language)))
@@ -287,7 +311,7 @@ If mode is not recognised, assumes JavaScript."
       (when transpiler
         (insert
          (propertize (concat "> " (jsi--log-symbol-text transpiler)
-                             " Output \n")
+                             " Output\n")
                      'face 'jsi-log-transpiler-heading-highlight))
         (insert (jsi--log-fontify-string
                  (plist-get transpiler-output ':text)
@@ -298,7 +322,7 @@ If mode is not recognised, assumes JavaScript."
       (when interpreter
         (insert
          (propertize (concat "> " (jsi--log-symbol-text interpreter)
-                             " Output \n")
+                             " Output\n")
                      'face 'jsi-log-interpreter-heading-highlight))
         (insert (jsi--log-fontify-string
                  interpreter-output (jsi--log-fontify-major-mode 'output)))
@@ -380,6 +404,7 @@ calls would return the cached value."
     jsi-babel-command-default-cache
     (let ((default-directory (jsi--get jsi-babel-run-directory)))
       (cond
+       (jsi-use-yarn2 "yarn babel")
        ((eq 0 (ignore-errors
                 (call-process "npx" nil nil nil
                               "--no-install" "babel" "--version")))
@@ -703,10 +728,15 @@ see https://github.com/standard-things/esm")
       (setq arguments (copy-sequence jsi-node-command-arguments))
       (when jsi-node-command-require-esm
         (setq arguments (append '("-r" "esm") arguments)))
+      (when jsi-use-yarn2
+        (setq arguments (cons (jsi--get jsi-node-command) arguments)))
       (setq buffer (eval
                     `(make-comint
                       jsi-node-repl-process-name
-                      ,(jsi--get jsi-node-command) nil
+                      ,(if jsi-use-yarn2
+                           "yarn"
+                         (jsi--get jsi-node-command))
+                      nil
                       ,@arguments
                       "-e" jsi-node-repl-start-js)))
       (with-current-buffer buffer (jsi-node-repl-mode))
