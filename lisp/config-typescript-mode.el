@@ -9,8 +9,8 @@
    (setq-local company-backends (copy-tree company-backends))
    (company-mode 1)
 
-   (setq-local rm-blacklist (seq-copy rm-blacklist))
-   (add-to-list 'rm-blacklist " jsi-node")
+   ;; (setq-local rm-blacklist (seq-copy rm-blacklist))
+   ;; (add-to-list 'rm-blacklist " jsi-node")
    (rh-programming-minor-modes 1)))
 
 (defun typescript-tsc-pretty-error--find-filename ()

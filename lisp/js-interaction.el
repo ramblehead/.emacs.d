@@ -521,14 +521,14 @@ defined by `jsi-babel-run-directory'."
       ;;       it. see https://github.com/babel/babel/issues/9329
       ;;
       ;; "Hide" await keyword from Babel input-string
+      ;; (setq input-string
+      ;;       (replace-regexp-in-string
+      ;;        "^\\[[:blank:]]*await[[:blank:]\n\r]"
+      ;;        "/* __await_out__ */" input-string))
       (setq input-string
             (replace-regexp-in-string
-             "^\\([[:blank:]]*\\)await\\([[:blank:]\n\r]\\)"
-             "\\1/* __await_out__ */\\2" input-string))
-      (setq input-string
-            (replace-regexp-in-string
-             "^\\(.*\\)await\\([[:blank:]\n\r]\\)"
-             "\\1/* __await_in__ */\\2" input-string))
+             "^\\(.*\\)await[[:blank:]\n\r]"
+             "\\1/* __await_in__ */" input-string))
 
       (setq
        arg-string
@@ -568,14 +568,14 @@ defined by `jsi-babel-run-directory'."
       ;;       it. see https://github.com/babel/babel/issues/9329
       ;;
       ;; Get await keyword back to Babel output-string.
+      ;; (setq output-string
+      ;;       (replace-regexp-in-string
+      ;;        "/[\n\r]*\\*\\ __await_out__ \\*/[\n\r]*[[:blank:]]*"
+      ;;        " await " output-string))
       (setq output-string
             (replace-regexp-in-string
-             "/\\* __await_out__ \\*/[\n\r]+"
+             "[\n\r]*/\\* __await_in__ \\*/[\n\r]*[[:blank:]]*"
              "await " output-string))
-      (setq output-string
-            (replace-regexp-in-string
-             "[\n\r]*/\\* __await_in__ \\*/[\n\r]+"
-             " await " output-string))
 
       `(:text ,output-string
         :error ,output-error))))

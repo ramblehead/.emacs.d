@@ -1076,7 +1076,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
   ;; Sort bindings to appropriate packages
   :bind (;; Exit Emacs!
-         ("C-x r q" . 'save-buffers-kill-terminal)
+         ("C-x r q" . save-buffers-kill-terminal)
+         ("C-x f" . find-file-at-point)
          ;; Editor
          ("C-<insert>" . kill-ring-save)
          ("C-<kp-insert>" . kill-ring-save)
@@ -1184,7 +1185,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2011-11/msg00213.html
 (savehist-mode 1)
 
-;; find-file-at-point
 ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
 (ffap-bindings)
 
@@ -3902,11 +3902,11 @@ fields which we need."
   (setq js2-skip-preprocessor-directives t)
 
   ;; js-mode-hook is executed before js2-mode-hook
-  (add-hook
-   'js2-mode-hook
-   (lambda ()
-     (setq-local rm-blacklist (seq-copy rm-blacklist))
-     (add-to-list 'rm-blacklist " jsi-node")))
+  ;; (add-hook
+  ;;  'js2-mode-hook
+  ;;  (lambda ()
+  ;;    (setq-local rm-blacklist (seq-copy rm-blacklist))
+  ;;    (add-to-list 'rm-blacklist " jsi-node")))
 
   :ensure t)
 
@@ -4073,6 +4073,8 @@ fields which we need."
    '("*jsi-node-repl*"
      (display-buffer-reuse-window
       display-buffer-same-window)))
+
+  (add-to-list 'rm-blacklist " jsi-node")
 
   ;; (setq jsi-node-command-require-esm t)
   (setq jsi-babel-skip-import t)
