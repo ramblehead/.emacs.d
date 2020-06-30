@@ -4915,9 +4915,12 @@ or buffer major mode symbol")
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
-   ;; script outputs
+   ;; skewer
    "^\\*skewer-error\\*$"
-   "^\\*tide-server\\*$"
+   ;; eglot
+   "^\\*EGLOT .*$"
+   ;; flymake
+   "^\\*Flymake log\\*$"
    ;; rtags buffers
    "^\\*rdm\\*$"
    "^\\*RTags\\*$"
