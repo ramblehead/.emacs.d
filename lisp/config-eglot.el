@@ -8,7 +8,6 @@
 
 (defun rh-eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
-  (message "xxx")
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot--server-capable :completionProvider))
     (let* ((server (eglot--current-server-or-lose))
@@ -92,6 +91,9 @@
                      (string-prefix-p
                       probe (or filterText proxy) completion-ignore-case))))
             (funcall proxies)))))
+       :company-docsig
+       (lambda (proxy)
+         "xxx")
        :annotation-function
        (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind)
