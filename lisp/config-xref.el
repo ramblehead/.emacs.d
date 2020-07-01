@@ -1,8 +1,7 @@
 ;;; ramblehead's xref configuration
 
-
 (defcustom xref-after-undo-return-hook
-  '(rh-xref-recenter-sensibly
+  '(rh-recenter-sensibly
     xref-pulse-momentarily)
   "Functions called after undoing return to a pre-jump location."
   :type 'hook)
@@ -11,28 +10,10 @@
   (make-ring (ring-size xref--marker-ring))
   "Ring of markers to implement the return undo stack.")
 
-(defun rh-xref-recenter-sensibly ()
-  (interactive)
-  (cond
-   ((let ((top-margin
-           (1+ (- (line-number-at-pos (point))
-                  (line-number-at-pos (window-start))))))
-      (< top-margin 10))
-    (if (< (window-height) 20)
-        (recenter)
-      (recenter 10)))
-   ((let ((bottom-margin
-           (1+ (- (line-number-at-pos (window-end))
-                  (line-number-at-pos (point))))))
-      (< bottom-margin 10))
-    (if (< (window-height) 20)
-        (recenter)
-      (recenter -10)))))
-
 (remove-hook 'xref-after-jump-hook #'recenter)
 
-(add-hook 'xref-after-return-hook #'rh-xref-recenter-sensibly)
-(add-hook 'xref-after-jump-hook #'rh-xref-recenter-sensibly)
+(add-hook 'xref-after-return-hook #'rh-recenter-sensibly)
+(add-hook 'xref-after-jump-hook #'rh-recenter-sensibly)
 
 (defun rh-xref-undo-return ()
   (interactive)

@@ -8,6 +8,7 @@
 
 (defun rh-eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
+  (message "xxx")
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot--server-capable :completionProvider))
     (let* ((server (eglot--current-server-or-lose))
@@ -38,6 +39,9 @@
                                   &allow-other-keys)
                          ;; Need to (setq company--capf-cache nil)
                          ;; when testing
+                         ;;
+                         ;; (inhibit-redisplay t) in company--fetch-candidates()
+                         ;; olso inhibits edebug
                          (when (string= (substring-no-properties label 0 1) "•")
                            (setq label (concat (substring-no-properties label 1) "•")))
                          (let ((proxy
