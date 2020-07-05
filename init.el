@@ -1970,15 +1970,18 @@ Also sets SYMBOL to VALUE."
          (filename-after
           (if (string= (file-name-nondirectory filename) "..")
               (dired-current-directory)
-            (concat (file-name-as-directory filename) ".."))))
+            (concat (file-name-as-directory filename) "..")))
+         (find-file-respect-dired
+          (lambda (fn)
+            (if (= (length (get-buffer-window-list)) 1)
+                (find-alternate-file fn)
+              (bury-buffer)
+              (find-file fn)))))
     (if (not (file-directory-p filename))
-        (find-alternate-file filename)
+        (funcall find-file-respect-dired filename)
       (if (not (file-accessible-directory-p filename))
           (error (format "Directory '%s' is not accessible" filename))
-        (if (= (length (get-buffer-window-list)) 1)
-            (find-alternate-file filename)
-          (bury-buffer)
-          (find-file filename)))
+        (funcall find-file-respect-dired filename))
       (dired-goto-file filename-after)
       (recenter))))
 
@@ -4887,7 +4890,8 @@ or buffer major mode symbol")
     (jsi-log-mode
      jsi-node-repl-mode))
    ("shells"
-    (shell-mode))
+    (shell-mode
+     vterm-mode))
    ("magit"
     (magit-diff-mode
      magit-log-mode
@@ -4993,21 +4997,16 @@ or has one of the listed major modes."
   :config
   (setq iflipb-ignore-buffers
         '((lambda (buffer-nm)
-            (let ((buffer (get-buffer buffer-nm)))
-              (not (and (string=
-                         (rh-buffers-get-group-name (window-buffer))
-                         (rh-buffers-get-group-name buffer))
-                        (rh-context-show-buffer-p buffer))))
-
             ;; (let ((buffer (get-buffer buffer-nm)))
-            ;;   (and (not (rh-context-show-buffer-p buffer))
-            ;;        (not (string=
+            ;;   (not (and (string=
             ;;              (rh-buffers-get-group-name (window-buffer))
-            ;;              (rh-buffers-get-group-name buffer)))))
+            ;;              (rh-buffers-get-group-name buffer))
+            ;;             (rh-context-show-buffer-p buffer))))
 
-            ;; (rh-buffers-match
-            ;;  rh-buffers-not-file-group
-            ;;  (get-buffer buffer-nm))
+            (rh-buffers-match
+             rh-buffers-not-file-group
+             (get-buffer buffer-nm))
+
             )))
 
   (setq iflipb-wrap-around t)
