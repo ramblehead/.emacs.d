@@ -38,6 +38,9 @@
                                   &allow-other-keys)
                          ;; Need to (setq company--capf-cache nil)
                          ;; when testing
+                         ;;
+                         ;; (inhibit-redisplay t) in company--fetch-candidates()
+                         ;; olso inhibits edebug
                          (when (string= (substring-no-properties label 0 1) "•")
                            (setq label (concat (substring-no-properties label 1) "•")))
                          (let ((proxy
@@ -88,6 +91,9 @@
                      (string-prefix-p
                       probe (or filterText proxy) completion-ignore-case))))
             (funcall proxies)))))
+       :company-docsig
+       (lambda (proxy)
+         "xxx")
        :annotation-function
        (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind)

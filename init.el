@@ -1036,7 +1036,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   (add-hook
    'next-error-hook
    (lambda ()
-     (recenter)))
+     (rh-recenter-sensibly)))
 
   ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
   ;; (color-theme-sanityinc-tomorrow-blue)
@@ -2805,6 +2805,7 @@ fields which we need."
 
   (setq company-tooltip-align-annotations t)
   (setq company-echo-truncate-lines nil)
+  (company-echo-show)
   (setq company-minimum-prefix-length 1)
   (setq company-frontends
         '(rh-company-pseudo-tooltip-on-explicit-action
@@ -3256,10 +3257,12 @@ fields which we need."
   ;; edebug/nlinum behave this way.
   (defun rh-nlinum-flush-if-enabled-and-edebug ()
     (when (bound-and-true-p nlinum-mode)
-      (run-at-time 0 nil (lambda ()
-                           (when (and (bound-and-true-p edebug-mode)
-                                      (bound-and-true-p nlinum-mode))
-                             (nlinum--flush))))))
+      (run-at-time
+       0 nil
+       (lambda ()
+         (when (and (bound-and-true-p edebug-mode)
+                    (bound-and-true-p nlinum-mode))
+           (nlinum--flush))))))
 
   (add-hook 'buffer-list-update-hook #'rh-nlinum-flush-if-enabled-and-edebug)
 
@@ -4181,6 +4184,7 @@ fields which we need."
 
 (use-package edebug
   :config
+  (require 'config-edebug)
   (setq edebug-print-length -1)
 
   :demand t)
@@ -4919,9 +4923,12 @@ or buffer major mode symbol")
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
-   ;; script outputs
+   ;; skewer
    "^\\*skewer-error\\*$"
-   "^\\*tide-server\\*$"
+   ;; eglot
+   "^\\*EGLOT .*$"
+   ;; flymake
+   "^\\*Flymake log\\*$"
    ;; rtags buffers
    "^\\*rdm\\*$"
    "^\\*RTags\\*$"

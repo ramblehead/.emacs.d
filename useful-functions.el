@@ -1,5 +1,23 @@
 (require 'windmove)
 
+(defun rh-recenter-sensibly ()
+  (interactive)
+  (cond
+   ((let ((top-margin
+           (1+ (- (line-number-at-pos (point))
+                  (line-number-at-pos (window-start))))))
+      (< top-margin 10))
+    (if (< (window-height) 20)
+        (recenter)
+      (recenter 10)))
+   ((let ((bottom-margin
+           (1+ (- (line-number-at-pos (window-end))
+                  (line-number-at-pos (point))))))
+      (< bottom-margin 10))
+    (if (< (window-height) 20)
+        (recenter)
+      (recenter -10)))))
+
 (defun unfill-paragraph ()
   "Takes a multi-line paragraph and makes it into a single line of text."
   (interactive)
