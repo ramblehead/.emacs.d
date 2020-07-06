@@ -984,13 +984,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (unwind-protect
         (condition-case ex
             (progn
-             (set-face-attribute
-              'region nil
-              :box '(:line-width (-1 . -1)
-                     ;; :color "gtk_selection_bg_color"
-                     :color "#ea5e30"
-                     :style nil)
-              :background "#ea5e30"))
+              (set-face-attribute
+               'region nil
+               :box '(:line-width (-1 . -1)
+                      ;; :color "gtk_selection_bg_color"
+                      :color "#ea5e30"
+                      :style nil)
+               :background "#ea5e30"))
           ('error
            (set-face-attribute
             'region nil
@@ -3039,6 +3039,13 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;; /b/{
 
+;; (face-spec-set
+;;  'vterm-color-default
+;;  '((((class color) (background light)) .
+;;     (:inherit default :background "white" :foreground "black"))
+;;    (((class color) (background dark)) .
+;;     (:inherit default :background "black" :foreground "white"))))
+
 (use-package vterm
   :if (locate-library "vterm")
   :commands vterm
@@ -4896,6 +4903,8 @@ or buffer major mode symbol")
    ("shells"
     (shell-mode
      vterm-mode))
+   ("info"
+    (Info-mode))
    ("magit"
     (magit-diff-mode
      magit-log-mode
