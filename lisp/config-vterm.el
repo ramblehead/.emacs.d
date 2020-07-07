@@ -1,5 +1,75 @@
 ;;; ramblehead's vterm configuration
 
+(face-spec-set
+ 'vterm-color-default
+ '((((class color) (background light)) .
+    (:inherit default))
+   (((class color) (background dark)) .
+    (:inherit default))))
+
+(face-spec-set
+ 'vterm-color-inverse-video
+ '((((class color) (background light)) .
+    (:inherit vterm-color-default))
+   (((class color) (background dark)) .
+    (:inherit vterm-color-default))))
+
+(face-spec-set
+ 'term-color-black
+ '((((class color) (background light)) .
+    (:background "#767875" :foreground "#2E3436"))
+   (((class color) (background dark)) .
+    (:background "#767875" :foreground "#2E3436"))))
+
+(face-spec-set
+ 'term-color-blue
+ '((((class color) (background light)) .
+    (:background "#88AACF" :foreground "#3465A4"))
+   (((class color) (background dark)) .
+    (:background "#88AACF" :foreground "#3465A4"))))
+
+(face-spec-set
+ 'term-color-cyan
+ '((((class color) (background light)) .
+    (:background "#34E2E2" :foreground "#06989A"))
+   (((class color) (background dark)) .
+    (:background "#34E2E2" :foreground "#06989A"))))
+
+(face-spec-set
+ 'term-color-green
+ '((((class color) (background light)) .
+    (:background "#94C368" :foreground "medium sea green"))
+   (((class color) (background dark)) .
+    (:background "#94C368" :foreground "medium sea green"))))
+
+(face-spec-set
+ 'term-color-magenta
+ '((((class color) (background light)) .
+    (:background "#C497BF" :foreground "#A177A8"))
+   (((class color) (background dark)) .
+    (:background "#C497BF" :foreground "#A177A8"))))
+
+(face-spec-set
+ 'term-color-red
+ '((((class color) (background light)) .
+    (:background "light coral" :foreground "IndianRed1"))
+   (((class color) (background dark)) .
+    (:background "light coral" :foreground "IndianRed1"))))
+
+(face-spec-set
+ 'term-color-white
+ '((((class color) (background light)) .
+    (:background "#EEEEEC" :foreground "#D3D7CF"))
+   (((class color) (background dark)) .
+    (:background "#EEEEEC" :foreground "#D3D7CF"))))
+
+(face-spec-set
+ 'term-color-yellow
+ '((((class color) (background light)) .
+    (:background "#FCE94F" :foreground "#D3AC00"))
+   (((class color) (background dark)) .
+    (:background "#FCE94F" :foreground "#D3AC00"))))
+
 (defun rh-vterm-send-end ()
   "Sends `<end>' to the libvterm."
   (interactive)

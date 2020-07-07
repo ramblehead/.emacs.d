@@ -1707,6 +1707,27 @@ Also sets SYMBOL to VALUE."
 
 (setq visible-bell t)
 
+;; (defun rh-color-theme-sanityinc-tomorrow-after (mode)
+;;   (when (eq mode 'blue)
+;;     (face-spec-reset-face 'term-color-blue)
+;;     (face-spec-set
+;;      'term-color-blue
+;;      '((((class color) (background light)) .
+;;         (:background "#88AACF" :foreground "#3465A4"))
+;;        (((class color) (background dark)) .
+;;         (:background "#88AACF" :foreground "#3465A4"))))
+
+;;     (face-spec-reset-face 'vterm-color-blue)
+;;     (face-spec-set
+;;      'vterm-color-blue
+;;      '((((class color) (background light)) .
+;;         (:inherit term-color-blue))
+;;        (((class color) (background dark)) .
+;;         (:inherit term-color-blue))))))
+
+;; (advice-add 'color-theme-sanityinc-tomorrow :after
+;;             #'rh-color-theme-sanityinc-tomorrow-after)
+
 (use-package color-theme-sanityinc-tomorrow
   :ensure t)
 
@@ -3038,13 +3059,6 @@ fields which we need."
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
 ;; -------------------------------------------------------------------
 ;; /b/{
-
-;; (face-spec-set
-;;  'vterm-color-default
-;;  '((((class color) (background light)) .
-;;     (:inherit default :background "white" :foreground "black"))
-;;    (((class color) (background dark)) .
-;;     (:inherit default :background "black" :foreground "white"))))
 
 (use-package vterm
   :if (locate-library "vterm")
