@@ -958,19 +958,18 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     ;;              '(font . "Hack-10.5"))
 
     ;; HiDPI
-    (let ((pixel-width
+    (let ((width-pixels
            (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
       (cond
-       ((= pixel-width 1920)
+       ((= width-pixels 1920)
+        ;; (fringe-mode '(16 . 16))
+        ;; (setq read-only-cursor-type '(hbar . 4))
+        ;; (setq normal-cursor-type '(bar . 4))
         ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
         (add-to-list 'default-frame-alist
-                     '(font . "Hack-10.5"))
+                     '(font . "Hack-10.5")))
 
-        (fringe-mode '(16 . 16))
-        (setq read-only-cursor-type '(hbar . 4))
-        (setq normal-cursor-type '(bar . 4)))
-
-       ((= pixel-width 2560)
+       ((= width-pixels 2560)
         (add-to-list 'default-frame-alist
                      '(font . "Hack-9")))))
 
@@ -1825,11 +1824,21 @@ Also sets SYMBOL to VALUE."
 
 (defun rh-scroll-down-one-line ()
   (interactive)
-  (scroll-down 1))
+  (let* ((point (point))
+         (point-line (1+ (count-lines 1 point)))
+         (window-end-line (1- (count-lines 1 (window-end)))))
+    (scroll-down 1)
+    (unless (= point-line window-end-line)
+      (goto-char point))))
 
 (defun rh-scroll-up-one-line ()
   (interactive)
-  (scroll-up 1))
+  (let* ((point (point))
+         (point-line (1+ (count-lines 1 point)))
+         (window-start-line (1+ (count-lines 1 (window-start)))))
+    (scroll-up 1)
+    (unless (= point-line window-start-line)
+      (goto-char point))))
 
 ;; TODO: Review  these keys for windows resizing
 ;; up/down keys "like in Adobe Reader"
