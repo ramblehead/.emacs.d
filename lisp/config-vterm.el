@@ -110,6 +110,30 @@
   (interactive)
   (vterm-send-key "<down>" nil nil t))
 
+(defun rh-vterm-send-C-x_c ()
+  "Sends `C-x c' to the libvterm."
+  (interactive)
+  (vterm-send-key "x" nil nil t)
+  (vterm-send-key "c"))
+
+(defun rh-vterm-send-C-x_s ()
+  "Sends `C-x s' to the libvterm."
+  (interactive)
+  (vterm-send-key "x" nil nil t)
+  (vterm-send-key "s"))
+
+(defun rh-vterm-send-C-x_v ()
+  "Sends `C-x v' to the libvterm."
+  (interactive)
+  (vterm-send-key "x" nil nil t)
+  (vterm-send-key "v"))
+
+(defun rh-vterm-send-C-x_C-s ()
+  "Sends `C-x C-s' to the libvterm."
+  (interactive)
+  (vterm-send-key "x" nil nil t)
+  (vterm-send-key "s" nil nil t))
+
 (defun rh-vterm-send-C-x ()
   "Sends `C-x' to the libvterm."
   (interactive)
