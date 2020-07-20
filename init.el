@@ -2473,14 +2473,15 @@ fields which we need."
     (interactive)
     (let* ((extra-ag-args (if current-prefix-arg nil ""))
            (default-text (or initial-input (rh-deduce-default-text t)))
-           (current-prefix-arg t))
+           (orig-current-prefix-arg current-prefix-arg)
+           (current-prefix-arg (or orig-current-prefix-arg '(4))))
       (counsel-ag default-text nil extra-ag-args)))
 
   (defun rh-counsel-git-deduce (&optional initial-input)
     (interactive)
     (let* ((extra-ag-args (if current-prefix-arg nil ""))
            (default-text (or initial-input (rh-deduce-default-text t)))
-           (current-prefix-arg t))
+           (current-prefix-arg '(4)))
       (counsel-git default-text)))
 
   (defun rh-counsel-file-jump ()
