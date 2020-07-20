@@ -2383,6 +2383,15 @@ fields which we need."
   ;;   (setq compilation-current-error (point))
   ;;   (next-error 0))
 
+  (defun rh-ivy-forward-char:override ()
+    "Forward to `forward-char' ARG."
+    (interactive)
+    (unless (eolp)
+      (call-interactively 'forward-char)))
+
+  (advice-add 'ivy-forward-char :override
+              #'rh-ivy-forward-char:override)
+
   (setq ivy-use-virtual-buffers t)
   (setq ivy-virtual-abbreviate 'abbreviate)
   (setq ivy-count-format "%d/%d ")
