@@ -104,7 +104,7 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
-(setq vr-site-start-file-paths ())
+(setq rh-site-start-file-paths ())
 
 (cond
  ((equal system-type 'windows-nt)
@@ -146,14 +146,14 @@
                                  "/site-lisp/site-start.el")))
       (progn
        (when (file-exists-p file-path)
-         (add-to-list 'vr-site-start-file-paths file-path))
+         (add-to-list 'rh-site-start-file-paths file-path))
        (when (file-exists-p ver-file-path)
-         (add-to-list 'vr-site-start-file-paths ver-file-path)))))))
+         (add-to-list 'rh-site-start-file-paths ver-file-path)))))))
 
-(setq vr-user-lisp-directory-path
+(setq rh-user-lisp-directory-path
       (concat (expand-file-name user-emacs-directory) "lisp/"))
-(setq vr-user-site-start-file-path
-      (concat vr-user-lisp-directory-path "site-start.el"))
+(setq rh-user-site-start-file-path
+      (concat rh-user-lisp-directory-path "site-start.el"))
 
 ;; /b/}
 
@@ -1124,10 +1124,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
   :demand t)
 
 (setq load-prefer-newer t)
-(add-to-list 'load-path vr-user-lisp-directory-path)
-(load vr-user-site-start-file-path nil t t)
+(add-to-list 'load-path rh-user-lisp-directory-path)
+(load rh-user-site-start-file-path nil t t)
 
-(dolist (file-path vr-site-start-file-paths)
+(dolist (file-path rh-site-start-file-paths)
   (load file-path nil t t))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -1613,22 +1613,6 @@ Also sets SYMBOL to VALUE."
          ("M-]" . rh-xref-undo-return))
   :demand t)
 
-;; TODO: add backward/forward functionality to xref
-;;       instead of using backward-forward package.
-;; (use-package backward-forward
-;;   :config
-;;   (backward-forward-mode t)
-
-;;   :bind (:map backward-forward-mode-map
-;;          ("C-<left>" . nil)
-;;          ("C-<right>" . nil)
-;;          ("M-[" . backward-forward-previous-location)
-;;          ("M-]" . backward-forward-next-location))
-
-;;   :after xref
-;;   :demand t
-;;   :ensure t)
-
 (use-package bind-key
   :config
   ;; (add-to-list 'display-buffer-alist
@@ -1680,7 +1664,7 @@ Also sets SYMBOL to VALUE."
 ;;   :config
 ;;   (setq tramp-mode nil))
 
-(use-package arc-mode)
+;; (use-package arc-mode)
 
 ;; -------------------------------------------------------------------
 ;;; Text Editor
