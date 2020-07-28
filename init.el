@@ -2768,35 +2768,6 @@ fields which we need."
   :after (fuzzy pos-tip)
   :ensure t)
 
-;; (defun rh-ac-start-if-ac-mode ()
-;;   (interactive)
-;;   (cond
-;;    ((cg-looking-at-auto-code-group-head-or-tail)
-;;     (cg-generate-auto-code-group))
-;;    ((bound-and-true-p auto-complete-mode)
-;;     (auto-complete))
-;;    ((bound-and-true-p company-mode)
-;;     (company-complete))
-
-;;     ;; (ignore-errors
-;;     ;;   (auto-complete))
-;;     ;; nil)
-
-;;     ;; (unwind-protect
-;;     ;;     (auto-complete)
-;;     ;;   (message "Cleaning up...")))
-
-;;     ;; (message "Cleaning up..."))
-;;    (t
-;;     (message "No auto-completion engine is running or nothing to complete.")))
-
-;;   ;; (if (bound-and-true-p auto-complete-mode)
-;;   ;;     (auto-complete)
-;;   ;;   (message "No auto-completion running or nothing to complete."))
-;;   )
-
-;; (global-set-key (kbd "C-<tab>") 'rh-ac-start-if-ac-mode)
-
 ;;; /b/}
 
 (use-package company
@@ -2982,6 +2953,22 @@ fields which we need."
   (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
 
   :ensure t)
+
+(defun rh-complete-dwim ()
+  (interactive)
+  (cond
+   ((cg-looking-at-auto-code-group-head-or-tail)
+    (cg-generate-auto-code-group))
+   ((bound-and-true-p auto-complete-mode)
+    (auto-complete))
+   ((bound-and-true-p company-mode)
+    (company-complete))
+   (t
+    (message "No completion candidates."))))
+
+(global-set-key (kbd "C-<tab>") #'rh-complete-dwim)
+(global-set-key [remap auto-complete] #'rh-complete-dwim)
+(global-set-key [remap company-complete] #'rh-complete-dwim)
 
 ;;; flymake
 ;;; /b/{
