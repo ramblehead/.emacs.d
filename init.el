@@ -3988,6 +3988,7 @@ fields which we need."
   :ensure t)
 
 (use-package typescript-mode
+  ;; :mode "\\.ts\\'\\|\\.tsx\\'"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
                       "ts"))
@@ -4432,8 +4433,8 @@ fields which we need."
                 ac-sources)))
 
 (use-package web-mode
-  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.json\\'\\|\\.tsx\\'"
   :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'"
   :config
   (require 'company)
 
