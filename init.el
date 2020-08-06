@@ -438,34 +438,80 @@ when only symbol face names are needed."
     (when (file-directory-p generators-path)
       (expand-file-name generators-path))))
 
-(defun rh-project-compile (command compilation-buffer-name)
-  (let* ((project-path (rh-project-get-path))
-         (full-command (concat project-path command))
-         (compilation-buffer-name-function
-          (lambda (name-of-mode) compilation-buffer-name)))
-    (setq rh-bs-bottom-0-side-window-buffer
-          (compile full-command))))
+;; (defun rh-project-compile (command compilation-buffer-name)
+;;   (let* ((project-path (rh-project-get-path))
+;;          (full-command (concat project-path command))
+;;          (compilation-buffer-name-function
+;;           (lambda (name-of-mode) compilation-buffer-name)))
+;;     (setq rh-bs-bottom-0-side-window-buffer
+;;           (compile full-command))))
 
-(defun rh-project-restart-shell-command (command output-buffer-or-name)
+(defun rh-project-compile (command compilation-buffer-or-name)
   (let* ((project-path (rh-project-get-path))
-         (output-buffer (get-buffer-create output-buffer-or-name))
          (full-command (concat project-path command))
-         (proc (get-buffer-process output-buffer)))
-    (unless (get-buffer-window output-buffer 'visible)
-      (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
-    (when proc (delete-process proc))
-    (rh-bs-async-shell-command full-command output-buffer)
+         compilation-buffer)
+    (when (get-buffer compilation-buffer-or-name)
+      (kill-buffer compilation-buffer-or-name))
+    (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
+    (with-current-buffer compilation-buffer
+      (vterm-mode)
+      (compilation-minor-mode)
+      (vterm-send-string
+       (concat "TIMEFORMAT=\"Compilation took %Rs\" && time "
+               full-command
+               "; exit"))
+      (vterm-send-return))
+    (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
+
+(defun rh-project-term (term-buffer-or-name &optional pwd)
+  (let* ((vterm-pwd (or pwd (rh-project-get-root)))
+         (vterm-buffer (get-buffer term-buffer-or-name)))
+    (if (and vterm-buffer (get-buffer-process vterm-buffer))
+        (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+      (if vterm-buffer (kill-buffer vterm-buffer))
+      (setq vterm-buffer (get-buffer-create term-buffer-or-name))
+      (with-current-buffer vterm-buffer
+        (setq-local vterm-kill-buffer-on-exit t)
+        (setq-local default-directory vterm-pwd)
+        (vterm-mode)))
+    (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+    (select-window (rh-bs-get-bootom-0-side-window))))
+
+;; (defun rh-project-restart-shell-command (command output-buffer-or-name)
+;;   (let* ((project-path (rh-project-get-path))
+;;          (output-buffer (get-buffer-create output-buffer-or-name))
+;;          (full-command (concat project-path command))
+;;          (proc (get-buffer-process output-buffer)))
+;;     (unless (get-buffer-window output-buffer 'visible)
+;;       (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
+;;     (when proc (delete-process proc))
+;;     (rh-bs-async-shell-command full-command output-buffer)
+;;     (with-current-buffer output-buffer
+;;       (setq-local buffer-read-only t)
+;;       (local-set-key (kbd "C-q") #'rh-bs-delete-sibling-windows)
+;;       (local-set-key (kbd "q") #'delete-window))
+;;     (setq rh-bs-bottom-0-side-window-buffer output-buffer)
+;;     (get-buffer-process output-buffer)))
+
+(defun rh-project-run-shell-command (command output-buffer-or-name)
+  (let* ((project-path (rh-project-get-path))
+         (full-command (concat project-path command))
+         output-buffer)
+    (when (get-buffer output-buffer-or-name)
+      (kill-buffer output-buffer-or-name))
+    (setq output-buffer (generate-new-buffer output-buffer-or-name))
     (with-current-buffer output-buffer
-      (setq-local buffer-read-only t)
-      (local-set-key (kbd "C-q") #'rh-bs-delete-sibling-windows)
-      (local-set-key (kbd "q") #'delete-window))
-    (setq rh-bs-bottom-0-side-window-buffer output-buffer)
+      (vterm-mode)
+      ;; (compilation-minor-mode)
+      (vterm-send-string full-command)
+      (vterm-send-return))
+    (rh-bs-display-buffer-in-bootom-0-side-window output-buffer)
     (get-buffer-process output-buffer)))
 
 (defun rh-project-kill-shell-process
     (output-buffer-or-name &optional interrupt)
-  (let ((buffer (get-buffer output-buffer-or-name))
-        (proc (get-buffer-process output-buffer-or-name)))
+  (let* ((buffer (get-buffer output-buffer-or-name))
+         (proc (get-buffer-process buffer)))
     (when (and buffer (not (get-buffer-window buffer 'visible)))
       (rh-bs-display-buffer-in-bootom-0-side-window buffer))
     (when proc
@@ -1288,19 +1334,17 @@ the window is selected."
   :after rich-minority
   :ensure t)
 
+(defun rh-rm-minor-modes ()
+  (interactive)
+  (message
+   (substring-no-properties
+    (mapconcat
+     (lambda (pair)
+       (format "%s (%S)" (string-trim-left (car pair)) (cdr pair)))
+     (delq nil (mapcar #'rm-format-mode-line-entry minor-mode-alist))
+     "\n"))))
+
 (use-package rich-minority
-  :config
-
-  (defun rh-rm-minor-modes ()
-    (interactive)
-    (message
-     (substring-no-properties
-      (mapconcat
-       (lambda (pair)
-         (format "%s (%S)" (string-trim-left (car pair)) (cdr pair)))
-       (delq nil (mapcar #'rm-format-mode-line-entry minor-mode-alist))
-       "\n"))))
-
   :demand t
   :ensure t)
 
@@ -2273,7 +2317,7 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Completion, Regexps, Patterns and Highlighting
 ;; -------------------------------------------------------------------
-;; /b/{
+;;; /b/{
 
 ;;; DWIM modes such as ivy, swiper, counsel
 ;;; /b/{
@@ -3049,7 +3093,7 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; /b/}
+;;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
@@ -3062,7 +3106,7 @@ fields which we need."
   :config
   (require 'config-vterm)
 
-  (vterm-send-C-d)
+  ;; (vterm-send-C-d)
   :bind (:map vterm-mode-map
          ("<kp-end>" . rh-vterm-send-end)
          ("<kp-home>" . rh-vterm-send-home)
@@ -4912,13 +4956,26 @@ or buffer major mode symbol")
  '(("dired"
     (dired-mode))
    ("compilation"
-    (compilation-mode))
+    (compilation-mode
+     (lambda (buffer)
+       (with-current-buffer buffer
+         (and (eq major-mode 'vterm-mode)
+              compilation-minor-mode)))))
    ("REPLs"
     (jsi-log-mode
      jsi-node-repl-mode))
    ("shells"
     (shell-mode
-     vterm-mode))
+     ;; vterm-mode
+     ;; (lambda (buffer)
+     ;;   (and
+     ;;    (eq (with-current-buffer buffer major-mode) 'vterm-mode)
+     ;;    (not (memq 'compilation-minor-mode
+     ;;               (with-current-buffer buffer minor-mode-list)))))
+     (lambda (buffer)
+       (with-current-buffer buffer
+         (and (eq major-mode 'vterm-mode)
+              (not compilation-minor-mode))))))
    ("info"
     (Info-mode))
    ("magit"
@@ -4990,16 +5047,24 @@ or buffer major mode symbol")
 ;;             (when (eq (with-current-buffer buffer major-mode) mode)
 ;;               (throw 'done t))))))))
 
-(defun rh-buffers-match (regexp-or-mode-list buffer)
+(defun rh-buffers-match (regexp-or-mode-or-func-list buffer)
   "Return non-nil if buffer either matches anything in listed regexps
 or has one of the listed major modes."
   (let ((case-fold-search nil))
     (seq-find
-     (lambda (regexp-or-mode)
-       (if (stringp regexp-or-mode)
-           (string-match-p regexp-or-mode (buffer-name buffer))
-         (eq (with-current-buffer buffer major-mode) regexp-or-mode)))
-     regexp-or-mode-list)))
+     ;; (lambda (regexp-or-mode)
+     ;;   (if (stringp regexp-or-mode)
+     ;;       (string-match-p regexp-or-mode (buffer-name buffer))
+     ;;     (eq (with-current-buffer buffer major-mode) regexp-or-mode)))
+     (lambda (regexp-or-mode-or-func)
+       (cond
+        ((stringp regexp-or-mode-or-func)
+         (string-match-p regexp-or-mode-or-func (buffer-name buffer)))
+        ((symbolp regexp-or-mode-or-func)
+         (eq (with-current-buffer buffer major-mode) regexp-or-mode-or-func))
+        ((functionp regexp-or-mode-or-func)
+         (funcall regexp-or-mode-or-func buffer))))
+     regexp-or-mode-or-func-list)))
 
 (defun rh-buffers-get-group-name (buffer)
   "Return group name to which BUFFER belongs or nil if BUFFER has no group."
