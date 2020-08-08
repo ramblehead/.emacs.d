@@ -80,7 +80,7 @@ temporary and indirect buffers."
         (with-current-buffer arc-buf
           (goto-char (point-min))
           ;; This should fail in nested archives.
-          (search-forward file-path-in-arc)
+          (re-search-forward (concat " " file-path-in-arc "$"))
           (archive-extract))))
      ;; ((string-match-p ".*\\.zip/.*" file) ; (file-exists-p fullname)
      ;;  (let* ((full-path
