@@ -3107,7 +3107,8 @@ fields which we need."
   (require 'config-vterm)
 
   ;; (vterm-send-C-d)
-  :bind (:map vterm-mode-map
+  :bind (("<menu>" . vterm-here)
+         :map vterm-mode-map
          ("<kp-end>" . rh-vterm-send-end)
          ("<kp-home>" . rh-vterm-send-home)
          ("<deletechar>" . vterm-send-C-d)
@@ -5190,11 +5191,7 @@ or has one of the listed major modes."
   :bind (("C-x C-b" . rh-bs-show)
          ("C-c C-b" . rh-bs-toggle-bs-in-bottom-0-side-window)
          ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window)
-         ("<menu>" . rh-context-window-config-switch)
-         ("s-<menu>" . rh-context-window-config-save)
-         ("C-<menu>" . rh-context-window-config-restore)
-         ("S-<menu>" . rh-context-select)
-         ("C-S-<menu>" . rh-context-update-all-buffers-contexts))
+         ("S-<menu>" . rh-context-window-config-switch))
   :demand t
   :pin manual)
 

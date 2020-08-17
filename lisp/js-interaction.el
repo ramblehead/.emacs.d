@@ -627,8 +627,10 @@ see https://github.com/standard-things/esm")
 
 (defvar jsi-node-command-arguments
   '("--experimental-repl-await"
-    "--throw-deprecation" ;; Mainly for UnhandledPromiseRejectionWarning
-    "--abort-on-uncaught-exception")
+    "--trace-deprecation"
+    ;; "--throw-deprecation" ;; Mainly for UnhandledPromiseRejectionWarning
+    ;; "--abort-on-uncaught-exception"
+    )
   "List of node command arguments (switches) used to start Node.JS")
 
 (defcustom jsi-node-repl-start-js
