@@ -6,7 +6,7 @@
   (interactive)
   (display-local-help))
 
-(defun rh-eglot-completion-at-point ()
+(defun eglot-completion-at-point:rh-override ()
   "EGLOT's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot--server-capable :completionProvider))
@@ -42,7 +42,8 @@
                          ;; (inhibit-redisplay t) in company--fetch-candidates()
                          ;; olso inhibits edebug
                          (when (string= (substring-no-properties label 0 1) "•")
-                           (setq label (concat (substring-no-properties label 1) "•")))
+                           (setq label (concat (substring label 1)
+                                               (substring label 0 1))))
                          (let ((proxy
                                 (cond ((and (eql insertTextFormat 2)
                                             (eglot--snippet-expansion-fn))
@@ -172,9 +173,9 @@
            (eglot-eldoc-function)))))))
 
 ;; (advice-add 'eglot-completion-at-point :override
-;;             #'rh-eglot-completion-at-point)
+;;             #'eglot-completion-at-point:rh-override)
 
-;; (advice-remove 'eglot-completion-at-point #'rh-eglot-completion-at-point)
+;; (advice-remove 'eglot-completion-at-point #'eglot-completion-at-point:rh-override)
 
 ;; (defun rh-company-preview-frontend (command)
 ;;   "`company-mode' frontend showing the selection as if it had been inserted."
@@ -192,7 +193,7 @@
 ;; (advice-add 'company-preview-frontend :override
 ;;             #'rh-company-preview-frontend)
 
-(defun rh-eglot-rename (newname)
+(defun eglot-rename:rh-override (newname)
   "Rename the current symbol to NEWNAME."
   (interactive
    (let ((initial (symbol-name (symbol-at-point))))
@@ -222,6 +223,12 @@
    current-prefix-arg))
 
 (advice-add 'eglot-rename :override
-            #'rh-eglot-rename)
+            #'eglot-rename:rh-override)
+
+(remove-hook 'find-file-hook
+             #'eglot--maybe-activate-editing-mode)
+
+(remove-hook 'after-change-major-mode-hook
+             #'eglot--maybe-activate-editing-mode)
 
 (provide 'config-eglot)
