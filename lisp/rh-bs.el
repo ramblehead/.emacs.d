@@ -390,9 +390,9 @@ name."
       (switch-to-buffer buffer))))
 
 (defun rh-bs-display-buffer-in-bootom-0-side-window
-    (buffer-or-name &optional do-not-set-last-side-window)
+    (buffer-or-name &optional do-not-set-bottom-0-side-window)
   (let ((buffer (get-buffer-create buffer-or-name)))
-    (unless do-not-set-last-side-window
+    (unless do-not-set-bottom-0-side-window
       (setq rh-bs-bottom-0-side-window-buffer buffer))
     (display-buffer-in-side-window
      buffer

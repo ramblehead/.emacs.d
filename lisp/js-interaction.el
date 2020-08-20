@@ -627,8 +627,10 @@ see https://github.com/standard-things/esm")
 
 (defvar jsi-node-command-arguments
   '("--experimental-repl-await"
-    "--throw-deprecation" ;; Mainly for UnhandledPromiseRejectionWarning
-    "--abort-on-uncaught-exception")
+    "--trace-deprecation"
+    ;; "--throw-deprecation" ;; Mainly for UnhandledPromiseRejectionWarning
+    ;; "--abort-on-uncaught-exception"
+    )
   "List of node command arguments (switches) used to start Node.JS")
 
 (defcustom jsi-node-repl-start-js
@@ -720,14 +722,20 @@ see https://github.com/standard-things/esm")
   "Run Node.js REPL"
   (interactive)
   (let ((process (get-process jsi-node-repl-process-name))
+        (orig-dir default-directory)
         buffer arguments)
     (if process
         (setq buffer (process-buffer process))
+      ;; (message default-directory)
       ;; TODO: convert to seq-copy and seq-concatenate in the future
       ;;       when more emacs'es support it:
+      (setq buffer (get-buffer (concat "*" jsi-node-repl-process-name "*")))
+      (when buffer
+        (with-current-buffer buffer
+          (setq default-directory orig-dir)))
       (setq arguments (copy-sequence jsi-node-command-arguments))
       (when jsi-node-command-require-esm
-        (setq arguments (append '("-r" "esm") arguments)))
+        (setq arguments (append arguments '("-r" "esm"))))
       (when jsi-use-yarn2
         (setq arguments (cons (jsi--get jsi-node-command) arguments)))
       (setq buffer (eval

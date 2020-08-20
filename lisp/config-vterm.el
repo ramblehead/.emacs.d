@@ -1,5 +1,7 @@
 ;;; ramblehead's vterm configuration
 
+(setq vterm-kill-buffer-on-exit nil)
+
 (face-spec-set
  'vterm-color-default
  '((((class color) (background light)) .
@@ -69,6 +71,39 @@
     (:background "#FCE94F" :foreground "#D3AC00"))
    (((class color) (background dark)) .
     (:background "#FCE94F" :foreground "#D3AC00"))))
+
+(defvar vterm-here-buffer-name
+  "*term-here*")
+
+(defun vterm-here ()
+  (interactive)
+  (if (and (eq major-mode 'vterm-mode)
+           (local-variable-p 'vterm-here-origin-window)
+           (window-live-p vterm-here-origin-window))
+      (select-window vterm-here-origin-window)
+    (let ((vterm-buffer (get-buffer vterm-here-buffer-name))
+          (vterm-pwd default-directory)
+          (origin-window (frame-selected-window)))
+      (if (and vterm-buffer (get-buffer-process vterm-buffer))
+          (progn
+            (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+            (select-window (rh-bs-get-bootom-0-side-window))
+            (setq-local vterm-here-origin-window origin-window)
+            (unless (string= default-directory vterm-pwd)
+              (setq-local default-directory vterm-pwd)
+              (vterm-send-C-a)
+              (vterm-send-C-k)
+              (vterm-send-string (concat "cd " vterm-pwd))
+              (vterm-send-return)))
+        (if vterm-buffer (kill-buffer vterm-buffer vterm-pwd))
+        (setq vterm-buffer (get-buffer-create vterm-here-buffer-name))
+        (with-current-buffer vterm-buffer
+          (setq-local vterm-kill-buffer-on-exit t)
+          (setq-local default-directory vterm-pwd)
+          (vterm-mode))
+        (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+        (select-window (rh-bs-get-bootom-0-side-window))
+        (setq-local vterm-here-origin-window origin-window)))))
 
 (defun rh-vterm-send-end ()
   "Sends `<end>' to the libvterm."
