@@ -105,6 +105,13 @@
         (select-window (rh-bs-get-bootom-0-side-window))
         (setq-local vterm-here-origin-window origin-window)))))
 
+(defun rh-vterm-copy-mode (&optional arg)
+  (interactive)
+  (if (not (called-interactively-p))
+      (vterm-copy-mode arg)
+    (deactivate-mark)
+    (call-interactively (symbol-function 'vterm-copy-mode))))
+
 (defun rh-vterm-send-end ()
   "Sends `<end>' to the libvterm."
   (interactive)

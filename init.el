@@ -449,10 +449,12 @@ when only symbol face names are needed."
 (defun rh-project-compile (command compilation-buffer-or-name)
   (let* ((project-path (rh-project-get-path))
          (full-command (concat project-path command))
+         (current-window (frame-selected-window))
          compilation-buffer)
     (when (get-buffer compilation-buffer-or-name)
       (kill-buffer compilation-buffer-or-name))
     (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
+    (g2w-buffer-destination-window-init compilation-buffer current-window nil)
     (with-current-buffer compilation-buffer
       (vterm-mode)
       (compilation-minor-mode)
@@ -911,6 +913,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            (put 'g2w-kill-on-quit 'permanent-local t)))
        win)))
 
+(defun g2w-buffer-destination-window-init (buffer-or-name window reuse-visible)
+  (with-current-buffer buffer-or-name
+    (setq-local g2w-destination-window window)
+    (put 'g2w-destination-window 'permanent-local t)
+    (setq-local g2w-reuse-visible reuse-visible)
+    (put 'g2w-reuse-visible 'permanent-local t)))
+
 (cl-defmacro g2w-condition
     (condition
      &optional
@@ -920,11 +929,13 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                (string-match-p ,condition buffer-nm)
              (funcall ,condition buffer-nm actions))
        (let ((current-window (frame-selected-window)))
-         (with-current-buffer buffer-nm
-           (setq-local g2w-destination-window current-window)
-           (put 'g2w-destination-window 'permanent-local t)
-           (setq-local g2w-reuse-visible ,reuse-visible)
-           (put 'g2w-reuse-visible 'permanent-local t))
+         (g2w-buffer-destination-window-init buffer-nm current-window
+                                             ,reuse-visible)
+         ;; (with-current-buffer buffer-nm
+         ;;   (setq-local g2w-destination-window current-window)
+         ;;   (put 'g2w-destination-window 'permanent-local t)
+         ;;   (setq-local g2w-reuse-visible ,reuse-visible)
+         ;;   (put 'g2w-reuse-visible 'permanent-local t))
          t))))
 
 (defun g2w-set-destination-window (choice)
@@ -3102,7 +3113,7 @@ fields which we need."
 
 (use-package vterm
   :if (locate-library "vterm")
-  :commands vterm
+  :commands (vterm vterm-mode)
   :config
   (require 'config-vterm)
 
@@ -3134,7 +3145,9 @@ fields which we need."
          ("<f1>" . rh-vterm-send-f1)
          ("<f12>" . what-face)
          :map vterm-copy-mode-map
-         ("<kp-begin>" . vterm-copy-mode))
+         ("RET" . nil)
+         ("<return>" . nil)
+         ("<kp-begin>" . rh-vterm-copy-mode))
   :defer t
   :pin manual)
 
@@ -3197,8 +3210,11 @@ fields which we need."
    'display-buffer-alist
    `(,(g2w-condition
        (lambda (buffer-nm action)
-         (eq (with-current-buffer buffer-nm major-mode)
-             'compilation-mode))
+         ;; (eq (with-current-buffer buffer-nm major-mode)
+         ;;     'compilation-mode)
+         (with-current-buffer buffer-nm
+           (or (eq major-mode 'compilation-mode)
+               compilation-minor-mode)))
        nil)
      (display-buffer-reuse-window
       display-buffer-in-side-window)
@@ -3216,8 +3232,11 @@ fields which we need."
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          ;; ("<return>" . compilation-display-error)
          ;; ("<kp-enter>" . compilation-display-error)
-         ("M-<return>" . compilation-display-error)
-         ("M-<kp-enter>" . compilation-display-error))
+         ;; ("M-<return>" . compilation-display-error)
+         ;; ("M-<kp-enter>" . compilation-display-error)
+         ("M-RET" . compilation-display-error)
+         :map compilation-button-map
+         ("M-RET" . compilation-display-error))
   :defer)
 
 (use-package compile-eslint
