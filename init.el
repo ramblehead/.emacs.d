@@ -3129,7 +3129,9 @@ fields which we need."
          ("C-<kp-home>" . rh-vterm-send-C-home)
          ("C-<end>" . rh-vterm-send-C-end)
          ("C-<kp-end>" . rh-vterm-send-C-end)
-         ("*" . rh-vterm-send-*)
+         ("<kp-multiply>" . rh-vterm-send-<kp-multiply>)
+         ("<kp-add>" . rh-vterm-send-<kp-add>)
+         ("<kp-subtract>" . rh-vterm-send-<kp-subtract>)
          ("C-<up>" . rh-vterm-send-C-up)
          ("C-<down>" . rh-vterm-send-C-down)
          ("C-<kp-up>" . rh-vterm-send-C-up)
@@ -3210,8 +3212,6 @@ fields which we need."
    'display-buffer-alist
    `(,(g2w-condition
        (lambda (buffer-nm action)
-         ;; (eq (with-current-buffer buffer-nm major-mode)
-         ;;     'compilation-mode)
          (with-current-buffer buffer-nm
            (or (eq major-mode 'compilation-mode)
                compilation-minor-mode)))
@@ -3230,10 +3230,6 @@ fields which we need."
   :bind (:map compilation-mode-map
          ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
-         ;; ("<return>" . compilation-display-error)
-         ;; ("<kp-enter>" . compilation-display-error)
-         ;; ("M-<return>" . compilation-display-error)
-         ;; ("M-<kp-enter>" . compilation-display-error)
          ("M-RET" . compilation-display-error)
          :map compilation-button-map
          ("M-RET" . compilation-display-error))

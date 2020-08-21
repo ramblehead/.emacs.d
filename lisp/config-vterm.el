@@ -137,10 +137,20 @@
   (interactive)
   (vterm-send-key "<end>" nil nil t))
 
-(defun rh-vterm-send-* ()
-  "Sends `*' to the libvterm."
+(defun rh-vterm-send-<kp-multiply> ()
+  "Sends `<kp-multiply>' to the libvterm."
   (interactive)
   (vterm-send-key "*"))
+
+(defun rh-vterm-send-<kp-add> ()
+  "Sends `<kp-add>' to the libvterm."
+  (interactive)
+  (vterm-send-key "+"))
+
+(defun rh-vterm-send-<kp-subtract> ()
+  "Sends `<kp-subtract>' to the libvterm."
+  (interactive)
+  (vterm-send-key "-"))
 
 (defun rh-vterm-send-C-up ()
   "Sends `C-<up>' to the libvterm."
