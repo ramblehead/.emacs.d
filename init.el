@@ -3117,6 +3117,11 @@ fields which we need."
   :config
   (require 'config-vterm)
 
+  ;; (setq vterm-use-vterm-prompt-detection-method nil)
+  (setq term-prompt-regexp
+        (concat "^" user-login-name "@" system-name ":.*\\$ *"))
+  ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
+
   ;; (vterm-send-C-d)
   :bind (("<menu>" . vterm-here)
          :map vterm-mode-map
@@ -3230,7 +3235,10 @@ fields which we need."
   :bind (:map compilation-mode-map
          ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
-         ("M-RET" . compilation-display-error)
+         ;; ("M-RET" . compilation-display-error)
+         :map compilation-minor-mode-map
+         ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
+         ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          :map compilation-button-map
          ("M-RET" . compilation-display-error))
   :defer)
@@ -5019,6 +5027,8 @@ or buffer major mode symbol")
    "^\\*httpd\\*$"
    help-mode
    debugger-mode
+   ;; eldoc
+   "^\\*eldoc .*\\*$"
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
