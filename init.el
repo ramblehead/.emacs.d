@@ -3237,6 +3237,7 @@ fields which we need."
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          ;; ("M-RET" . compilation-display-error)
          :map compilation-minor-mode-map
+         ("C-c C-c" . nil)
          ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          :map compilation-button-map
