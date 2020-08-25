@@ -4554,6 +4554,9 @@ fields which we need."
 (use-package json-mode
   :ensure)
 
+(use-package protobuf-mode
+  :ensure)
+
 (use-package tide
   :delight (tide-mode " τ")
   :config
