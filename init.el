@@ -459,11 +459,36 @@ when only symbol face names are needed."
       (vterm-mode)
       (compilation-minor-mode)
       (vterm-send-string
-       (concat "TIMEFORMAT=\"Compilation took %Rs\" && time "
+       (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
                full-command
                "; exit"))
       (vterm-send-return))
     (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
+
+(defalias 'rh-project-run #'rh-project-compile)
+
+;; (defun rh-project-run
+;;     (command compilation-buffer-or-name &optional compilation)
+;;   (let* ((project-path (rh-project-get-path))
+;;          (full-command (concat project-path command))
+;;          (current-window (frame-selected-window))
+;;          compilation-buffer)
+;;     (when (get-buffer compilation-buffer-or-name)
+;;       (kill-buffer compilation-buffer-or-name))
+;;     (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
+;;     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
+;;     (with-current-buffer compilation-buffer
+;;       (vterm-mode)
+;;       (when compilation (compilation-minor-mode))
+;;       (vterm-send-string
+;;        (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
+;;                full-command
+;;                "; exit"))
+;;       (vterm-send-return))
+;;     (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
+
+;; (defun rh-project-compile (command compilation-buffer-or-name)
+;;   (rh-project-run command compilation-buffer-or-name t))
 
 (defun rh-project-term (term-buffer-or-name &optional pwd)
   (let* ((vterm-pwd (or pwd (rh-project-get-root)))
@@ -938,27 +963,35 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
          ;;   (put 'g2w-reuse-visible 'permanent-local t))
          t))))
 
-(defun g2w-set-destination-window (choice)
-  (interactive
-   (if (local-variable-p 'g2w-destination-window)
-     (let* (value
-            (choices (mapcar (lambda (w)
-                               (list (format "%s" w) w))
-                             (window-list)))
-            (completion-ignore-case  t))
-       (setq value (list (completing-read
-                          "destination-window: " choices nil t)))
-       (cdr (assoc (car value) choices 'string=)))
-     '(nil)))
-  (if (local-variable-p 'g2w-destination-window)
-      (progn
-        (setq g2w-destination-window choice)
-        (select-window choice)
-        (message "destination-window: %s" choice)
-        choice)
-    (progn
-      (message "current buffer has no associated `destination-window'")
-      nil)))
+;; (defun g2w-set-destination-window (choice)
+;;   (interactive
+;;    (if (local-variable-p 'g2w-destination-window)
+;;      (let* (value
+;;             (choices (mapcar (lambda (w)
+;;                                (list (format "%s" w) w))
+;;                              (window-list)))
+;;             (completion-ignore-case  t))
+;;        (setq value (list (completing-read
+;;                           "destination-window: " choices nil t)))
+;;        (cdr (assoc (car value) choices 'string=)))
+;;      '(nil)))
+;;   (if (local-variable-p 'g2w-destination-window)
+;;       (progn
+;;         (setq g2w-destination-window choice)
+;;         (select-window choice)
+;;         (message "destination-window: %s" choice)
+;;         choice)
+;;     (progn
+;;       (message "current buffer has no associated `destination-window'")
+;;       nil)))
+
+(defun g2w-set-destination-window ()
+  (interactive)
+  (with-selected-window (frame-selected-window)
+    (let ((buffer (current-buffer)))
+      (when (ace-select-window)
+        (with-current-buffer buffer
+          (setq-local g2w-destination-window (frame-selected-window)))))))
 
 (defun g2w-select-destination-window ()
   (interactive)
@@ -3128,7 +3161,7 @@ fields which we need."
          ("<kp-end>" . rh-vterm-send-end)
          ("<kp-home>" . rh-vterm-send-home)
          ("<deletechar>" . vterm-send-C-d)
-         ("<kp-begin>" . vterm-copy-mode)
+         ("<kp-begin>" . rh-vterm-copy-mode)
          ("<insert>" . rh-vterm-send-insert)
          ("C-<home>" . rh-vterm-send-C-home)
          ("C-<kp-home>" . rh-vterm-send-C-home)
@@ -3237,10 +3270,12 @@ fields which we need."
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          ;; ("M-RET" . compilation-display-error)
          :map compilation-minor-mode-map
-         ("C-c C-c" . nil)
+         ;; ("C-c C-c" . nil)
+         ;; ("RET" . nil)
          ("q" . rh-bs-bury-buffer-and-delete-window-if-bottom-0-side)
          ("M-q" . rh-bs-kill-buffer-and-delete-window-if-bottom-0-side)
          :map compilation-button-map
+         ;; ("RET" . compile-goto-error)
          ("M-RET" . compilation-display-error))
   :defer)
 
@@ -3569,6 +3604,9 @@ fields which we need."
   :ensure t)
 
 (use-package git-timemachine
+  :ensure t)
+
+(use-package elf-mode
   :ensure t)
 
 (use-package gud
