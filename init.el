@@ -457,7 +457,7 @@ when only symbol face names are needed."
     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
     (with-current-buffer compilation-buffer
       (vterm-mode)
-      (compilation-minor-mode)
+      ;; (compilation-minor-mode)
       (vterm-send-string
        (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
                full-command
