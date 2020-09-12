@@ -214,4 +214,22 @@
   (interactive)
   (vterm-send-key "<f1>"))
 
+(defun rh--vterm-set-excursion (window window-start point)
+  (with-selected-window window (goto-char point))
+  (set-window-start window window-start))
+
+(defun rh--vterm-ensure-excursion (_text)
+  (with-ivy-window
+    (when (eq major-mode 'vterm-mode)
+      (run-with-idle-timer
+       0 nil
+       #'rh--vterm-set-excursion
+       (selected-window)
+       (window-start)
+       (point)))))
+
+(eval-after-load 'ivy
+  (advice-add 'ivy--done :before
+              #'rh--vterm-ensure-excursion))
+
 (provide 'config-vterm)
