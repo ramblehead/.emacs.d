@@ -786,23 +786,23 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
          (close-token (regexp-quote cg-auto-code-group-close-token))
          (param-token (regexp-quote cg-auto-code-group-param-token))
          (regex-begin
-          "\\([[:blank:]]*\\)[^[:blank:]\r\n]+[[:blank:]]*")
-         (regex-single-line-end
+          "^\\([[:blank:]]*\\)[^[:blank:]\r\n]+[[:blank:]]*")
+         (regex-params-end
           (concat
            "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
            "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
+         (regex-end "$")
          (open-single-line-regex
-          (concat regex-begin open-token regex-single-line-end))
+          (concat regex-begin open-token regex-params-end))
          (close-single-line-regex
-          (concat regex-begin close-token regex-single-line-end))
-         (regex-multi-line-end "$")
+          (concat regex-begin close-token regex-params-end))
          (open-multi-line-regex
-          (concat regex-begin open-token regex-multi-line-end))
+          (concat regex-begin open-token regex-end))
          (close-multi-line-regex
-          (concat regex-begin close-token regex-multi-line-end))
+          (concat regex-begin close-token regex-end))
          (param-single-line-regex
-          (concat regex-begin param-token regex-single-line-end))
-         generator data template indent-str)
+          (concat regex-begin param-token regex-params-end))
+         generator data template indent-str open-indent-str)
     (when (or (string-match-p close-single-line-regex current-line)
               (string-match-p close-multi-line-regex current-line))
       (cg-search-backward-group-balanced-head)
@@ -819,17 +819,20 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                (setq indent-str (match-string 1 current-line)))
              (cg-delete-code-group)
              (cg-generate-auto-code generator data template indent-str))
-            ((string-match-p open-multi-line-regex current-line)
-             (beginning-of-line)
+            ((string-match open-multi-line-regex current-line)
+             (setq open-indent-str (match-string 1 current-line))
              (save-excursion
-               (search-backward-regexp "[^[:blank:]\r\n]")
+               (move-beginning-of-line 0)
                (setq current-line (thing-at-point 'line t)))
-             (when (string-match param-single-line-regex current-line)
+             (if (not (string-match param-single-line-regex current-line))
+                 (error "Invalid auto-code open multi-line block." )
                (setq generator (match-string 2 current-line))
                (setq data (match-string 3 current-line))
                (setq template (match-string 4 current-line))
                ;; The following condition should be removed
                ;; once all templates are moved to automatic indentation
+               (unless (string= open-indent-str (match-string 1 current-line))
+                 (error "auto-code open multi line block is not uniformly indented." ))
                (when (string= (substring template -2) ".i")
                  (setq generator (concat generator ".i"))
                  (setq indent-str (match-string 1 current-line)))
