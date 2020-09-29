@@ -570,6 +570,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (defvar cg-custom-code-group-open-token "/c/{")
 (defvar cg-custom-code-group-close-token "/c/}")
 
+(defvar cg-auto-code-group-param-token "/a/$")
+
 (defun cg-group-head-regexp (open-token)
   (concat "^.*" open-token ".*$"))
 
@@ -751,6 +753,21 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
             (cg-hs-hide-group)))
       (hs-toggle-hiding))))
 
+(defun cg-delete-code-group ()
+  (interactive)
+  (when (cg-looking-at-any-group-tail)
+    (cg-search-backward-group-balanced-head))
+  (when (cg-looking-at-any-group-head)
+    (let ((start) (end))
+      (move-beginning-of-line 2)
+      (setq start (point))
+      (previous-line)
+      (cg-search-forward-group-balanced-tail)
+      (move-beginning-of-line nil)
+      (setq end (point))
+      (goto-char start)
+      (delete-region start end))))
+
 (defun cg-generate-auto-code (generator data template indent-str)
   (let ((generators-path (rh-project-get-generators-path))
         (auto-code-command generator))
@@ -765,40 +782,59 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 (defun cg-generate-auto-code-group ()
   (interactive)
   (let* ((current-line (thing-at-point 'line t))
-         (open-token cg-auto-code-group-open-token)
-         (close-token cg-auto-code-group-close-token)
+         (open-token (regexp-quote cg-auto-code-group-open-token))
+         (close-token (regexp-quote cg-auto-code-group-close-token))
+         (param-token (regexp-quote cg-auto-code-group-param-token))
          (regex-begin
-          "\\([[:blank:]]*\\)[^[:blank:]]+[[:blank:]]*")
-         (regex-end
+          "\\([[:blank:]]*\\)[^[:blank:]\r\n]+[[:blank:]]*")
+         (regex-single-line-end
           (concat
            "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
            "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
-         (open-regex (concat regex-begin open-token regex-end))
-         (close-regex (concat regex-begin close-token regex-end))
+         (open-single-line-regex
+          (concat regex-begin open-token regex-single-line-end))
+         (close-single-line-regex
+          (concat regex-begin close-token regex-single-line-end))
+         (regex-multi-line-end "$")
+         (open-multi-line-regex
+          (concat regex-begin open-token regex-multi-line-end))
+         (close-multi-line-regex
+          (concat regex-begin close-token regex-multi-line-end))
+         (param-single-line-regex
+          (concat regex-begin param-token regex-single-line-end))
          generator data template indent-str)
-    (when (string-match-p close-regex current-line)
+    (when (or (string-match-p close-single-line-regex current-line)
+              (string-match-p close-multi-line-regex current-line))
       (cg-search-backward-group-balanced-head)
       (setq current-line (thing-at-point 'line t)))
     (save-match-data
-      (when (string-match open-regex current-line)
-        (setq generator (match-string 2 current-line))
-        (setq data (match-string 3 current-line))
-        (setq template (match-string 4 current-line))
-        ;; The following condition should be removed
-        ;; once all templates are moved to automatic indentation
-        (when (string= (substring template -2) ".i")
-          (setq generator (concat generator ".i"))
-          (setq indent-str (match-string 1 current-line)))
-        (let ((start) (end))
-          (move-beginning-of-line 2)
-          (setq start (point))
-          (previous-line)
-          (cg-search-forward-group-balanced-tail)
-          (move-beginning-of-line nil)
-          (setq end (point))
-          (goto-char start)
-          (delete-region start end))
-        (cg-generate-auto-code generator data template indent-str)))))
+      (cond ((string-match open-single-line-regex current-line)
+             (setq generator (match-string 2 current-line))
+             (setq data (match-string 3 current-line))
+             (setq template (match-string 4 current-line))
+             ;; The following condition should be removed
+             ;; once all templates are moved to automatic indentation
+             (when (string= (substring template -2) ".i")
+               (setq generator (concat generator ".i"))
+               (setq indent-str (match-string 1 current-line)))
+             (cg-delete-code-group)
+             (cg-generate-auto-code generator data template indent-str))
+            ((string-match-p open-multi-line-regex current-line)
+             (beginning-of-line)
+             (save-excursion
+               (search-backward-regexp "[^[:blank:]\r\n]")
+               (setq current-line (thing-at-point 'line t)))
+             (when (string-match param-single-line-regex current-line)
+               (setq generator (match-string 2 current-line))
+               (setq data (match-string 3 current-line))
+               (setq template (match-string 4 current-line))
+               ;; The following condition should be removed
+               ;; once all templates are moved to automatic indentation
+               (when (string= (substring template -2) ".i")
+                 (setq generator (concat generator ".i"))
+                 (setq indent-str (match-string 1 current-line)))
+               (cg-delete-code-group)
+               (cg-generate-auto-code generator data template indent-str)))))))
 
 (defun cg-forward-list (arg)
   (interactive "^p")
@@ -3420,6 +3456,7 @@ fields which we need."
   :delight (eldoc-mode " ε")
   :config
   (add-to-list 'rm-blacklist " ε")
+  (setq eldoc-echo-area-use-multiline-p nil)
 
   :defer t)
 
