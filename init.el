@@ -843,7 +843,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                ;; The following condition should be removed
                ;; once all templates are moved to automatic indentation
                (unless (string= open-indent-str (match-string 1 current-line))
-                 (error "auto-code open multi line block is not uniformly indented." ))
+                 (error (concat "auto-code open multi line block "
+                                "is not uniformly indented.")))
                (when (string= (substring template -2) ".i")
                  (setq generator (concat generator ".i"))
                  (setq indent-str (match-string 1 current-line)))
