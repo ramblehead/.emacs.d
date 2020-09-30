@@ -792,23 +792,32 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
            "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
            "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
          (regex-end "$")
+         (close-regex
+          (concat regex-begin close-token))
+         (open-regex
+          (concat regex-begin open-token))
          (open-single-line-regex
           (concat regex-begin open-token regex-params-end))
-         (close-single-line-regex
-          (concat regex-begin close-token regex-params-end))
          (open-multi-line-regex
           (concat regex-begin open-token regex-end))
-         (close-multi-line-regex
-          (concat regex-begin close-token regex-end))
          (param-single-line-regex
           (concat regex-begin param-token regex-params-end))
-         generator data template indent-str open-indent-str)
-    (when (or (string-match-p close-single-line-regex current-line)
-              (string-match-p close-multi-line-regex current-line))
-      (cg-search-backward-group-balanced-head)
-      (setq current-line (thing-at-point 'line t)))
+         generator data template open-indent-str close-indent-str indent-str)
     (save-match-data
+      (cond ((string-match close-regex current-line)
+             (setq close-indent-str (match-string 1 current-line))
+             (cg-search-backward-group-balanced-head)
+             (setq current-line (thing-at-point 'line t)))
+            ((string-match open-regex current-line)
+             (save-excursion
+               (cg-search-forward-group-balanced-tail)
+               (let ((line (thing-at-point 'line t)))
+                 (string-match close-regex line)
+                 (setq close-indent-str (match-string 1 line))))))
       (cond ((string-match open-single-line-regex current-line)
+             (setq open-indent-str (match-string 1 current-line))
+             (unless (string= open-indent-str close-indent-str)
+               (error "auto-code open and close indentations do not match." ))
              (setq generator (match-string 2 current-line))
              (setq data (match-string 3 current-line))
              (setq template (match-string 4 current-line))
@@ -821,6 +830,8 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
              (cg-generate-auto-code generator data template indent-str))
             ((string-match open-multi-line-regex current-line)
              (setq open-indent-str (match-string 1 current-line))
+             (unless (string= open-indent-str close-indent-str)
+               (error "auto-code open and close indentations do not match." ))
              (save-excursion
                (move-beginning-of-line 0)
                (setq current-line (thing-at-point 'line t)))
