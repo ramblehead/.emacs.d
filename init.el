@@ -768,16 +768,37 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
       (goto-char start)
       (delete-region start end))))
 
-(defun cg-generate-auto-code (generator data template indent-str)
+;; (defun cg-generate-auto-code (generator data template indent-str)
+;;   (let ((generators-path (rh-project-get-generators-path))
+;;         (auto-code-command generator))
+;;     (when generators-path
+;;       (setq auto-code-command (concat generators-path auto-code-command)))
+;;     (when (file-exists-p auto-code-command)
+;;       (setq auto-code-command (concat auto-code-command " " data " " template))
+;;       (when indent-str
+;;         (setq auto-code-command (concat auto-code-command " '" indent-str "'")))
+;;       (insert (shell-command-to-string auto-code-command)))))
+
+(defun cg-generate-auto-code (generator data template indentation-str)
   (let ((generators-path (rh-project-get-generators-path))
-        (auto-code-command generator))
+        (auto-code-command generator)
+        lines last-line)
     (when generators-path
       (setq auto-code-command (concat generators-path auto-code-command)))
     (when (file-exists-p auto-code-command)
       (setq auto-code-command (concat auto-code-command " " data " " template))
-      (when indent-str
-        (setq auto-code-command (concat auto-code-command " '" indent-str "'")))
-      (insert (shell-command-to-string auto-code-command)))))
+      (setq lines (split-string
+                   (shell-command-to-string auto-code-command) "\n"))
+      (setq last-line (car (last lines)))
+      (setq lines (nbutlast lines))
+      (seq-each
+       (lambda (line)
+         (if (string-empty-p line)
+             (insert "\n")
+           (insert (concat indentation-str line "\n"))))
+       lines)
+      (unless (string-empty-p last-line)
+        (insert (concat indentation-str line "\n"))))))
 
 (defun cg-generate-auto-code-group ()
   (interactive)
@@ -824,7 +845,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
              ;; The following condition should be removed
              ;; once all templates are moved to automatic indentation
              (when (string= (substring template -2) ".i")
-               (setq generator (concat generator ".i"))
                (setq indent-str (match-string 1 current-line)))
              (cg-delete-code-group)
              (cg-generate-auto-code generator data template indent-str))
@@ -846,7 +866,6 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                  (error (concat "auto-code open multi line block "
                                 "is not uniformly indented.")))
                (when (string= (substring template -2) ".i")
-                 (setq generator (concat generator ".i"))
                  (setq indent-str (match-string 1 current-line)))
                (cg-delete-code-group)
                (cg-generate-auto-code generator data template indent-str)))))))
