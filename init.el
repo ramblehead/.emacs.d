@@ -3138,9 +3138,9 @@ fields which we need."
   ;; (flycheck-check-syntax-automatically '(save mode-enabled))
   ;; (flycheck-indication-mode nil)
 
-  :custom-face
+  ;; :custom-face
   ;; (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
-  (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
+  ;; (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
 
   :config
   ;; (customize-set-variable 'flycheck-mode-line-prefix "Φ")
@@ -3150,7 +3150,7 @@ fields which we need."
 
   (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (setq flycheck-indication-mode nil)
+  ;; (setq flycheck-indication-mode nil)
 
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
