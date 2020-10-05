@@ -3112,12 +3112,12 @@ fields which we need."
 (global-set-key [remap auto-complete] #'rh-complete-dwim)
 (global-set-key [remap company-complete] #'rh-complete-dwim)
 
-;;; flymake
+;;; /b/; flymake
 ;;; /b/{
 
 (use-package flymake
-  ;; :config
-  ;; (setq flymake-no-changes-timeout nil)
+  :config
+  (setq flymake-no-changes-timeout nil)
   :defer t)
 
 (defun rh-flymake--mode-line-format (result)
@@ -3129,7 +3129,7 @@ fields which we need."
 
 ;;; /b/}
 
-;;; flycheck
+;;; /b/; flycheck
 ;;; /b/{
 
 (use-package flycheck
@@ -3788,7 +3788,7 @@ fields which we need."
 ;;   :pin melpa
 ;;   :ensure t)
 
-;;; C++
+;;; /b/; C++
 ;;; /b/{
 
 (defun rh-clangd-executable-find ()
