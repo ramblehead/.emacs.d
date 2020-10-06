@@ -457,6 +457,7 @@ when only symbol face names are needed."
     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
     (with-current-buffer compilation-buffer
       (vterm-mode)
+      (setq-local rh-project-compile t)
       ;; (compilation-minor-mode)
       (vterm-send-string
        (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
@@ -5097,8 +5098,9 @@ or buffer major mode symbol")
     (compilation-mode
      (lambda (buffer)
        (with-current-buffer buffer
-         (and (eq major-mode 'vterm-mode)
-              compilation-minor-mode)))))
+         (or (eq major-mode 'compilation-mode)
+             (and (eq major-mode 'vterm-mode)
+                  (bound-and-true-p rh-project-compile)))))))
    ("REPLs"
     (jsi-log-mode
      jsi-node-repl-mode))
@@ -5113,7 +5115,7 @@ or buffer major mode symbol")
      (lambda (buffer)
        (with-current-buffer buffer
          (and (eq major-mode 'vterm-mode)
-              (not compilation-minor-mode))))))
+              (not (bound-and-true-p rh-project-compile)))))))
    ("info"
     (Info-mode))
    ("magit"
