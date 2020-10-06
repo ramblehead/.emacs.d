@@ -1,6 +1,7 @@
 ;;; ramblehead's vterm configuration
 
 (setq vterm-kill-buffer-on-exit nil)
+(setq vterm-max-scrollback 100000)
 
 (face-spec-set
  'vterm-color-default
