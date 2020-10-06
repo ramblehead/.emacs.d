@@ -215,8 +215,9 @@
   (vterm-send-key "<f1>"))
 
 (defun rh--vterm-set-excursion (window window-start point)
-  (with-selected-window window (goto-char point))
-  (set-window-start window window-start))
+  (when (window-valid-p window)
+    (with-selected-window window (goto-char point))
+    (set-window-start window window-start)))
 
 (defun rh--vterm-ensure-excursion (_text)
   (with-ivy-window
