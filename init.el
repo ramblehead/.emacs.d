@@ -12,7 +12,6 @@
 ;; [ ] Switch to color-theme-sanityinc-tomorrow-blue.
 ;; [ ] Refactor skewer-mode config to rh-style.
 ;; [ ] Refactor web-mode config to rh-style.
-;; [ ] Refactor auto-complete config to rh-style.
 ;; [ ] Remove rh-scratch-js mode after js-interaction scratches are implemented.
 ;; [ ] Convert rh-project functions to rh-project mode.
 ;; [ ] Convert code-groups functions to code-groups mode.
@@ -33,6 +32,12 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; * Ido, Ivy, etc.
+;;   * https://github.com/raxod502/selectrum
+
+;; * Async
+;;   * https://github.com/jwiegley/emacs-async
+
 ;; * Reference emacs configs
 ;;   * See the following for LSP
 ;;     https://github.com/ianpan870102/.personal-emacs.d/blob/master/init.el
@@ -50,8 +55,6 @@
 ;;   https://github.com/CyberShadow/term-keys
 ;;   http://rash-lang.org/
 ;;   https://github.com/emacsmirror/equake
-;;   * Combine compilation-mode and ansi-term-mode
-;;     https://superuser.com/questions/416567/combine-compilation-mode-and-ansi-term-mode-in-emacs
 
 ;; https://github.com/10sr/git-walktree-el
 
