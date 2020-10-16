@@ -299,19 +299,27 @@ name."
       (with-selected-window bs-window
         (bs-refresh)))))
 
-(defvar rh--bs-refresh-if-visible-recursion-guard nil)
+;; (defun rh--bs-refresh-if-visible-with-recursion-guard ()
+;;   (message "here!!!")
+;;   (unwind-protect
+;;       (progn
+;;         (remove-hook 'buffer-list-update-hook
+;;                      #'rh--bs-refresh-if-visible-with-recursion-guard-async)
+;;         (setq rh--bs-refresh-if-visible-recursion-guard t)
+;;         (rh-bs-refresh-if-visible))
+;;     (add-hook 'buffer-list-update-hook
+;;               #'rh--bs-refresh-if-visible-with-recursion-guard-async)))
 
-(defun rh--bs-refresh-if-visible-with-recursion-guard ()
-  (unless rh--bs-refresh-if-visible-recursion-guard
-    (unwind-protect
-        (progn
-          (setq rh--bs-refresh-if-visible-recursion-guard t)
-          (rh-bs-refresh-if-visible))
-      (setq rh--bs-refresh-if-visible-recursion-guard nil))))
+;; (defun rh--bs-refresh-if-visible-with-recursion-guard-async ()
+;;   (run-with-timer
+;;    0.1 nil
+;;    #'rh--bs-refresh-if-visible-with-recursion-guard))
 
-(add-hook 'buffer-list-update-hook
-          #'rh--bs-refresh-if-visible-with-recursion-guard)
-;; (remove-hook 'buffer-list-update-hook #'rh-bs-refresh-if-visible)
+;; (add-hook 'buffer-list-update-hook
+;;           #'rh--bs-refresh-if-visible-with-recursion-guard-async)
+
+;; (remove-hook 'buffer-list-update-hook
+;;              #'rh--bs-refresh-if-visible-with-recursion-guard-async)
 
 (defun rh-bs-show-bs-in-bottom-0-side-window (&optional configuration-name)
   (interactive)
