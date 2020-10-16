@@ -18,3 +18,5 @@
 
 /session.*
 /.lsp-session-*
+
+.mc-lists.el
