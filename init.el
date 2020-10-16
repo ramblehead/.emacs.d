@@ -3261,7 +3261,8 @@ fields which we need."
          :map vterm-copy-mode-map
          ("RET" . nil)
          ("<return>" . nil)
-         ("<kp-begin>" . rh-vterm-copy-mode))
+         ("<kp-begin>" . rh-vterm-copy-mode)
+         ("<kp-add>" . compilation-minor-mode))
   :defer t
   :pin manual)
 
