@@ -299,6 +299,20 @@ name."
       (with-selected-window bs-window
         (bs-refresh)))))
 
+(defvar rh--bs-refresh-if-visible-recursion-guard nil)
+
+(defun rh--bs-refresh-if-visible-with-recursion-guard ()
+  (unless rh--bs-refresh-if-visible-recursion-guard
+    (unwind-protect
+        (progn
+          (setq rh--bs-refresh-if-visible-recursion-guard t)
+          (rh-bs-refresh-if-visible))
+      (setq rh--bs-refresh-if-visible-recursion-guard nil))))
+
+(add-hook 'buffer-list-update-hook
+          #'rh--bs-refresh-if-visible-with-recursion-guard)
+;; (remove-hook 'buffer-list-update-hook #'rh-bs-refresh-if-visible)
+
 (defun rh-bs-show-bs-in-bottom-0-side-window (&optional configuration-name)
   (interactive)
   (unless configuration-name
