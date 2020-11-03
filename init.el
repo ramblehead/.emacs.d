@@ -3262,7 +3262,7 @@ fields which we need."
          ("RET" . nil)
          ("<return>" . nil)
          ("<kp-begin>" . rh-vterm-copy-mode)
-         ("<kp-add>" . compilation-minor-mode))
+         ("<kp-multiply>" . compilation-minor-mode))
   :defer t
   :pin manual)
 
