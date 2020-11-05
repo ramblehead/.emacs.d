@@ -67,7 +67,11 @@
   "Returns a buffer associated with a file. This will return the
 current buffer if it matches `file'. This way we can support
 temporary and indirect buffers."
-  (let (arc-path-pair)
+  ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
+  ;; for file-virtual-resolved
+  (let ((file-virtual-resolved
+         (replace-regexp-in-string "\\.yarn/\\$\\$virtual.*/[0-9]/" "" file))
+        arc-path-pair)
     (cond
      ((equal file (tide-buffer-file-name)) (current-buffer))
      ((setq arc-path-pair
@@ -99,6 +103,8 @@ temporary and indirect buffers."
      ;;      (search-forward file-path-in-arc)
      ;;      (archive-extract))))
      ((file-exists-p file) (find-file-noselect file))
+     ((file-exists-p file-virtual-resolved)
+      (find-file-noselect file-virtual-resolved))
      (new-file (let ((buffer (create-file-buffer file)))
                  (with-current-buffer buffer
                    (set-visited-file-name file)
@@ -117,8 +123,11 @@ temporary and indirect buffers."
              (when eldoc-last-message
                (eldoc-message nil)
                nil))
+         ;; (eldoc-message (replace-regexp-in-string
+         ;;                 "\\$\\$virtual.*\\(cache/\\)" "\\1" text))
          (eldoc-message (replace-regexp-in-string
-                         "\\$\\$virtual.*\\(cache/\\)" "\\1" text)))))
+                         "\\.yarn/\\$\\$virtual.*/[0-9]/" "" text))
+         )))
 
 (advice-add 'tide-eldoc-maybe-show :override
             #'tide-eldoc-maybe-show:override)
