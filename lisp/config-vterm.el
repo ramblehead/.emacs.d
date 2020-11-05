@@ -112,11 +112,11 @@
       (vterm-copy-mode arg)
     (deactivate-mark)
     (call-interactively (symbol-function 'vterm-copy-mode))
-    (compilation-minor-mode -1)
     ;; (if vterm-copy-mode
     ;;     (compilation-minor-mode 1)
     ;;   (compilation-minor-mode -1))
-    ))
+    (unless vterm-copy-mode
+      (compilation-minor-mode -1))))
 
 (defun rh-vterm-send-end ()
   "Sends `<end>' to the libvterm."
