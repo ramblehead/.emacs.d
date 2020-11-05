@@ -56,6 +56,9 @@
 ;;   http://rash-lang.org/
 ;;   https://github.com/emacsmirror/equake
 
+;; * Javascript/TypeScript
+;;   https://github.com/taiju/ob-deno
+
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
