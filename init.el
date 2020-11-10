@@ -538,7 +538,15 @@ when only symbol face names are needed."
          (full-command (concat project-path command))
          output-buffer)
     (when (get-buffer output-buffer-or-name)
-      (kill-buffer output-buffer-or-name))
+      (with-current-buffer output-buffer-or-name
+        (vterm-send-C-c)
+        (sit-for 0.1)
+        (vterm-send-C-c)
+        ;; (sit-for 1)
+        (vterm-send-string "exit")
+        (vterm-send-return)
+        (sit-for 1)
+        (kill-buffer)))
     (setq output-buffer (generate-new-buffer output-buffer-or-name))
     (with-current-buffer output-buffer
       (vterm-mode)
