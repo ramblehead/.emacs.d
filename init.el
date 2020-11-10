@@ -459,11 +459,12 @@ when only symbol face names are needed."
          compilation-buffer)
     (when (get-buffer compilation-buffer-or-name)
       (with-current-buffer compilation-buffer-or-name
-        (vterm-send-C-c)
-        ;; Giving 1 sec for complication process to end; if it does not end the
-        ;; following kill-buffer() should ask whether to kill it with live
-        ;; process.
-        (sit-for 1)
+        (when (vterm-check-proc)
+          (vterm-send-C-c)
+          ;; Giving 1 sec for complication process to end; if it does not end the
+          ;; following kill-buffer() should ask whether to kill it with live
+          ;; process.
+          (sit-for 1))
         (kill-buffer)))
     (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
