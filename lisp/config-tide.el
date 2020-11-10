@@ -68,9 +68,10 @@
 current buffer if it matches `file'. This way we can support
 temporary and indirect buffers."
   ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
+  ;; and https://github.com/yarnpkg/berry/issues/499#issuecomment-539458981 !!!
   ;; for file-virtual-resolved
   (let ((file-virtual-resolved
-         (replace-regexp-in-string "\\.yarn/\\$\\$virtual.*/[0-9]/" "" file))
+         (replace-regexp-in-string "\\.yarn/\\$\\$virtual.*/[0-9]+/" "" file))
         arc-path-pair)
     (cond
      ((equal file (tide-buffer-file-name)) (current-buffer))
@@ -126,7 +127,7 @@ temporary and indirect buffers."
          ;; (eldoc-message (replace-regexp-in-string
          ;;                 "\\$\\$virtual.*\\(cache/\\)" "\\1" text))
          (eldoc-message (replace-regexp-in-string
-                         "\\.yarn/\\$\\$virtual.*/[0-9]/" "" text))
+                         "\\.yarn/\\$\\$virtual.*/[0-9]+/" "" text))
          )))
 
 (advice-add 'tide-eldoc-maybe-show :override
