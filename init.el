@@ -5146,7 +5146,8 @@ or buffer major mode symbol")
      magit-process-mode
      magit-revision-mode
      magit-status-mode
-     magit-submodule-list-mode))))
+     magit-submodule-list-mode
+     magit-refs-mode))))
 
 (setq
  rh-buffers-not-file-group
@@ -5164,6 +5165,10 @@ or buffer major mode symbol")
    "^\\*httpd\\*$"
    help-mode
    debugger-mode
+   special-mode
+   ;; paradox
+   paradox-menu-mode
+   "^\\*Paradox http\\*$"
    ;; eldoc
    "^\\*eldoc .*\\*$"
    ;; tide
