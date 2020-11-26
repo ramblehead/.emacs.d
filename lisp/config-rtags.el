@@ -59,7 +59,8 @@
   :lighter " ℜ"
   :keymap rh-rtags-mode-map
   (rtags-start-process-unless-running)
-  (rh-rtags-header-line-setup))
+  ;; (rh-rtags-header-line-setup)
+  )
 
 (defun rh-rtags-after-save-hook (orig-fun)
   (when rh-rtags-mode (funcall orig-fun)))
