@@ -3857,18 +3857,24 @@ fields which we need."
 
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
+  (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
+  (setq lsp-headerline-breadcrumb-segments '(symbols))
+  (lsp-enable-which-key-integration t)
 
   (setq lsp-clients-clangd-args
         '("-j=6"
           "--background-index"
           "--all-scopes-completion"
           "--limit-results=0"
-          "--suggest-missing-includes"
-          "--completion-style=detailed"
+          ;; "--suggest-missing-includes"
+          ;; "--header-insertion=never"
+          ;; "--completion-style=detailed"
+          "--completion-style=bundled"
+          "--header-insertion-decorators=false"
           "--log=info"))
 
   :bind (:map lsp-mode-map
-         ("C-<tab>" . company-capf))
+         ("C-x C-<tab>" . company-capf))
 
   :defer t
   :ensure t)
@@ -5176,6 +5182,10 @@ or buffer major mode symbol")
    "^\\*node process\\*$"
    ;; skewer
    "^\\*skewer-error\\*$"
+   ;; lsp
+   lsp-log-io-mode
+   "^\\*lsp-log\\*$"
+   "^\\*clangd\\*$"
    ;; eglot
    "^\\*EGLOT .*$"
    ;; flymake
