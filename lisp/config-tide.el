@@ -63,21 +63,38 @@
          (not (string-empty-p file-path-in-arc))
          (cons arc-path (substring file-path-in-arc 1)))))
 
+(defun tide--resolve-virtual (path)
+  ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
+  ;; and https://github.com/yarnpkg/berry/issues/499#issuecomment-539458981
+  (save-match-data
+    (let (tail hash depth head sep)
+      (if (not (string-match
+                "\\(.*\\)/\\$\\$virtual/\\([^/]+\\)/\\([0-9]+\\)/\\(.*\\)"
+                path))
+          path
+        ;; Strings
+        (setq tail (match-string 1 path))
+        (setq hash (match-string 2 path))
+        (setq depth (match-string 3 path))
+        (setq head (match-string 4 path))
+        ;; Data
+        (setq sep "/")
+        (set-text-properties 0 (length sep) (text-properties-at 0 path) sep)
+        (setq depth (string-to-number depth))
+        (setq tail (split-string tail "/"))
+        (setq tail (seq-subseq tail 0 (when (> depth 0) (- depth))))
+        (setq head (split-string head "/"))
+        (string-join (append tail head) sep)))))
+
 (defun tide-get-file-buffer:override (file &optional new-file)
   "Returns a buffer associated with a file. This will return the
 current buffer if it matches `file'. This way we can support
 temporary and indirect buffers."
-  ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
-  ;; and https://github.com/yarnpkg/berry/issues/499#issuecomment-539458981 !!!
-  ;; for file-virtual-resolved
-  (let ((file-virtual-resolved
-         (replace-regexp-in-string "\\.yarn/\\$\\$virtual.*/[0-9]+/" "" file))
+  (let ((file-virtual-resolved (tide--resolve-virtual file))
         arc-path-pair)
     (cond
      ((equal file (tide-buffer-file-name)) (current-buffer))
-     ((setq arc-path-pair
-            (tide--get-arc-path-pair
-             (replace-regexp-in-string "\\$\\$virtual.*cache/" "cache/" file)))
+     ((setq arc-path-pair (tide--get-arc-path-pair file-virtual-resolved))
       (let ((arc-path (car arc-path-pair))
             (file-path-in-arc (cdr arc-path-pair))
             arc-buf)
@@ -87,22 +104,6 @@ temporary and indirect buffers."
           ;; This should fail in nested archives.
           (re-search-forward (concat " " file-path-in-arc "$"))
           (archive-extract))))
-     ;; ((string-match-p ".*\\.zip/.*" file) ; (file-exists-p fullname)
-     ;;  (let* ((full-path
-     ;;          (replace-regexp-in-string "\\$\\$virtual.*cache/" "cache/" file))
-     ;;         arc-path file-path-in-arc arc-buf)
-     ;;    (save-match-data
-     ;;      (string-match "\\(.*\\.zip\\)/\\(.*\\)" full-path)
-     ;;      (setq arc-path (match-string 1 full-path))
-     ;;      (setq file-path-in-arc (match-string 2 full-path)))
-     ;;    (with-temp-buffer
-     ;;      (insert-file-contents arc-path nil 0 300000)
-     ;;      (archive-find-type))
-     ;;    (setq arc-buf (find-file-noselect arc-path))
-     ;;    (with-current-buffer arc-buf
-     ;;      (goto-char (point-min))
-     ;;      (search-forward file-path-in-arc)
-     ;;      (archive-extract))))
      ((file-exists-p file) (find-file-noselect file))
      ((file-exists-p file-virtual-resolved)
       (find-file-noselect file-virtual-resolved))
@@ -124,11 +125,7 @@ temporary and indirect buffers."
              (when eldoc-last-message
                (eldoc-message nil)
                nil))
-         ;; (eldoc-message (replace-regexp-in-string
-         ;;                 "\\$\\$virtual.*\\(cache/\\)" "\\1" text))
-         (eldoc-message (replace-regexp-in-string
-                         "\\.yarn/\\$\\$virtual.*/[0-9]+/" "" text))
-         )))
+         (eldoc-message (tide--resolve-virtual text)))))
 
 (advice-add 'tide-eldoc-maybe-show :override
             #'tide-eldoc-maybe-show:override)
