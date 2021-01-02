@@ -1,7 +1,7 @@
 ;;; ramblehead's tide configuration
 
-;; (defun rh-tide-company-display-permanent-doc-buffer ()
-;;   (display-buffer (get-buffer-create "*tide-documentation*")))
+(require 'tide)
+(require 'arc-mode)
 
 (defun rh-tide-documentation-quit ()
   (interactive)
@@ -12,25 +12,6 @@
       (g2w-quit-window)
       (select-window selwin)
       t)))
-
-;; (defun rh-tide-jump-to-filespan:around
-;;     (orig-fun filespan &optional reuse-window no-marker)
-;;   (plist-put filespan ':file
-;;              (replace-regexp-in-string
-;;               (concat (regexp-quote "$$virtual/") ".*/0/") ""
-;;               (plist-get filespan ':file)))
-;;   (funcall orig-fun filespan reuse-window no-marker))
-
-;; (advice-add 'tide-jump-to-filespan :around
-;;             #'rh-tide-jump-to-filespan:around)
-
-;; Test strings
-;; (setq path "/home/rh/box/artizanya/county/.yarn/cache/next-npm-9.4.5-canary.43-21cd24de92-0fbddd70d8.zip/node_modules/next/types/index.d.ts")
-;; (setq path "/home/rh/box/artizanya/county/.yarn/cache/next-npm-9.4.5-canary.43-21cd24de92-0fbddd70d8.zip")
-;; (setq path "/home/rh/box/artizanya/county/xxx.txt")
-;; (setq path "70d8.zip/rh/xxx.txt")
-
-(require 'arc-mode)
 
 (defun tide--get-arc-path-pair (full-path)
   ;; \\|\\\\ in case of some substandard OSes ;)
@@ -63,11 +44,12 @@
          (not (string-empty-p file-path-in-arc))
          (cons arc-path (substring file-path-in-arc 1)))))
 
-(defun tide--resolve-virtual (path)
+(defun tide--yarn2-resolve-virtual (path)
   ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
   ;; and https://github.com/yarnpkg/berry/issues/499#issuecomment-539458981
   (save-match-data
-    (let (tail hash depth head sep)
+    (let ((sep "/")
+          tail hash depth head)
       (if (not (string-match
                 "\\(.*\\)/\\$\\$virtual/\\([^/]+\\)/\\([0-9]+\\)/\\(.*\\)"
                 path))
@@ -78,7 +60,6 @@
         (setq depth (match-string 3 path))
         (setq head (match-string 4 path))
         ;; Data
-        (setq sep "/")
         (set-text-properties 0 (length sep) (text-properties-at 0 path) sep)
         (setq depth (string-to-number depth))
         (setq tail (split-string tail "/"))
@@ -86,11 +67,12 @@
         (setq head (split-string head "/"))
         (string-join (append tail head) sep)))))
 
-(defun tide-get-file-buffer:override (file &optional new-file)
+(defun tide-get-file-buffer:around (oldfun file &optional new-file)
   "Returns a buffer associated with a file. This will return the
-current buffer if it matches `file'. This way we can support
-temporary and indirect buffers."
-  (let ((file-virtual-resolved (tide--resolve-virtual file))
+current buffer if it matches FILE. Then it will try to resolve
+yarn 2 virtual path in archives and unplugged. Then it will call
+the original tide-get-file-buffer() function as oldfun()."
+  (let ((file-virtual-resolved (tide--yarn2-resolve-virtual file))
         arc-path-pair)
     (cond
      ((equal file (tide-buffer-file-name)) (current-buffer))
@@ -104,30 +86,43 @@ temporary and indirect buffers."
           ;; This should fail in nested archives.
           (re-search-forward (concat " " file-path-in-arc "$"))
           (archive-extract))))
-     ((file-exists-p file) (find-file-noselect file))
      ((file-exists-p file-virtual-resolved)
       (find-file-noselect file-virtual-resolved))
-     (new-file (let ((buffer (create-file-buffer file)))
-                 (with-current-buffer buffer
-                   (set-visited-file-name file)
-                   (basic-save-buffer)
-                   (display-buffer buffer t))
-                 buffer))
-     (t (error "Invalid file %S" file)))))
+     (t (funcall oldfun file new-file)))))
 
-(advice-add 'tide-get-file-buffer :override
-            #'tide-get-file-buffer:override)
+(defun tide-eldoc-maybe-show:around (oldfun text)
+  "Tests if TEXT has any \"string\" with yarn 2 virtual path. If
+there is such \"string\", then resolve it to conventional path and
+override \"string\" in TEXT with resolved conventional path.
+Then call the original tide-eldoc-maybe-show() function as oldfun()."
+  (save-match-data
+    (let (tail head virtual-path)
+      (string-match
+       "\\(.*\\\"\\)\\(.*/\\$\\$virtual/[^/]+/[0-9]+/.*\\\"\\)\\(.*\\)"
+       text)
+      (setq virtual-path (match-string 2 text))
+      (when virtual-path
+        (setq text
+              (concat
+               (match-string 1 text)
+               (tide--yarn2-resolve-virtual virtual-path)
+               (match-string 3 text))))))
+  (funcall oldfun text))
 
-(defun tide-eldoc-maybe-show:override (text)
-  (with-demoted-errors "eldoc error: %s"
-    (and (or (eldoc-display-message-no-interference-p)
-             ;; Erase the last message if we won't display a new one.
-             (when eldoc-last-message
-               (eldoc-message nil)
-               nil))
-         (eldoc-message (tide--resolve-virtual text)))))
+(defun tide-yarn2-enable ()
+  (interactive)
+  (advice-add 'tide-get-file-buffer :around
+              #'tide-get-file-buffer:around)
+  (advice-add 'tide-eldoc-maybe-show :around
+              #'tide-eldoc-maybe-show:around)
+  (message "Yarn 2 support enabled"))
 
-(advice-add 'tide-eldoc-maybe-show :override
-            #'tide-eldoc-maybe-show:override)
+(defun tide-yarn2-disable ()
+  (interactive)
+  (advice-remove 'tide-get-file-buffer
+                 #'tide-get-file-buffer:around)
+  (advice-remove 'tide-eldoc-maybe-show
+                 #'tide-eldoc-maybe-show:around)
+  (message "Yarn 2 support disabled"))
 
 (provide 'config-tide)
