@@ -4741,7 +4741,7 @@ fields which we need."
             (eq last-command 'tide-jump-to-definition)))
      (display-buffer-same-window)))
 
-  (flycheck-add-mode 'typescript-tslint 'web-mode)
+  ;; (flycheck-add-mode 'typescript-tslint 'web-mode)
 
   ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
   ;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
