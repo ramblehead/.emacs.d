@@ -3120,7 +3120,12 @@ fields which we need."
   (interactive)
   (cond
    ((cg-looking-at-auto-code-group-head-or-tail)
-    (cg-generate-auto-code-group))
+    (let ((lsp-mode-enabled (bound-and-true-p lsp-mode)))
+      (unwind-protect
+          (progn
+            (when lsp-mode-enabled (lsp-disconnect))
+            (cg-generate-auto-code-group))
+        (when lsp-mode-enabled (lsp)))))
    ((bound-and-true-p auto-complete-mode)
     (auto-complete))
    ((bound-and-true-p company-mode)
