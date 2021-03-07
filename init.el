@@ -56,8 +56,9 @@
 ;;   http://rash-lang.org/
 ;;   https://github.com/emacsmirror/equake
 
-;; * Javascript/TypeScript
+;; * Javascript/TypeScript/CSS/...
 ;;   https://github.com/taiju/ob-deno
+;;   https://github.com/orzechowskid/css-in-js.el
 
 ;; https://github.com/10sr/git-walktree-el
 
