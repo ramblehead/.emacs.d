@@ -60,6 +60,7 @@
 ;;   https://github.com/taiju/ob-deno
 ;;   https://github.com/orzechowskid/css-in-js.el
 
+;; https://github.com/polymode/polymode
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
