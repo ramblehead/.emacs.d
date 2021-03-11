@@ -58,7 +58,7 @@
   "Minor mode to start rtags."
   :lighter " ℜ"
   :keymap rh-rtags-mode-map
-  (rtags-start-process-unless-running)
+  ;; (rtags-start-process-unless-running)
   ;; (rh-rtags-header-line-setup)
   )
 

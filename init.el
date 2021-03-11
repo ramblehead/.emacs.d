@@ -3939,7 +3939,6 @@ fields which we need."
 
   (setq rtags-autostart-diagnostics t)
   (setq rtags-reindex-on-save t)
-  (setq rtags-reindex-on-save t)
   (setq rtags-tramp-enabled t)
   ;; (setq rtags-completions-enabled t)
   ;; (setq rtags-process-flags "-R")
