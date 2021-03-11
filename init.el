@@ -56,9 +56,11 @@
 ;;   http://rash-lang.org/
 ;;   https://github.com/emacsmirror/equake
 
-;; * Javascript/TypeScript
+;; * Javascript/TypeScript/CSS/...
 ;;   https://github.com/taiju/ob-deno
+;;   https://github.com/orzechowskid/css-in-js.el
 
+;; https://github.com/polymode/polymode
 ;; https://github.com/10sr/git-walktree-el
 
 ;; * Static elisp analyser: https://github.com/emacs-elsa/Elsa
@@ -2353,7 +2355,7 @@ Also sets SYMBOL to VALUE."
 
   (setq recentf-save-file rh-recent-files-file-path)
   (setq recentf-kill-buffer-on-open t)
-  (setq recentf-max-saved-items 100)
+  (setq recentf-max-saved-items 1000)
 
   (setq rh-ignore-recentf '(;; AUCTeX output files
                             "\\.aux\\'"
@@ -2411,8 +2413,6 @@ regexp-list."
   (setq recentf-keep '(rh-keep-default-and-visible-recentf-p))
 
   :demand t)
-
-;; /b/} recentf
 
 ;; /b/{ Internal ls (ls-lisp - used in Windows)
 
@@ -4705,7 +4705,10 @@ fields which we need."
   :config
   (require 'company)
   (require 'flycheck)
+  (require 'tide-yarn2)
   (require 'config-tide)
+
+  (tide-yarn2-enable)
 
   (add-to-list
    'display-buffer-alist
