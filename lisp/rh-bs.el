@@ -282,22 +282,37 @@ bs-configuration name. Use string `%s' to refer to the bs-configuration
 name."
   :group 'bs)
 
+(defun rh--bs-skip-header-lines ()
+  (when (< (count-lines 1 (point)) bs-header-lines-length)
+    (goto-line (1+ bs-header-lines-length))))
+
 (defun rh-bs-show (arg)
   (interactive "P")
-  (setq bs--buffer-coming-from (current-buffer))
-  (switch-to-buffer "*buffer-selection*" t t)
-  (bs-show arg))
+  (let ((current-window (frame-selected-window)))
+    (setq bs--buffer-coming-from (current-buffer))
+    (switch-to-buffer "*buffer-selection*" t t)
+    (bs-show arg)
+    (select-window current-window)
+    (rh--bs-skip-header-lines)))
 
 (defun rh-bs-refresh-if-visible ()
   (interactive)
-  (let ((bs-window (get-window-with-predicate
-                    (lambda (w)
-                      (string= (buffer-name (window-buffer w))
-	                       "*buffer-selection*"))
-                    nil t)))
-    (when bs-window
-      (with-selected-window bs-window
-        (bs-refresh)))))
+  (walk-windows
+   (lambda (window)
+     (with-current-buffer (window-buffer window)
+       (when (eq major-mode 'bs-mode)
+         (with-selected-window window
+           (bs-refresh)
+           (rh--bs-skip-header-lines)))))
+   nil t))
+
+(defun rh-bs-refresh-all ()
+  (interactive)
+  (let ((buffers (buffer-list)))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (eq major-mode 'bs-mode)
+          (bs-refresh))))))
 
 ;; (defun rh--bs-refresh-if-visible-with-recursion-guard ()
 ;;   (message "here!!!")
@@ -331,18 +346,19 @@ name."
   (bs-set-configuration configuration-name)
   (setq bs-default-configuration bs-current-configuration)
   (setq bs--marked-buffers nil)
-  (bs--show-with-configuration configuration-name))
+  (bs--show-with-configuration configuration-name)
+  (select-window (rh-bs-get-bootom-0-side-window))
+  (rh--bs-skip-header-lines))
 
 (defun rh-bs-toggle-bs-in-bottom-0-side-window (&optional configuration-name)
   (interactive)
   (let* ((bootom-0-side-window (rh-bs-get-bootom-0-side-window))
-         (bootom-0-side-buffer-name
+         (bootom-0-side-buffer-major-mode
           (when bootom-0-side-window
             (with-current-buffer (window-buffer bootom-0-side-window)
-              (buffer-name)))))
-    (if (and bootom-0-side-buffer-name
-             (string= bootom-0-side-buffer-name "*buffer-selection*"))
-        (rh-bs-tmp-reopen-bottom-0-side-window)
+              major-mode))))
+    (if (eq bootom-0-side-buffer-major-mode 'bs-mode)
+        (rh-bs-reopen-bottom-0-side-window)
       (rh-bs-show-bs-in-bottom-0-side-window configuration-name))))
 
 (defun rh-bs-make-configuration-from-buffer-group (buffer-group-name)
@@ -453,16 +469,19 @@ name."
 
 (defun rh-bs-reopen-bottom-0-side-window ()
   (interactive)
-  (let ((buffer (or rh-bs-bottom-0-side-window-buffer
-                    (window-buffer))))
-    (select-window
-     (rh-bs-display-buffer-in-bootom-0-side-window buffer))))
+  (if (buffer-live-p rh-bs-bottom-0-side-window-buffer)
+      (select-window
+       (rh-bs-display-buffer-in-bootom-0-side-window
+        rh-bs-bottom-0-side-window-buffer))
+    (rh-bs-show-bs-in-bottom-0-side-window)))
 
 (defun rh-bs-tmp-reopen-bottom-0-side-window ()
   (interactive)
-  (let ((buffer (or rh-bs-bottom-0-side-window-buffer
-                    (window-buffer))))
-    (rh-bs-display-buffer-in-bootom-0-side-window buffer)))
+  (if (buffer-live-p rh-bs-bottom-0-side-window-buffer)
+      (select-window
+       (rh-bs-display-buffer-in-bootom-0-side-window
+        rh-bs-bottom-0-side-window-buffer))
+    (rh-bs-show-bs-in-bottom-0-side-window)))
 
 (defun rh-bs-tmp-toggle-bottom-0-side-window ()
   (interactive)

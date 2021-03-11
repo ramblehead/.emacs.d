@@ -3,6 +3,17 @@
 ;; (setq vterm-kill-buffer-on-exit nil)
 ;; (add-hook 'vterm-exit-functions 'ignore)
 (setq vterm-max-scrollback 100000)
+(setq vterm-timer-delay nil)
+
+(defun rh-vterm-exit-function (buffer event)
+  (run-with-idle-timer 0 nil #'rh-bs-refresh-if-visible))
+
+(add-hook 'vterm-exit-functions #'rh-vterm-exit-function)
+
+;; (defun rh-vterm-mode-hook-handler ()
+;;   (run-with-idle-timer 0 nil #'rh-bs-refresh-if-visible))
+
+(add-hook 'vterm-mode-hook #'rh-bs-refresh-if-visible)
 
 (face-spec-set
  'vterm-color-default
