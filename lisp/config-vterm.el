@@ -214,6 +214,11 @@
   (interactive)
   (vterm-send-key "c" nil nil t))
 
+(defun rh-vterm-send-M-<return> ()
+  "Sends `C-<return>' to the libvterm."
+  (interactive)
+  (vterm-send-key (kbd "RET") nil t nil))
+
 (defun rh-vterm-send-C-v ()
   "Sends `C-v' to the libvterm."
   (interactive)

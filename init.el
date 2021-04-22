@@ -1496,6 +1496,8 @@ the window is selected."
 
 (use-package smart-mode-line
   :config
+  (require 'config-smart-mode-line)
+
   (define-key-after
     (lookup-key mode-line-column-line-number-mode-map
                 [mode-line down-mouse-1])
@@ -1614,6 +1616,7 @@ Also sets SYMBOL to VALUE."
   (setq sml/theme 'automatic)
   ;; (setq sml/theme 'respectful)
   ;; (setq sml/theme nil)
+  (setq sml/name-width (cons 0 44))
   (setq sml/show-eol t)
   (setq sml/col-number-format "%3c")
   (setq sml/size-indication-format "%I")
@@ -1622,41 +1625,13 @@ Also sets SYMBOL to VALUE."
 
   ;; (setq-local sml/name-width 10)
 
-  (setq rh-sml/position-percentage-format sml/position-percentage-format)
+  ;; (setq rh-sml/position-percentage-format sml/position-percentage-format)
+  (setq rh-sml/position-percentage-format nil)
   (setq sml/position-percentage-format nil)
 
-  (sml/setup)
-
-  (eval-after-load "vc-hooks"
-    '(defadvice vc-mode-line (after rh-vc-mode-line () activate)
-       (when (stringp vc-mode)
-         (let ((text-properties (text-properties-at 1 vc-mode))
-               (noback
-                (replace-regexp-in-string
-                 (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode)))
-           (when (> (string-width noback) 20)
-             (let (vc-mode-truncation-string noback-beg noback-end help-echo)
-               (setq help-echo (plist-get text-properties 'help-echo))
-               (setq help-echo (split-string help-echo "\n"))
-               (push "" help-echo)
-               (push (substring noback 1) help-echo)
-               (setq help-echo (string-join help-echo "\n"))
-               (plist-put text-properties 'help-echo help-echo)
-               (setq vc-mode-truncation-string
-                     (if (char-displayable-p ?…) "…" "..."))
-               (setq noback-beg (substring noback 0 14))
-               (setq noback-end (substring noback -5))
-               (setq noback (concat noback-beg
-                                    vc-mode-truncation-string
-                                    noback-end))
-               (add-text-properties 1 (length noback) text-properties noback)))
-           (setq vc-mode
-                 (propertize
-                  (if sml/vc-mode-show-backend vc-mode noback)
-                  'face
-                  (cond ((string-match "^ -" noback) 'sml/vc)
-                        ((string-match "^ [:@]" noback) 'sml/vc-edited)
-                        ((string-match "^ [!\\?]" noback) 'sml/modified))))))))
+  (rh-sml/setup)
+  ;; (let ((buffer-id (default-value 'mode-line-buffer-identification)))
+  ;;   (setq-default mode-line-buffer-identification buffer-id))
 
   :after (linum total-lines)
   :demand t
@@ -3271,6 +3246,7 @@ fields which we need."
          ("C-<down>" . rh-vterm-send-C-down)
          ("C-<kp-up>" . rh-vterm-send-C-up)
          ("C-<kp-down>" . rh-vterm-send-C-down)
+         ("C-<kp-down>" . rh-vterm-send-C-down)
          ("C-x c" . rh-vterm-send-C-x_c)
          ("C-x s" . rh-vterm-send-C-x_s)
          ("C-x v" . rh-vterm-send-C-x_v)
@@ -3279,6 +3255,7 @@ fields which we need."
          ("C-< C-c" . rh-vterm-send-C-c)
          ("C-< C-v" . rh-vterm-send-C-v)
          ("S-<f2>" . rh-vterm-send-S-f2)
+         ("M-<return>" . rh-vterm-send-M-<return>)
          ("<f1>" . rh-vterm-send-f1)
          ("<f12>" . what-face)
          :map vterm-copy-mode-map
@@ -3995,18 +3972,6 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; (use-package auto-complete-clang
-;;   :defer t
-;;   :ensure t)
-
-;; (use-package irony
-;;   :defer t
-;;   :ensure t)
-
-;; (use-package company-irony
-;;   :defer t
-;;   :ensure t)
-
 (use-package cc-mode
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
   :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
@@ -4699,6 +4664,9 @@ fields which we need."
 
 (use-package protobuf-mode
   :ensure)
+
+;; (use-package flatbuffers-mode
+;;   :ensure)
 
 (use-package tide
   :delight (tide-mode " τ")
