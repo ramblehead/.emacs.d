@@ -3798,7 +3798,8 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  (let ((path (or (executable-find "clangd-10")
+  (let ((path (or (executable-find "clangd-11")
+                  (executable-find "clangd-10")
                   (executable-find "clangd-9")
                   (executable-find "clangd-8")
                   (executable-find "clangd"))))
@@ -4041,7 +4042,10 @@ fields which we need."
 
   :bind (:map c-mode-base-map
          ("C-c C-b" . nil)
-         ("C-S-b" . recompile))
+         ("C-S-b" . recompile)
+         :map c++-mode-map
+         ("," . nil)
+         (";" . nil))
 
   :defer t)
 
