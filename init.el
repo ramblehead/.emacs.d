@@ -32,8 +32,12 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; * Emacs
+;;   * https://www.emacswiki.org/emacs/GccEmacs
+
 ;; * Ido, Ivy, etc.
 ;;   * https://github.com/raxod502/selectrum
+;;   * https://github.com/minad/vertico
 
 ;; * Async
 ;;   * https://github.com/jwiegley/emacs-async
