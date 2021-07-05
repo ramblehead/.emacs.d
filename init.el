@@ -3277,6 +3277,7 @@ fields which we need."
    (lambda ()
      (setq sh-basic-offset 2)
      (setq sh-indentation 2)
+     (flycheck-mode 1)
      (rh-programming-minor-modes 1)))
 
   :defer t)
@@ -4093,8 +4094,8 @@ fields which we need."
 
      (rh-programming-minor-modes 1)))
 
-  :bind (:map js-mode-map
-         ("<f7>" . rh-nodejs-interaction))
+  ;; :bind (:map js-mode-map
+  ;;        ("<f7>" . rh-nodejs-interaction))
   :defer t)
 
 (use-package js2-mode
@@ -4125,10 +4126,13 @@ fields which we need."
 
 (use-package js2-refactor
   :defer t
-  :ensure t)
+  ;; :ensure t
+  :disabled t)
 
 (use-package typescript-mode
-  ;; :mode "\\.ts\\'\\|\\.tsx\\'"
+  ;; :mode "\\.ts\\'\\|\\.tsx\\'|\\.js\\'|\\.jsx\\'"
+  :mode "\\.ts\\'\\|\\.tsx\\'"
+  ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
                       "ts"))
@@ -4290,12 +4294,13 @@ fields which we need."
 
   (add-to-list 'rm-blacklist " jsi-node")
 
-  ;; (setq jsi-node-command-require-esm t)
+  (setq jsi-use-yarn2 nil)
+  (setq jsi-node-command-require-esm nil)
   (setq jsi-babel-skip-import t)
 
   ;; Using company-capf until a proper company back-end is implemented
-  (require 'company-capf)
-  (bind-key "C-c C-<tab>" #'company-capf jsi-node-mode-keymap)
+  ;; (require 'company-capf)
+  ;; (bind-key "C-c C-<tab>" #'company-capf jsi-node-mode-keymap)
 
   :defer t
   :pin manual)
@@ -4721,9 +4726,9 @@ fields which we need."
 
   ;; (flycheck-add-mode 'typescript-tslint 'web-mode)
 
-  ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
   ;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
+  (flycheck-add-next-checker 'javascript-tide 'javascript-eslint 'append)
   (flycheck-add-next-checker 'typescript-tide 'javascript-eslint 'append)
   (flycheck-add-next-checker 'tsx-tide 'javascript-eslint 'append)
 
@@ -4787,7 +4792,6 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
-  ;; (setq company-backends (delq 'company-tide company-backends))
   (add-to-list 'company-backends 'company-tide)
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 

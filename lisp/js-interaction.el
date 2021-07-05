@@ -1078,13 +1078,14 @@ Return value is an expression begging and end cons (BEG . END)"
   "Minor mode for interacting with NodeJS from other (e.g js) buffers."
   :lighter " jsi-node"
   :keymap jsi-node-mode-keymap
-  (if jsi-node-mode
-      (progn
-        (jsi-node-repl t)
-        (add-hook 'completion-at-point-functions
-                  'jsi--node-completion-at-point-function nil t))
-    (remove-hook 'completion-at-point-functions
-                 'jsi--node-completion-at-point-function t)))
+  ;; (if jsi-node-mode
+  ;;     (progn
+  ;;       (jsi-node-repl t)
+  ;;       (add-hook 'completion-at-point-functions
+  ;;                 'jsi--node-completion-at-point-function nil t))
+  ;;   (remove-hook 'completion-at-point-functions
+  ;;                'jsi--node-completion-at-point-function t))
+  )
 
 ;; /b/}
 
