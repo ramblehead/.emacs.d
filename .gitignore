@@ -15,6 +15,7 @@
 /sm
 /smex-items
 /transient/
+/eln-cache
 
 /session.*
 /.lsp-session-*
