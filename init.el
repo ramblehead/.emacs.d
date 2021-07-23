@@ -3231,6 +3231,13 @@ fields which we need."
         (concat "^" user-login-name "@" system-name ":.*\\$ *"))
   ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
 
+  (add-hook
+   'vterm-mode-hook
+   (lambda ()
+     (setq-local column-number-mode nil)
+     (setq-local line-number-mode nil)
+     (flycheck-popup-tip-mode 1)))
+
   ;; (vterm-send-C-d)
   :bind (("<menu>" . vterm-here)
          :map vterm-mode-map
@@ -3803,7 +3810,11 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  (let ((path (or (executable-find "clangd-11")
+  ;; Exclude clangd-12 for now.
+  ;; For some reason clangd-12 does not work correctly with uWebSockets...
+  ;; And other projects where h files are used for both C and C++ headers.
+  (let ((path (or ;; (executable-find "clangd-12")
+                  (executable-find "clangd-11")
                   (executable-find "clangd-10")
                   (executable-find "clangd-9")
                   (executable-find "clangd-8")
@@ -3821,6 +3832,7 @@ fields which we need."
    `(,(or (rh-clangd-executable-find) "clangd")
      "-j=6"
      "--background-index"
+     "--cross-file-rename"
      "--all-scopes-completion"
      "--limit-results=0"
      "--suggest-missing-includes"
@@ -4439,7 +4451,7 @@ fields which we need."
   :defer t)
 
 (use-package bazel
-  :mode "\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'"
+  :mode ("\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'" . bazel-mode)
   :config
   (setq python-indent-offset 2)
 
@@ -4824,21 +4836,27 @@ fields which we need."
   :init (setq markdown-command "multimarkdown")
   :ensure t)
 
-;; == Org mode ==
+(use-package typescript-mode
+  :init
+  (defvar org-replace-disputed-keys t)
+  (defvar org-completion-use-ido t)
+  (defvar org-support-shift-select t)
 
-(setq org-replace-disputed-keys t)
-(setq org-completion-use-ido t)
-(setq org-support-shift-select t)
-(add-hook 'org-mode-hook
-          (lambda ()
-            (local-set-key (kbd "M-<kp-right>") 'org-metaright)
-            (local-set-key (kbd "M-<kp-left>") 'org-metaleft)
-            (local-set-key (kbd "M-<kp-up>") 'org-metaup)
-            (local-set-key (kbd "M-<kp-down>") 'org-metadown)
-            (local-set-key (kbd "C-<kp-enter>")
-                           'org-insert-heading-respect-content)
-            (visual-line-mode)
-            (org-indent-mode)))
+  :config
+  (add-hook
+   'org-mode-hook
+   (lambda ()
+     (visual-line-mode)
+     (org-indent-mode)))
+
+  :bind (:map org-mode-map
+         ("M-<kp-right>" . org-metaright)
+         ("M-<kp-left>" . org-metaleft)
+         ("M-<kp-up>" . org-metaup)
+         ("M-<kp-down>" . org-metadown)
+         ("C-<kp-enter>" . org-insert-heading-respect-content))
+  :defer t
+  :ensure t)
 
 ;; == LaTeX mode ==
 
