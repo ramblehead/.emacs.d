@@ -4836,7 +4836,7 @@ fields which we need."
   :init (setq markdown-command "multimarkdown")
   :ensure t)
 
-(use-package typescript-mode
+(use-package org
   :init
   (defvar org-replace-disputed-keys t)
   (defvar org-completion-use-ido t)
