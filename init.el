@@ -4450,7 +4450,7 @@ fields which we need."
 
   :defer t)
 
-(use-package bazel
+(use-package bazel-mode
   :mode ("\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'" . bazel-mode)
   :config
   (setq python-indent-offset 2)
