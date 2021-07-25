@@ -41,7 +41,7 @@
     (let ((sep "/")
           tail hash depth head)
       (if (not (string-match
-                "\\(.*\\)/\\$\\$virtual/\\([^/]+\\)/\\([0-9]+\\)/\\(.*\\)"
+                "\\(.*\\)/\\(?:__virtual__\\|\\$\\$virtual\\)/\\([^/]+\\)/\\([0-9]+\\)/\\(.*\\)"
                 path))
           path
         ;; Strings
