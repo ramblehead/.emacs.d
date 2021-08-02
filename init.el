@@ -1741,6 +1741,8 @@ Also sets SYMBOL to VALUE."
 
 (use-package iedit
   :config
+  (setq iedit-auto-save-occurrence-in-kill-ring nil)
+
   (custom-set-faces
    '(iedit-occurrence
      ((((background light)) (:background "deep sky blue"))))
@@ -4653,6 +4655,7 @@ fields which we need."
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
+     (setq-local require-final-newline nil)
 
      (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)
