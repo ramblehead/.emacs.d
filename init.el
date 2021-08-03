@@ -1,4 +1,4 @@
-;;; init.el --- ramblehead's emacs configuration
+;;; init.el --- ramblehead's emacs configuration  -*- lexical-binding: t; -*-
 ;;
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, 2020, Victor Rybynok, all rights reserved.
@@ -3107,7 +3107,12 @@ fields which we need."
       (unwind-protect
           (progn
             (when lsp-mode-enabled (lsp-disconnect))
-            (cg-generate-auto-code-group))
+            (if (bound-and-true-p code-groups-mode)
+                (cgs-generate-auto-code-group)
+              ;; TODO: To be removed when s600-host is fully
+              ;; switched to code-groups - including s600-solution
+              ;; back-port.
+              (cg-generate-auto-code-group)))
         (when lsp-mode-enabled (lsp)))))
    ((bound-and-true-p auto-complete-mode)
     (auto-complete))
@@ -4442,13 +4447,16 @@ fields which we need."
       display-buffer-same-window)))
 
   (setq python-indent-offset 2)
+  (setq python-indent-def-block-scale 1)
   (setq python-shell-interpreter "python3")
 
   (add-hook
    'python-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (rh-python-company-setup)))
+     (rh-python-company-setup)
+     (flycheck-mode 1)
+     (flycheck-disable-checker 'python-pylint)))
 
   :defer t)
 

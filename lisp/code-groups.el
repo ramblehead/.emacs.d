@@ -5,7 +5,7 @@
 ;;              group that can be auto-generated from data models and
 ;;              templates.
 ;; Author: Victor Rybynok
-;; Copyright (C) 2019, 2020, 2021, Victor Rybynok, all rights reserved.
+;; Copyright (C) 2021, Victor Rybynok, all rights reserved.
 
 (defgroup code-groups nil
   "Node.js REPL and its minor interaction mode."
@@ -141,7 +141,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                 (decf skip-tail))))
           (when (cgs--looking-at-group-head open-token)
             (move-end-of-line nil)
-            (backward-char (cgs-group-head-or-tail-length
+            (backward-char (cgs--group-head-or-tail-length
                             open-token (thing-at-point 'line t))))
           (point))))))
 
@@ -182,7 +182,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
       (move-beginning-of-line nil)
       (let* ((beg (search-forward open-token))
              (end (- (cgs--search-forward-group-balanced-tail)
-                     (cgs-group-head-or-tail-length
+                     (cgs--group-head-or-tail-length
                       close-token (thing-at-point 'line t)))))
         (hs-make-overlay beg end 'comment beg end)
         (goto-char beg)))))
@@ -317,10 +317,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
              (setq generator (match-string 2 current-line))
              (setq data (match-string 3 current-line))
              (setq template (match-string 4 current-line))
-             ;; The following condition should be removed
-             ;; once all templates are moved to automatic indentation
-             (when (string= (substring template -2) ".i")
-               (setq indent-str (match-string 1 current-line)))
+             (setq indent-str (match-string 1 current-line))
              (cgs--delete-code-group)
              (cgs--generate-auto-code generator
                                       data
@@ -344,8 +341,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                (unless (string= open-indent-str (match-string 1 current-line))
                  (error (concat "auto-code open multi line block "
                                 "is not uniformly indented.")))
-               (when (string= (substring template -2) ".i")
-                 (setq indent-str (match-string 1 current-line)))
+               (setq indent-str (match-string 1 current-line))
                (cgs--delete-code-group)
                (cgs--generate-auto-code generator
                                         data
@@ -376,6 +372,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (define-key map (kbd "C-S-j") #'cgs-hs-toggle-hiding)
     (define-key map (kbd "C-M-n") #'cgs-forward-list)
     (define-key map (kbd "C-M-p") #'cgs-backward-list)
+    (define-key map (kbd "C-'") #'cgs-generate-auto-code-group)
     map))
 
 ;;;###autoload
