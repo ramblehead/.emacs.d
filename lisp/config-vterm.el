@@ -227,7 +227,7 @@
 (defun rh-vterm-send-S-f2 ()
   "Sends `S-<f2>' to the libvterm."
   (interactive)
-  (vterm-send-key "<f2>" t))
+  (vterm-send-key "<f2>" t nil nil))
 
 (defun rh-vterm-send-f1 ()
   "Sends `<f1>' to the libvterm."

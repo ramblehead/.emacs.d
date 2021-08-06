@@ -479,7 +479,7 @@ when only symbol face names are needed."
       (setq-local rh-project-compile t)
       ;; (compilation-minor-mode)
       (vterm-send-string
-       (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
+       (concat "TIMEFORMAT=\"\nTask took %Rs\" && time "
                full-command
                "; exit"))
       (vterm-send-return))
@@ -546,13 +546,14 @@ when only symbol face names are needed."
          output-buffer)
     (when (get-buffer output-buffer-or-name)
       (with-current-buffer output-buffer-or-name
-        (vterm-send-C-c)
-        (sit-for 0.1)
-        (vterm-send-C-c)
-        ;; (sit-for 1)
-        (vterm-send-string "exit")
-        (vterm-send-return)
-        (sit-for 1)
+        (when (process-live-p vterm--process)
+          (vterm-send-C-c)
+          ;; (sit-for 0.1)
+          ;; (vterm-send-C-c)
+          ;; (sit-for 1)
+          (vterm-send-string "exit")
+          (vterm-send-return)
+          (sit-for 1))
         (kill-buffer)))
     (setq output-buffer (generate-new-buffer output-buffer-or-name))
     (with-current-buffer output-buffer
@@ -565,14 +566,17 @@ when only symbol face names are needed."
 
 (defun rh-project-kill-shell-process
     (output-buffer-or-name &optional interrupt)
-  (let* ((buffer (get-buffer output-buffer-or-name))
-         (proc (get-buffer-process buffer)))
+  (let ((buffer (get-buffer output-buffer-or-name)))
     (when (and buffer (not (get-buffer-window buffer 'visible)))
       (rh-bs-display-buffer-in-bootom-0-side-window buffer))
-    (when proc
-      (if interrupt
-          (interrupt-process proc)
-        (kill-process proc)))))
+    (with-current-buffer buffer
+      (when (process-live-p vterm--process)
+        (vterm-send-C-c)
+        (sit-for 0.1)
+        ;; (vterm-send-C-c)
+        ;; (sit-for 1)
+        (vterm-send-string "exit")
+        (vterm-send-return)))))
 
 ;; /b/} rh-project
 
@@ -4473,7 +4477,7 @@ fields which we need."
 
   :defer t)
 
-(use-package bazel-mode
+(use-package bazel
   :mode ("\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'" . bazel-mode)
   :config
   (setq python-indent-offset 2)
@@ -4863,12 +4867,20 @@ fields which we need."
   :ensure t)
 
 (use-package org
-  :init
-  (defvar org-replace-disputed-keys t)
-  (defvar org-completion-use-ido t)
-  (defvar org-support-shift-select t)
+  ;; :init
+  ;; (defvar org-replace-disputed-keys t)
+  ;; (defvar org-completion-use-ido t)
+  ;; (defvar org-support-shift-select t)
+  ;; (defvar org-src-preserve-indentation nil)
+  ;; (defvar org-edit-src-content-indentation 0)
 
   :config
+  (setq org-replace-disputed-keys t)
+  (setq org-completion-use-ido t)
+  (setq org-support-shift-select t)
+  (setq org-src-preserve-indentation nil)
+  (setq org-edit-src-content-indentation 0)
+
   (add-hook
    'org-mode-hook
    (lambda ()
