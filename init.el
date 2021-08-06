@@ -1,4 +1,4 @@
-;;; init.el --- ramblehead's emacs configuration
+;;; init.el --- ramblehead's emacs configuration  -*- lexical-binding: t; -*-
 ;;
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019, 2020, Victor Rybynok, all rights reserved.
@@ -1745,6 +1745,8 @@ Also sets SYMBOL to VALUE."
 
 (use-package iedit
   :config
+  (setq iedit-auto-save-occurrence-in-kill-ring nil)
+
   (custom-set-faces
    '(iedit-occurrence
      ((((background light)) (:background "deep sky blue"))))
@@ -2438,8 +2440,8 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; /b/{
 
-;;; DWIM modes such as ivy, swiper, counsel
-;;; /b/{
+;;;   DWIM modes such as ivy, swiper, counsel
+;;;   /b/{
 
 ;; See the following links on some ivy hints
 ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
@@ -2707,7 +2709,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package hi-lock-mode
   :init
@@ -2740,8 +2742,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;;; yasnippet
-;;; /b/{
+;;;   yasnippet
+;;;   /b/{
 
 (use-package yasnippet-snippets
   :commands yasnippet-snippets-initialize
@@ -2763,7 +2765,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package pos-tip
   :config
@@ -2802,8 +2804,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;;; auto-complete
-;;; /b/{
+;;;   auto-complete
+;;;   /b/{
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -2915,7 +2917,20 @@ fields which we need."
   :after (fuzzy pos-tip)
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
+
+;;;   code-groups
+;;;   /b/{
+
+(use-package code-groups
+  :commands (code-groups-mode)
+  :config
+  (add-to-list 'rm-blacklist " code-groups")
+
+  :defer t
+  :pin manual)
+
+;;;   /b/}
 
 (use-package company
   :init
@@ -3109,7 +3124,12 @@ fields which we need."
       (unwind-protect
           (progn
             (when lsp-mode-enabled (lsp-disconnect))
-            (cg-generate-auto-code-group))
+            (if (bound-and-true-p code-groups-mode)
+                (cgs-generate-auto-code-group)
+              ;; TODO: To be removed when s600-host is fully
+              ;; switched to code-groups - including s600-solution
+              ;; back-port.
+              (cg-generate-auto-code-group)))
         (when lsp-mode-enabled (lsp)))))
    ((bound-and-true-p auto-complete-mode)
     (auto-complete))
@@ -3122,8 +3142,8 @@ fields which we need."
 (global-set-key [remap auto-complete] #'rh-complete-dwim)
 (global-set-key [remap company-complete] #'rh-complete-dwim)
 
-;;; /b/; flymake
-;;; /b/{
+;;;   /b/; flymake
+;;;   /b/{
 
 (use-package flymake
   :config
@@ -3137,10 +3157,10 @@ fields which we need."
 (advice-add 'flymake--mode-line-format :filter-return
             #'rh-flymake--mode-line-format)
 
-;;; /b/}
+;;;   /b/}
 
-;;; /b/; flycheck
-;;; /b/{
+;;;   /b/; flycheck
+;;;   /b/{
 
 (use-package flycheck
   ;; :custom
@@ -3192,7 +3212,7 @@ fields which we need."
 ;;   :after (flycheck pos-tip)
 ;;   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package dumb-jump
   :config
@@ -3222,7 +3242,7 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
 ;; -------------------------------------------------------------------
-;; /b/{
+;;; /b/{
 
 (use-package vterm
   :if (locate-library "vterm")
@@ -4444,13 +4464,16 @@ fields which we need."
       display-buffer-same-window)))
 
   (setq python-indent-offset 2)
+  (setq python-indent-def-block-scale 1)
   (setq python-shell-interpreter "python3")
 
   (add-hook
    'python-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (rh-python-company-setup)))
+     (rh-python-company-setup)
+     (flycheck-mode 1)
+     (flycheck-disable-checker 'python-pylint)))
 
   :defer t)
 
@@ -4657,6 +4680,7 @@ fields which we need."
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
+     (setq-local require-final-newline nil)
 
      (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
      (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)
@@ -4793,6 +4817,7 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
+  (code-groups-mode 1)
   ;; TODO: should remove company-tide from default company-backends
   ;;       when company-keywords include typescript.
   ;; The keywords could be taken from the following link:
@@ -4808,6 +4833,7 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
+  (code-groups-mode 1)
   (add-to-list 'company-backends 'company-tide)
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
@@ -4826,7 +4852,7 @@ fields which we need."
 
 ;;; /b/}
 
-;; /b/}
+;;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
