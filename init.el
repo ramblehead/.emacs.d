@@ -4719,6 +4719,14 @@ fields which we need."
   :ensure)
 
 (use-package flatbuffers-mode
+  :config
+
+  (add-hook
+   'flatbuffers-mode-hook
+   (lambda ()
+     (c-toggle-comment-style -1)
+     (code-groups-mode 1)))
+
   :ensure)
 
 (use-package tide
