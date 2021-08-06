@@ -4714,8 +4714,8 @@ fields which we need."
 (use-package protobuf-mode
   :ensure)
 
-;; (use-package flatbuffers-mode
-;;   :ensure)
+(use-package flatbuffers-mode
+  :ensure)
 
 (use-package tide
   :delight (tide-mode " τ")
