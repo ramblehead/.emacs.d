@@ -2436,8 +2436,8 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; /b/{
 
-;;; DWIM modes such as ivy, swiper, counsel
-;;; /b/{
+;;;   DWIM modes such as ivy, swiper, counsel
+;;;   /b/{
 
 ;; See the following links on some ivy hints
 ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
@@ -2705,7 +2705,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package hi-lock-mode
   :init
@@ -2738,8 +2738,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;;; yasnippet
-;;; /b/{
+;;;   yasnippet
+;;;   /b/{
 
 (use-package yasnippet-snippets
   :commands yasnippet-snippets-initialize
@@ -2761,7 +2761,7 @@ fields which we need."
   :demand t
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package pos-tip
   :config
@@ -2800,8 +2800,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-;;; auto-complete
-;;; /b/{
+;;;   auto-complete
+;;;   /b/{
 
 (defun vr-ac-add-buffer-dict (dict)
   (when (not (local-variable-p 'ac-dictionary-files))
@@ -2913,7 +2913,20 @@ fields which we need."
   :after (fuzzy pos-tip)
   :ensure t)
 
-;;; /b/}
+;;;   /b/}
+
+;;;   code-groups
+;;;   /b/{
+
+(use-package code-groups
+  :commands (code-groups-mode)
+  :config
+  (add-to-list 'rm-blacklist " code-groups")
+
+  :defer t
+  :pin manual)
+
+;;;   /b/}
 
 (use-package company
   :init
@@ -3125,8 +3138,8 @@ fields which we need."
 (global-set-key [remap auto-complete] #'rh-complete-dwim)
 (global-set-key [remap company-complete] #'rh-complete-dwim)
 
-;;; /b/; flymake
-;;; /b/{
+;;;   /b/; flymake
+;;;   /b/{
 
 (use-package flymake
   :config
@@ -3140,10 +3153,10 @@ fields which we need."
 (advice-add 'flymake--mode-line-format :filter-return
             #'rh-flymake--mode-line-format)
 
-;;; /b/}
+;;;   /b/}
 
-;;; /b/; flycheck
-;;; /b/{
+;;;   /b/; flycheck
+;;;   /b/{
 
 (use-package flycheck
   ;; :custom
@@ -3195,7 +3208,7 @@ fields which we need."
 ;;   :after (flycheck pos-tip)
 ;;   :ensure t)
 
-;;; /b/}
+;;;   /b/}
 
 (use-package dumb-jump
   :config
@@ -3225,7 +3238,7 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Programming Languages (Compilers, Debuggers, Profilers etc.)
 ;; -------------------------------------------------------------------
-;; /b/{
+;;; /b/{
 
 (use-package vterm
   :if (locate-library "vterm")
@@ -4800,6 +4813,7 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
+  (code-groups-mode 1)
   ;; TODO: should remove company-tide from default company-backends
   ;;       when company-keywords include typescript.
   ;; The keywords could be taken from the following link:
@@ -4815,6 +4829,7 @@ fields which we need."
   (flycheck-mode 1)
   (eldoc-mode 1)
   (tide-hl-identifier-mode 1)
+  (code-groups-mode 1)
   (add-to-list 'company-backends 'company-tide)
   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
@@ -4833,7 +4848,7 @@ fields which we need."
 
 ;;; /b/}
 
-;; /b/}
+;;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages

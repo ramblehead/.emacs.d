@@ -1,4 +1,5 @@
 ;;; code-groups.el --- Minor mode for grouping code hunks and auto-code
+;;; Commentary:
 ;;
 ;; Description: Combine related code hunks into groups that are:
 ;;              language-neutral, foldable, and has special 'auto-code'
@@ -6,6 +7,10 @@
 ;;              templates.
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2021, Victor Rybynok, all rights reserved.
+
+;;; Code:
+
+(require 'hideshow)
 
 (defgroup code-groups nil
   "Node.js REPL and its minor interaction mode."
@@ -211,8 +216,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
               (progn
                 (move-beginning-of-line nil)
                 (search-forward open-token)
-                (if (not at-tail)
-                    (hs-show-block)))
+                ;; (if (not at-tail)
+                ;;     (let ((hs-minor-mode t))
+                ;;       (hs-show-block)))
+                (let ((hs-minor-mode t))
+                  (hs-show-block)))
             (cgs-hs-hide-group)))
       (hs-toggle-hiding))))
 
@@ -224,7 +232,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
     (let ((start) (end))
       (move-beginning-of-line 2)
       (setq start (point))
-      (previous-line)
+      (forward-line -1)
       (cgs--search-forward-group-balanced-tail)
       (move-beginning-of-line nil)
       (setq end (point))
@@ -377,8 +385,9 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 
 ;;;###autoload
 (define-minor-mode code-groups-mode
-  "Minor mode for interacting with NodeJS from other (e.g js) buffers."
+  "Minor mode for grouping code hunks and auto-code."
   :lighter " code-groups"
   :keymap code-groups-mode-keymap)
 
 (provide 'code-groups)
+;;; code-groups.el ends here
