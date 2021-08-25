@@ -1,10 +1,26 @@
 ;;; code-groups.el --- Minor mode for grouping code hunks and auto-code
-;;; Commentary:
+
+;; code-groups support for Emacs
 ;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
 ;; Description: Combine related code hunks into groups that are:
-;;              language-neutral, foldable, and has special 'auto-code'
-;;              group that can be auto-generated from data models and
-;;              templates.
+;; language-neutral, foldable, and has special 'auto-code' group that can be
+;; auto-generated from data models and templates.
+;;
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2021, Victor Rybynok, all rights reserved.
 
