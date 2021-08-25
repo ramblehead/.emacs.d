@@ -3187,30 +3187,30 @@ fields which we need."
   :defer t
   :ensure t)
 
-(use-package flycheck-popup-tip
-  :config
-  (add-hook
-   'flycheck-mode-hook
-   (lambda ()
-     (setq-local rh-popup-direction 'company)
-     (flycheck-popup-tip-mode 1)))
-
-  ;; (setq flycheck-popup-tip-error-prefix "> ")
-
-  :after (flycheck popup)
-  :ensure t)
-
-;; (use-package flycheck-pos-tip
+;; (use-package flycheck-popup-tip
 ;;   :config
-;;   (defun flycheck-pos-tip-hide-messages ()
-;;     "Hide messages currently being shown if any."
-;;     (flycheck-hide-error-buffer))
+;;   (add-hook
+;;    'flycheck-mode-hook
+;;    (lambda ()
+;;      (setq-local rh-popup-direction 'company)
+;;      (flycheck-popup-tip-mode 1)))
 
-;;   (setq flycheck-pos-tip-timeout -1)
-;;   (flycheck-pos-tip-mode)
+;;   ;; (setq flycheck-popup-tip-error-prefix "> ")
 
-;;   :after (flycheck pos-tip)
+;;   :after (flycheck popup)
 ;;   :ensure t)
+
+(use-package flycheck-pos-tip
+  :config
+  (defun flycheck-pos-tip-hide-messages ()
+    "Hide messages currently being shown if any."
+    (flycheck-hide-error-buffer))
+
+  (setq flycheck-pos-tip-timeout -1)
+  (flycheck-pos-tip-mode)
+
+  :after (flycheck pos-tip)
+  :ensure t)
 
 ;;;   /b/}
 
@@ -3599,6 +3599,7 @@ fields which we need."
           ;; (linum-mode 1)
           ;; (nlinum-mode 1)
           (rh-show-paren-local-mode 1)
+          (code-groups-mode 1)
           (hs-minor-mode 1)
           (undo-tree-mode 1)
           (code-groups-minor-mode 1)
@@ -3614,6 +3615,7 @@ fields which we need."
         (kill-local-variable 'rh-prog-modes)
         ;; (linum-mode -1)
         ;; (nlinum-mode -1)
+        (code-groups-mode -1)
         (rh-show-paren-local-mode -1)
         (hs-minor-mode -1)
         (undo-tree-mode -1)
@@ -4724,8 +4726,8 @@ fields which we need."
   (add-hook
    'flatbuffers-mode-hook
    (lambda ()
-     (c-toggle-comment-style -1)
-     (code-groups-mode 1)))
+     (rh-programming-minor-modes t)
+     (c-toggle-comment-style -1)))
 
   :ensure)
 
