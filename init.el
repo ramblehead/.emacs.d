@@ -3178,6 +3178,10 @@ fields which we need."
   ;;                         '(save mode-enabled))
   ;; (customize-set-variable 'flycheck-indication-mode nil)
 
+  (if (display-graphic-p)
+      (flycheck-pos-tip-mode 1)
+    (flycheck-popup-tip-mode 1))
+
   (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
   ;; (setq flycheck-indication-mode nil)
@@ -3187,18 +3191,20 @@ fields which we need."
   :defer t
   :ensure t)
 
-;; (use-package flycheck-popup-tip
-;;   :config
-;;   (add-hook
-;;    'flycheck-mode-hook
-;;    (lambda ()
-;;      (setq-local rh-popup-direction 'company)
-;;      (flycheck-popup-tip-mode 1)))
+(use-package flycheck-popup-tip
+  :config
+  (add-hook
+   'flycheck-mode-hook
+   (lambda ()
+     (setq-local rh-popup-direction 'company)
+     ;; (flycheck-popup-tip-mode 1)
+     ))
 
-;;   ;; (setq flycheck-popup-tip-error-prefix "> ")
+  (setq flycheck-popup-tip-error-prefix
+        (if (char-displayable-p #x27a4) "\u27a4 " "> ")) ; ➤
 
-;;   :after (flycheck popup)
-;;   :ensure t)
+  :after (flycheck popup)
+  :ensure t)
 
 (use-package flycheck-pos-tip
   :config
@@ -3207,10 +3213,22 @@ fields which we need."
     (flycheck-hide-error-buffer))
 
   (setq flycheck-pos-tip-timeout -1)
-  (flycheck-pos-tip-mode)
+  ;; (flycheck-pos-tip-mode)
 
   :after (flycheck pos-tip)
   :ensure t)
+
+;; (use-package flycheck-tip
+;;   :config
+;;   (setq flycheck-pos-tip-timeout -1)
+
+;;   (add-hook
+;;    'flycheck-mode-hook
+;;    (lambda ()
+;;      (flycheck-popup-tip-mode 1)))
+
+;;   :after (flycheck pos-tip)
+;;   :ensure t)
 
 ;;;   /b/}
 
@@ -3259,8 +3277,7 @@ fields which we need."
    'vterm-mode-hook
    (lambda ()
      (setq-local column-number-mode nil)
-     (setq-local line-number-mode nil)
-     (flycheck-popup-tip-mode 1)))
+     (setq-local line-number-mode nil)))
 
   ;; (vterm-send-C-d)
   :bind (("<menu>" . vterm-here)
