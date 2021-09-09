@@ -704,10 +704,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                                          "\\|"
                                          (cg-group-tail-regexp close-token)))))
             (if (cg-looking-at-group-tail close-token)
-                (incf skip-tail)
+                (cl-incf skip-tail)
               (if (<= skip-tail 0)
                   (setq found t)
-                (decf skip-tail))))
+                (cl-decf skip-tail))))
           (when (cg-looking-at-group-head open-token)
             (move-end-of-line nil)
             (backward-char (cg-group-head-or-tail-length
@@ -734,10 +734,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                                          "\\|"
                                          (cg-group-tail-regexp close-token)))))
             (if (cg-looking-at-group-head open-token)
-                (incf skip-tail)
+                (cl-incf skip-tail)
               (if (<= skip-tail 0)
                   (setq found t)
-                (decf skip-tail))))
+                (cl-decf skip-tail))))
           pos)))))
 
 (defun cg-hs-hide-group ()
@@ -3856,7 +3856,8 @@ fields which we need."
   ;; Exclude clangd-12 for now.
   ;; For some reason clangd-12 does not work correctly with uWebSockets...
   ;; And other projects where h files are used for both C and C++ headers.
-  (let ((path (or ;; (executable-find "clangd-12")
+  ;; clang-12 seems to be working now
+  (let ((path (or (executable-find "clangd-12")
                   (executable-find "clangd-11")
                   (executable-find "clangd-10")
                   (executable-find "clangd-9")
@@ -4661,17 +4662,17 @@ fields which we need."
 
   (add-hook
    'web-mode-before-auto-complete-hooks
-   '(lambda ()
-      (let ((web-mode-cur-language (web-mode-language-at-pos)))
-        (if (string-equal web-mode-cur-language "javascript")
-            (progn
-              (vr-ac-add-buffer-dict "js-mode")
-              ;; (yas-activate-extra-mode 'js2-mode)
-              )
-          (progn
-            (vr-ac-remove-buffer-dict "js-mode")
-            ;; (yas-deactivate-extra-mode 'js2-mode)
-            )))))
+   (lambda ()
+     (let ((web-mode-cur-language (web-mode-language-at-pos)))
+       (if (string-equal web-mode-cur-language "javascript")
+           (progn
+             (vr-ac-add-buffer-dict "js-mode")
+             ;; (yas-activate-extra-mode 'js2-mode)
+             )
+         (progn
+           (vr-ac-remove-buffer-dict "js-mode")
+           ;; (yas-deactivate-extra-mode 'js2-mode)
+           )))))
 
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
