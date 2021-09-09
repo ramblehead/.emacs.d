@@ -4,7 +4,7 @@
 (defvar rh-edebug-window-start-before-step nil)
 
 (defun rh-edebug-set-mode-before (mode shortmsg msg)
-  (case mode
+  (cl-case mode
     ((go)
      ;; (setq inhibit-redisplay t)
      (setq rh-edebug-window-buffer-before-step (window-buffer))
