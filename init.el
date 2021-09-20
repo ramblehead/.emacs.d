@@ -4523,8 +4523,8 @@ fields which we need."
   (add-hook
    'nxml-mode-hook
    (lambda ()
-     (setq cg-forward-list-original #'nxml-forward-element)
-     (setq cg-backward-list-original #'nxml-backward-element)
+     (setq cgs-forward-list-original #'nxml-forward-element)
+     (setq cgs-backward-list-original #'nxml-backward-element)
 
      (rh-programming-minor-modes 1)))
 
