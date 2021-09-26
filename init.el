@@ -4523,8 +4523,8 @@ fields which we need."
   (add-hook
    'nxml-mode-hook
    (lambda ()
-     (setq cgs-forward-list-original #'nxml-forward-element)
-     (setq cgs-backward-list-original #'nxml-backward-element)
+     (setq-local cgs-forward-list-original #'nxml-forward-element)
+     (setq-local cgs-backward-list-original #'nxml-backward-element)
 
      (rh-programming-minor-modes 1)))
 
@@ -4702,10 +4702,14 @@ fields which we need."
      (setq-local electric-indent-inhibit t)
      (setq-local require-final-newline nil)
 
-     (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
-     (local-set-key (kbd "C-x C-S-j") #'vr-web-hs-html-toggle-hiding)
-     (local-set-key (kbd "C-M-n") #'forward-sexp)
-     (local-set-key (kbd "C-M-p") #'backward-sexp)
+     (setq-local cgs-forward-list-original #'web-mode-forward-sexp)
+     (setq-local cgs-backward-list-original #'web-mode-backward-sexp)
+     (setq-local cgs-hs-toggle-hiding-original #'vr-web-hs-toggle-hiding)
+
+     ;; (local-set-key (kbd "C-x C-S-j") #'web-mode-backward-sexp)
+     ;; (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
+     ;; (local-set-key (kbd "C-M-n") #'forward-sexp)
+     ;; (local-set-key (kbd "C-M-p") #'backward-sexp)
 
      ;; (local-set-key (kbd "C-S-b") #'recompile)
      ;; (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)

@@ -42,6 +42,10 @@ code-groups minor mode - i.e. the function usually bound to C-M-n")
   "Original backward-list function used by the major mode before loading
 code-groups minor mode - i.e. the function usually bound to C-M-p")
 
+(defvar-local cgs-hs-toggle-hiding-original #'hs-toggle-hiding
+  "Original hs-toggle-hiding function used by the major mode before loading
+code-groups minor mode - i.e. the function usually bound to C-S-j")
+
 (defvar cgs--doxygen-group-open-token "///@{")
 (defvar cgs--doxygen-group-close-token "///@}")
 
@@ -238,7 +242,11 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
                 (let ((hs-minor-mode t))
                   (hs-show-block)))
             (cgs-hs-hide-group)))
-      (hs-toggle-hiding))))
+      (if cgs-hs-toggle-hiding-original
+          (funcall cgs-hs-toggle-hiding-original)
+        (hs-toggle-hiding))
+      ;; (hs-toggle-hiding)
+      )))
 
 (defun cgs--delete-code-group ()
   (interactive)
