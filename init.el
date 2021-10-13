@@ -1110,6 +1110,7 @@ code-groups minor mode - i.e. the function usually bound to C-M-p")
 ;; -------------------------------------------------------------------
 ;;; Basic System Setup
 ;; -------------------------------------------------------------------
+;; /b/{
 
 (use-package emacs
   :config
@@ -1833,9 +1834,12 @@ Also sets SYMBOL to VALUE."
 
 ;; (use-package arc-mode)
 
+;; /b/}
+
 ;; -------------------------------------------------------------------
 ;;; Text Editor
 ;; -------------------------------------------------------------------
+;; /b/{
 
 (setq undo-limit (* 1024 1024))
 (setq undo-strong-limit (* undo-limit 2))
@@ -2145,9 +2149,12 @@ Also sets SYMBOL to VALUE."
 
 ;; /b/} which-key
 
+;; /b/}
+
 ;; -------------------------------------------------------------------
 ;;; File Management
 ;; -------------------------------------------------------------------
+;; /b/{
 
 ;; /b/{ dired
 
@@ -2434,6 +2441,8 @@ fields which we need."
 (ad-activate 'ls-lisp-format)
 
 ;; /b/} Internal ls (ls-lisp - used in Windows)
+
+;; /b/}
 
 ;; -------------------------------------------------------------------
 ;;; Completion, Regexps, Patterns and Highlighting
@@ -4920,6 +4929,7 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; Structured Text and Markup (Meta) Languages
 ;; -------------------------------------------------------------------
+;;; /b/{
 
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode)
@@ -5089,9 +5099,12 @@ with very limited support for special characters."
                                    (TeX-fold-mode t)
                                    (visual-line-mode t)))))))
 
+;;; /b/}
+
 ;; -------------------------------------------------------------------
 ;;; Natural Language Utilities and Spell Checking
 ;; -------------------------------------------------------------------
+;;; /b/{
 
 ;; == /b/{ speck ==
 
@@ -5158,9 +5171,12 @@ with very limited support for special characters."
 
 ;; == /b/} ispell ==
 
+;;; /b/}
+
 ;; -------------------------------------------------------------------
 ;;; MS Windows interaction
 ;; -------------------------------------------------------------------
+;;; /b/{
 
 (cond
  ((eq system-type 'windows-nt)
@@ -5206,9 +5222,12 @@ with very limited support for special characters."
 ;; (global-set-key (kbd "M-<return>") 'vr-toggle-max-res-frame)
 ;; (global-set-key (kbd "M-<kp-enter>") 'vr-toggle-max-res-frame)
 
+;;; /b/}
+
 ;; -------------------------------------------------------------------
 ;;; General Emacs enhancement modes
 ;; -------------------------------------------------------------------
+;;; /b/{
 
 (defvar rh-buffers-groups nil
   "Buffer groups used to create filters for bs-configurations.
@@ -5545,17 +5564,18 @@ or has one of the listed major modes."
 
 ;; /b/} bm
 
+;;; /b/}
+
 ;; -------------------------------------------------------------------
-;;; Load unscoped (e.g. without rh-) useful functions
+;;; Post intit
 ;; -------------------------------------------------------------------
+;;; /b/{
 
 (load-file (concat user-emacs-directory "useful-functions.el"))
-
-;; -------------------------------------------------------------------
-;;; Post intit - to ensure correct settings if they were changed.
-;; -------------------------------------------------------------------
 
 ;; (transient-mark-mode -1)
 (put 'narrow-to-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+
+;;; /b/}
