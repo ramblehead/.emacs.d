@@ -3857,7 +3857,9 @@ fields which we need."
   ;; For some reason clangd-12 does not work correctly with uWebSockets...
   ;; And other projects where h files are used for both C and C++ headers.
   ;; clang-12 seems to be working now
-  (let ((path (or (executable-find "clangd-12")
+  (let ((path (or (executable-find "clangd-14")
+                  (executable-find "clangd-13")
+                  (executable-find "clangd-12")
                   (executable-find "clangd-11")
                   (executable-find "clangd-10")
                   (executable-find "clangd-9")
@@ -4186,7 +4188,6 @@ fields which we need."
   :disabled t)
 
 (use-package typescript-mode
-  ;; :mode "\\.ts\\'\\|\\.tsx\\'|\\.js\\'|\\.jsx\\'"
   :mode "\\.ts\\'\\|\\.tsx\\'"
   ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
@@ -4208,6 +4209,8 @@ fields which we need."
   ;;    (add-to-list 'rm-blacklist " jsi-node")
   ;;    (rh-programming-minor-modes 1)))
 
+  (add-hook 'typescript-mode-hook #'tree-sitter-hl-mode)
+
   :bind (:map typescript-mode-map
          ("{" . nil)
          ("}" . nil)
@@ -4218,6 +4221,33 @@ fields which we need."
          ("," . nil)
          ("\"" . nil)
          ("'" . nil))
+  :defer t
+  :ensure t)
+
+(use-package tree-sitter
+  ;; :hook (typescript-mode . tree-sitter-hl-mode)
+  ;; :config
+  ;; (setf (alist-get 'typescript-tsx-mode tree-sitter-major-mode-language-alist) 'tsx)
+  :config
+  (add-to-list 'rm-blacklist " tree-sitter")
+
+  :defer t
+  :ensure t)
+
+;; (use-package tree-sitter-indent
+;;   :after tree-sitter
+;;   :defer t
+;;   :ensure t)
+
+(use-package tree-sitter-langs
+  :config
+  (tree-sitter-require 'tsx)
+
+  (add-to-list
+   'tree-sitter-major-mode-language-alist
+   '(typescript-mode . tsx))
+
+  :after tree-sitter
   :defer t
   :ensure t)
 
@@ -4637,8 +4667,9 @@ fields which we need."
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
-  ;; :mode "\\.html\\'\\|\\.mako\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
+  :mode "\\.html\\'\\|\\.mako\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.jsx\\'"
   :config
   (require 'company)
 
