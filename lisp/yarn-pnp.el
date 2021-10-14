@@ -38,7 +38,7 @@
          (not (string-empty-p file-path-in-arc))
          (cons arc-path (substring file-path-in-arc 1)))))
 
-(defun yarn-pnp--yarn2-resolve-virtual (path)
+(defun yarn-pnp--resolve-virtual (path)
   ;; See https://yarnpkg.com/advanced/pnpapi#resolvevirtual
   ;; and https://github.com/yarnpkg/berry/issues/499#issuecomment-539458981
   (save-match-data
@@ -69,9 +69,10 @@
 (defun find-buffer-visiting:yarn-pnp-around (orig-fun filename &rest args)
   "If FILENAME is in archive, use arc-mode to open it, otherwise use original
 `find-buffer-visiting' function."
-  (let ((arc-path-pair (yarn-pnp--get-arc-path-pair filename)))
+  (let* ((fn-resolved (yarn-pnp--resolve-virtual filename))
+         (arc-path-pair (yarn-pnp--get-arc-path-pair fn-resolved)))
     (if (not arc-path-pair)
-        (apply orig-fun filename args)
+        (apply orig-fun fn-resolved args)
       (let ((arc-path (car arc-path-pair))
             (file-path-in-arc (cdr arc-path-pair)))
         (with-current-buffer (find-file-noselect arc-path)
@@ -83,9 +84,10 @@
 (defun lsp--xref-make-item:yarn-pnp-around (orig-fun filename &rest args)
   "If FILENAME is in archive, convert it to arc-mode path style before passing
 it to original `lsp--xref-make-item' function, otherwise pass it as it is."
-  (let ((arc-path-pair (yarn-pnp--get-arc-path-pair filename)))
+  (let* ((fn-resolved (yarn-pnp--resolve-virtual filename))
+         (arc-path-pair (yarn-pnp--get-arc-path-pair fn-resolved)))
     (if (not arc-path-pair)
-        (apply orig-fun filename args)
+        (apply orig-fun fn-resolved args)
       (let ((arc-path (car arc-path-pair))
             (file-path-in-arc (cdr arc-path-pair)))
         (apply orig-fun (concat arc-path ":" file-path-in-arc) args)))))
@@ -127,7 +129,7 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
 current buffer if it matches FILE. Then it will try to resolve
 yarn 2 virtual path in archives and unplugged. Then it will call
 the original tide-get-file-buffer() function as orig-fun()."
-  (let ((file-virtual-resolved (yarn-pnp--yarn2-resolve-virtual file))
+  (let ((file-virtual-resolved (yarn-pnp--resolve-virtual file))
         arc-path-pair)
     (cond
      ((equal file (tide-buffer-file-name)) (current-buffer))
@@ -160,7 +162,7 @@ Then call the original tide-eldoc-maybe-show() function as orig-fun()."
         (setq text
               (concat
                (match-string 1 text)
-               (yarn-pnp--yarn2-resolve-virtual virtual-path)
+               (yarn-pnp--resolve-virtual virtual-path)
                (match-string 3 text))))))
   (funcall orig-fun text))
 
