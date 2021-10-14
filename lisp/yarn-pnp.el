@@ -1,8 +1,11 @@
-;;; ramblehead's yarn 2 virtual paths support for tide
+;;; ramblehead's Yarn PnP virtual paths support for tide and lsp-mode
 
-(require 'tide)
-(require 'lsp-mode)
+(require 'tide nil t)
+(require 'lsp-mode nil t)
 (require 'arc-mode)
+
+;;; Common Functions
+;;; /b/{
 
 (defun yarn-pnp--get-arc-path-pair (full-path)
   ;; \\|\\\\ in case of some substandard OSes ;)
@@ -58,34 +61,72 @@
         (setq head (split-string head "/"))
         (string-join (append tail head) sep)))))
 
-(defun find-buffer-visiting:around (oldfun filename &optional predicate)
+;;; /b/}
+
+;;; lsp-mode Functions
+;;; /b/{
+
+(defun find-buffer-visiting:yarn-pnp-around (orig-fun filename &rest args)
+  "If FILENAME is in archive, use arc-mode to open it, otherwise use original
+`find-buffer-visiting' function."
   (let ((arc-path-pair (yarn-pnp--get-arc-path-pair filename)))
     (if (not arc-path-pair)
-        (funcall oldfun filename predicate)
+        (apply orig-fun filename args)
       (let ((arc-path (car arc-path-pair))
-            (file-path-in-arc (cdr arc-path-pair))
-            arc-buf file-buf)
-        (setq arc-buf (find-file-noselect arc-path))
-        (with-current-buffer arc-buf
+            (file-path-in-arc (cdr arc-path-pair)))
+        (with-current-buffer (find-file-noselect arc-path)
           (goto-char (point-min))
           ;; This should fail in nested archives.
           (re-search-forward (concat " " file-path-in-arc "$"))
           (archive-extract))))))
 
-(defun lsp--locations-to-xref-items:around (oldfun locations)
+(defun lsp--xref-make-item:yarn-pnp-around (orig-fun filename &rest args)
+  "If FILENAME is in archive, convert it to arc-mode path style before passing
+it to original `lsp--xref-make-item' function, otherwise pass it as it is."
+  (let ((arc-path-pair (yarn-pnp--get-arc-path-pair filename)))
+    (if (not arc-path-pair)
+        (apply orig-fun filename args)
+      (let ((arc-path (car arc-path-pair))
+            (file-path-in-arc (cdr arc-path-pair)))
+        (apply orig-fun (concat arc-path ":" file-path-in-arc) args)))))
+
+(defun lsp--locations-to-xref-items:yarn-pnp-around (orig-fun locations)
+  "Running `lsp--locations-to-xref-items' function unmodified with
+`find-buffer-visiting' being adviced with `find-buffer-visiting:yarn-pnp-around'"
   (unwind-protect
       (progn
         (advice-add 'find-buffer-visiting :around
-                    #'find-buffer-visiting:around)
-        (funcall oldfun locations))
+                    #'find-buffer-visiting:yarn-pnp-around)
+        (funcall orig-fun locations))
     (advice-remove 'find-buffer-visiting
-                   #'find-buffer-visiting:around)))
+                   #'find-buffer-visiting:yarn-pnp-around)))
 
-(defun tide-get-file-buffer:around (oldfun file &optional new-file)
+(defun yarn-pnp-lsp-enable ()
+  (interactive)
+  (advice-add 'lsp--locations-to-xref-items :around
+              #'lsp--locations-to-xref-items:yarn-pnp-around)
+  (advice-add 'lsp--xref-make-item :around
+              #'lsp--xref-make-item:yarn-pnp-around)
+  (message "Yarn PnP support for lsp enabled"))
+
+(defun yarn-pnp-lsp-disable ()
+  (interactive)
+  (advice-remove 'lsp--locations-to-xref-items
+                 #'lsp--locations-to-xref-items:yarn-pnp-around)
+  (advice-remove 'lsp--xref-make-item
+                 #'lsp--xref-make-item:yarn-pnp-around)
+  (message "Yarn PnP support for lsp disabled"))
+
+;;; /b/}
+
+;;; tide Functions
+;;; /b/{
+
+(defun tide-get-file-buffer:yarn-pnp-around (orig-fun file &optional new-file)
   "Returns a buffer associated with a file. This will return the
 current buffer if it matches FILE. Then it will try to resolve
 yarn 2 virtual path in archives and unplugged. Then it will call
-the original tide-get-file-buffer() function as oldfun()."
+the original tide-get-file-buffer() function as orig-fun()."
   (let ((file-virtual-resolved (yarn-pnp--yarn2-resolve-virtual file))
         arc-path-pair)
     (cond
@@ -102,13 +143,13 @@ the original tide-get-file-buffer() function as oldfun()."
           (archive-extract))))
      ((file-exists-p file-virtual-resolved)
       (find-file-noselect file-virtual-resolved))
-     (t (funcall oldfun file new-file)))))
+     (t (funcall orig-fun file new-file)))))
 
-(defun tide-eldoc-maybe-show:around (oldfun text)
+(defun tide-eldoc-maybe-show:yarn-pnp-around (orig-fun text)
   "Tests if TEXT has any \"string\" with yarn 2 virtual path. If
 there is such \"string\", then resolve it to conventional path and
 override \"string\" in TEXT with resolved conventional path.
-Then call the original tide-eldoc-maybe-show() function as oldfun()."
+Then call the original tide-eldoc-maybe-show() function as orig-fun()."
   (save-match-data
     (let (tail head virtual-path)
       (string-match
@@ -121,34 +162,24 @@ Then call the original tide-eldoc-maybe-show() function as oldfun()."
                (match-string 1 text)
                (yarn-pnp--yarn2-resolve-virtual virtual-path)
                (match-string 3 text))))))
-  (funcall oldfun text))
-
-(defun yarn-pnp-lsp-enable ()
-  (interactive)
-  (advice-add 'lsp--locations-to-xref-items :around
-              #'lsp--locations-to-xref-items:around)
-  (message "Yarn PnP support for lsp enabled"))
-
-(defun yarn-pnp-lsp-disable ()
-  (interactive)
-  (advice-remove 'lsp--locations-to-xref-items
-                 #'lsp--locations-to-xref-items:around)
-  (message "Yarn PnP support for lsp disabled"))
+  (funcall orig-fun text))
 
 (defun yarn-pnp-tide-enable ()
   (interactive)
   (advice-add 'tide-get-file-buffer :around
-              #'tide-get-file-buffer:around)
+              #'tide-get-file-buffer:yarn-pnp-around)
   (advice-add 'tide-eldoc-maybe-show :around
-              #'tide-eldoc-maybe-show:around)
+              #'tide-eldoc-maybe-show:yarn-pnp-around)
   (message "Yarn PnP support for tide enabled"))
 
 (defun yarn-pnp-tide-disable ()
   (interactive)
   (advice-remove 'tide-get-file-buffer
-                 #'tide-get-file-buffer:around)
+                 #'tide-get-file-buffer:yarn-pnp-around)
   (advice-remove 'tide-eldoc-maybe-show
-                 #'tide-eldoc-maybe-show:around)
+                 #'tide-eldoc-maybe-show:yarn-pnp-around)
   (message "Yarn PnP support for tide disabled"))
+
+;;; /b/}
 
 (provide 'yarn-pnp)
