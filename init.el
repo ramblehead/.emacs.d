@@ -4221,7 +4221,11 @@ fields which we need."
   ;;    (add-to-list 'rm-blacklist " jsi-node")
   ;;    (rh-programming-minor-modes 1)))
 
-  (add-hook 'typescript-mode-hook #'tree-sitter-hl-mode)
+  (add-hook
+   'typescript-mode-hook
+   (lambda ()
+     (setq-local font-lock-defaults '(()))
+     (tree-sitter-hl-mode 1)))
 
   :bind (:map typescript-mode-map
          ("{" . nil)
