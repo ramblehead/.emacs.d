@@ -130,9 +130,17 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
                      #'find-buffer-visiting:yarn-pnp-around))))
 
 (defun lsp--eldoc-message:yarn-pnp-around (orig-fun &optional msg)
+  "Show MSG in eldoc. When lsp server-is is ts-ls or jsts-ls, also resolving
+substring with yarn pnp virtual path if any."
   (if (not (yarn-pnp--lsp-ts-ls-p))
       (funcall orig-fun msg)
-    (funcall orig-fun (yarn-pnp--resolve-virtual-eldoc msg))))
+    (setq lsp--eldoc-saved-message msg)
+    (run-with-idle-timer
+     0 nil
+     (lambda (msg)
+       (with-no-warnings
+         (eldoc-message (yarn-pnp--resolve-virtual-eldoc msg))))
+     msg)))
 
 (defun yarn-pnp-lsp-enable ()
   (interactive)
