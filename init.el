@@ -3909,6 +3909,9 @@ fields which we need."
 
   :config
   (require 'company-capf)
+  (require 'yarn-pnp)
+
+  (yarn-pnp-lsp-enable)
 
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
@@ -4798,10 +4801,10 @@ fields which we need."
   :config
   (require 'company)
   (require 'flycheck)
-  (require 'tide-yarn2)
+  (require 'yarn-pnp)
   (require 'config-tide)
 
-  (tide-yarn2-enable)
+  (yarn-pnp-tide-enable)
 
   (add-to-list
    'display-buffer-alist

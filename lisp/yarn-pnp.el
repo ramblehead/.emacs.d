@@ -61,10 +61,34 @@
         (setq head (split-string head "/"))
         (string-join (append tail head) sep)))))
 
+(defun yarn-pnp--resolve-virtual-eldoc (msg)
+  (when msg
+    (save-match-data
+      (let ((virtual-path))
+        (string-match
+         "\\(.*\\\"\\)\\(.*/\\(?:__virtual__\\|\\$\\$virtual\\)/[^/]+/[0-9]+/.*\\)\\(\\\".*\\)"
+         msg)
+        (setq virtual-path (match-string 2 msg))
+        (if virtual-path
+            (concat
+             (match-string 1 msg)
+             (yarn-pnp--resolve-virtual virtual-path)
+             (match-string 3 msg))
+          msg)))))
+
 ;;; /b/}
 
 ;;; lsp-mode Functions
 ;;; /b/{
+
+(defun yarn-pnp--lsp-ts-ls-p ()
+  "Tests if current buffer workspaces contain a workspace with server-id 'ts-ls
+or 'jsts-ls"
+  (seq-find
+   (lambda (workspace)
+     (or (eq (lsp--workspace-server-id workspace) 'ts-ls)
+         (eq (lsp--workspace-server-id workspace) 'jsts-ls)))
+   lsp--buffer-workspaces))
 
 (defun find-buffer-visiting:yarn-pnp-around (orig-fun filename &rest args)
   "If FILENAME is in archive, use arc-mode to open it, otherwise use original
@@ -95,13 +119,20 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
 (defun lsp--locations-to-xref-items:yarn-pnp-around (orig-fun locations)
   "Running `lsp--locations-to-xref-items' function unmodified with
 `find-buffer-visiting' being adviced with `find-buffer-visiting:yarn-pnp-around'"
-  (unwind-protect
-      (progn
-        (advice-add 'find-buffer-visiting :around
-                    #'find-buffer-visiting:yarn-pnp-around)
-        (funcall orig-fun locations))
-    (advice-remove 'find-buffer-visiting
-                   #'find-buffer-visiting:yarn-pnp-around)))
+  (if (not (yarn-pnp--lsp-ts-ls-p))
+      (funcall orig-fun locations)
+    (unwind-protect
+        (progn
+          (advice-add 'find-buffer-visiting :around
+                      #'find-buffer-visiting:yarn-pnp-around)
+          (funcall orig-fun locations))
+      (advice-remove 'find-buffer-visiting
+                     #'find-buffer-visiting:yarn-pnp-around))))
+
+(defun lsp--eldoc-message:yarn-pnp-around (orig-fun &optional msg)
+  (if (not (yarn-pnp--lsp-ts-ls-p))
+      (funcall orig-fun msg)
+    (funcall orig-fun (yarn-pnp--resolve-virtual-eldoc msg))))
 
 (defun yarn-pnp-lsp-enable ()
   (interactive)
@@ -109,6 +140,8 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
               #'lsp--locations-to-xref-items:yarn-pnp-around)
   (advice-add 'lsp--xref-make-item :around
               #'lsp--xref-make-item:yarn-pnp-around)
+  (advice-add 'lsp--eldoc-message :around
+              #'lsp--eldoc-message:yarn-pnp-around)
   (message "Yarn PnP support for lsp enabled"))
 
 (defun yarn-pnp-lsp-disable ()
@@ -117,6 +150,8 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
                  #'lsp--locations-to-xref-items:yarn-pnp-around)
   (advice-remove 'lsp--xref-make-item
                  #'lsp--xref-make-item:yarn-pnp-around)
+  (advice-remove 'lsp--eldoc-message
+                 #'lsp--eldoc-message:yarn-pnp-around)
   (message "Yarn PnP support for lsp disabled"))
 
 ;;; /b/}
@@ -127,8 +162,8 @@ it to original `lsp--xref-make-item' function, otherwise pass it as it is."
 (defun tide-get-file-buffer:yarn-pnp-around (orig-fun file &optional new-file)
   "Returns a buffer associated with a file. This will return the
 current buffer if it matches FILE. Then it will try to resolve
-yarn 2 virtual path in archives and unplugged. Then it will call
-the original tide-get-file-buffer() function as orig-fun()."
+yarn pnp virtual path in archives and unplugged. Then it will call
+the original tide-get-file-buffer() function."
   (let ((file-virtual-resolved (yarn-pnp--resolve-virtual file))
         arc-path-pair)
     (cond
@@ -148,23 +183,7 @@ the original tide-get-file-buffer() function as orig-fun()."
      (t (funcall orig-fun file new-file)))))
 
 (defun tide-eldoc-maybe-show:yarn-pnp-around (orig-fun text)
-  "Tests if TEXT has any \"string\" with yarn 2 virtual path. If
-there is such \"string\", then resolve it to conventional path and
-override \"string\" in TEXT with resolved conventional path.
-Then call the original tide-eldoc-maybe-show() function as orig-fun()."
-  (save-match-data
-    (let (tail head virtual-path)
-      (string-match
-       "\\(.*\\\"\\)\\(.*/\\$\\$virtual/[^/]+/[0-9]+/.*\\\"\\)\\(.*\\)"
-       text)
-      (setq virtual-path (match-string 2 text))
-      (when virtual-path
-        (setq text
-              (concat
-               (match-string 1 text)
-               (yarn-pnp--resolve-virtual virtual-path)
-               (match-string 3 text))))))
-  (funcall orig-fun text))
+  (funcall orig-fun (yarn-pnp--resolve-virtual-eldoc text)))
 
 (defun yarn-pnp-tide-enable ()
   (interactive)
