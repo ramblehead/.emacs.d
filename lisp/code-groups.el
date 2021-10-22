@@ -29,7 +29,7 @@
 (require 'hideshow)
 
 (defgroup code-groups nil
-  "Node.js REPL and its minor interaction mode."
+  "Code Groups mode."
   :prefix "cgs-"
   ;; :group '???
   )

@@ -364,7 +364,7 @@ when only symbol face names are needed."
 (defvar rh-project-initialised-projects '())
 (defvar rh-project-trusted-dir-marker ".rh-trusted")
 (defvar rh-project-dir-name ".project")
-(defvar rh-project-generators-relative-path "../auto-code/")
+;; (defvar rh-project-generators-relative-path "../auto-code/")
 
 (defun rh-project-buffer-dir ()
   (or (and buffer-file-name
@@ -443,12 +443,12 @@ when only symbol face names are needed."
           (when (file-exists-p setup-file-path)
             (load setup-file-path nil t)))))))
 
-(defun rh-project-get-generators-path ()
-  (let ((generators-path (concat
-                          (rh-project-get-path)
-                          rh-project-generators-relative-path)))
-    (when (file-directory-p generators-path)
-      (expand-file-name generators-path))))
+;; (defun rh-project-get-generators-path ()
+;;   (let ((generators-path (concat
+;;                           (rh-project-get-path)
+;;                           rh-project-generators-relative-path)))
+;;     (when (file-directory-p generators-path)
+;;       (expand-file-name generators-path))))
 
 ;; (defun rh-project-compile (command compilation-buffer-name)
 ;;   (let* ((project-path (rh-project-get-path))
