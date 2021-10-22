@@ -4818,6 +4818,7 @@ fields which we need."
 
   ;; company-tide is loaded after company
   (bind-key "C-x C-<tab>" #'company-tide tide-mode-map)
+  (add-to-list 'company-backends 'company-tide)
 
   ;; (add-hook
   ;;  'tide-mode-hook
@@ -4844,45 +4845,45 @@ fields which we need."
 ;;; JavaScript Environments Setup
 ;;; /b/{
 
-(defun rh-setup-typescript-tide ()
-  (interactive)
-  (tide-setup)
-  (company-mode 1)
-  (flycheck-mode 1)
-  (eldoc-mode 1)
-  (tide-hl-identifier-mode 1)
-  (code-groups-mode 1)
-  ;; TODO: should remove company-tide from default company-backends
-  ;;       when company-keywords include typescript.
-  ;; The keywords could be taken from the following link:
-  ;; https://github.com/Microsoft/TypeScript/issues/2536
-  ;; (setq-local company-backends (delq 'company-tide company-backends))
-  (add-to-list 'company-backends 'company-tide)
-  (local-set-key (kbd "C-x C-<tab>") #'company-tide))
+;; (defun rh-setup-typescript-tide ()
+;;   (interactive)
+;;   (tide-setup)
+;;   (company-mode 1)
+;;   (flycheck-mode 1)
+;;   (eldoc-mode 1)
+;;   (tide-hl-identifier-mode 1)
+;;   (code-groups-mode 1)
+;;   ;; TODO: should remove company-tide from default company-backends
+;;   ;;       when company-keywords include typescript.
+;;   ;; The keywords could be taken from the following link:
+;;   ;; https://github.com/Microsoft/TypeScript/issues/2536
+;;   ;; (setq-local company-backends (delq 'company-tide company-backends))
+;;   (add-to-list 'company-backends 'company-tide)
+;;   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
-(defun rh-setup-javascript-tide ()
-  (interactive)
-  (tide-setup)
-  (company-mode 1)
-  (flycheck-mode 1)
-  (eldoc-mode 1)
-  (tide-hl-identifier-mode 1)
-  (code-groups-mode 1)
-  (add-to-list 'company-backends 'company-tide)
-  (local-set-key (kbd "C-x C-<tab>") #'company-tide))
+;; (defun rh-setup-javascript-tide ()
+;;   (interactive)
+;;   (tide-setup)
+;;   (company-mode 1)
+;;   (flycheck-mode 1)
+;;   (eldoc-mode 1)
+;;   (tide-hl-identifier-mode 1)
+;;   (code-groups-mode 1)
+;;   (add-to-list 'company-backends 'company-tide)
+;;   (local-set-key (kbd "C-x C-<tab>") #'company-tide))
 
-(defun rh-setup-javascript-tern ()
-  (interactive)
-  (tern-mode 1)
-  (setq company-backends (delq 'company-tern company-backends))
-  (local-set-key (kbd "C-c C-<tab>") #'company-tern))
+;; (defun rh-setup-javascript-tern ()
+;;   (interactive)
+;;   (tern-mode 1)
+;;   (setq company-backends (delq 'company-tern company-backends))
+;;   (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
-(defun rh-setup-javascript-tern-tide ()
-  (interactive)
-  (tern-mode 1)
-  (rh-setup-javascript-tide)
-  (setq company-backends (delq 'company-tern company-backends))
-  (local-set-key (kbd "C-c C-<tab>") #'company-tern))
+;; (defun rh-setup-javascript-tern-tide ()
+;;   (interactive)
+;;   (tern-mode 1)
+;;   (rh-setup-javascript-tide)
+;;   (setq company-backends (delq 'company-tern company-backends))
+;;   (local-set-key (kbd "C-c C-<tab>") #'company-tern))
 
 ;;; /b/}
 
