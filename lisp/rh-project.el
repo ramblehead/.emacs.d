@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(require vterm nil t)
+(require 'vterm nil t)
 
 (defgroup rh-project nil
   "Ramblehead Project mode."
@@ -165,19 +165,5 @@
         (vterm-send-string "exit")
         (vterm-send-return)))))
 
-(defvar code-groups-mode-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-S-j") #'cgs-hs-toggle-hiding)
-    (define-key map (kbd "C-M-n") #'cgs-forward-list)
-    (define-key map (kbd "C-M-p") #'cgs-backward-list)
-    (define-key map (kbd "C-'") #'cgs-generate-auto-code-group)
-    map))
-
-;;;###autoload
-(define-minor-mode code-groups-mode
-  "Minor mode for grouping code hunks and auto-code."
-  :lighter " code-groups"
-  :keymap code-groups-mode-keymap)
-
-(provide 'code-groups)
+(provide 'rh-project)
 ;;; code-groups.el ends here

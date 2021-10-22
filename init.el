@@ -13,8 +13,6 @@
 ;; [ ] Refactor skewer-mode config to rh-style.
 ;; [ ] Refactor web-mode config to rh-style.
 ;; [ ] Remove rh-scratch-js mode after js-interaction scratches are implemented.
-;; [ ] Convert rh-project functions to rh-project mode.
-;; [ ] Convert code-groups functions to code-groups mode.
 
 ;; R&D:
 ;; [?] Bring Emacs init back to terminal-friendly state. Possibly, switch to
@@ -359,596 +357,597 @@ when only symbol face names are needed."
 ;;; Emacs Packages Tree (that is where ramblehead's packages grow)
 ;; -------------------------------------------------------------------
 
-;; /b/{ rh-project
+;; ;; /b/; rh-project
+;; ;; /b/{
 
-(defvar rh-project-initialised-projects '())
-(defvar rh-project-trusted-dir-marker ".rh-trusted")
-(defvar rh-project-dir-name ".project")
-;; (defvar rh-project-generators-relative-path "../auto-code/")
+;; (defvar rh-project-initialised-projects '())
+;; (defvar rh-project-trusted-dir-marker ".rh-trusted")
+;; (defvar rh-project-dir-name ".project")
+;; ;; (defvar rh-project-generators-relative-path "../auto-code/")
 
-(defun rh-project-buffer-dir ()
-  (or (and buffer-file-name
-           (file-name-directory buffer-file-name))
-      ;; (and (eq major-mode 'compilation-mode)
-      (and (or (eq major-mode 'compilation-mode)
-               (eq major-mode 'dired-mode))
-           default-directory)))
+;; (defun rh-project-buffer-dir ()
+;;   (or (and buffer-file-name
+;;            (file-name-directory buffer-file-name))
+;;       ;; (and (eq major-mode 'compilation-mode)
+;;       (and (or (eq major-mode 'compilation-mode)
+;;                (eq major-mode 'dired-mode))
+;;            default-directory)))
+
+;; ;; (defun rh-project-get-path ()
+;; ;;   (let ((src-tree-root (or (and buffer-file-name
+;; ;;                                 (locate-dominating-file
+;; ;;                                  (file-name-directory buffer-file-name)
+;; ;;                                  rh-project-dir-name))
+;; ;;                            (and (or (eq major-mode 'compilation-mode)
+;; ;;                                     (eq major-mode 'dired-mode))
+;; ;;                                 (locate-dominating-file
+;; ;;                                  default-directory
+;; ;;                                  rh-project-dir-name)))))
+;; ;;     (when src-tree-root
+;; ;;       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
 ;; (defun rh-project-get-path ()
-;;   (let ((src-tree-root (or (and buffer-file-name
-;;                                 (locate-dominating-file
-;;                                  (file-name-directory buffer-file-name)
-;;                                  rh-project-dir-name))
-;;                            (and (or (eq major-mode 'compilation-mode)
-;;                                     (eq major-mode 'dired-mode))
-;;                                 (locate-dominating-file
-;;                                  default-directory
-;;                                  rh-project-dir-name)))))
+;;   (let* ((buffer-dir (rh-project-buffer-dir))
+;;          (src-tree-root (and buffer-dir
+;;                              (locate-dominating-file
+;;                               buffer-dir
+;;                               rh-project-dir-name))))
 ;;     (when src-tree-root
 ;;       (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
 
-(defun rh-project-get-path ()
-  (let* ((buffer-dir (rh-project-buffer-dir))
-         (src-tree-root (and buffer-dir
-                             (locate-dominating-file
-                              buffer-dir
-                              rh-project-dir-name))))
-    (when src-tree-root
-      (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
+;; ;; (defun rh-project-in-trusted-dir ()
+;; ;;   (and buffer-file-name
+;; ;;        (locate-dominating-file
+;; ;;         (file-name-directory buffer-file-name)
+;; ;;         rh-project-trusted-dir-marker)))
 
 ;; (defun rh-project-in-trusted-dir ()
-;;   (and buffer-file-name
-;;        (locate-dominating-file
-;;         (file-name-directory buffer-file-name)
-;;         rh-project-trusted-dir-marker)))
+;;   (locate-dominating-file
+;;    (rh-project-buffer-dir)
+;;    rh-project-trusted-dir-marker))
 
-(defun rh-project-in-trusted-dir ()
-  (locate-dominating-file
-   (rh-project-buffer-dir)
-   rh-project-trusted-dir-marker))
-
-(defun rh-project-get-root ()
-  (let ((rh-project (rh-project-get-path)))
-    (when rh-project
-      (abbreviate-file-name
-       (expand-file-name (concat rh-project "../"))))))
-
-;; (cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
+;; (defun rh-project-get-root ()
 ;;   (let ((rh-project (rh-project-get-path)))
 ;;     (when rh-project
-;;       (if supplied-p
-;;           (load (concat rh-project setup-file-name-base "-setup.el"))
-;;         (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
-;;           (when (file-exists-p setup-file-name)
-;;             (load setup-file-name)))))))
+;;       (abbreviate-file-name
+;;        (expand-file-name (concat rh-project "../"))))))
 
-(cl-defun rh-project-setup ()
-  (let ((rh-project-path (rh-project-get-path)))
-    (when rh-project-path
-      (when buffer-file-name
-        (message (concat "rh-project: " rh-project-path)))
-      (let ((setup-file-path (concat rh-project-path "setup.el"))
-            (init-file-path (concat rh-project-path "init.el"))
-            (rh-project-id (directory-file-name
-                            (expand-file-name rh-project-path))))
-        (if (and (not (member rh-project-id rh-project-trusted-ids))
-                 (not (rh-project-in-trusted-dir)))
-            (message (concat "rh-project: '" rh-project-id
-                             "' is not trusted. "
-                             "Ignoring its 'init.el' and 'setup.el' files."))
-          (when (and (file-exists-p init-file-path)
-                     (not (member rh-project-id rh-project-initialised-projects)))
-            (add-to-list 'rh-project-initialised-projects rh-project-id)
-            (load init-file-path))
-          (when (file-exists-p setup-file-path)
-            (load setup-file-path nil t)))))))
+;; ;; (cl-defun rh-project-setup (&optional (setup-file-name-base "setup" supplied-p))
+;; ;;   (let ((rh-project (rh-project-get-path)))
+;; ;;     (when rh-project
+;; ;;       (if supplied-p
+;; ;;           (load (concat rh-project setup-file-name-base "-setup.el"))
+;; ;;         (let ((setup-file-name (concat rh-project setup-file-name-base ".el")))
+;; ;;           (when (file-exists-p setup-file-name)
+;; ;;             (load setup-file-name)))))))
 
-;; (defun rh-project-get-generators-path ()
-;;   (let ((generators-path (concat
-;;                           (rh-project-get-path)
-;;                           rh-project-generators-relative-path)))
-;;     (when (file-directory-p generators-path)
-;;       (expand-file-name generators-path))))
+;; (cl-defun rh-project-setup ()
+;;   (let ((rh-project-path (rh-project-get-path)))
+;;     (when rh-project-path
+;;       (when buffer-file-name
+;;         (message (concat "rh-project: " rh-project-path)))
+;;       (let ((setup-file-path (concat rh-project-path "setup.el"))
+;;             (init-file-path (concat rh-project-path "init.el"))
+;;             (rh-project-id (directory-file-name
+;;                             (expand-file-name rh-project-path))))
+;;         (if (and (not (member rh-project-id rh-project-trusted-ids))
+;;                  (not (rh-project-in-trusted-dir)))
+;;             (message (concat "rh-project: '" rh-project-id
+;;                              "' is not trusted. "
+;;                              "Ignoring its 'init.el' and 'setup.el' files."))
+;;           (when (and (file-exists-p init-file-path)
+;;                      (not (member rh-project-id rh-project-initialised-projects)))
+;;             (add-to-list 'rh-project-initialised-projects rh-project-id)
+;;             (load init-file-path))
+;;           (when (file-exists-p setup-file-path)
+;;             (load setup-file-path nil t)))))))
 
-;; (defun rh-project-compile (command compilation-buffer-name)
-;;   (let* ((project-path (rh-project-get-path))
-;;          (full-command (concat project-path command))
-;;          (compilation-buffer-name-function
-;;           (lambda (name-of-mode) compilation-buffer-name)))
-;;     (setq rh-bs-bottom-0-side-window-buffer
-;;           (compile full-command))))
+;; ;; (defun rh-project-get-generators-path ()
+;; ;;   (let ((generators-path (concat
+;; ;;                           (rh-project-get-path)
+;; ;;                           rh-project-generators-relative-path)))
+;; ;;     (when (file-directory-p generators-path)
+;; ;;       (expand-file-name generators-path))))
 
-(defun rh-project-compile (command compilation-buffer-or-name)
-  (let* ((project-path (rh-project-get-path))
-         (full-command (concat project-path command))
-         (current-window (frame-selected-window))
-         compilation-buffer)
-    (when (get-buffer compilation-buffer-or-name)
-      (with-current-buffer compilation-buffer-or-name
-        (when (vterm-check-proc)
-          (vterm-send-C-c)
-          ;; Giving 1 sec for complication process to end; if it does not end the
-          ;; following kill-buffer() should ask whether to kill it with live
-          ;; process.
-          (sit-for 1))
-        (kill-buffer)))
-    (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
-    (g2w-buffer-destination-window-init compilation-buffer current-window nil)
-    (with-current-buffer compilation-buffer
-      (vterm-mode)
-      (setq-local rh-project-compile t)
-      ;; (compilation-minor-mode)
-      (vterm-send-string
-       (concat "TIMEFORMAT=\"\nTask took %Rs\" && time "
-               full-command
-               "; exit"))
-      (vterm-send-return))
-    (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
+;; ;; (defun rh-project-compile (command compilation-buffer-name)
+;; ;;   (let* ((project-path (rh-project-get-path))
+;; ;;          (full-command (concat project-path command))
+;; ;;          (compilation-buffer-name-function
+;; ;;           (lambda (name-of-mode) compilation-buffer-name)))
+;; ;;     (setq rh-bs-bottom-0-side-window-buffer
+;; ;;           (compile full-command))))
 
-(defalias 'rh-project-run #'rh-project-compile)
-
-;; (defun rh-project-run
-;;     (command compilation-buffer-or-name &optional compilation)
+;; (defun rh-project-compile (command compilation-buffer-or-name)
 ;;   (let* ((project-path (rh-project-get-path))
 ;;          (full-command (concat project-path command))
 ;;          (current-window (frame-selected-window))
 ;;          compilation-buffer)
 ;;     (when (get-buffer compilation-buffer-or-name)
-;;       (kill-buffer compilation-buffer-or-name))
+;;       (with-current-buffer compilation-buffer-or-name
+;;         (when (vterm-check-proc)
+;;           (vterm-send-C-c)
+;;           ;; Giving 1 sec for complication process to end; if it does not end the
+;;           ;; following kill-buffer() should ask whether to kill it with live
+;;           ;; process.
+;;           (sit-for 1))
+;;         (kill-buffer)))
 ;;     (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
 ;;     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
 ;;     (with-current-buffer compilation-buffer
 ;;       (vterm-mode)
-;;       (when compilation (compilation-minor-mode))
+;;       (setq-local rh-project-compile t)
+;;       ;; (compilation-minor-mode)
 ;;       (vterm-send-string
-;;        (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
+;;        (concat "TIMEFORMAT=\"\nTask took %Rs\" && time "
 ;;                full-command
 ;;                "; exit"))
 ;;       (vterm-send-return))
 ;;     (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
 
-;; (defun rh-project-compile (command compilation-buffer-or-name)
-;;   (rh-project-run command compilation-buffer-or-name t))
+;; (defalias 'rh-project-run #'rh-project-compile)
 
-(defun rh-project-term (term-buffer-or-name &optional pwd)
-  (let* ((vterm-pwd (or pwd (rh-project-get-root)))
-         (vterm-buffer (get-buffer term-buffer-or-name)))
-    (if (and vterm-buffer (get-buffer-process vterm-buffer))
-        (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
-      (if vterm-buffer (kill-buffer vterm-buffer))
-      (setq vterm-buffer (get-buffer-create term-buffer-or-name))
-      (with-current-buffer vterm-buffer
-        (setq-local vterm-kill-buffer-on-exit t)
-        (setq-local default-directory vterm-pwd)
-        (vterm-mode)))
-    (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
-    (select-window (rh-bs-get-bootom-0-side-window))))
+;; ;; (defun rh-project-run
+;; ;;     (command compilation-buffer-or-name &optional compilation)
+;; ;;   (let* ((project-path (rh-project-get-path))
+;; ;;          (full-command (concat project-path command))
+;; ;;          (current-window (frame-selected-window))
+;; ;;          compilation-buffer)
+;; ;;     (when (get-buffer compilation-buffer-or-name)
+;; ;;       (kill-buffer compilation-buffer-or-name))
+;; ;;     (setq compilation-buffer (generate-new-buffer compilation-buffer-or-name))
+;; ;;     (g2w-buffer-destination-window-init compilation-buffer current-window nil)
+;; ;;     (with-current-buffer compilation-buffer
+;; ;;       (vterm-mode)
+;; ;;       (when compilation (compilation-minor-mode))
+;; ;;       (vterm-send-string
+;; ;;        (concat "TIMEFORMAT=\"\nCompilation took %Rs\" && time "
+;; ;;                full-command
+;; ;;                "; exit"))
+;; ;;       (vterm-send-return))
+;; ;;     (rh-bs-display-buffer-in-bootom-0-side-window compilation-buffer)))
 
-;; (defun rh-project-restart-shell-command (command output-buffer-or-name)
+;; ;; (defun rh-project-compile (command compilation-buffer-or-name)
+;; ;;   (rh-project-run command compilation-buffer-or-name t))
+
+;; (defun rh-project-term (term-buffer-or-name &optional pwd)
+;;   (let* ((vterm-pwd (or pwd (rh-project-get-root)))
+;;          (vterm-buffer (get-buffer term-buffer-or-name)))
+;;     (if (and vterm-buffer (get-buffer-process vterm-buffer))
+;;         (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+;;       (if vterm-buffer (kill-buffer vterm-buffer))
+;;       (setq vterm-buffer (get-buffer-create term-buffer-or-name))
+;;       (with-current-buffer vterm-buffer
+;;         (setq-local vterm-kill-buffer-on-exit t)
+;;         (setq-local default-directory vterm-pwd)
+;;         (vterm-mode)))
+;;     (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+;;     (select-window (rh-bs-get-bootom-0-side-window))))
+
+;; ;; (defun rh-project-restart-shell-command (command output-buffer-or-name)
+;; ;;   (let* ((project-path (rh-project-get-path))
+;; ;;          (output-buffer (get-buffer-create output-buffer-or-name))
+;; ;;          (full-command (concat project-path command))
+;; ;;          (proc (get-buffer-process output-buffer)))
+;; ;;     (unless (get-buffer-window output-buffer 'visible)
+;; ;;       (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
+;; ;;     (when proc (delete-process proc))
+;; ;;     (rh-bs-async-shell-command full-command output-buffer)
+;; ;;     (with-current-buffer output-buffer
+;; ;;       (setq-local buffer-read-only t)
+;; ;;       (local-set-key (kbd "C-q") #'rh-bs-delete-sibling-windows)
+;; ;;       (local-set-key (kbd "q") #'delete-window))
+;; ;;     (setq rh-bs-bottom-0-side-window-buffer output-buffer)
+;; ;;     (get-buffer-process output-buffer)))
+
+;; (defun rh-project-run-shell-command (command output-buffer-or-name)
 ;;   (let* ((project-path (rh-project-get-path))
-;;          (output-buffer (get-buffer-create output-buffer-or-name))
 ;;          (full-command (concat project-path command))
-;;          (proc (get-buffer-process output-buffer)))
-;;     (unless (get-buffer-window output-buffer 'visible)
-;;       (rh-bs-display-buffer-in-bootom-0-side-window output-buffer))
-;;     (when proc (delete-process proc))
-;;     (rh-bs-async-shell-command full-command output-buffer)
+;;          output-buffer)
+;;     (when (get-buffer output-buffer-or-name)
+;;       (with-current-buffer output-buffer-or-name
+;;         (when (process-live-p vterm--process)
+;;           (vterm-send-C-c)
+;;           ;; (sit-for 0.1)
+;;           ;; (vterm-send-C-c)
+;;           ;; (sit-for 1)
+;;           (vterm-send-string "exit")
+;;           (vterm-send-return)
+;;           (sit-for 1))
+;;         (kill-buffer)))
+;;     (setq output-buffer (generate-new-buffer output-buffer-or-name))
 ;;     (with-current-buffer output-buffer
-;;       (setq-local buffer-read-only t)
-;;       (local-set-key (kbd "C-q") #'rh-bs-delete-sibling-windows)
-;;       (local-set-key (kbd "q") #'delete-window))
-;;     (setq rh-bs-bottom-0-side-window-buffer output-buffer)
+;;       (vterm-mode)
+;;       ;; (compilation-minor-mode)
+;;       (vterm-send-string full-command)
+;;       (vterm-send-return))
+;;     (rh-bs-display-buffer-in-bootom-0-side-window output-buffer)
 ;;     (get-buffer-process output-buffer)))
 
-(defun rh-project-run-shell-command (command output-buffer-or-name)
-  (let* ((project-path (rh-project-get-path))
-         (full-command (concat project-path command))
-         output-buffer)
-    (when (get-buffer output-buffer-or-name)
-      (with-current-buffer output-buffer-or-name
-        (when (process-live-p vterm--process)
-          (vterm-send-C-c)
-          ;; (sit-for 0.1)
-          ;; (vterm-send-C-c)
-          ;; (sit-for 1)
-          (vterm-send-string "exit")
-          (vterm-send-return)
-          (sit-for 1))
-        (kill-buffer)))
-    (setq output-buffer (generate-new-buffer output-buffer-or-name))
-    (with-current-buffer output-buffer
-      (vterm-mode)
-      ;; (compilation-minor-mode)
-      (vterm-send-string full-command)
-      (vterm-send-return))
-    (rh-bs-display-buffer-in-bootom-0-side-window output-buffer)
-    (get-buffer-process output-buffer)))
+;; (defun rh-project-kill-shell-process
+;;     (output-buffer-or-name &optional interrupt)
+;;   (let ((buffer (get-buffer output-buffer-or-name)))
+;;     (when (and buffer (not (get-buffer-window buffer 'visible)))
+;;       (rh-bs-display-buffer-in-bootom-0-side-window buffer))
+;;     (with-current-buffer buffer
+;;       (when (process-live-p vterm--process)
+;;         (vterm-send-C-c)
+;;         (sit-for 0.1)
+;;         ;; (vterm-send-C-c)
+;;         ;; (sit-for 1)
+;;         (vterm-send-string "exit")
+;;         (vterm-send-return)))))
 
-(defun rh-project-kill-shell-process
-    (output-buffer-or-name &optional interrupt)
-  (let ((buffer (get-buffer output-buffer-or-name)))
-    (when (and buffer (not (get-buffer-window buffer 'visible)))
-      (rh-bs-display-buffer-in-bootom-0-side-window buffer))
-    (with-current-buffer buffer
-      (when (process-live-p vterm--process)
-        (vterm-send-C-c)
-        (sit-for 0.1)
-        ;; (vterm-send-C-c)
-        ;; (sit-for 1)
-        (vterm-send-string "exit")
-        (vterm-send-return)))))
+;; ;; /b/}
 
-;; /b/} rh-project
+;; ;; /b/{ code-groups
 
-;; /b/{ code-groups
+;; (defvar-local cg-forward-list-original #'forward-list
+;;   "Original forward-list function used by the major mode before loading
+;; code-groups minor mode - i.e. the function usually bound to C-M-n")
 
-(defvar-local cg-forward-list-original #'forward-list
-  "Original forward-list function used by the major mode before loading
-code-groups minor mode - i.e. the function usually bound to C-M-n")
+;; (defvar-local cg-backward-list-original #'backward-list
+;;   "Original backward-list function used by the major mode before loading
+;; code-groups minor mode - i.e. the function usually bound to C-M-p")
 
-(defvar-local cg-backward-list-original #'backward-list
-  "Original backward-list function used by the major mode before loading
-code-groups minor mode - i.e. the function usually bound to C-M-p")
+;; (defvar cg-doxygen-group-open-token "///@{")
+;; (defvar cg-doxygen-group-close-token "///@}")
 
-(defvar cg-doxygen-group-open-token "///@{")
-(defvar cg-doxygen-group-close-token "///@}")
+;; (defvar cg-auto-code-group-open-token "/a/{")
+;; (defvar cg-auto-code-group-close-token "/a/}")
 
-(defvar cg-auto-code-group-open-token "/a/{")
-(defvar cg-auto-code-group-close-token "/a/}")
+;; (defvar cg-block-code-group-open-token "/b/{")
+;; (defvar cg-block-code-group-close-token "/b/}")
 
-(defvar cg-block-code-group-open-token "/b/{")
-(defvar cg-block-code-group-close-token "/b/}")
+;; (defvar cg-custom-code-group-open-token "/c/{")
+;; (defvar cg-custom-code-group-close-token "/c/}")
 
-(defvar cg-custom-code-group-open-token "/c/{")
-(defvar cg-custom-code-group-close-token "/c/}")
+;; (defvar cg-auto-code-group-param-token "/a/$")
 
-(defvar cg-auto-code-group-param-token "/a/$")
+;; (defun cg-group-head-regexp (open-token)
+;;   (concat "^.*" open-token ".*$"))
 
-(defun cg-group-head-regexp (open-token)
-  (concat "^.*" open-token ".*$"))
+;; (defun cg-group-tail-regexp (close-token)
+;;   (concat "^.*" close-token ".*$"))
 
-(defun cg-group-tail-regexp (close-token)
-  (concat "^.*" close-token ".*$"))
+;; (defun cg-looking-at-group-head (open-token)
+;;   (let ((line (thing-at-point 'line t)))
+;;     (when (and line
+;;                (string-match-p (concat "^.*" open-token ".*$") line))
+;;       open-token)))
 
-(defun cg-looking-at-group-head (open-token)
-  (let ((line (thing-at-point 'line t)))
-    (when (and line
-               (string-match-p (concat "^.*" open-token ".*$") line))
-      open-token)))
+;; (defun cg-looking-at-group-tail (close-token)
+;;   (let ((line (thing-at-point 'line t)))
+;;     (when (and line
+;;                (string-match-p (concat "^.*" close-token ".*$") line))
+;;       close-token)))
 
-(defun cg-looking-at-group-tail (close-token)
-  (let ((line (thing-at-point 'line t)))
-    (when (and line
-               (string-match-p (concat "^.*" close-token ".*$") line))
-      close-token)))
+;; (defun cg-group-head-or-tail-length (token line)
+;;   (length
+;;    (replace-regexp-in-string
+;;     (concat "^.*\\(" token ".*\\)[\r\n]?$")
+;;     "\\1"
+;;     line)))
 
-(defun cg-group-head-or-tail-length (token line)
-  (length
-   (replace-regexp-in-string
-    (concat "^.*\\(" token ".*\\)[\r\n]?$")
-    "\\1"
-    line)))
+;; (defun cg-group-reverse-token (token)
+;;   (cond
+;;    ((string= cg-doxygen-group-open-token token)
+;;     cg-doxygen-group-close-token)
+;;    ((string= cg-doxygen-group-close-token token)
+;;     cg-doxygen-group-open-token)
+;;    ((string= cg-auto-code-group-open-token token)
+;;     cg-auto-code-group-close-token)
+;;    ((string= cg-auto-code-group-close-token token)
+;;     cg-auto-code-group-open-token)
+;;    ((string= cg-custom-code-group-open-token token)
+;;     cg-custom-code-group-close-token)
+;;    ((string= cg-custom-code-group-close-token token)
+;;     cg-custom-code-group-open-token)
+;;    ((string= cg-block-code-group-open-token token)
+;;     cg-block-code-group-close-token)
+;;    ((string= cg-block-code-group-close-token token)
+;;     cg-block-code-group-open-token)))
 
-(defun cg-group-reverse-token (token)
-  (cond
-   ((string= cg-doxygen-group-open-token token)
-    cg-doxygen-group-close-token)
-   ((string= cg-doxygen-group-close-token token)
-    cg-doxygen-group-open-token)
-   ((string= cg-auto-code-group-open-token token)
-    cg-auto-code-group-close-token)
-   ((string= cg-auto-code-group-close-token token)
-    cg-auto-code-group-open-token)
-   ((string= cg-custom-code-group-open-token token)
-    cg-custom-code-group-close-token)
-   ((string= cg-custom-code-group-close-token token)
-    cg-custom-code-group-open-token)
-   ((string= cg-block-code-group-open-token token)
-    cg-block-code-group-close-token)
-   ((string= cg-block-code-group-close-token token)
-    cg-block-code-group-open-token)))
+;; (defun cg-looking-at-auto-code-group-head-or-tail ()
+;;   (cond ((cg-looking-at-group-head
+;;           cg-auto-code-group-open-token)
+;;          cg-auto-code-group-open-token)
+;;         ((cg-looking-at-group-head
+;;           cg-auto-code-group-close-token)
+;;          cg-auto-code-group-close-token)))
 
-(defun cg-looking-at-auto-code-group-head-or-tail ()
-  (cond ((cg-looking-at-group-head
-          cg-auto-code-group-open-token)
-         cg-auto-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-auto-code-group-close-token)
-         cg-auto-code-group-close-token)))
+;; (defun cg-looking-at-any-group-head ()
+;;   (cond ((cg-looking-at-group-head
+;;           cg-doxygen-group-open-token)
+;;          cg-doxygen-group-open-token)
+;;         ((cg-looking-at-group-head
+;;           cg-auto-code-group-open-token)
+;;          cg-auto-code-group-open-token)
+;;         ((cg-looking-at-group-head
+;;           cg-custom-code-group-open-token)
+;;          cg-custom-code-group-open-token)
+;;         ((cg-looking-at-group-head
+;;           cg-block-code-group-open-token)
+;;          cg-block-code-group-open-token)))
 
-(defun cg-looking-at-any-group-head ()
-  (cond ((cg-looking-at-group-head
-          cg-doxygen-group-open-token)
-         cg-doxygen-group-open-token)
-        ((cg-looking-at-group-head
-          cg-auto-code-group-open-token)
-         cg-auto-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-custom-code-group-open-token)
-         cg-custom-code-group-open-token)
-        ((cg-looking-at-group-head
-          cg-block-code-group-open-token)
-         cg-block-code-group-open-token)))
+;; (defun cg-looking-at-any-group-tail ()
+;;   (cond ((cg-looking-at-group-tail
+;;           cg-doxygen-group-close-token)
+;;          cg-doxygen-group-close-token)
+;;         ((cg-looking-at-group-tail
+;;           cg-auto-code-group-close-token)
+;;          cg-auto-code-group-close-token)
+;;         ((cg-looking-at-group-tail
+;;           cg-custom-code-group-close-token)
+;;          cg-custom-code-group-close-token)
+;;         ((cg-looking-at-group-tail
+;;           cg-block-code-group-close-token)
+;;          cg-block-code-group-close-token)))
 
-(defun cg-looking-at-any-group-tail ()
-  (cond ((cg-looking-at-group-tail
-          cg-doxygen-group-close-token)
-         cg-doxygen-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-auto-code-group-close-token)
-         cg-auto-code-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-custom-code-group-close-token)
-         cg-custom-code-group-close-token)
-        ((cg-looking-at-group-tail
-          cg-block-code-group-close-token)
-         cg-block-code-group-close-token)))
+;; (defun cg-search-backward-group-balanced-head ()
+;;   (let ((open-token)
+;;         (close-token)
+;;         (mark-pos (point)))
+;;     (setq close-token (cg-looking-at-any-group-tail))
+;;     (when close-token
+;;       (setq open-token (cg-group-reverse-token close-token))
+;;       (move-beginning-of-line nil)
+;;       (if (cg-looking-at-group-head open-token)
+;;           (search-forward open-token)
+;;         (let ((pos nil)
+;;               (found nil)
+;;               (skip-tail 0))
+;;           (push-mark mark-pos t)
+;;           (while (and (not found)
+;;                       (setq pos (re-search-backward
+;;                                  (concat (cg-group-head-regexp open-token)
+;;                                          "\\|"
+;;                                          (cg-group-tail-regexp close-token)))))
+;;             (if (cg-looking-at-group-tail close-token)
+;;                 (cl-incf skip-tail)
+;;               (if (<= skip-tail 0)
+;;                   (setq found t)
+;;                 (cl-decf skip-tail))))
+;;           (when (cg-looking-at-group-head open-token)
+;;             (move-end-of-line nil)
+;;             (backward-char (cg-group-head-or-tail-length
+;;                             open-token (thing-at-point 'line t))))
+;;           (point))))))
 
-(defun cg-search-backward-group-balanced-head ()
-  (let ((open-token)
-        (close-token)
-        (mark-pos (point)))
-    (setq close-token (cg-looking-at-any-group-tail))
-    (when close-token
-      (setq open-token (cg-group-reverse-token close-token))
-      (move-beginning-of-line nil)
-      (if (cg-looking-at-group-head open-token)
-          (search-forward open-token)
-        (let ((pos nil)
-              (found nil)
-              (skip-tail 0))
-          (push-mark mark-pos t)
-          (while (and (not found)
-                      (setq pos (re-search-backward
-                                 (concat (cg-group-head-regexp open-token)
-                                         "\\|"
-                                         (cg-group-tail-regexp close-token)))))
-            (if (cg-looking-at-group-tail close-token)
-                (cl-incf skip-tail)
-              (if (<= skip-tail 0)
-                  (setq found t)
-                (cl-decf skip-tail))))
-          (when (cg-looking-at-group-head open-token)
-            (move-end-of-line nil)
-            (backward-char (cg-group-head-or-tail-length
-                            open-token (thing-at-point 'line t))))
-          (point))))))
+;; (defun cg-search-forward-group-balanced-tail ()
+;;   (let ((open-token)
+;;         (close-token)
+;;         (mark-pos (point)))
+;;     (setq open-token (cg-looking-at-any-group-head))
+;;     (when open-token
+;;       (setq close-token (cg-group-reverse-token open-token))
+;;       (move-end-of-line nil)
+;;       (if (cg-looking-at-group-tail close-token)
+;;           (search-backward close-token)
+;;         (let ((pos nil)
+;;               (found nil)
+;;               (skip-tail 0))
+;;           (push-mark mark-pos t)
+;;           (while (and (not found)
+;;                       (setq pos (re-search-forward
+;;                                  (concat (cg-group-head-regexp open-token)
+;;                                          "\\|"
+;;                                          (cg-group-tail-regexp close-token)))))
+;;             (if (cg-looking-at-group-head open-token)
+;;                 (cl-incf skip-tail)
+;;               (if (<= skip-tail 0)
+;;                   (setq found t)
+;;                 (cl-decf skip-tail))))
+;;           pos)))))
 
-(defun cg-search-forward-group-balanced-tail ()
-  (let ((open-token)
-        (close-token)
-        (mark-pos (point)))
-    (setq open-token (cg-looking-at-any-group-head))
-    (when open-token
-      (setq close-token (cg-group-reverse-token open-token))
-      (move-end-of-line nil)
-      (if (cg-looking-at-group-tail close-token)
-          (search-backward close-token)
-        (let ((pos nil)
-              (found nil)
-              (skip-tail 0))
-          (push-mark mark-pos t)
-          (while (and (not found)
-                      (setq pos (re-search-forward
-                                 (concat (cg-group-head-regexp open-token)
-                                         "\\|"
-                                         (cg-group-tail-regexp close-token)))))
-            (if (cg-looking-at-group-head open-token)
-                (cl-incf skip-tail)
-              (if (<= skip-tail 0)
-                  (setq found t)
-                (cl-decf skip-tail))))
-          pos)))))
+;; (defun cg-hs-hide-group ()
+;;   (interactive)
+;;   (let (open-token close-token)
+;;     (when (cg-looking-at-any-group-tail)
+;;       (cg-search-backward-group-balanced-head))
+;;     (setq open-token (cg-looking-at-any-group-head))
+;;     (when open-token
+;;       (setq close-token (cg-group-reverse-token open-token))
+;;       (move-beginning-of-line nil)
+;;       (let* ((beg (search-forward open-token))
+;;              (end (- (cg-search-forward-group-balanced-tail)
+;;                      (cg-group-head-or-tail-length
+;;                       close-token (thing-at-point 'line t)))))
+;;         (hs-make-overlay beg end 'comment beg end)
+;;         (goto-char beg)))))
 
-(defun cg-hs-hide-group ()
-  (interactive)
-  (let (open-token close-token)
-    (when (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head))
-    (setq open-token (cg-looking-at-any-group-head))
-    (when open-token
-      (setq close-token (cg-group-reverse-token open-token))
-      (move-beginning-of-line nil)
-      (let* ((beg (search-forward open-token))
-             (end (- (cg-search-forward-group-balanced-tail)
-                     (cg-group-head-or-tail-length
-                      close-token (thing-at-point 'line t)))))
-        (hs-make-overlay beg end 'comment beg end)
-        (goto-char beg)))))
+;; (defun cg-hs-toggle-hiding ()
+;;   (interactive)
+;;   (let (open-token close-token)
+;;     (setq open-token (cg-looking-at-any-group-head))
+;;     (if open-token
+;;         (setq close-token (cg-group-reverse-token open-token))
+;;       (progn
+;;         (setq close-token (cg-looking-at-any-group-tail))
+;;         (when close-token
+;;           (setq open-token (cg-group-reverse-token close-token)))))
+;;     (if open-token
+;;         (let ((hidden nil)
+;;               (at-tail (cg-looking-at-group-tail close-token)))
+;;           (save-excursion
+;;             (move-beginning-of-line nil)
+;;             (if (cg-looking-at-group-head open-token)
+;;                 (progn
+;;                   (end-of-visual-line)
+;;                   (if (cg-looking-at-group-tail close-token)
+;;                       (setq hidden t)))))
+;;           (if hidden
+;;               (progn
+;;                 (move-beginning-of-line nil)
+;;                 (search-forward open-token)
+;;                 (if (not at-tail)
+;;                     (hs-show-block)))
+;;             (cg-hs-hide-group)))
+;;       (hs-toggle-hiding))))
 
-(defun cg-hs-toggle-hiding ()
-  (interactive)
-  (let (open-token close-token)
-    (setq open-token (cg-looking-at-any-group-head))
-    (if open-token
-        (setq close-token (cg-group-reverse-token open-token))
-      (progn
-        (setq close-token (cg-looking-at-any-group-tail))
-        (when close-token
-          (setq open-token (cg-group-reverse-token close-token)))))
-    (if open-token
-        (let ((hidden nil)
-              (at-tail (cg-looking-at-group-tail close-token)))
-          (save-excursion
-            (move-beginning-of-line nil)
-            (if (cg-looking-at-group-head open-token)
-                (progn
-                  (end-of-visual-line)
-                  (if (cg-looking-at-group-tail close-token)
-                      (setq hidden t)))))
-          (if hidden
-              (progn
-                (move-beginning-of-line nil)
-                (search-forward open-token)
-                (if (not at-tail)
-                    (hs-show-block)))
-            (cg-hs-hide-group)))
-      (hs-toggle-hiding))))
+;; (defun cg-delete-code-group ()
+;;   (interactive)
+;;   (when (cg-looking-at-any-group-tail)
+;;     (cg-search-backward-group-balanced-head))
+;;   (when (cg-looking-at-any-group-head)
+;;     (let ((start) (end))
+;;       (move-beginning-of-line 2)
+;;       (setq start (point))
+;;       (previous-line)
+;;       (cg-search-forward-group-balanced-tail)
+;;       (move-beginning-of-line nil)
+;;       (setq end (point))
+;;       (goto-char start)
+;;       (delete-region start end))))
 
-(defun cg-delete-code-group ()
-  (interactive)
-  (when (cg-looking-at-any-group-tail)
-    (cg-search-backward-group-balanced-head))
-  (when (cg-looking-at-any-group-head)
-    (let ((start) (end))
-      (move-beginning-of-line 2)
-      (setq start (point))
-      (previous-line)
-      (cg-search-forward-group-balanced-tail)
-      (move-beginning-of-line nil)
-      (setq end (point))
-      (goto-char start)
-      (delete-region start end))))
+;; ;; (defun cg-generate-auto-code (generator data template indent-str)
+;; ;;   (let ((generators-path (rh-project-get-generators-path))
+;; ;;         (auto-code-command generator))
+;; ;;     (when generators-path
+;; ;;       (setq auto-code-command (concat generators-path auto-code-command)))
+;; ;;     (when (file-exists-p auto-code-command)
+;; ;;       (setq auto-code-command (concat auto-code-command " " data " " template))
+;; ;;       (when indent-str
+;; ;;         (setq auto-code-command (concat auto-code-command " '" indent-str "'")))
+;; ;;       (insert (shell-command-to-string auto-code-command)))))
 
-;; (defun cg-generate-auto-code (generator data template indent-str)
+;; (defun cg-generate-auto-code (generator data template indentation-str)
 ;;   (let ((generators-path (rh-project-get-generators-path))
-;;         (auto-code-command generator))
+;;         (auto-code-command generator)
+;;         lines last-line)
 ;;     (when generators-path
 ;;       (setq auto-code-command (concat generators-path auto-code-command)))
 ;;     (when (file-exists-p auto-code-command)
 ;;       (setq auto-code-command (concat auto-code-command " " data " " template))
-;;       (when indent-str
-;;         (setq auto-code-command (concat auto-code-command " '" indent-str "'")))
-;;       (insert (shell-command-to-string auto-code-command)))))
+;;       (setq lines (split-string
+;;                    (shell-command-to-string auto-code-command) "\n"))
+;;       (setq last-line (car (last lines)))
+;;       (setq lines (nbutlast lines))
+;;       (seq-each
+;;        (lambda (line)
+;;          (if (string-empty-p line)
+;;              (insert "\n")
+;;            (insert (concat indentation-str line "\n"))))
+;;        lines)
+;;       (unless (string-empty-p last-line)
+;;         (insert (concat indentation-str line "\n"))))))
 
-(defun cg-generate-auto-code (generator data template indentation-str)
-  (let ((generators-path (rh-project-get-generators-path))
-        (auto-code-command generator)
-        lines last-line)
-    (when generators-path
-      (setq auto-code-command (concat generators-path auto-code-command)))
-    (when (file-exists-p auto-code-command)
-      (setq auto-code-command (concat auto-code-command " " data " " template))
-      (setq lines (split-string
-                   (shell-command-to-string auto-code-command) "\n"))
-      (setq last-line (car (last lines)))
-      (setq lines (nbutlast lines))
-      (seq-each
-       (lambda (line)
-         (if (string-empty-p line)
-             (insert "\n")
-           (insert (concat indentation-str line "\n"))))
-       lines)
-      (unless (string-empty-p last-line)
-        (insert (concat indentation-str line "\n"))))))
+;; (defun cg-generate-auto-code-group ()
+;;   (interactive)
+;;   (let* ((current-line (thing-at-point 'line t))
+;;          (open-token (regexp-quote cg-auto-code-group-open-token))
+;;          (close-token (regexp-quote cg-auto-code-group-close-token))
+;;          (param-token (regexp-quote cg-auto-code-group-param-token))
+;;          (regex-begin
+;;           "^\\([[:blank:]]*\\)[^[:blank:]\r\n]+[[:blank:]]*")
+;;          (regex-params-end
+;;           (concat
+;;            "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
+;;            "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
+;;          (regex-end "$")
+;;          (close-regex
+;;           (concat regex-begin close-token))
+;;          (open-regex
+;;           (concat regex-begin open-token))
+;;          (open-single-line-regex
+;;           (concat regex-begin open-token regex-params-end))
+;;          (open-multi-line-regex
+;;           (concat regex-begin open-token regex-end))
+;;          (param-single-line-regex
+;;           (concat regex-begin param-token regex-params-end))
+;;          generator data template open-indent-str close-indent-str indent-str)
+;;     (save-match-data
+;;       (cond ((string-match close-regex current-line)
+;;              (setq close-indent-str (match-string 1 current-line))
+;;              (cg-search-backward-group-balanced-head)
+;;              (setq current-line (thing-at-point 'line t)))
+;;             ((string-match open-regex current-line)
+;;              (save-excursion
+;;                (cg-search-forward-group-balanced-tail)
+;;                (let ((line (thing-at-point 'line t)))
+;;                  (string-match close-regex line)
+;;                  (setq close-indent-str (match-string 1 line))))))
+;;       (cond ((string-match open-single-line-regex current-line)
+;;              (setq open-indent-str (match-string 1 current-line))
+;;              (unless (string= open-indent-str close-indent-str)
+;;                (error "auto-code open and close indentations do not match." ))
+;;              (setq generator (match-string 2 current-line))
+;;              (setq data (match-string 3 current-line))
+;;              (setq template (match-string 4 current-line))
+;;              ;; The following condition should be removed
+;;              ;; once all templates are moved to automatic indentation
+;;              (when (string= (substring template -2) ".i")
+;;                (setq indent-str (match-string 1 current-line)))
+;;              (cg-delete-code-group)
+;;              (cg-generate-auto-code generator data template indent-str))
+;;             ((string-match open-multi-line-regex current-line)
+;;              (setq open-indent-str (match-string 1 current-line))
+;;              (unless (string= open-indent-str close-indent-str)
+;;                (error "auto-code open and close indentations do not match." ))
+;;              (save-excursion
+;;                (move-beginning-of-line 0)
+;;                (setq current-line (thing-at-point 'line t)))
+;;              (if (not (string-match param-single-line-regex current-line))
+;;                  (error "Invalid auto-code open multi-line block." )
+;;                (setq generator (match-string 2 current-line))
+;;                (setq data (match-string 3 current-line))
+;;                (setq template (match-string 4 current-line))
+;;                ;; The following condition should be removed
+;;                ;; once all templates are moved to automatic indentation
+;;                (unless (string= open-indent-str (match-string 1 current-line))
+;;                  (error (concat "auto-code open multi line block "
+;;                                 "is not uniformly indented.")))
+;;                (when (string= (substring template -2) ".i")
+;;                  (setq indent-str (match-string 1 current-line)))
+;;                (cg-delete-code-group)
+;;                (cg-generate-auto-code generator data template indent-str)))))))
 
-(defun cg-generate-auto-code-group ()
-  (interactive)
-  (let* ((current-line (thing-at-point 'line t))
-         (open-token (regexp-quote cg-auto-code-group-open-token))
-         (close-token (regexp-quote cg-auto-code-group-close-token))
-         (param-token (regexp-quote cg-auto-code-group-param-token))
-         (regex-begin
-          "^\\([[:blank:]]*\\)[^[:blank:]\r\n]+[[:blank:]]*")
-         (regex-params-end
-          (concat
-           "[[:blank:]]*\\([^[:blank:]\r\n]+\\)[[:blank:]]+"
-           "\\([^[:blank:]\r\n]+\\)[[:blank:]]+\\([^[:blank:]\r\n]+\\)"))
-         (regex-end "$")
-         (close-regex
-          (concat regex-begin close-token))
-         (open-regex
-          (concat regex-begin open-token))
-         (open-single-line-regex
-          (concat regex-begin open-token regex-params-end))
-         (open-multi-line-regex
-          (concat regex-begin open-token regex-end))
-         (param-single-line-regex
-          (concat regex-begin param-token regex-params-end))
-         generator data template open-indent-str close-indent-str indent-str)
-    (save-match-data
-      (cond ((string-match close-regex current-line)
-             (setq close-indent-str (match-string 1 current-line))
-             (cg-search-backward-group-balanced-head)
-             (setq current-line (thing-at-point 'line t)))
-            ((string-match open-regex current-line)
-             (save-excursion
-               (cg-search-forward-group-balanced-tail)
-               (let ((line (thing-at-point 'line t)))
-                 (string-match close-regex line)
-                 (setq close-indent-str (match-string 1 line))))))
-      (cond ((string-match open-single-line-regex current-line)
-             (setq open-indent-str (match-string 1 current-line))
-             (unless (string= open-indent-str close-indent-str)
-               (error "auto-code open and close indentations do not match." ))
-             (setq generator (match-string 2 current-line))
-             (setq data (match-string 3 current-line))
-             (setq template (match-string 4 current-line))
-             ;; The following condition should be removed
-             ;; once all templates are moved to automatic indentation
-             (when (string= (substring template -2) ".i")
-               (setq indent-str (match-string 1 current-line)))
-             (cg-delete-code-group)
-             (cg-generate-auto-code generator data template indent-str))
-            ((string-match open-multi-line-regex current-line)
-             (setq open-indent-str (match-string 1 current-line))
-             (unless (string= open-indent-str close-indent-str)
-               (error "auto-code open and close indentations do not match." ))
-             (save-excursion
-               (move-beginning-of-line 0)
-               (setq current-line (thing-at-point 'line t)))
-             (if (not (string-match param-single-line-regex current-line))
-                 (error "Invalid auto-code open multi-line block." )
-               (setq generator (match-string 2 current-line))
-               (setq data (match-string 3 current-line))
-               (setq template (match-string 4 current-line))
-               ;; The following condition should be removed
-               ;; once all templates are moved to automatic indentation
-               (unless (string= open-indent-str (match-string 1 current-line))
-                 (error (concat "auto-code open multi line block "
-                                "is not uniformly indented.")))
-               (when (string= (substring template -2) ".i")
-                 (setq indent-str (match-string 1 current-line)))
-               (cg-delete-code-group)
-               (cg-generate-auto-code generator data template indent-str)))))))
+;; (defun cg-forward-list (arg)
+;;   (interactive "^p")
+;;   (if (cg-looking-at-any-group-head)
+;;       (cg-search-forward-group-balanced-tail)
+;;     (if cg-forward-list-original
+;;         (funcall cg-forward-list-original arg)
+;;       (forward-list arg))))
 
-(defun cg-forward-list (arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-head)
-      (cg-search-forward-group-balanced-tail)
-    (if cg-forward-list-original
-        (funcall cg-forward-list-original arg)
-      (forward-list arg))))
+;; (defun cg-backward-list (arg)
+;;   (interactive "^p")
+;;   (if (cg-looking-at-any-group-tail)
+;;       (cg-search-backward-group-balanced-head)
+;;     (if cg-backward-list-original
+;;         (funcall cg-backward-list-original arg)
+;;       (backward-list arg))))
 
-(defun cg-backward-list (arg)
-  (interactive "^p")
-  (if (cg-looking-at-any-group-tail)
-      (cg-search-backward-group-balanced-head)
-    (if cg-backward-list-original
-        (funcall cg-backward-list-original arg)
-      (backward-list arg))))
+;; (defun cg-key-bindings-enable ()
+;;   (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
+;;   (local-set-key (kbd "C-M-n") #'cg-forward-list)
+;;   (local-set-key (kbd "C-M-p") #'cg-backward-list))
 
-(defun cg-key-bindings-enable ()
-  (local-set-key (kbd "C-S-j") #'cg-hs-toggle-hiding)
-  (local-set-key (kbd "C-M-n") #'cg-forward-list)
-  (local-set-key (kbd "C-M-p") #'cg-backward-list))
+;; (defun cg-key-bindings-disable ()
+;;   (local-unset-key (kbd "C-S-j"))
+;;   (local-unset-key (kbd "C-M-n"))
+;;   (local-unset-key (kbd "C-M-p")))
 
-(defun cg-key-bindings-disable ()
-  (local-unset-key (kbd "C-S-j"))
-  (local-unset-key (kbd "C-M-n"))
-  (local-unset-key (kbd "C-M-p")))
+;; (defun code-groups-minor-mode-enable ()
+;;   (hs-minor-mode 1)
+;;   (cg-key-bindings-enable)
+;;   (setq code-groups-minor-mode t))
 
-(defun code-groups-minor-mode-enable ()
-  (hs-minor-mode 1)
-  (cg-key-bindings-enable)
-  (setq code-groups-minor-mode t))
+;; (defun code-groups-minor-mode-disable ()
+;;   (cg-key-bindings-disable)
+;;   (setq code-groups-minor-mode nil))
 
-(defun code-groups-minor-mode-disable ()
-  (cg-key-bindings-disable)
-  (setq code-groups-minor-mode nil))
+;; (cl-defun code-groups-minor-mode (&optional (enable nil enable-supplied-p))
+;;   (interactive)
+;;   (make-local-variable 'code-groups-minor-mode)
+;;   (if enable-supplied-p
+;;       (if (eq enable -1)
+;;           (code-groups-minor-mode-disable)
+;;         (code-groups-minor-mode-enable))
+;;     (if code-groups-minor-mode
+;;         (code-groups-minor-mode-disable)
+;;       (code-groups-minor-mode-enable))))
 
-(cl-defun code-groups-minor-mode (&optional (enable nil enable-supplied-p))
-  (interactive)
-  (make-local-variable 'code-groups-minor-mode)
-  (if enable-supplied-p
-      (if (eq enable -1)
-          (code-groups-minor-mode-disable)
-        (code-groups-minor-mode-enable))
-    (if code-groups-minor-mode
-        (code-groups-minor-mode-disable)
-      (code-groups-minor-mode-enable))))
-
-;; /b/} code-groups
+;; ;; /b/} code-groups
 
 ;; /b/{ goto-window
 
@@ -2928,9 +2927,6 @@ fields which we need."
 
 ;;;   /b/}
 
-;;;   code-groups
-;;;   /b/{
-
 (use-package code-groups
   :commands (code-groups-mode)
   :config
@@ -2938,8 +2934,6 @@ fields which we need."
 
   :defer t
   :pin manual)
-
-;;;   /b/}
 
 (use-package company
   :init
@@ -3299,7 +3293,6 @@ fields which we need."
   (interactive)
   (rh-toggle-display compilation-buffer-name))
 
-
 (use-package compile
   :config
   (setq compilation-scroll-output t)
@@ -3583,7 +3576,6 @@ fields which we need."
           (code-groups-mode 1)
           (hs-minor-mode 1)
           (undo-tree-mode 1)
-          (code-groups-minor-mode 1)
           (hi-lock-mode 1)
           ;; (fci-mode 1)
           (set (make-local-variable 'show-trailing-whitespace) t)
@@ -3600,7 +3592,6 @@ fields which we need."
         (rh-show-paren-local-mode -1)
         (hs-minor-mode -1)
         (undo-tree-mode -1)
-        (code-groups-minor-mode -1)
         (hi-lock-mode -1)
         ;; (fci-mode -1)
         (kill-local-variable 'show-trailing-whitespace)
@@ -4335,6 +4326,9 @@ fields which we need."
 
 (use-package rh-scratch-js
   :commands rh-scratch-js
+  :pin manual)
+
+(use-package rh-project
   :pin manual)
 
 (use-package js-interaction
