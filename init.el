@@ -1712,8 +1712,8 @@ Also sets SYMBOL to VALUE."
   :defer t)
 
 (use-package wgrep
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package replace
   :init
@@ -1813,8 +1813,8 @@ Also sets SYMBOL to VALUE."
 
   :bind (("M-f" . avy-goto-char)
          ("M-d" . avy-goto-line))
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package ace-window
   :config
@@ -1824,8 +1824,8 @@ Also sets SYMBOL to VALUE."
          ("C-c a o" . ace-select-window)
          ("C-c a s" . ace-swap-window)
          ("C-c a d" . ace-delete-window))
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 ;; (use-package tramp
 ;;   :config
@@ -3844,8 +3844,12 @@ fields which we need."
          ("C-<tab>" . company-complete)
          ("C-h C-." . rh-eglot-display-local-help))
 
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
+
+(use-package yarn-pnp
+  :pin manual
+  :defer t)
 
 (use-package lsp-mode
   :if (rh-clangd-executable-find)
@@ -4502,7 +4506,8 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes 1)))
 
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package nxml-mode
   :mode "\\.xml\\'"
@@ -4713,7 +4718,8 @@ fields which we need."
 
   :bind (:map web-mode-map
          ("C-c C-b" . nil))
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; /b/}
 
@@ -4730,13 +4736,16 @@ fields which we need."
       (lambda ()
         (rh-programming-minor-modes t)))))
 
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package json-mode
-  :ensure)
+  :ensure t
+  :defer t)
 
 (use-package protobuf-mode
-  :ensure)
+  :ensure t
+  :defer t)
 
 (use-package flatbuffers-mode
   :config
@@ -4747,7 +4756,8 @@ fields which we need."
      (rh-programming-minor-modes t)
      (c-toggle-comment-style -1)))
 
-  :ensure)
+  :ensure t
+  :defer t)
 
 (use-package tide
   :delight (tide-mode " τ")
@@ -4833,8 +4843,8 @@ fields which we need."
          ;; :map tide-project-errors-mode-map
          ;; ("q" . rh-quit-window-kill)
          )
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; JavaScript Environments Setup
 ;;; /b/{

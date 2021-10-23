@@ -1,8 +1,8 @@
 ;;; ramblehead's Yarn PnP virtual paths support for tide and lsp-mode
 
-(require 'tide nil t)
-(require 'lsp-mode nil t)
-(require 'arc-mode)
+;; (require 'tide nil t)
+;; (require 'lsp-mode nil t)
+;; (require 'arc-mode)
 
 ;;; Common Functions
 ;;; /b/{
