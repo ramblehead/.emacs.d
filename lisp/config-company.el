@@ -1,4 +1,4 @@
-;;; ramblehead's tide configuration
+;;; ramblehead's company-mode configuration
 
 (setq company-backends
       '((company-keywords company-dabbrev-code)

@@ -35,7 +35,7 @@
 
 (defvar rh-project-initialised-projects '())
 (defvar rh-project-trusted-dir-marker ".rh-trusted")
-(defvar rh-project-dir-name ".project")
+(defvar rh-project-dir-name ".rh-project")
 
 (defun rh-project-buffer-dir ()
   (or (and buffer-file-name
