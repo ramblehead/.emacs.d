@@ -69,20 +69,34 @@
            (add-face-text-property mbeg mend 'company-preview-search
                                    nil completion)))
 
-    (setq completion
-          (if company-common
-              (company-strip-prefix completion)
-            (if (cdr common)
-                completion
-              (let* ((first-common-range (car common))
-                     (first-common (and first-common-range
-                                        (substring completion
-                                                   (car first-common-range)
-                                                   (cdr first-common-range)))))
-                (if (and first-common
-                         (eq (car first-common-range) 0))
-                    (substring completion (length first-common))
-                  completion)))))
+    (setq completion (if (string-prefix-p company-prefix completion)
+                         (company-strip-prefix completion)
+                       completion))
+
+    ;; (setq completion
+    ;;       (cond
+    ;;        ((and common
+    ;;              (= 0 (caar common)))
+    ;;         (substring completion (min (cdar common)
+    ;;                                    (length company-prefix))))
+    ;;        (company-common
+    ;;         (company-strip-prefix completion))
+    ;;        (t completion)))
+
+    ;; (setq completion
+    ;;       (if company-common
+    ;;           (company-strip-prefix completion)
+    ;;         (if (cdr common)
+    ;;             completion
+    ;;           (let* ((first-common-range (car common))
+    ;;                  (first-common (and first-common-range
+    ;;                                     (substring completion
+    ;;                                                (car first-common-range)
+    ;;                                                (cdr first-common-range)))))
+    ;;             (if (and first-common
+    ;;                      (eq (car first-common-range) 0))
+    ;;                 (substring completion (length first-common))
+    ;;               completion)))))
 
     ;; (setq completion
     ;;       (if company-common
