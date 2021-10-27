@@ -3077,7 +3077,7 @@ fields which we need."
 (defun rh-complete-dwim ()
   (interactive)
   (cond
-   ((cg-looking-at-auto-code-group-head-or-tail)
+   ((cgs-looking-at-auto-code-group-head-or-tail)
     (let ((lsp-mode-enabled (bound-and-true-p lsp-mode)))
       (unwind-protect
           (progn
@@ -4175,18 +4175,19 @@ fields which we need."
    'typescript-mode-hook
    (lambda ()
      (setq-local font-lock-defaults '(()))
-     (tree-sitter-hl-mode 1)))
+     (tree-sitter-hl-mode 1)
+     (prettier-mode 1)))
 
-  :bind (:map typescript-mode-map
-         ("{" . nil)
-         ("}" . nil)
-         ("(" . nil)
-         (")" . nil)
-         (":" . nil)
-         (";" . nil)
-         ("," . nil)
-         ("\"" . nil)
-         ("'" . nil))
+  ;; :bind (:map typescript-mode-map
+  ;;        ("{" . nil)
+  ;;        ("}" . nil)
+  ;;        ("(" . nil)
+  ;;        (")" . nil)
+  ;;        (":" . nil)
+  ;;        (";" . nil)
+  ;;        ("," . nil)
+  ;;        ("\"" . nil)
+  ;;        ("'" . nil))
   :defer t
   :ensure t)
 
@@ -4389,6 +4390,12 @@ fields which we need."
   :ensure t)
 
 (use-package web-beautify
+  :ensure t)
+
+(use-package prettier
+  :custom
+  (prettier-lighter " P")
+
   :ensure t)
 
 ;;; lisp-mode

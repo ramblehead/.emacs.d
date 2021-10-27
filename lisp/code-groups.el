@@ -104,7 +104,7 @@ code-groups minor mode - i.e. the function usually bound to C-S-j")
    ((string= cgs--block-code-group-close-token token)
     cgs--block-code-group-open-token)))
 
-(defun cgs--looking-at-auto-code-group-head-or-tail ()
+(defun cgs-looking-at-auto-code-group-head-or-tail ()
   (cond ((cgs--looking-at-group-head
           cgs--auto-code-group-open-token)
          cgs--auto-code-group-open-token)
