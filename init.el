@@ -4176,7 +4176,8 @@ fields which we need."
    (lambda ()
      (setq-local font-lock-defaults '(()))
      (tree-sitter-hl-mode 1)
-     (prettier-mode 1)))
+     ;; (prettier-mode 1)
+     ))
 
   ;; :bind (:map typescript-mode-map
   ;;        ("{" . nil)
