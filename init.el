@@ -4950,128 +4950,139 @@ fields which we need."
                              (visual-line-mode t)))
 ;; == AUCTeX mode ==
 
-(cond
- ((and (equal system-type 'windows-nt) (boundp 'AUCTeX-version))
-  (progn
-    (require 'sumatra-forward)
-    (require 'tex-mik)
-    (setq TeX-PDF-mode t)
-    (setq TeX-source-correlate-method 'synctex)
-    (setq TeX-source-correlate-mode t)
-    (setq TeX-source-correlate-start-server t)
-    (let (CL)
-      (setq CL (concat "\"" vr-sumatra-pdf-path "\""))
-      (setq CL (concat CL " -bg-color #999999 -reuse-instance %o"))
-      (setq TeX-view-program-list (list (list "Sumatra PDF" CL))))
-    (setq TeX-view-program-selection '((output-pdf "Sumatra PDF")))
-    (setq reftex-plug-into-AUCTeX t)
-    (add-hook 'LaTeX-mode-hook (lambda ()
-                                 (progn
-                                   (make-local-variable 'vr-tex-mode)
-                                   (local-set-key(kbd "<f3>")
-                                                  'sumatra-jump-to-line)
-                                   (reftex-mode t)
-                                   (TeX-fold-mode t)
-                                   (visual-line-mode t))))))
- ((and (equal system-type 'gnu/linux) (boundp 'AUCTeX-version))
-  (progn
-    (setq TeX-PDF-mode t)
-    (defun un-urlify (fname-or-url)
-      "Transform file:///absolute/path from Gnome into /absolute/path
-with very limited support for special characters."
-      (if (string-equal (substring fname-or-url 0 8) "file:///")
-          (url-unhex-string (substring fname-or-url 7))
-        fname-or-url))
+;; https://github.com/raxod502/straight.el/issues/836#issuecomment-927098560
 
-    (defun urlify-escape-only (path)
-      "Handle special characters for urlify."
-      (replace-regexp-in-string " " "%20" path))
+(use-package auctex
+  :mode ("\\.tex\\'" . LaTeX-mode)
+  :config
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
 
-    (defun urlify (absolute-path)
-      "Transform /absolute/path to file:///absolute/path for Gnome
-with very limited support for special characters."
-      (if (string-equal (substring absolute-path 0 1) "/")
-          (concat "file://" (urlify-escape-only absolute-path))
-        absolute-path))
+  :defer t
+  :ensure t)
 
-    ;; SyncTeX backward search - based on
-    ;; http://emacswiki.org/emacs/AUCTeX#toc20,
-    ;; reproduced on http://tex.stackexchange.com/a/49840/21017
+;; (cond
+;;  ((and (equal system-type 'windows-nt) (boundp 'AUCTeX-version))
+;;   (progn
+;;     (require 'sumatra-forward)
+;;     (require 'tex-mik)
+;;     (setq TeX-PDF-mode t)
+;;     (setq TeX-source-correlate-method 'synctex)
+;;     (setq TeX-source-correlate-mode t)
+;;     (setq TeX-source-correlate-start-server t)
+;;     (let (CL)
+;;       (setq CL (concat "\"" vr-sumatra-pdf-path "\""))
+;;       (setq CL (concat CL " -bg-color #999999 -reuse-instance %o"))
+;;       (setq TeX-view-program-list (list (list "Sumatra PDF" CL))))
+;;     (setq TeX-view-program-selection '((output-pdf "Sumatra PDF")))
+;;     (setq reftex-plug-into-AUCTeX t)
+;;     (add-hook 'LaTeX-mode-hook (lambda ()
+;;                                  (progn
+;;                                    (make-local-variable 'vr-tex-mode)
+;;                                    (local-set-key(kbd "<f3>")
+;;                                                   'sumatra-jump-to-line)
+;;                                    (reftex-mode t)
+;;                                    (TeX-fold-mode t)
+;;                                    (visual-line-mode t))))))
+;;  ((and (equal system-type 'gnu/linux) (boundp 'AUCTeX-version))
+;;   (progn
+;;     (setq TeX-PDF-mode t)
+;;     (defun un-urlify (fname-or-url)
+;;       "Transform file:///absolute/path from Gnome into /absolute/path
+;; with very limited support for special characters."
+;;       (if (string-equal (substring fname-or-url 0 8) "file:///")
+;;           (url-unhex-string (substring fname-or-url 7))
+;;         fname-or-url))
 
-    (defun th-evince-sync (file linecol &rest ignored)
-      (let* ((fname (un-urlify file))
-             (buf (find-file fname))
-             (line (car linecol))
-             (col (cadr linecol)))
-        (if (null buf)
-            (message "[Synctex]: Could not open %s" fname)
-          (switch-to-buffer buf)
-          (goto-line (car linecol))
-          (unless (= col -1)
-            (move-to-column col)))))
+;;     (defun urlify-escape-only (path)
+;;       "Handle special characters for urlify."
+;;       (replace-regexp-in-string " " "%20" path))
 
-    (defvar *dbus-evince-signal* nil)
+;;     (defun urlify (absolute-path)
+;;       "Transform /absolute/path to file:///absolute/path for Gnome
+;; with very limited support for special characters."
+;;       (if (string-equal (substring absolute-path 0 1) "/")
+;;           (concat "file://" (urlify-escape-only absolute-path))
+;;         absolute-path))
 
-    (defun enable-evince-sync ()
-      (require 'dbus)
-      (when (and
-             (eq window-system 'x)
-             (fboundp 'dbus-register-signal))
-        (unless *dbus-evince-signal*
-          (setf *dbus-evince-signal*
-                (dbus-register-signal
-                 :session nil "/org/gnome/evince/Window/0"
-                 "org.gnome.evince.Window" "SyncSource"
-                 'th-evince-sync)))))
+;;     ;; SyncTeX backward search - based on
+;;     ;; http://emacswiki.org/emacs/AUCTeX#toc20,
+;;     ;; reproduced on http://tex.stackexchange.com/a/49840/21017
 
-    ;; SyncTeX forward search - based on
-    ;; http://tex.stackexchange.com/a/46157
+;;     (defun th-evince-sync (file linecol &rest ignored)
+;;       (let* ((fname (un-urlify file))
+;;              (buf (find-file fname))
+;;              (line (car linecol))
+;;              (col (cadr linecol)))
+;;         (if (null buf)
+;;             (message "[Synctex]: Could not open %s" fname)
+;;           (switch-to-buffer buf)
+;;           (goto-line (car linecol))
+;;           (unless (= col -1)
+;;             (move-to-column col)))))
 
-    ;; universal time, need by evince
-    (defun utime ()
-      (let ((high (nth 0 (current-time)))
-            (low (nth 1 (current-time))))
-        (+ (* high (lsh 1 16) ) low)))
+;;     (defvar *dbus-evince-signal* nil)
 
-    ;; Forward search.
-    ;; Adapted from http://dud.inf.tu-dresden.de/~ben/evince_synctex.tar.gz
-    (defun auctex-evince-forward-sync (pdffile texfile line)
-      (let ((dbus-name
-             (dbus-call-method :session
-                               "org.gnome.evince.Daemon"  ; service
-                               "/org/gnome/evince/Daemon" ; path
-                               "org.gnome.evince.Daemon"  ; interface
-                               "FindDocument"
-                               (urlify pdffile)
-                               ;; Open a new window if the file is not opened.
-                               t
-                               )))
-        (dbus-call-method :session
-                          dbus-name
-                          "/org/gnome/evince/Window/0"
-                          "org.gnome.evince.Window"
-                          "SyncView"
-                          (urlify-escape-only texfile)
-                          (list :struct :int32 line :int32 1)
-                          (utime))))
+;;     (defun enable-evince-sync ()
+;;       (require 'dbus)
+;;       (when (and
+;;              (eq window-system 'x)
+;;              (fboundp 'dbus-register-signal))
+;;         (unless *dbus-evince-signal*
+;;           (setf *dbus-evince-signal*
+;;                 (dbus-register-signal
+;;                  :session nil "/org/gnome/evince/Window/0"
+;;                  "org.gnome.evince.Window" "SyncSource"
+;;                  'th-evince-sync)))))
 
-    (defun auctex-evince-view ()
-      (let ((pdf (file-truename
-                  (concat default-directory
-                          (TeX-master-file (TeX-output-extension)))))
-            (tex (buffer-file-name))
-            (line (line-number-at-pos)))
-        (auctex-evince-forward-sync pdf tex line)))
+;;     ;; SyncTeX forward search - based on
+;;     ;; http://tex.stackexchange.com/a/46157
 
-    (setq TeX-view-program-list '(("EvinceDbus" auctex-evince-view)))
-    (setq TeX-view-program-selection '((output-pdf "EvinceDbus")))
-    (add-hook 'LaTeX-mode-hook (lambda ()
-                                 (progn
-                                   (make-local-variable 'vr-tex-mode)
-                                   (enable-evince-sync)
-                                   (reftex-mode t)
-                                   (TeX-fold-mode t)
-                                   (visual-line-mode t)))))))
+;;     ;; universal time, need by evince
+;;     (defun utime ()
+;;       (let ((high (nth 0 (current-time)))
+;;             (low (nth 1 (current-time))))
+;;         (+ (* high (lsh 1 16) ) low)))
+
+;;     ;; Forward search.
+;;     ;; Adapted from http://dud.inf.tu-dresden.de/~ben/evince_synctex.tar.gz
+;;     (defun auctex-evince-forward-sync (pdffile texfile line)
+;;       (let ((dbus-name
+;;              (dbus-call-method :session
+;;                                "org.gnome.evince.Daemon"  ; service
+;;                                "/org/gnome/evince/Daemon" ; path
+;;                                "org.gnome.evince.Daemon"  ; interface
+;;                                "FindDocument"
+;;                                (urlify pdffile)
+;;                                ;; Open a new window if the file is not opened.
+;;                                t
+;;                                )))
+;;         (dbus-call-method :session
+;;                           dbus-name
+;;                           "/org/gnome/evince/Window/0"
+;;                           "org.gnome.evince.Window"
+;;                           "SyncView"
+;;                           (urlify-escape-only texfile)
+;;                           (list :struct :int32 line :int32 1)
+;;                           (utime))))
+
+;;     (defun auctex-evince-view ()
+;;       (let ((pdf (file-truename
+;;                   (concat default-directory
+;;                           (TeX-master-file (TeX-output-extension)))))
+;;             (tex (buffer-file-name))
+;;             (line (line-number-at-pos)))
+;;         (auctex-evince-forward-sync pdf tex line)))
+
+;;     (setq TeX-view-program-list '(("EvinceDbus" auctex-evince-view)))
+;;     (setq TeX-view-program-selection '((output-pdf "EvinceDbus")))
+;;     (add-hook 'LaTeX-mode-hook (lambda ()
+;;                                  (progn
+;;                                    (make-local-variable 'vr-tex-mode)
+;;                                    (enable-evince-sync)
+;;                                    (reftex-mode t)
+;;                                    (TeX-fold-mode t)
+;;                                    (visual-line-mode t)))))))
 
 ;;; /b/}
 
