@@ -4400,9 +4400,13 @@ fields which we need."
   (add-hook
    'after-save-hook
    (lambda ()
-     (when (and (bound-and-true-p prettier-mode)
-                (bound-and-true-p flycheck-mode))
-       (flycheck-buffer))))
+     (run-with-idle-timer
+      0.1
+      nil
+      (lambda ()
+        (when (and (bound-and-true-p prettier-mode)
+                   (bound-and-true-p flycheck-mode))
+          (flycheck-buffer))))))
 
   :ensure t)
 
