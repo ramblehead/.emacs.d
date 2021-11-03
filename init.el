@@ -4953,14 +4953,41 @@ fields which we need."
 
 ;; https://github.com/raxod502/straight.el/issues/836#issuecomment-927098560
 
-(use-package auctex
+(use-package tex
   :mode ("\\.tex\\'" . LaTeX-mode)
   :config
+  (require 'reftex)
+  ;; (setq-default TeX-master 'dwim)
+
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
+  ;; parse on load
+  (setq TeX-parse-self t)
+  ;; parse on save
+  (setq TeX-auto-save t)
+  ;; Automatically remove all tabs from a file before saving it.
+  (setq TeX-auto-untabify t)
+  ;; Directory containing automatically generated TeX information.
+  (setq TeX-auto-local ".auctex-auto")
+  ;; Directory containing hand generated TeX information.
+  (setq TeX-style-local ".auctex-style")
+
+  ;; Enable synctex correlation.
+  ;; From Okular just press `Shift + Left click' to go to the good line.
+  ;; From Evince just press `Ctrl + Left click' to go to the good line.
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-method 'synctex)
+  (setq TeX-source-correlate-start-server t)
+
+  (add-hook
+   'LaTeX-mode-hook
+   (lambda ()
+     (TeX-source-correlate-mode 1)
+     (TeX-PDF-mode 1)
+     (message "xxxxxxxxxxx")))
 
   :defer t
-  :ensure t)
+  :ensure auctex)
 
 ;; (cond
 ;;  ((and (equal system-type 'windows-nt) (boundp 'AUCTeX-version))
