@@ -4397,17 +4397,22 @@ fields which we need."
   :custom
   (prettier-lighter " P")
 
+  :init
   (add-hook
    'after-save-hook
+   ;; 'before-save-hook
    (lambda ()
      (run-with-idle-timer
-      1000
+      2
       nil
-      (lambda ()
-        (when (and (bound-and-true-p prettier-mode)
-                   (bound-and-true-p flycheck-mode))
-          (flycheck-buffer))))))
+      (lambda (buffer)
+        (with-current-buffer buffer
+          (when (and (bound-and-true-p prettier-mode)
+                     (bound-and-true-p flycheck-mode))
+            (flycheck-buffer))))
+      (current-buffer))))
 
+  :defer t
   :ensure t)
 
 ;;; lisp-mode
