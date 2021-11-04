@@ -11,6 +11,10 @@
 
    ;; (setq-local rm-blacklist (seq-copy rm-blacklist))
    ;; (add-to-list 'rm-blacklist " jsi-node")
+
+   (setq-local font-lock-defaults '(()))
+   (tree-sitter-hl-mode 1)
+
    (rh-programming-minor-modes 1)))
 
 (defun typescript-tsc-pretty-error--find-filename ()

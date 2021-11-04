@@ -4171,13 +4171,13 @@ fields which we need."
   ;;    (add-to-list 'rm-blacklist " jsi-node")
   ;;    (rh-programming-minor-modes 1)))
 
-  (add-hook
-   'typescript-mode-hook
-   (lambda ()
-     (setq-local font-lock-defaults '(()))
-     (tree-sitter-hl-mode 1)
-     ;; (prettier-mode 1)
-     ))
+  ;; (add-hook
+  ;;  'typescript-mode-hook
+  ;;  (lambda ()
+  ;;    (setq-local font-lock-defaults '(()))
+  ;;    (tree-sitter-hl-mode 1)
+  ;;    ;; (prettier-mode 1)
+  ;;    ))
 
   ;; :bind (:map typescript-mode-map
   ;;        ("{" . nil)
@@ -4401,7 +4401,7 @@ fields which we need."
    'after-save-hook
    (lambda ()
      (run-with-idle-timer
-      0.1
+      1000
       nil
       (lambda ()
         (when (and (bound-and-true-p prettier-mode)
