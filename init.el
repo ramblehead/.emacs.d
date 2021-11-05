@@ -4406,10 +4406,11 @@ fields which we need."
       2
       nil
       (lambda (buffer)
-        (with-current-buffer buffer
-          (when (and (bound-and-true-p prettier-mode)
-                     (bound-and-true-p flycheck-mode))
-            (flycheck-buffer))))
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            (when (and (bound-and-true-p prettier-mode)
+                       (bound-and-true-p flycheck-mode))
+            (flycheck-buffer)))))
       (current-buffer))))
 
   :defer t
