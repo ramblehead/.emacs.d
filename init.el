@@ -4403,7 +4403,7 @@ fields which we need."
    ;; 'before-save-hook
    (lambda ()
      (run-with-idle-timer
-      2
+      3
       nil
       (lambda (buffer)
         (when (buffer-live-p buffer)
