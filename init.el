@@ -4564,18 +4564,16 @@ fields which we need."
 (defun vr-web-hs-html ()
   ;; hs-forward-sexp-func is equal to web-mode-forward-sexp by default
   ;; hs-adjust-block-beginning is nil by default
-  (setq hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
-  (setq hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
-  (setq hs-c-start-regexp "<!--")
-  ;; (setq hs-forward-sexp-func 'sgml-skip-tag-forward)
-  )
+  (setq-local hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
+  (setq-local hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
+  (setq-local hs-c-start-regexp "<!--")
+  (setq hs-forward-sexp-func 'sgml-skip-tag-forward))
 
 (defun vr-web-hs-default ()
-  (setq hs-block-start-regexp "{")
-  (setq hs-block-end-regexp "}")
-  (setq hs-c-start-regexp "/[*/]")
-  ;; (setq hs-forward-sexp-func 'web-mode-forward-sexp)
-  )
+  (setq-local hs-block-start-regexp "{")
+  (setq-local hs-block-end-regexp "}")
+  (setq-local hs-c-start-regexp "/[*/]")
+  (setq-local hs-forward-sexp-func 'web-mode-forward-sexp))
 
 (defun vr-web-hs-html-toggle-hiding ()
   (interactive)
@@ -4638,6 +4636,7 @@ fields which we need."
   (interactive)
   (let ((web-mode-cur-language (web-mode-language-at-pos)))
     (if (string-equal web-mode-cur-language "html")
+        ; (seq-contains-p '("html" "jsx") web-mode-cur-language)
         (progn
           (vr-web-hs-html)
           (hs-toggle-hiding))
@@ -4668,6 +4667,11 @@ fields which we need."
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.jsx\\'"
   :config
   (require 'company)
+
+  ;; TODO: sgml-mode function sgml-skip-tag-forward() is used in
+  ;;       vr-web-hs-html().  investigate why web-mode-forward-sexp() has
+  ;;       stopped working.
+  (require 'sgml-mode)
 
   (add-to-list
    'web-mode-ac-sources-alist
