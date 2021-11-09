@@ -4725,6 +4725,7 @@ fields which we need."
      (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
 
+     (setq-local font-lock-defaults '(()))
      (tree-sitter-hl-mode 1)
 
      (rh-programming-minor-modes 1)
