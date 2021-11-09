@@ -4150,7 +4150,8 @@ fields which we need."
   :disabled t)
 
 (use-package typescript-mode
-  :mode "\\.ts\\'\\|\\.tsx\\'"
+  :mode "\\.ts\\'"
+  ;; :mode "\\.ts\\'\\|\\.tsx\\'"
   ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
@@ -4213,7 +4214,7 @@ fields which we need."
 
   (add-to-list
    'tree-sitter-major-mode-language-alist
-   '(typescript-mode . tsx))
+   '(web-mode . tsx))
 
   :after tree-sitter
   :defer t
@@ -4662,8 +4663,8 @@ fields which we need."
                 ac-sources)))
 
 (use-package web-mode
-  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
-  :mode "\\.html\\'\\|\\.mako\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'"
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.jsx\\'"
   :config
   (require 'company)
@@ -4723,6 +4724,8 @@ fields which we need."
    (lambda ()
      (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
+
+     (tree-sitter-hl-mode 1)
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
