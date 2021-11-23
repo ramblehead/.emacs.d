@@ -4076,6 +4076,16 @@ fields which we need."
 
 ;;; /b/}
 
+(use-package csharp-mode
+  :config
+  (add-hook
+   'csharp-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes 1)))
+
+  :defer t
+  :ensure t)
+
 (use-package js
   ;; :mode ("\\.js\\'" . js-mode)
   ;; :interpreter "node"
