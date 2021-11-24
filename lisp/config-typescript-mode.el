@@ -18,8 +18,8 @@
    ;; (add-to-list 'rm-blacklist " jsi-node")
 
    ;; (setq-local font-lock-defaults '(()))
-   (setq-local tree-sitter-hl-use-font-lock-keywords nil)
-   (tree-sitter-hl-mode 1)
+   ;; (setq-local tree-sitter-hl-use-font-lock-keywords nil)
+   ;; (tree-sitter-hl-mode 1)
 
    (rh-programming-minor-modes 1)))
 

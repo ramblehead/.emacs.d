@@ -4160,8 +4160,8 @@ fields which we need."
   :disabled t)
 
 (use-package typescript-mode
-  ;; :mode "\\.ts\\'"
-  :mode "\\.ts\\'\\|\\.tsx\\'"
+  :mode "\\.ts\\'"
+  ;; :mode "\\.ts\\'\\|\\.tsx\\'"
   ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
@@ -4206,8 +4206,8 @@ fields which we need."
 
   (add-to-list
    'tree-sitter-major-mode-language-alist
-   ;; '(web-mode . tsx)
-   '(typescript-mode . tsx)
+   '(web-mode . tsx)
+   ;; '(typescript-mode . tsx)
    )
 
   :after tree-sitter
@@ -4656,8 +4656,8 @@ fields which we need."
                 ac-sources)))
 
 (use-package web-mode
-  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
-  :mode "\\.html\\'\\|\\.mako\\'"
+  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'"
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.jsx\\'"
   :config
   (require 'company)
@@ -4667,44 +4667,48 @@ fields which we need."
   ;;       stopped working.
   (require 'sgml-mode)
 
-  (add-to-list
-   'web-mode-ac-sources-alist
-   '("html" . (ac-source-html-tag
-               ac-source-html-attr
-               ac-source-html-attrv
-               ac-source-words-in-same-mode-buffers)))
+  ;; (add-to-list
+  ;;  'web-mode-ac-sources-alist
+  ;;  '("html" . (ac-source-html-tag
+  ;;              ac-source-html-attr
+  ;;              ac-source-html-attrv
+  ;;              ac-source-words-in-same-mode-buffers)))
 
-  (add-to-list
-   'web-mode-ac-sources-alist
-   '("javascript" . (ac-source-yasnippet
-                     ac-source-dictionary
-                     ac-source-words-in-same-mode-buffers)))
+  ;; (add-to-list
+  ;;  'web-mode-ac-sources-alist
+  ;;  '("javascript" . (ac-source-yasnippet
+  ;;                    ac-source-dictionary
+  ;;                    ac-source-words-in-same-mode-buffers)))
 
-  (add-to-list
-   'web-mode-ac-sources-alist
-   '("css" . (ac-source-css-property
-              ac-source-words-in-same-mode-buffers)))
+  ;; (add-to-list
+  ;;  'web-mode-ac-sources-alist
+  ;;  '("css" . (ac-source-css-property
+  ;;             ac-source-words-in-same-mode-buffers)))
 
-  (add-hook
-   'web-mode-before-auto-complete-hooks
-   (lambda ()
-     (let ((web-mode-cur-language (web-mode-language-at-pos)))
-       (if (string-equal web-mode-cur-language "javascript")
-           (progn
-             (vr-ac-add-buffer-dict "js-mode")
-             ;; (yas-activate-extra-mode 'js2-mode)
-             )
-         (progn
-           (vr-ac-remove-buffer-dict "js-mode")
-           ;; (yas-deactivate-extra-mode 'js2-mode)
-           )))))
+  ;; (add-hook
+  ;;  'web-mode-before-auto-complete-hooks
+  ;;  (lambda ()
+  ;;    (let ((web-mode-cur-language (web-mode-language-at-pos)))
+  ;;      (if (string-equal web-mode-cur-language "javascript")
+  ;;          (progn
+  ;;            (vr-ac-add-buffer-dict "js-mode")
+  ;;            ;; (yas-activate-extra-mode 'js2-mode)
+  ;;            )
+  ;;        (progn
+  ;;          (vr-ac-remove-buffer-dict "js-mode")
+  ;;          ;; (yas-deactivate-extra-mode 'js2-mode)
+  ;;          )))))
 
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
   (setq web-mode-block-padding 2)
 
-  (setq web-mode-enable-current-element-highlight t)
   (setq web-mode-enable-auto-indentation t)
+  (setq web-mode-enable-auto-closing nil)
+  (setq web-mode-enable-auto-pairing nil)
+  (setq web-mode-enable-auto-opening nil)
+  (setq web-mode-enable-auto-quoting nil)
+  (setq web-mode-enable-current-element-highlight nil)
 
   ;; (setq web-mode-comment-formats
   ;;       (remove-if (lambda (comment-format)
@@ -4724,9 +4728,9 @@ fields which we need."
      (company-mode 1)
 
      ;; (setq-local font-lock-defaults '(()))
+     ;; (setq-local tree-sitter-hl-use-font-lock-keywords nil)
      ;; (tree-sitter-hl-mode 1)
 
-     (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
      (setq-local require-final-newline nil)
 
@@ -4734,14 +4738,7 @@ fields which we need."
      (setq-local cgs-backward-list-original #'web-mode-backward-sexp)
      (setq-local cgs-hs-toggle-hiding-original #'vr-web-hs-toggle-hiding)
 
-     ;; (local-set-key (kbd "C-x C-S-j") #'web-mode-backward-sexp)
-     ;; (local-set-key (kbd "C-S-j") #'vr-web-hs-toggle-hiding)
-     ;; (local-set-key (kbd "C-M-n") #'forward-sexp)
-     ;; (local-set-key (kbd "C-M-p") #'backward-sexp)
-
-     ;; (local-set-key (kbd "C-S-b") #'recompile)
-     ;; (local-set-key (kbd "C-c b") #'rh-compile-toggle-display)
-     ))
+     (rh-programming-minor-modes 1)))
 
   :bind (:map web-mode-map
          ("C-c C-b" . nil))
