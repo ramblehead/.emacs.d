@@ -1,6 +1,11 @@
 ;;; ramblehead's typescript-mode configuration
 (require 'company)
 
+;; TODO: sgml-mode function sgml-skip-tag-forward() is used in
+;;       vr-web-hs-html().  investigate why web-mode-forward-sexp() has
+;;       stopped working.
+;; (require 'sgml-mode)
+
 (setq typescript-indent-level 2)
 
 (add-hook
@@ -12,7 +17,8 @@
    ;; (setq-local rm-blacklist (seq-copy rm-blacklist))
    ;; (add-to-list 'rm-blacklist " jsi-node")
 
-   (setq-local font-lock-defaults '(()))
+   ;; (setq-local font-lock-defaults '(()))
+   (setq-local tree-sitter-hl-use-font-lock-keywords nil)
    (tree-sitter-hl-mode 1)
 
    (rh-programming-minor-modes 1)))

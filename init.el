@@ -4160,8 +4160,8 @@ fields which we need."
   :disabled t)
 
 (use-package typescript-mode
-  :mode "\\.ts\\'"
-  ;; :mode "\\.ts\\'\\|\\.tsx\\'"
+  ;; :mode "\\.ts\\'"
+  :mode "\\.ts\\'\\|\\.tsx\\'"
   ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
                         "tsλn"
@@ -4171,24 +4171,6 @@ fields which we need."
   (require 'config-typescript-mode)
 
   ;; (setq typescript-indent-level 2)
-
-  ;; (add-hook
-  ;;  'typescript-mode-hook
-  ;;  (lambda ()
-  ;;    (setq-local company-backends (copy-tree company-backends))
-  ;;    (company-mode 1)
-
-  ;;    (setq-local rm-blacklist (seq-copy rm-blacklist))
-  ;;    (add-to-list 'rm-blacklist " jsi-node")
-  ;;    (rh-programming-minor-modes 1)))
-
-  ;; (add-hook
-  ;;  'typescript-mode-hook
-  ;;  (lambda ()
-  ;;    (setq-local font-lock-defaults '(()))
-  ;;    (tree-sitter-hl-mode 1)
-  ;;    ;; (prettier-mode 1)
-  ;;    ))
 
   ;; :bind (:map typescript-mode-map
   ;;        ("{" . nil)
@@ -4224,7 +4206,9 @@ fields which we need."
 
   (add-to-list
    'tree-sitter-major-mode-language-alist
-   '(web-mode . tsx))
+   ;; '(web-mode . tsx)
+   '(typescript-mode . tsx)
+   )
 
   :after tree-sitter
   :defer t
@@ -4672,8 +4656,8 @@ fields which we need."
                 ac-sources)))
 
 (use-package web-mode
-  :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
-  ;; :mode "\\.html\\'\\|\\.mako\\'"
+  ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.tsx\\'\\|\\.jsx\\'"
+  :mode "\\.html\\'\\|\\.mako\\'"
   ;; :mode "\\.html\\'\\|\\.mako\\'\\|\\.jsx\\'"
   :config
   (require 'company)
@@ -4720,7 +4704,7 @@ fields which we need."
   (setq web-mode-block-padding 2)
 
   (setq web-mode-enable-current-element-highlight t)
-  (setq web-mode-enable-auto-indentation nil)
+  (setq web-mode-enable-auto-indentation t)
 
   ;; (setq web-mode-comment-formats
   ;;       (remove-if (lambda (comment-format)
@@ -4739,8 +4723,8 @@ fields which we need."
      (setq-local company-backends (copy-tree company-backends))
      (company-mode 1)
 
-     (setq-local font-lock-defaults '(()))
-     (tree-sitter-hl-mode 1)
+     ;; (setq-local font-lock-defaults '(()))
+     ;; (tree-sitter-hl-mode 1)
 
      (rh-programming-minor-modes 1)
      (setq-local electric-indent-inhibit t)
