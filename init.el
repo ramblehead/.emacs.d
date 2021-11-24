@@ -4346,9 +4346,9 @@ fields which we need."
 
   (add-to-list 'rm-blacklist " jsi-node")
 
-  (setq jsi-use-yarn2 nil)
-  (setq jsi-node-command-require-esm nil)
-  (setq jsi-babel-skip-import t)
+  ;; (setq jsi-use-yarn2 nil)
+  ;; (setq jsi-node-command-require-esm nil)
+  ;; (setq jsi-babel-skip-import t)
 
   ;; Using company-capf until a proper company back-end is implemented
   ;; (require 'company-capf)
@@ -4561,7 +4561,9 @@ fields which we need."
   (setq-local hs-block-start-regexp "<!--\\|<[^/][^>]*[^/]>")
   (setq-local hs-block-end-regexp "-->\\|</[^/>]*[^/]>")
   (setq-local hs-c-start-regexp "<!--")
-  (setq hs-forward-sexp-func 'sgml-skip-tag-forward))
+  (setq hs-forward-sexp-func 'sgml-skip-tag-forward)
+  ;; (setq-local hs-forward-sexp-func 'web-mode-forward-sexp)
+  )
 
 (defun vr-web-hs-default ()
   (setq-local hs-block-start-regexp "{")
