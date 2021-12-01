@@ -3861,7 +3861,7 @@ fields which we need."
   (require 'company-capf)
   (require 'yarn-pnp)
 
-  (yarn-pnp-lsp-enable)
+  ;; (yarn-pnp-lsp-enable)
 
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
@@ -4705,7 +4705,7 @@ fields which we need."
   (setq web-mode-style-padding 2)
   (setq web-mode-block-padding 2)
 
-  (setq web-mode-enable-auto-indentation t)
+  (setq web-mode-enable-auto-indentation nil)
   (setq web-mode-enable-auto-closing nil)
   (setq web-mode-enable-auto-pairing nil)
   (setq web-mode-enable-auto-opening nil)
