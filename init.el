@@ -5341,11 +5341,14 @@ or buffer major mode symbol")
    ;; lsp
    lsp-log-io-mode
    "^\\*lsp-log\\*$"
+   "^\\*ts-ls\\*$"
    "^\\*clangd\\*$"
    ;; eglot
    "^\\*EGLOT .*$"
    ;; flymake
    "^\\*Flymake log\\*$"
+   ;; pretter
+   "^\\*prettier (local)\\*$"
    ;; rtags buffers
    "^\\*rdm\\*$"
    "^\\*RTags\\*$"
