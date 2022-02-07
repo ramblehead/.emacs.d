@@ -24,25 +24,25 @@
   (let ((fill-column (point-max)))
     (fill-paragraph nil)))
 
-(defun count-words-region (start end)
-  "Print and returns number of words in the region."
-  (interactive "r")
-  (save-excursion
-    (let ((n 0))
-      (goto-char start)
-      (while (< (point) end)
-        (if (forward-word 1)
-            (setq n (1+ n))))
-      (message "Region has %d words" n)
-      n)))
+;; (defun count-words-region (start end)
+;;   "Print and returns number of words in the region."
+;;   (interactive "r")
+;;   (save-excursion
+;;     (let ((n 0))
+;;       (goto-char start)
+;;       (while (< (point) end)
+;;         (if (forward-word 1)
+;;             (setq n (1+ n))))
+;;       (message "Region has %d words" n)
+;;       n)))
 
-(defun word-count-region (start end)
-  "Print number of lines words and characters in the region."
-  (interactive "r")
-  (message "Region has %d lines, %d words, %d characters"
-           (count-lines start end)
-           (count-words-region start end)
-           (- end start)))
+;; (defun word-count-region (start end)
+;;   "Print number of lines words and characters in the region."
+;;   (interactive "r")
+;;   (message "Region has %d lines, %d words, %d characters"
+;;            (count-lines start end)
+;;            (count-words-region start end)
+;;            (- end start)))
 
 (defun latex-word-count ()
   (interactive)
