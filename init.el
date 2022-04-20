@@ -32,6 +32,7 @@
 
 ;; * Emacs
 ;;   * https://www.emacswiki.org/emacs/GccEmacs
+;;   * https://github.com/editorconfig/editorconfig-emacs
 
 ;; * Ido, Ivy, etc.
 ;;   * https://github.com/raxod502/selectrum
@@ -5328,6 +5329,8 @@ or buffer major mode symbol")
    help-mode
    debugger-mode
    special-mode
+   ;; xref
+   xref--xref-buffer-mode
    ;; paradox
    paradox-menu-mode
    "^\\*Paradox http\\*$"
