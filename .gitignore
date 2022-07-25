@@ -1,24 +1,28 @@
-/.cask/
-/tramp
+/.cache
+/.cask
 /.tern-port
 /ac-comphist.dat
 /amx-items
-/auto-save-list/
+/auto-save-list
 /bookmarks
-/elpa/
-/eshell/
+/eln-cache
+/elpa
+/eshell
 /forge-database.sqlite
+/games
 /history
-/irony/
+/irony
 /recentf
-/semanticdb/
+/semanticdb
 /sm
 /smex-items
-/transient/
-/eln-cache
+/tramp
+/transient
 /url
 
 /session.*
 /.lsp-session-*
+
+*.~undo-tree~
 
 .mc-lists.el
