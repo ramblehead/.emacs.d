@@ -726,6 +726,7 @@ when only symbol face names are needed."
 
 (setq load-prefer-newer t)
 (add-to-list 'load-path rh-user-lisp-directory-path)
+(add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (load rh-user-site-start-file-path nil t t)
 
 (dolist (file-path rh-site-start-file-paths)
@@ -3390,9 +3391,22 @@ fields which we need."
   :defer t
   :pin manual)
 
+(defun rh-clang-format-package-find ()
+  "Finds clang-format.el package."
+  (or (locate-library "clang-format-14/clang-format.el")
+      (locate-library "clang-format-13/clang-format.el")
+      (locate-library "clang-format-12/clang-format.el")
+      (locate-library "clang-format-11/clang-format.el")
+      (locate-library "clang-format-10/clang-format.el")
+      (locate-library "clang-format-9/clang-format.el")
+      (locate-library "clang-format-8/clang-format.el")
+      (locate-library "clang-format.el")))
+
 (use-package clang-format
-  :if (locate-library "clang-format")
-  ;; :load-path "/usr/share/emacs/site-lisp/clang-format-9.0"
+  :if (rh-clang-format-package-find)
+  :load-path (lambda ()
+               (file-name-directory
+                (rh-clang-format-package-find)))
   :defer t
   :pin manual)
 
