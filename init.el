@@ -3283,14 +3283,14 @@ fields which we need."
 
   (setq lsp-clients-clangd-args
         '("-j=6"
+          "--clang-tidy"
           "--background-index"
           "--all-scopes-completion"
           "--limit-results=0"
-          ;; "--suggest-missing-includes"
-          ;; "--header-insertion=never"
+          "--header-insertion=iwyu"
           ;; "--completion-style=detailed"
           "--completion-style=bundled"
-          "--header-insertion-decorators=false"
+          ;; "--header-insertion-decorators=false"
           "--log=info"))
 
   :bind (:map lsp-mode-map
