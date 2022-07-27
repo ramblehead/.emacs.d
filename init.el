@@ -2547,9 +2547,9 @@ fields which we need."
   ;;                         '(save mode-enabled))
   ;; (customize-set-variable 'flycheck-indication-mode nil)
 
-  (if (display-graphic-p)
-      (flycheck-pos-tip-mode 1)
-    (flycheck-popup-tip-mode 1))
+  ;; (if (display-graphic-p)
+  ;;     (flycheck-pos-tip-mode 1)
+  ;;   (flycheck-popup-tip-mode 1))
 
   (setq flycheck-mode-line-prefix "Φ")
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
