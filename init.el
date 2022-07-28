@@ -33,6 +33,7 @@
 ;; * Emacs
 ;;   * https://www.emacswiki.org/emacs/GccEmacs
 ;;   * https://github.com/editorconfig/editorconfig-emacs
+;;   * https://github.com/orzechowskid/tsx-mode.el
 
 ;; * Ido, Ivy, etc.
 ;;   * https://github.com/raxod502/selectrum
