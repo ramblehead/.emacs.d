@@ -3945,11 +3945,12 @@ fields which we need."
 (use-package bazel
   :mode ("\\.bazel\\'\\|\\.bzl\\'\\|WORKSPACE\\'\\|\\.?BUILD\\'" . bazel-mode)
   :config
-  (setq python-indent-offset 2)
 
   (add-hook
    'bazel-mode-hook
    (lambda ()
+     (setq-local tab-width 2)
+     (setq-local python-indent-offset 2)
      (rh-programming-minor-modes 1)))
 
   :ensure t
