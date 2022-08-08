@@ -1510,7 +1510,7 @@ Also sets SYMBOL to VALUE."
   :config
   (add-to-list 'rm-blacklist " Undo-Tree")
 
-  ;; (setq-default undo-tree-auto-save-history nil)
+  (setq-default undo-tree-auto-save-history nil)
 
   (define-key undo-tree-map (kbd "C-z") #'undo-tree-undo)
   (define-key undo-tree-map (kbd "C-S-z") #'undo-tree-redo)
