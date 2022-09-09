@@ -3221,11 +3221,8 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  ;; Exclude clangd-12 for now.
-  ;; For some reason clangd-12 does not work correctly with uWebSockets...
-  ;; And other projects where h files are used for both C and C++ headers.
-  ;; clang-12 seems to be working now
-  (let ((path (or (executable-find "clangd-14")
+  (let ((path (or (executable-find "clangd-15")
+                  (executable-find "clangd-14")
                   (executable-find "clangd-13")
                   (executable-find "clangd-12")
                   (executable-find "clangd-11")
@@ -3394,7 +3391,8 @@ fields which we need."
 
 (defun rh-clang-format-package-find ()
   "Finds clang-format.el package."
-  (or (locate-library "clang-format-14/clang-format.el")
+  (or (locate-library "clang-format-15/clang-format.el")
+      (locate-library "clang-format-14/clang-format.el")
       (locate-library "clang-format-13/clang-format.el")
       (locate-library "clang-format-12/clang-format.el")
       (locate-library "clang-format-11/clang-format.el")
