@@ -3555,7 +3555,7 @@ fields which we need."
   :defer t)
 
 (use-package js2-mode
-  :mode "\\.js\\'"
+  :mode "\\.js\\'\\|\\.cjs\\'\\|\\.mjs\\'"
   :interpreter "node"
   ;; "λ" stands for interactive and "n" for Node.JS
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
@@ -4761,7 +4761,7 @@ or buffer major mode symbol")
    paradox-menu-mode
    "^\\*Paradox http\\*$"
    ;; eldoc
-   "^\\*eldoc .*\\*$"
+   "^\\*eldoc.*\\*$"
    ;; tide
    "^\\*tide-server\\*.*$"
    "^\\*node process\\*$"
