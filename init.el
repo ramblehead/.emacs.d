@@ -3409,6 +3409,14 @@ fields which we need."
   :defer t
   :pin manual)
 
+(define-minor-mode clang-format-mode
+  "Minor mode to call clang-format on save."
+  :lighter  " P"
+  (if clang-format-mode
+      (progn
+        (add-hook 'before-save-hook #'clang-format-buffer nil t))
+    (remove-hook 'before-save-hook #'clang-format-buffer t)))
+
 (use-package google-c-style
   :defer t
   :ensure t)
