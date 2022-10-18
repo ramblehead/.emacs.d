@@ -3962,6 +3962,10 @@ fields which we need."
   :ensure t
   :defer t)
 
+(use-package cmake-mode
+  :ensure t
+  :defer t)
+
 (use-package nxml-mode
   :mode "\\.xml\\'"
   :config
