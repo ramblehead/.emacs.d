@@ -3963,6 +3963,13 @@ fields which we need."
   :defer t)
 
 (use-package cmake-mode
+  :config
+  (add-hook
+   'cmake-mode-hook
+   (lambda ()
+     (setq-local tab-width 2)
+     (rh-programming-minor-modes 1)))
+
   :ensure t
   :defer t)
 
@@ -4714,7 +4721,8 @@ or buffer major mode symbol")
 (setq
  rh-buffers-semantic-not-file-groups
  '(("dired"
-    (dired-mode))
+    (dired-mode)
+    "^\\*Dired log\\*$")
    ("compilation"
     (compilation-mode
      (lambda (buffer)
