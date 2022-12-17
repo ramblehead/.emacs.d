@@ -3303,6 +3303,9 @@ fields which we need."
           ;; "--header-insertion-decorators=false"
           "--log=info"))
 
+  ;; (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
+  ;; (setq lsp-eldoc-render-all t)
+
   :bind (:map lsp-mode-map
          ("C-x C-<tab>" . company-capf))
 
