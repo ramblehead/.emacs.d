@@ -2089,7 +2089,8 @@ fields which we need."
 
 (use-package ivy-rich
   :config
-  (setq ivy-format-function #'ivy-format-function-line)
+  ;; (setq ivy-format-function #'ivy-format-function-line)
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
   (setq ivy-rich-path-style 'abbrev)
 
   ;; (defun rh-ivy-rich-switch-buffer-path (candidate)
@@ -2126,6 +2127,15 @@ fields which we need."
      :predicate
      (lambda (cand)
        (get-buffer cand))))
+
+  ;; Patch from https://github.com/Yevgnen/ivy-rich/issues/115#issuecomment-1336951680
+  (defun ivy-rich--switch-buffer-directory:around (orig-fun &rest args)
+    (cl-letf (((symbol-function 'directory-file-name) #'file-name-directory))
+    (apply orig-fun args)))
+
+  (advice-add
+   'ivy-rich--switch-buffer-directory
+   :around #'ivy-rich--switch-buffer-directory:around)
 
   (ivy-rich-mode 1)
 
@@ -4373,6 +4383,7 @@ fields which we need."
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
+         ("\\.mdx\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :commands (markdown-mode gfm-mode)
   :init (setq markdown-command "multimarkdown")
