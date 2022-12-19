@@ -1169,7 +1169,7 @@ Also sets SYMBOL to VALUE."
 
 (use-package xref
   :config
-  ;; (require 'config-xref)
+  (require 'config-xref)
 
   (add-to-list
    'display-buffer-alist
@@ -1187,10 +1187,10 @@ Also sets SYMBOL to VALUE."
    'g2w-display-buffer-reuse-window-commands
    'xref-show-location-at-point)
 
-  ;; :bind (("M-[" . rh-xref-return)
-  ;;        ("M-]" . rh-xref-undo-return))
-  :bind (("M-[" . xref-go-back)
-         ("M-]" . xref-go-forward))
+  :bind (("M-[" . rh-xref-return)
+         ("M-]" . rh-xref-undo-return))
+  ;; :bind (("M-[" . xref-go-back)
+  ;;        ("M-]" . xref-go-forward))
   :demand t)
 
 (use-package bind-key
@@ -2131,7 +2131,7 @@ fields which we need."
   ;; Patch from https://github.com/Yevgnen/ivy-rich/issues/115#issuecomment-1336951680
   (defun ivy-rich--switch-buffer-directory:around (orig-fun &rest args)
     (cl-letf (((symbol-function 'directory-file-name) #'file-name-directory))
-    (apply orig-fun args)))
+      (apply orig-fun args)))
 
   (advice-add
    'ivy-rich--switch-buffer-directory

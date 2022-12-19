@@ -107,7 +107,7 @@
       (setq-local rh-project-compile t)
       ;; (compilation-minor-mode)
       (vterm-send-string
-       (concat "TIMEFORMAT=\"\nTask took %Rs\" && time "
+       (concat "TIMEFORMAT=$'\\nTask took %Rs' && time "
                full-command
                "; exit"))
       (vterm-send-return))
