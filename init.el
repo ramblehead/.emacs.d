@@ -2467,19 +2467,19 @@ fields which we need."
   ;;    ((((type x)) (:inherit company-tooltip-selection :weight bold))
   ;;     (t (:inherit company-tooltip-selection)))))
 
-  (setq company-lighter
-        '(" "
-          (company-candidates
-           (:eval
-            (if (consp company-backend)
-                (company--group-lighter (nth company-selection
-                                             company-candidates)
-                                        company-lighter-base)
-              (cond
-               ((eq company-backend 'company-tern) "CA-ρ")
-               ((eq company-backend 'company-tide) "CA-τ")
-               (t (symbol-name company-backend)))))
-           company-lighter-base)))
+  ;; (setq company-lighter
+  ;;       '(" "
+  ;;         (company-candidates
+  ;;          (:eval
+  ;;           (if (consp company-backend)
+  ;;               (company--group-lighter (nth company-selection
+  ;;                                            company-candidates)
+  ;;                                       company-lighter-base)
+  ;;             (cond
+  ;;              ((eq company-backend 'company-tern) "CA-ρ")
+  ;;              ((eq company-backend 'company-tide) "CA-τ")
+  ;;              (t (symbol-name company-backend)))))
+  ;;          company-lighter-base)))
 
   ;; fci-mode interaction temporary patch
   ;; see https://github.com/company-mode/company-mode/issues/180
@@ -3829,6 +3829,13 @@ fields which we need."
   :bind (:map scss-mode-map
          ("C-S-b" . recompile)
          ("C-c b" . rh-compile-toggle-display))
+  :defer t
+  :ensure t)
+
+(use-package lsp-tailwindcss
+  :init
+  (setq lsp-tailwindcss-add-on-mode t)
+
   :defer t
   :ensure t)
 
