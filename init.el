@@ -2131,7 +2131,7 @@ fields which we need."
   ;; Patch from https://github.com/Yevgnen/ivy-rich/issues/115#issuecomment-1336951680
   (defun ivy-rich--switch-buffer-directory:around (orig-fun &rest args)
     (cl-letf (((symbol-function 'directory-file-name) #'file-name-directory))
-    (apply orig-fun args)))
+      (apply orig-fun args)))
 
   (advice-add
    'ivy-rich--switch-buffer-directory
