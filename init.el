@@ -3447,7 +3447,7 @@ fields which we need."
 
 (use-package cc-mode
   ;; :mode "/hpp\\'\\|\\.ipp\\'\\|\\.h\\'"
-  :mode (("/hpp\\'\\|\\.ipp\\'" . c++-mode))
+  :mode (("\\.hpp\\'\\|\\.ipp\\'\\|\\.ino\\'" . c++-mode))
   :config
   (require 'rh-cc-mode-config)
 
@@ -4390,6 +4390,14 @@ fields which we need."
          ("\\.markdown\\'" . markdown-mode))
   :commands (markdown-mode gfm-mode)
   :init (setq markdown-command "multimarkdown")
+  :config
+  (add-hook
+   'markdown-mode-hook
+   (lambda ()
+     ;; Using yas instead
+     (abbrev-mode -1)
+     (rh-programming-minor-modes t)))
+
   :ensure t)
 
 (use-package org
