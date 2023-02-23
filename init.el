@@ -1169,7 +1169,7 @@ Also sets SYMBOL to VALUE."
 
 (use-package xref
   :config
-  (require 'config-xref)
+  ;; (require 'config-xref)
 
   (add-to-list
    'display-buffer-alist
@@ -1187,10 +1187,10 @@ Also sets SYMBOL to VALUE."
    'g2w-display-buffer-reuse-window-commands
    'xref-show-location-at-point)
 
-  :bind (("M-[" . rh-xref-return)
-         ("M-]" . rh-xref-undo-return))
-  ;; :bind (("M-[" . xref-go-back)
-  ;;        ("M-]" . xref-go-forward))
+  ;; :bind (("M-[" . rh-xref-return)
+  ;;        ("M-]" . rh-xref-undo-return))
+  :bind (("M-[" . xref-go-back)
+         ("M-]" . xref-go-forward))
   :demand t)
 
 (use-package bind-key
@@ -3607,7 +3607,7 @@ fields which we need."
   :disabled t)
 
 (use-package typescript-mode
-  :mode "\\.ts\\'"
+  :mode "\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'"
   ;; :mode "\\.ts\\'\\|\\.tsx\\'"
   ;; :interpreter "node"
   :delight '((:eval (if (bound-and-true-p jsi-node-mode)
