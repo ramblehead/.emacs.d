@@ -4612,70 +4612,132 @@ fields which we need."
 ;; -------------------------------------------------------------------
 ;;; /b/{
 
-;; == /b/{ speck ==
+;; ;; == /b/{ speck ==
 
-(autoload 'speck-mode "speck"
-  "Toggle speck-mode." t)
-(autoload 'speck-activate "speck")
-(autoload 'speck-deactivate "speck")
+;; (autoload 'speck-mode "speck"
+;;   "Toggle speck-mode." t)
+;; (autoload 'speck-activate "speck")
+;; (autoload 'speck-deactivate "speck")
 
-;; This seems to work better with Unicode buffers.
-(setq speck-aspell-coding-system 'utf-8)
+;; ;; This seems to work better with Unicode buffers.
+;; (setq speck-aspell-coding-system 'utf-8)
 
-(setq speck-doublets t)
-(setq speck-aspell-default-dictionary-name "en_GB")
-;; (setq speck-personal-dictionary-file t)
+;; (setq speck-doublets t)
+;; (setq speck-aspell-default-dictionary-name "en_GB")
+;; ;; (setq speck-personal-dictionary-file t)
 
-(defun vr-conf-speck-prog ()
-  (make-local-variable 'speck-syntactic)
-  (setq speck-syntactic t))
+;; (defun vr-conf-speck-prog ()
+;;   (make-local-variable 'speck-syntactic)
+;;   (setq speck-syntactic t))
 
-(defun vr-conf-speck-prog-elisp ()
-  (make-local-variable 'speck-face-inhibit-list)
-  (setq speck-face-inhibit-list
-        '(font-lock-string-face
-          font-lock-constant-face)))
+;; (defun vr-conf-speck-prog-elisp ()
+;;   (make-local-variable 'speck-face-inhibit-list)
+;;   (setq speck-face-inhibit-list
+;;         '(font-lock-string-face
+;;           font-lock-constant-face)))
 
-(defun vr-conf-speck-tex ()
-  (set (make-local-variable 'speck-filter-mode) 'TeX))
+;; (defun vr-conf-speck-tex ()
+;;   (set (make-local-variable 'speck-filter-mode) 'TeX))
 
-(defun vr-smart-speck-mode (&optional value)
-  (interactive)
-  (if (not (local-variable-p 'vr-speck-confed))
-      (progn
-        (if (local-variable-p 'vr-prog-mode)
-            (progn
-              (vr-conf-speck-prog)
-              (if (local-variable-p 'vr-elisp-mode)
-                  (vr-conf-speck-prog-elisp)))
-          (if (local-variable-p 'vr-tex-mode)
-              (vr-conf-speck-tex)))
-        (set (make-local-variable 'vr-speck-confed) t)))
-  (if value
-      (speck-mode value)
-    (progn
-      (if (not (local-variable-p 'speck-mode))
-          (speck-activate)
-        (if speck-mode
-            (speck-deactivate)
-          (speck-activate))))))
+;; (defun vr-smart-speck-mode (&optional value)
+;;   (interactive)
+;;   (if (not (local-variable-p 'vr-speck-confed))
+;;       (progn
+;;         (if (local-variable-p 'vr-prog-mode)
+;;             (progn
+;;               (vr-conf-speck-prog)
+;;               (if (local-variable-p 'vr-elisp-mode)
+;;                   (vr-conf-speck-prog-elisp)))
+;;           (if (local-variable-p 'vr-tex-mode)
+;;               (vr-conf-speck-tex)))
+;;         (set (make-local-variable 'vr-speck-confed) t)))
+;;   (if value
+;;       (speck-mode value)
+;;     (progn
+;;       (if (not (local-variable-p 'speck-mode))
+;;           (speck-activate)
+;;         (if speck-mode
+;;             (speck-deactivate)
+;;           (speck-activate))))))
 
-(global-set-key (kbd "<f8>") 'vr-smart-speck-mode)
+;; (global-set-key (kbd "<f8>") 'vr-smart-speck-mode)
 
-;; == /b/} speck ==
+;; ;; == /b/} speck ==
 
-;; == /b/{ ispell ==
+(use-package flycheck-aspell
+  :config
+  (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
+  ;; (setq flycheck-checker-error-threshold 10000)
+
+  :defer t
+  :ensure t)
+
+(use-package flycheck
+  :config
+  (require 'config-flyspell)
+
+  :defer t)
 
 (use-package ispell
   :config
-  (setq ispell-program-name "aspell")
+  ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
+  ;; dictionary' even though multiple dictionaries will be configured
+  ;; in next line.
+  ;; (setenv "LANG" "en_GB.UTF-8")
+
   (setq ispell-silently-savep t)
   (setq ispell-use-framepop-p t)
 
+  ;; (setq ispell-program-name "aspell")
+
+  ;; (setq-default ispell-program-name "enchant-2")
+  ;; (setq ispell-really-enchant t)
+
+  (setq ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t)
+
+  ;; Configure two variants of English and Russian.
+  ;; ispell-set-spellchecker-params has to be called
+  ;; before ispell-hunspell-add-multi-dic will work
+  (ispell-set-spellchecker-params)
+  ;; (ispell-hunspell-add-multi-dic "en_GB,en_US,ru_RU")
+  (setq ispell-dictionary "en_GB,en_US,ru_RU")
+
+  ;; (add-to-list 'ispell-enchant-dictionary-alist
+  ;;              '(("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
+  ;;                 ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
+
+  ;; (add-to-list 'ispell-local-dictionary-alist
+  ;;              '(("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
+  ;;                 ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
+
+  ;; (setq ispell-local-dictionary-alist
+  ;;       '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)
+  ;;         ("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_GB") nil utf-8)
+  ;;         ("ru_RU" "[а-я]" "[^[:alpha:]]" "[']" t ("-d" "ru_RU") nil utf-8)))
+
+  (setq
+   ispell-local-dictionary-alist
+   '(("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_GB") nil utf-8)
+     ("en_US" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_US") nil utf-8)
+     ("ru_RU"
+      "[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
+      "[^АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
+      "['’]" nil ("-d" "ru_RU") nil utf-8)
+     ("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
+      ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
+
+  ;; For saving words to the personal dictionary, don't infer it from
+  ;; the locale, otherwise it would save to ~/.hunspell_de_DE.
+  (setq ispell-personal-dictionary "~/.hunspell_personal")
+
+  ;; The personal dictionary file has to exist, otherwise hunspell will
+  ;; silently not use it.
+  ;; (unless (file-exists-p ispell-personal-dictionary)
+  ;;   (write-region "" nil ispell-personal-dictionary nil 0))
+
   :bind (("C-x w" . 'ispell-word))
   :defer t)
-
-;; == /b/} ispell ==
 
 ;;; /b/}
 
