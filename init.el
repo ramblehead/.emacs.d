@@ -4664,6 +4664,34 @@ fields which we need."
 
 ;; ;; == /b/} speck ==
 
+(use-package spell-fu
+  :config
+  (setq-default
+   rh-spell-fu-personal-dictionary-name
+   "spell-fu_rh-personal")
+
+  (setq-default
+   rh-spell-fu-personal-dictionary-file
+   (concat "~/." rh-spell-fu-personal-dictionary-name))
+
+  (setq-default
+   spell-fu-dictionaries
+   (list (spell-fu-get-personal-dictionary
+          rh-spell-fu-personal-dictionary-name
+          rh-spell-fu-personal-dictionary-file)
+         (spell-fu-get-ispell-dictionary "en")
+         (spell-fu-get-ispell-dictionary "ru")))
+
+  ;; (setq-default spell-fu-dictionaries nil)
+  ;; (spell-fu-dictionary-add (spell-fu-get-ispell-dictionary "ru"))
+  ;; (spell-fu-dictionary-add (spell-fu-get-ispell-dictionary "en"))
+
+  (unless (file-exists-p rh-spell-fu-personal-dictionary-file)
+    (write-region "" nil rh-spell-fu-personal-dictionary-file nil 0))
+
+  :defer t
+  :ensure t)
+
 (use-package flycheck-aspell
   :config
   (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
@@ -4678,8 +4706,34 @@ fields which we need."
 
   :defer t)
 
+;; (use-package ispell
+;;   :config
+;;   ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
+;;   ;; dictionary' even though multiple dictionaries will be configured
+;;   ;; in next line.
+;;   ;; (setenv "LANG" "en_GB.UTF-8")
+
+;;   (setq ispell-silently-savep t)
+;;   (setq ispell-use-framepop-p t)
+
+;;   (setq ispell-program-name "aspell")
+
+;;   ;; For saving words to the personal dictionary, don't infer it from
+;;   ;; the locale, otherwise it would save to ~/.hunspell_de_DE.
+;;   (setq ispell-personal-dictionary "~/.hunspell_personal")
+
+;;   ;; The personal dictionary file has to exist, otherwise hunspell will
+;;   ;; silently not use it.
+;;   (unless (file-exists-p ispell-personal-dictionary)
+;;     (write-region "" nil ispell-personal-dictionary nil 0))
+
+;;   :bind (("C-x w" . 'ispell-word))
+;;   :defer t)
+
 (use-package ispell
   :config
+  (ispell-find-aspell-dictionaries)
+
   ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
   ;; dictionary' even though multiple dictionaries will be configured
   ;; in next line.
@@ -4716,7 +4770,7 @@ fields which we need."
   ;;         ("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_GB") nil utf-8)
   ;;         ("ru_RU" "[а-я]" "[^[:alpha:]]" "[']" t ("-d" "ru_RU") nil utf-8)))
 
-  (setq
+  (setq-default
    ispell-local-dictionary-alist
    '(("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_GB") nil utf-8)
      ("en_US" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_US") nil utf-8)
@@ -4733,8 +4787,8 @@ fields which we need."
 
   ;; The personal dictionary file has to exist, otherwise hunspell will
   ;; silently not use it.
-  ;; (unless (file-exists-p ispell-personal-dictionary)
-  ;;   (write-region "" nil ispell-personal-dictionary nil 0))
+  (unless (file-exists-p ispell-personal-dictionary)
+    (write-region "" nil ispell-personal-dictionary nil 0))
 
   :bind (("C-x w" . 'ispell-word))
   :defer t)

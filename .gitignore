@@ -19,6 +19,7 @@
 /tramp
 /transient
 /url
+/spell-fu
 
 /session.*
 /.lsp-session-*
