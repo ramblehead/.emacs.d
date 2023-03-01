@@ -4700,7 +4700,8 @@ fields which we need."
   :defer t
   :ensure t)
 
-(use-package flycheck
+(use-package flyspell
+  :commands flyspell-visible-mode
   :config
   (require 'config-flyspell)
 
