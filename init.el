@@ -4403,7 +4403,18 @@ fields which we need."
    (lambda ()
      ;; Using yas instead
      (abbrev-mode -1)
-     (rh-programming-minor-modes t)))
+     (rh-programming-minor-modes t)
+
+     (setq-local
+      spell-fu-faces-exclude
+      '(markdown-code-face
+        markdown-html-attr-name-face
+        markdown-html-entity-face
+        markdown-html-tag-name-face
+        markdown-inline-code-face
+        markdown-metadata-key-face
+        markdown-pre-face
+        markdown-url-face))))
 
   :ensure t)
 
@@ -4706,32 +4717,11 @@ fields which we need."
 
   :defer t)
 
-;; (use-package ispell
-;;   :config
-;;   ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
-;;   ;; dictionary' even though multiple dictionaries will be configured
-;;   ;; in next line.
-;;   ;; (setenv "LANG" "en_GB.UTF-8")
-
-;;   (setq ispell-silently-savep t)
-;;   (setq ispell-use-framepop-p t)
-
-;;   (setq ispell-program-name "aspell")
-
-;;   ;; For saving words to the personal dictionary, don't infer it from
-;;   ;; the locale, otherwise it would save to ~/.hunspell_de_DE.
-;;   (setq ispell-personal-dictionary "~/.hunspell_personal")
-
-;;   ;; The personal dictionary file has to exist, otherwise hunspell will
-;;   ;; silently not use it.
-;;   (unless (file-exists-p ispell-personal-dictionary)
-;;     (write-region "" nil ispell-personal-dictionary nil 0))
-
-;;   :bind (("C-x w" . 'ispell-word))
-;;   :defer t)
-
 (use-package ispell
   :config
+  ;; This call is required for spell-fu to work correctly.
+  ;; It initialises ispell-aspell-dictionary-alist before
+  ;; ispell-program-name is set to "hunspell".
   (ispell-find-aspell-dictionaries)
 
   ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
@@ -4756,14 +4746,6 @@ fields which we need."
   (ispell-set-spellchecker-params)
   ;; (ispell-hunspell-add-multi-dic "en_GB,en_US,ru_RU")
   (setq ispell-dictionary "en_GB,en_US,ru_RU")
-
-  ;; (add-to-list 'ispell-enchant-dictionary-alist
-  ;;              '(("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
-  ;;                 ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
-
-  ;; (add-to-list 'ispell-local-dictionary-alist
-  ;;              '(("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
-  ;;                 ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
 
   ;; (setq ispell-local-dictionary-alist
   ;;       '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)
