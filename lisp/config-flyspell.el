@@ -53,7 +53,7 @@
     (cancel-timer flyspell-visible--delay-timer))
   (setq flyspell-visible--delay-timer nil)
   (setq flyspell-visible--delay-buffer nil)
-  (setq flyspell-visible-last-window-range nil))
+  (setq-local flyspell-visible-last-window-range nil))
 
 ;;;###autoload
 (define-minor-mode flyspell-visible-mode
@@ -65,8 +65,8 @@
         (flyspell-mode 1)
         (flyspell-visible-turn-on)
         (message "Flyspell visible mode enabled"))
+    (flyspell-visible-turn-off)
     (flyspell-mode -1)
-    (flyspell-visible-turn-on)
     (message "Flyspell visible mode disabled")))
 
 (add-to-list 'rm-blacklist " FlyV")
