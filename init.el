@@ -3904,7 +3904,13 @@ fields which we need."
      (rh-programming-minor-modes 1)
      (eldoc-mode 1)
      (auto-complete-mode 1)
-     (set (make-local-variable 'vr-elisp-mode) t)))
+     (setq-local vr-elisp-mode t)
+
+     ;; Code formatting
+     ;; (setq-local indent-tabs-mode nil)
+     ;; (setq-local lisp-indent-function nil)
+     ;; (setq-local lisp-indent-offset 2)
+     ))
 
   :bind (:map lisp-mode-shared-map
          ("<f5>" . rh-lisp-eval-region-or-last-sexp)
