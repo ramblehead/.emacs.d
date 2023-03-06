@@ -3868,6 +3868,8 @@ fields which we need."
 (use-package elisp-autofmt
   :ensure t)
 
+(use-package elfmt)
+
 ;;; lisp-mode
 ;;; /b/{
 
