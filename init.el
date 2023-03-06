@@ -3865,6 +3865,9 @@ fields which we need."
   :defer t
   :ensure t)
 
+(use-package elisp-autofmt
+  :ensure t)
+
 ;;; lisp-mode
 ;;; /b/{
 

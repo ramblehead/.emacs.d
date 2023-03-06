@@ -20,6 +20,7 @@
 /transient
 /url
 /spell-fu
+/elisp-autofmt-cache
 
 /session.*
 /.lsp-session-*
