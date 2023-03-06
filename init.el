@@ -4,8 +4,7 @@
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(when (file-exists-p custom-file)
-  (load custom-file))
+(when (file-exists-p custom-file) (load custom-file))
 
 (setq rh-emacs-version-string
       (replace-regexp-in-string
@@ -76,11 +75,13 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(use-package
- gnu-elpa-keyring-update
- :config (gnu-elpa-keyring-update)
- :demand t
- :ensure t)
+(use-package gnu-elpa-keyring-update
+  :config
+
+  (gnu-elpa-keyring-update)
+
+  :demand t
+  :ensure t)
 
 (use-package use-package-ensure-system-package :ensure t)
 
@@ -89,111 +90,109 @@
 ;;; /b/; Basic system setup
 ;;; /b/{
 
-(use-package
- emacs
- :config
- (setq inhibit-splash-screen t)
- (setq inhibit-startup-message t)
- (setq split-height-threshold nil)
- (setq split-width-threshold 170)
+(use-package emacs
+  :config
 
- (when (display-graphic-p)
-   ;; Change cursor type according to mode
-   ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-   (setq overwrite-cursor-type 'box)
-   (setq read-only-cursor-type 'hbar)
-   (setq normal-cursor-type 'bar)
+  (setq inhibit-splash-screen t)
+  (setq inhibit-startup-message t)
 
-   ;; (setq-default line-spacing nil)
-   ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-   ;; (add-to-list 'default-frame-alist
-   ;;              '(font . "Hack-10.5"))
+  ;; Windows splitting
+  (setq split-height-threshold nil)
+  (setq split-width-threshold 170)
 
-   ;; HiDPI
-   (let ((width-pixels
-          (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
-     (cond
-      ((= width-pixels 1920)
-       ;; (fringe-mode '(16 . 16))
-       ;; (setq read-only-cursor-type '(hbar . 4))
-       ;; (setq normal-cursor-type '(bar . 4))
-       ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-       (add-to-list 'default-frame-alist '(font . "Hack-10.5")))
+  (when (display-graphic-p)
+    ;; Change cursor type according to mode
+    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+    (setq overwrite-cursor-type 'box)
+    (setq read-only-cursor-type 'hbar)
+    (setq normal-cursor-type 'bar)
 
-      ((= width-pixels 2560)
-       (add-to-list 'default-frame-alist '(font . "Hack-9")))))
+    ;; (setq-default line-spacing nil)
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+    ;; (add-to-list 'default-frame-alist
+    ;;              '(font . "Hack-10.5"))
 
-   (set-face-attribute 'region nil
-                       :box
-                       '(:line-width
-                         (-1 . -1)
-                         ;; :color "gtk_selection_bg_color"
-                         :color "#ea5e30"
-                         :style nil)
-                       :background "#ea5e30")
+    ;; HiDPI
+    (let ((width-pixels
+           (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
+      (cond
+       ((= width-pixels 1920)
+        ;; (fringe-mode '(16 . 16))
+        ;; (setq read-only-cursor-type '(hbar . 4))
+        ;; (setq normal-cursor-type '(bar . 4))
+        ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+        (add-to-list 'default-frame-alist '(font . "Hack-10.5")))
 
-   ;; face-font-family-alternatives
+       ((= width-pixels 2560)
+        (add-to-list 'default-frame-alist '(font . "Hack-9")))))
 
-   ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
-   ;; (set-face-attribute 'default nil
-   ;;                     :family "Hack"
-   ;;                     :height 90
-   ;;                     :width 'semi-condensed
-   ;;                     :weight 'normal)
+    (set-face-attribute 'region nil
+                        :box '(:line-width (-1 . -1)
+                                           ;; :color "gtk_selection_bg_color"
+                                           :color "#ea5e30"
+                                           :style nil)
+                        :background "#ea5e30")
 
-   ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
-   (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
-   (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-   (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
-   (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
-   (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
-   (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
-   (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
-   ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-   )
+    ;; face-font-family-alternatives
 
- ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
- ;; (color-theme-sanityinc-tomorrow-blue)
- ;; (load-theme 'sanityinc-tomorrow-blue t)
- ;; (disable-theme 'sanityinc-tomorrow-blue)
- ;; (enable-theme 'sanityinc-tomorrow-blue)
+    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
+    ;; (set-face-attribute 'default nil
+    ;;                     :family "Hack"
+    ;;                     :height 90
+    ;;                     :width 'semi-condensed
+    ;;                     :weight 'normal)
 
- ;; (customize-set-variable 'find-file-visit-truename t)
- (customize-set-value 'find-file-visit-truename t)
+    ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+    (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
+    (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
+    (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
+    ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
+    )
 
- ;; Disable annoying key binding for (suspend-frame) function and quit
- (global-unset-key (kbd "C-x C-z"))
- (global-unset-key (kbd "C-x C-c"))
+  ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
+  ;; (color-theme-sanityinc-tomorrow-blue)
+  ;; (load-theme 'sanityinc-tomorrow-blue t)
+  ;; (disable-theme 'sanityinc-tomorrow-blue)
+  ;; (enable-theme 'sanityinc-tomorrow-blue)
 
- ;; Prevent translation from <kp-bebin> to <begin>
- (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
+  ;; (customize-set-variable 'find-file-visit-truename t)
+  (customize-set-value 'find-file-visit-truename t)
 
- ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
- ;; for keybindings aliases. Can also be used with (current-local-map)
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-up>")
-  (lookup-key (current-global-map) (kbd "C-<up>")))
+  ;; Disable annoying key binding for (suspend-frame) function and quit
+  (global-unset-key (kbd "C-x C-z"))
+  (global-unset-key (kbd "C-x C-c"))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-down>")
-  (lookup-key (current-global-map) (kbd "C-<down>")))
+  ;; Prevent translation from <kp-bebin> to <begin>
+  (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-left>")
-  (lookup-key (current-global-map) (kbd "C-<left>")))
+  ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
+  ;; for keybindings aliases. Can also be used with (current-local-map)
+  (define-key
+    (current-global-map)
+    (kbd "C-<kp-up>")
+    (lookup-key (current-global-map) (kbd "C-<up>")))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-right>")
-  (lookup-key (current-global-map) (kbd "C-<right>")))
+  (define-key
+    (current-global-map)
+    (kbd "C-<kp-down>")
+    (lookup-key (current-global-map) (kbd "C-<down>")))
 
- :bind
- ( ;; Exit Emacs!
-  ("C-x r q" . save-buffers-kill-terminal)
-  ("C-x f" . find-file-at-point))
- :demand t)
+  (define-key
+    (current-global-map)
+    (kbd "C-<kp-left>")
+    (lookup-key (current-global-map) (kbd "C-<left>")))
+
+  (define-key
+    (current-global-map)
+    (kbd "C-<kp-right>")
+    (lookup-key (current-global-map) (kbd "C-<right>")))
+
+  :bind (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+         ("C-x f" . find-file-at-point))
+  :demand t)
 
 ;;; /b/}
