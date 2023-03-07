@@ -76,127 +76,126 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(use-package
- gnu-elpa-keyring-update
- :config
+(use-package gnu-elpa-keyring-update
+  :config (gnu-elpa-keyring-update)
 
- (gnu-elpa-keyring-update)
+  :demand t
+  :ensure t)
 
- :demand t
- :ensure t)
-
-(use-package use-package-ensure-system-package :ensure t)
+(use-package use-package-ensure-system-package
+  :ensure t)
 
 ;;; /b/}
 
 ;;; /b/; Basic system setup
 ;;; /b/{
 
-(use-package
- emacs
- :config
+(use-package emacs
+  :config
+  ;; No ceremony
+  (setq inhibit-splash-screen t)
+  (setq inhibit-startup-message t)
 
- ;; No ceremony
- (setq inhibit-splash-screen t) (setq inhibit-startup-message t)
+  ;; Windows splitting
+  (setq split-height-threshold nil)
+  (setq split-width-threshold 170)
 
- ;; Windows splitting
- (setq split-height-threshold nil) (setq split-width-threshold 170)
+  (when (display-graphic-p)
+    ;; Change cursor type according to mode
+    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+    (setq overwrite-cursor-type 'box)
+    (setq read-only-cursor-type 'hbar)
+    (setq normal-cursor-type 'bar)
 
- (when (display-graphic-p)
-   ;; Change cursor type according to mode
-   ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-   (setq overwrite-cursor-type 'box)
-   (setq read-only-cursor-type 'hbar)
-   (setq normal-cursor-type 'bar)
+    ;; (setq-default line-spacing nil)
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+    ;; (add-to-list 'default-frame-alist
+    ;;              '(font . "Hack-10.5"))
 
-   ;; (setq-default line-spacing nil)
-   ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-   ;; (add-to-list 'default-frame-alist
-   ;;              '(font . "Hack-10.5"))
+    ;; HiDPI
+    (let ((width-pixels
+           (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
+      (cond
+       ((= width-pixels 1920)
+        ;; (fringe-mode '(16 . 16))
+        ;; (setq read-only-cursor-type '(hbar . 4))
+        ;; (setq normal-cursor-type '(bar . 4))
+        ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+        (add-to-list 'default-frame-alist '(font . "Hack-10.5")))
 
-   ;; HiDPI
-   (let ((width-pixels
-          (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
-     (cond
-      ((= width-pixels 1920)
-       ;; (fringe-mode '(16 . 16))
-       ;; (setq read-only-cursor-type '(hbar . 4))
-       ;; (setq normal-cursor-type '(bar . 4))
-       ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-       (add-to-list 'default-frame-alist '(font . "Hack-10.5")))
+       ((= width-pixels 2560)
+        (add-to-list 'default-frame-alist '(font . "Hack-9")))))
 
-      ((= width-pixels 2560)
-       (add-to-list 'default-frame-alist '(font . "Hack-9")))))
+    (set-face-attribute 'region nil
+                        :box
+                        '(:line-width
+                          (-1 . -1)
+                          ;; :color "gtk_selection_bg_color"
+                          :color "#ea5e30"
+                          :style nil)
+                        :background "#ea5e30")
 
-   (set-face-attribute 'region nil
-                       :box
-                       '(:line-width
-                         (-1 . -1)
-                         ;; :color "gtk_selection_bg_color"
-                         :color "#ea5e30"
-                         :style nil)
-                       :background "#ea5e30")
+    ;; face-font-family-alternatives
 
-   ;; face-font-family-alternatives
+    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
+    ;; (set-face-attribute 'default nil
+    ;;                     :family "Hack"
+    ;;                     :height 90
+    ;;                     :width 'semi-condensed
+    ;;                     :weight 'normal)
 
-   ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
-   ;; (set-face-attribute 'default nil
-   ;;                     :family "Hack"
-   ;;                     :height 90
-   ;;                     :width 'semi-condensed
-   ;;                     :weight 'normal)
+    ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+    (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
+    (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
+    (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
+    ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
+    )
 
-   ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
-   (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
-   (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-   (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
-   (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
-   (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
-   (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
-   (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
-   ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-   )
+  ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
+  ;; (color-theme-sanityinc-tomorrow-blue)
+  ;; (load-theme 'sanityinc-tomorrow-blue t)
+  ;; (disable-theme 'sanityinc-tomorrow-blue)
+  ;; (enable-theme 'sanityinc-tomorrow-blue)
 
- ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
- ;; (color-theme-sanityinc-tomorrow-blue)
- ;; (load-theme 'sanityinc-tomorrow-blue t)
- ;; (disable-theme 'sanityinc-tomorrow-blue)
- ;; (enable-theme 'sanityinc-tomorrow-blue)
+  ;; (customize-set-variable 'find-file-visit-truename t)
+  (customize-set-value 'find-file-visit-truename t)
 
- ;; (customize-set-variable 'find-file-visit-truename t)
- (customize-set-value 'find-file-visit-truename t)
+  ;; Disable annoying key binding for (suspend-frame) function and quit
+  (global-unset-key (kbd "C-x C-z"))
+  (global-unset-key (kbd "C-x C-c"))
 
- ;; Disable annoying key binding for (suspend-frame) function and quit
- (global-unset-key (kbd "C-x C-z")) (global-unset-key (kbd "C-x C-c"))
+  ;; Prevent translation from <kp-bebin> to <begin>
+  (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
 
- ;; Prevent translation from <kp-bebin> to <begin>
- (global-set-key (kbd "<kp-begin>") (lambda () (interactive)))
+  ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
+  ;; for keybindings aliases. Can also be used with (current-local-map)
+  (define-key
+   (current-global-map)
+   (kbd "C-<kp-up>")
+   (lookup-key (current-global-map) (kbd "C-<up>")))
 
- ;; see http://superuser.com/questions/498533/how-to-alias-keybindings-in-emacs
- ;; for keybindings aliases. Can also be used with (current-local-map)
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-up>")
-  (lookup-key (current-global-map) (kbd "C-<up>")))
+  (define-key
+   (current-global-map)
+   (kbd "C-<kp-down>")
+   (lookup-key (current-global-map) (kbd "C-<down>")))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-down>")
-  (lookup-key (current-global-map) (kbd "C-<down>")))
+  (define-key
+   (current-global-map)
+   (kbd "C-<kp-left>")
+   (lookup-key (current-global-map) (kbd "C-<left>")))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-left>")
-  (lookup-key (current-global-map) (kbd "C-<left>")))
+  (define-key
+   (current-global-map)
+   (kbd "C-<kp-right>")
+   (lookup-key (current-global-map) (kbd "C-<right>")))
 
- (define-key
-  (current-global-map)
-  (kbd "C-<kp-right>")
-  (lookup-key (current-global-map) (kbd "C-<right>")))
-
- :bind
- (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
-  ("C-x f" . find-file-at-point))
- :demand t)
+  :bind
+  (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+   ("C-x f" . find-file-at-point))
+  :demand t)
 
 ;;; /b/}
