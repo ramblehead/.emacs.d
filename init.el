@@ -1154,6 +1154,9 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+
+;; Might need "gsettings set org.freedesktop.ibus.panel.emoji hotkey ['']"
+;; see https://www.reddit.com/r/emacs/comments/wwyrgs/ctrl_semicolon_behaves_strangely/
 (use-package iedit
   :config
   (setq iedit-auto-save-occurrence-in-kill-ring nil)
