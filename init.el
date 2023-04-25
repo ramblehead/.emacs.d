@@ -4497,9 +4497,10 @@ fields which we need."
   (add-hook
    'LaTeX-mode-hook
    (lambda ()
+     (rh-programming-minor-modes 1)
+     (flyspell-visible-mode 1)
      (TeX-source-correlate-mode 1)
-     (TeX-PDF-mode 1)
-     (message "xxxxxxxxxxx")))
+     (TeX-PDF-mode 1)))
 
   :defer t
   :ensure auctex)
@@ -4731,14 +4732,12 @@ fields which we need."
 
 (use-package ispell
   :config
-  ;; This call is required for spell-fu to work correctly.
-  ;; It initialises ispell-aspell-dictionary-alist before
-  ;; ispell-program-name is set to "hunspell".
+  ;; This call is required for spell-fu to work correctly. It initialises
+  ;; ispell-aspell-dictionary-alist before ispell-program-name is set to
+  ;; "hunspell".
   (ispell-find-aspell-dictionaries)
 
-  ;; Configure `LANG`, otherwise ispell.el cannot find a 'default
-  ;; dictionary' even though multiple dictionaries will be configured
-  ;; in next line.
+  ;; In case if it is not already set by OS or set to another value.
   ;; (setenv "LANG" "en_GB.UTF-8")
 
   (setq ispell-silently-savep t)
@@ -4753,8 +4752,8 @@ fields which we need."
   (setq ispell-really-hunspell t)
 
   ;; Configure two variants of English and Russian.
-  ;; ispell-set-spellchecker-params has to be called
-  ;; before ispell-hunspell-add-multi-dic will work
+  ;; ispell-set-spellchecker-params has to be called before
+  ;; ispell-hunspell-add-multi-dic will work
   (ispell-set-spellchecker-params)
   ;; (ispell-hunspell-add-multi-dic "en_GB,en_US,ru_RU")
   (setq ispell-dictionary "en_GB,en_US,ru_RU")
