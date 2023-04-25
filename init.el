@@ -1154,6 +1154,9 @@ Also sets SYMBOL to VALUE."
   :demand t
   :ensure t)
 
+
+;; Might need "gsettings set org.freedesktop.ibus.panel.emoji hotkey ['']"
+;; see https://www.reddit.com/r/emacs/comments/wwyrgs/ctrl_semicolon_behaves_strangely/
 (use-package iedit
   :config
   (setq iedit-auto-save-occurrence-in-kill-ring nil)
@@ -3090,12 +3093,13 @@ fields which we need."
   :ensure t)
 
 (use-package forge
-  :init
-  (customize-set-variable
-   'forge-bug-reference-hooks
-   '(git-commit-setup-hook magit-mode-hook))
+  ;; :init
+  ;; (customize-set-variable
+  ;;  'forge-bug-reference-hooks
+  ;;  '(git-commit-setup-hook magit-mode-hook))
 
   :config
+  (setq forge-post-fill-region nil)
   ;; TODO: Remove the following function after https with user name issue is
   ;;       resolved.
   ;; see https://github.com/magit/forge/issues/169
@@ -4728,6 +4732,8 @@ fields which we need."
   :config
   (require 'config-flyspell)
 
+  :bind (:map flyspell-mode-map
+         ("C-;" . nil))
   :defer t)
 
 (use-package ispell
@@ -4942,7 +4948,9 @@ or buffer major mode symbol")
    "^\\*RTags Diagnostics\\*$"
    "^\\*RTags Log\\*$"
    ;; AUCTeX output files
-   " output\\*$"))
+   " output\\*$"
+   ;; tailwind
+   "^\\*tailwindcss\\*$"))
 
 (setq rh-buffers-groups '())
 
