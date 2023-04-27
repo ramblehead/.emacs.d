@@ -4416,20 +4416,21 @@ fields which we need."
   (add-hook
    'markdown-mode-hook
    (lambda ()
-     ;; Using yas instead
-     (abbrev-mode -1)
+     (abbrev-mode -1) ; Using yas instead
      (rh-programming-minor-modes t)
+     (flyspell-visible-mode 1)
 
-     (setq-local
-      spell-fu-faces-exclude
-      '(markdown-code-face
-        markdown-html-attr-name-face
-        markdown-html-entity-face
-        markdown-html-tag-name-face
-        markdown-inline-code-face
-        markdown-metadata-key-face
-        markdown-pre-face
-        markdown-url-face))))
+     ;; (setq-local
+     ;;  spell-fu-faces-exclude
+     ;;  '(markdown-code-face
+     ;;    markdown-html-attr-name-face
+     ;;    markdown-html-entity-face
+     ;;    markdown-html-tag-name-face
+     ;;    markdown-inline-code-face
+     ;;    markdown-metadata-key-face
+     ;;    markdown-pre-face
+     ;;    markdown-url-face))
+     ))
 
   :ensure t)
 
@@ -4501,6 +4502,7 @@ fields which we need."
   (add-hook
    'LaTeX-mode-hook
    (lambda ()
+     (abbrev-mode -1) ; Using yas instead
      (rh-programming-minor-modes 1)
      (flyspell-visible-mode 1)
      (TeX-source-correlate-mode 1)
