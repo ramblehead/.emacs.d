@@ -54,11 +54,29 @@
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
 
-;;; /b/; Package initialisation and `use-package' bootstrap
+;;; /b/; straight.el
 ;;; /b/{
 
-;; see for straight.el
+;; see
 ;; https://jeffkreeftmeijer.com/emacs-straight-use-package/
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;;; /b/}
+
+;;; /b/; package
+;;; /b/{
 
 (require 'package)
 
@@ -72,8 +90,12 @@
 
 ;; (setq package-check-signature nil)
 
-(setq package-enable-at-startup nil)
 (package-initialize)
+
+;;; /b/}
+
+;;; /b/; use-package
+;;; /b/{
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -93,7 +115,11 @@
 ;;; /b/; Basic system setup
 ;;; /b/{
 
+;; (use-package color-theme-sanityinc-tomorrow
+;;   :ensure t)
+
 (use-package color-theme-sanityinc-tomorrow
+  :straight t
   :ensure t)
 
 (use-package ace-window
@@ -105,6 +131,7 @@
    ("C-c a s" . ace-swap-window)
    ("C-c a d" . ace-delete-window))
 
+  :straight t
   :ensure t
   :demand t)
 
