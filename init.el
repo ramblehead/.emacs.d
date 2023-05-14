@@ -57,6 +57,9 @@
 ;;; /b/; Package initialisation and `use-package' bootstrap
 ;;; /b/{
 
+;; see for straight.el
+;; https://jeffkreeftmeijer.com/emacs-straight-use-package/
+
 (require 'package)
 
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
@@ -95,6 +98,16 @@
   ;; No ceremony
   (setq inhibit-splash-screen t)
   (setq inhibit-startup-message t)
+
+  ;; No mice
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+
+  (setq default-input-method "russian-computer")
+
+  (setq frame-title-format
+	(concat "%b - emacs@" system-name))
 
   ;; Windows splitting
   (setq split-height-threshold nil)
@@ -153,7 +166,18 @@
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
     (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
     ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-    )
+
+    (defun rh-set-cursor-according-to-mode ()
+      "Change cursor type according to some minor modes."
+      (cond
+       (buffer-read-only
+        (setq cursor-type read-only-cursor-type))
+       (overwrite-mode
+        (setq cursor-type overwrite-cursor-type))
+       (t
+        (setq cursor-type normal-cursor-type))))
+
+    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode))
 
   ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
   ;; (color-theme-sanityinc-tomorrow-blue)
@@ -195,6 +219,7 @@
 
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+   ("C-z" . undo)
    ("C-x f" . find-file-at-point))
   :demand t)
 
