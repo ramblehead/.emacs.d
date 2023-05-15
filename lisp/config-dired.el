@@ -1,4 +1,4 @@
-;;; ramblehead's config-dired configuration
+;;; ramblehead's dired configuration
 
 (require 'ace-window)
 
@@ -75,6 +75,24 @@
     (call-process "xdg-open" nil 0 nil file)))
 
 (setq dired-dwim-target t)
+
+(put 'dired-find-alternate-file 'disabled nil)
+
+(if (equal system-type 'windows-nt)
+    ;; In MS Windows systems
+    (progn
+      (setq dired-listing-switches "-alhgG")
+      (setq vr-dired-coding-system 'cp1251))
+  ;; In unix-like systems
+  ;; Sort dirs and files in dired as in "C"
+  (setenv "LC_COLLATE" "C")
+  (setq dired-listing-switches
+        ;; "--group-directories-first --time-style=long-iso -alhD"
+        "--group-directories-first --time-style=long-iso -alh")
+  (setq vr-dired-coding-system nil))
+
+;; (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
+(global-set-key (kbd "C-x d") #'dired-jump)
 
 (add-hook
  'dired-mode-hook
