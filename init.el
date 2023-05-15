@@ -7,15 +7,6 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
-(setq rh-emacs-version-string
-      (replace-regexp-in-string
-       "GNU Emacs \\([0-9]+.[0-9]+.[0-9]+\\).*"
-       "\\1"
-       (replace-regexp-in-string "\n" "" (emacs-version))))
-
-(setq rh-emacs-version
-      (mapcar 'string-to-number (split-string rh-emacs-version-string "\\.")))
-
 (setq rh-site-start-file-paths ())
 
 (cond
@@ -37,7 +28,7 @@
           (ver-file-path
            (concat
             "/usr/local/share/emacs/"
-            rh-emacs-version-string
+            emacs-version
             "/site-lisp/site-start.el")))
       (progn
         (when (file-exists-p file-path)
@@ -54,58 +45,59 @@
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
 
-;;; /b/; straight.el
+;;; /b/; elpaca
 ;;; /b/{
 
-;; see
-;; https://jeffkreeftmeijer.com/emacs-straight-use-package/
+(defvar elpaca-installer-version 0.4)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (kill-buffer buffer)
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; Install use-package support
+(elpaca elpaca-use-package
+  ;; Enable :elpaca use-package keyword.
+  (elpaca-use-package-mode)
+  ;; Assume :elpaca t unless otherwise specified.
+  (setq elpaca-use-package-by-default t))
 
-;;; /b/}
-
-;;; /b/; package
-;;; /b/{
-
-(require 'package)
-
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-;; (add-to-list 'package-archives
-;;              '("melpa" . "http://melpa.org/packages/"))
-;; (add-to-list 'package-archives
-;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
-;; (add-to-list 'package-archives
-;;              '("gnu" . "http://elpa.gnu.org/packages/"))
-
-;; (setq package-check-signature nil)
-
-(package-initialize)
+(elpaca-wait)
 
 ;;; /b/}
 
 ;;; /b/; use-package
 ;;; /b/{
-
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(use-package gnu-elpa-keyring-update
-  :config (gnu-elpa-keyring-update)
-
-  :demand t
-  :ensure t)
 
 (use-package use-package-ensure-system-package
   :ensure t)
@@ -115,11 +107,7 @@
 ;;; /b/; Basic system setup
 ;;; /b/{
 
-;; (use-package color-theme-sanityinc-tomorrow
-;;   :ensure t)
-
 (use-package color-theme-sanityinc-tomorrow
-  :straight t
   :ensure t)
 
 (use-package ace-window
@@ -131,9 +119,10 @@
    ("C-c a s" . ace-swap-window)
    ("C-c a d" . ace-delete-window))
 
-  :straight t
   :ensure t
   :demand t)
+
+(elpaca-wait)
 
 (setq load-prefer-newer t)
 (add-to-list 'load-path rh-user-lisp-directory-path)
@@ -274,6 +263,7 @@
    ("C-z" . undo)
    ("C-x f" . find-file-at-point))
 
+  :elpaca nil
   :demand t)
 
 ;;; /b/}
@@ -299,6 +289,7 @@
     ("C-M-<enter>" . rh-dired-ace-select-other-window)
     ("e" . rh-dired-open-file))
 
+  :elpaca nil
   :demand t)
 
 (put 'dired-find-alternate-file 'disabled nil)
