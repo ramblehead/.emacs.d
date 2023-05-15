@@ -21,6 +21,9 @@
 /url
 /spell-fu
 
+/straight/*
+!/straight/versions
+
 /session.*
 /.lsp-session-*
 

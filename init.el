@@ -54,7 +54,28 @@
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
 
-;;; /b/; Package initialisation and `use-package' bootstrap
+;;; /b/; straight.el
+;;; /b/{
+
+;; see
+;; https://jeffkreeftmeijer.com/emacs-straight-use-package/
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;;; /b/}
+
+;;; /b/; package
 ;;; /b/{
 
 (require 'package)
@@ -69,8 +90,12 @@
 
 ;; (setq package-check-signature nil)
 
-(setq package-enable-at-startup nil)
 (package-initialize)
+
+;;; /b/}
+
+;;; /b/; use-package
+;;; /b/{
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -90,7 +115,11 @@
 ;;; /b/; Basic system setup
 ;;; /b/{
 
+;; (use-package color-theme-sanityinc-tomorrow
+;;   :ensure t)
+
 (use-package color-theme-sanityinc-tomorrow
+  :straight t
   :ensure t)
 
 (use-package ace-window
@@ -102,6 +131,7 @@
    ("C-c a s" . ace-swap-window)
    ("C-c a d" . ace-delete-window))
 
+  :straight t
   :ensure t
   :demand t)
 
@@ -118,6 +148,16 @@
   ;; No ceremony
   (setq inhibit-splash-screen t)
   (setq inhibit-startup-message t)
+
+  ;; No mice
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+
+  (setq default-input-method "russian-computer")
+
+  (setq frame-title-format
+	(concat "%b - emacs@" system-name))
 
   ;; Windows splitting
   (setq split-height-threshold nil)
@@ -178,7 +218,18 @@
     (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
     (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
     ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-    )
+
+    (defun rh-set-cursor-according-to-mode ()
+      "Change cursor type according to some minor modes."
+      (cond
+       (buffer-read-only
+        (setq cursor-type read-only-cursor-type))
+       (overwrite-mode
+        (setq cursor-type overwrite-cursor-type))
+       (t
+        (setq cursor-type normal-cursor-type))))
+
+    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode))
 
   ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
   (color-theme-sanityinc-tomorrow-blue)
@@ -220,6 +271,7 @@
 
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+   ("C-z" . undo)
    ("C-x f" . find-file-at-point))
 
   :demand t)
