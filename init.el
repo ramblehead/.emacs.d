@@ -3,25 +3,27 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq custom-file (file-name-concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file) (load custom-file))
 
 (setq rh-site-start-file-paths ())
 
+(setq emacs-config-name (file-name-base (directory-file-name user-emacs-directory)))
+
 (cond
  ((equal system-type 'gnu/linux)
   (progn
-    (setq rh-user-data (expand-file-name "~/.local/share/"))
+    (setq rh-user-data-dir (expand-file-name "~/.local/share/"))
 
     ;; Make the "~/.local/share/emacs" directories if does not already exist
-    (if (not (file-exists-p (concat rh-user-data "emacs")))
-        (make-directory (concat rh-user-data "emacs") t))
-    (setq rh-savehist-file (concat rh-user-data "emacs/emacs-history"))
-    (setq rh-recent-files-file-path (concat rh-user-data "emacs/recent-files"))
-    (setq rh-saved-places-file-path (concat rh-user-data "emacs/saved-places"))
+    (if (not (file-exists-p (concat rh-user-data-dir "emacs")))
+        (make-directory (concat rh-user-data-dir "emacs") t))
+    (setq rh-savehist-file (file-name-concat rh-user-data-dir emacs-config-name "emacs-history"))
+    (setq rh-recent-files-file-path (file-name-concat rh-user-data-dir emacs-config-name "recent-files"))
+    (setq rh-saved-places-file-path (file-name-concat rh-user-data-dir emacs-config-name "saved-places"))
     (setq rh-bm-repository-file-path
-          (concat rh-user-data "emacs/bm-repository"))
-    (setq rh-ido-last-file-path (concat rh-user-data "emacs/ido-last"))
+          (file-name-concat rh-user-data-dir emacs-config-name "bm-repository"))
+    (setq rh-ido-last-file-path (file-name-concat rh-user-data-dir emacs-config-name "ido-last"))
 
     ;; Paths for the site-start.el files, located in /usr/local/share/emacs/
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
@@ -36,16 +38,16 @@
         (when (file-exists-p ver-file-path)
           (add-to-list 'rh-site-start-file-paths ver-file-path)))))))
 
-(setq rh-user-lisp-directory-path
+(setq rh-user-lisp-dir
       (concat (expand-file-name user-emacs-directory) "lisp/"))
 
 (setq rh-user-site-start-file-path
-      (concat rh-user-lisp-directory-path "site-start.el"))
+      (concat rh-user-lisp-dir "site-start.el"))
 
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
 
-(add-to-list 'load-path rh-user-lisp-directory-path)
+(add-to-list 'load-path rh-user-lisp-dir)
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (load rh-user-site-start-file-path nil t t)
 
