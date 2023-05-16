@@ -4,11 +4,13 @@
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
 (setq custom-file (file-name-concat user-emacs-directory "custom.el"))
-(when (file-exists-p custom-file) (load custom-file))
+(when (file-exists-p custom-file)
+  (load custom-file))
 
 (setq rh-site-start-file-paths ())
 
-(setq emacs-config-name (file-name-base (directory-file-name user-emacs-directory)))
+(setq emacs-config-name
+      (file-name-base (directory-file-name user-emacs-directory)))
 
 (cond
  ((equal system-type 'gnu/linux)
@@ -18,12 +20,16 @@
     ;; Make the "~/.local/share/emacs" directories if does not already exist
     (if (not (file-exists-p (concat rh-user-data-dir "emacs")))
         (make-directory (concat rh-user-data-dir "emacs") t))
-    (setq rh-savehist-file (file-name-concat rh-user-data-dir emacs-config-name "emacs-history"))
-    (setq rh-recent-files-file-path (file-name-concat rh-user-data-dir emacs-config-name "recent-files"))
-    (setq rh-saved-places-file-path (file-name-concat rh-user-data-dir emacs-config-name "saved-places"))
+    (setq rh-savehist-file
+          (file-name-concat rh-user-data-dir emacs-config-name "emacs-history"))
+    (setq rh-recent-files-file-path
+          (file-name-concat rh-user-data-dir emacs-config-name "recent-files"))
+    (setq rh-saved-places-file-path
+          (file-name-concat rh-user-data-dir emacs-config-name "saved-places"))
     (setq rh-bm-repository-file-path
           (file-name-concat rh-user-data-dir emacs-config-name "bm-repository"))
-    (setq rh-ido-last-file-path (file-name-concat rh-user-data-dir emacs-config-name "ido-last"))
+    (setq rh-ido-last-file-path
+          (file-name-concat rh-user-data-dir emacs-config-name "ido-last"))
 
     ;; Paths for the site-start.el files, located in /usr/local/share/emacs/
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
@@ -38,11 +44,9 @@
         (when (file-exists-p ver-file-path)
           (add-to-list 'rh-site-start-file-paths ver-file-path)))))))
 
-(setq rh-user-lisp-dir
-      (concat (expand-file-name user-emacs-directory) "lisp/"))
+(setq rh-user-lisp-dir (concat (expand-file-name user-emacs-directory) "lisp/"))
 
-(setq rh-user-site-start-file-path
-      (concat rh-user-lisp-dir "site-start.el"))
+(setq rh-user-site-start-file-path (concat rh-user-lisp-dir "site-start.el"))
 
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
@@ -59,13 +63,15 @@
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+       (file-name-concat user-emacs-directory
+                         "straight/repos/straight.el/bootstrap.el"))
       (bootstrap-version 6))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
          "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
+         'silent
+         'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
@@ -300,18 +306,18 @@
 
   :bind
   (:map dired-mode-map
-    ("RET" . rh-dired-find-file)
-    ("<return>" . rh-dired-find-file)
-    ("f" . rh-dired-find-file)
-    ("<backspace>" . rh-dired-change-to-parent-dir)
-    ("TAB" . rh-dired-select-next-dired-window)
-    ("<kp-return>" . rh-dired-find-file)
-    ("C-x C-f" . rh-dired-change-to-file)
-    ("M-<return>" . rh-dired-alt-ace-select-other-window)
-    ("M-<enter>" . rh-dired-alt-ace-select-other-window)
-    ("C-M-<return>" . rh-dired-ace-select-other-window)
-    ("C-M-<enter>" . rh-dired-ace-select-other-window)
-    ("e" . rh-dired-open-file))
+   ("RET" . rh-dired-find-file)
+   ("<return>" . rh-dired-find-file)
+   ("f" . rh-dired-find-file)
+   ("<backspace>" . rh-dired-change-to-parent-dir)
+   ("TAB" . rh-dired-select-next-dired-window)
+   ("<kp-return>" . rh-dired-find-file)
+   ("C-x C-f" . rh-dired-change-to-file)
+   ("M-<return>" . rh-dired-alt-ace-select-other-window)
+   ("M-<enter>" . rh-dired-alt-ace-select-other-window)
+   ("C-M-<return>" . rh-dired-ace-select-other-window)
+   ("C-M-<enter>" . rh-dired-ace-select-other-window)
+   ("e" . rh-dired-open-file))
 
   :demand t)
 
@@ -339,9 +345,9 @@
   :bind
   (("<f4>" . recentf-open-files)
    :map recentf-dialog-mode-map
-    ("<escape>" . recentf-cancel-dialog)
-    ("<space>" . widget-button-press)
-    ("<f4>" . rh-recentf-open-edit))
+   ("<escape>" . recentf-cancel-dialog)
+   ("<space>" . widget-button-press)
+   ("<f4>" . rh-recentf-open-edit))
 
   :demand t)
 
@@ -406,8 +412,9 @@
      (show-paren-local-mode 1)))
 
 
-  :bind (:map lisp-mode-shared-map
-         ("<f5>" . rh-lisp-eval-region-or-last-sexp))
+  :bind
+  (:map lisp-mode-shared-map
+   ("<f5>" . rh-lisp-eval-region-or-last-sexp))
   :after ielm
   :demand t)
 
