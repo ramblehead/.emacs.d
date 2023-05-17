@@ -118,10 +118,6 @@
 ;;; /b/; Basic System Setup
 ;;; /b/{
 
-(use-package color-theme-sanityinc-tomorrow
-  :straight t
-  :ensure t)
-
 (use-package emacs
   :config
   ;; If the option load-prefer-newer is non-nil, then when searching suffixes,
@@ -155,6 +151,25 @@
   (setq split-width-threshold 170)
 
   (defalias 'yes-or-no-p 'y-or-n-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t)
+
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   (when (display-graphic-p)
     ;; Change cursor type according to mode
@@ -265,7 +280,44 @@
    ("C-z" . undo)
    ("C-x f" . find-file-at-point))
 
+  :after color-theme-sanityinc-tomorrow
   :demand t)
+
+(use-package color-theme-sanityinc-tomorrow
+  :straight t
+  :ensure t)
+
+(use-package vertico
+  :config
+  (vertico-mode 1)
+
+  :straight t
+  :ensure t
+  :demand t)
+
+(use-package marginalia
+  :config
+  (marginalia-mode 1)
+
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  :straight t
+  :ensure t
+  :demand t)
+
+(use-package orderless
+  :config
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (customize-set-value 'completion-styles '(orderless basic))
+  (customize-set-value 'completion-category-defaults nil)
+  (customize-set-value
+   'completion-category-overrides '((file (styles partial-completion))))
+
+  :straight t
+  :ensure t)
 
 (use-package delight
   :straight t
