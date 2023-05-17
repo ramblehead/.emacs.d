@@ -362,6 +362,14 @@
   :after color-theme-sanityinc-tomorrow
   :demand t)
 
+(use-package ctrlf
+  :config
+  (ctrlf-mode 1)
+
+  :straight t
+  :ensure t
+  :demand t)
+
 (use-package color-theme-sanityinc-tomorrow
   :straight t
   :ensure t)
