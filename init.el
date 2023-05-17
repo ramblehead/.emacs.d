@@ -30,13 +30,16 @@
 ;; ------------------------------------------------------------------
 ;; /b/{
 
+;; * Emacs example configs
+;;   * https://github.com/radian-software/radian
+
 ;; * Emacs
 ;;   * https://www.emacswiki.org/emacs/GccEmacs
 ;;   * https://github.com/editorconfig/editorconfig-emacs
 ;;   * https://github.com/orzechowskid/tsx-mode.el
 
 ;; * Ido, Ivy, etc.
-;;   * https://github.com/raxod502/selectrum
+;;   * https://github.com/radian-software/ctrlf
 ;;   * https://github.com/minad/vertico
 
 ;; * Async
