@@ -115,6 +115,58 @@
 
 ;;; /b/}
 
+;;; /b/; Extending Some Basic Elisp Functions
+;;; /b/{
+
+;; see https://www.emacswiki.org/emacs/KillingAndYanking
+(defun rh-yank-pop-forwards (arg)
+  (interactive "p")
+  (yank-pop (- arg)))
+
+(defun rh-scroll-down-one-line ()
+  (interactive)
+  (let* ((point (point))
+         (point-line (1+ (count-lines 1 point)))
+         (window-end-line (1- (count-lines 1 (window-end)))))
+    (scroll-down 1)
+    (unless (= point-line window-end-line)
+      (goto-char point))))
+
+(defun rh-scroll-up-one-line ()
+  (interactive)
+  (let* ((point (point))
+         (point-line (1+ (count-lines 1 point)))
+         (window-start-line (1+ (count-lines 1 (window-start)))))
+    (scroll-up 1)
+    (unless (= point-line window-start-line)
+      (goto-char point))))
+
+(defun rh-recenter-sensibly ()
+  (interactive)
+  (cond
+   ((let ((top-margin
+           (1+ (- (line-number-at-pos (point))
+                  (line-number-at-pos (window-start))))))
+      (< top-margin 10))
+    (if (< (window-height) 20)
+        (recenter)
+      (recenter 10)))
+   ((let ((bottom-margin
+           (1+ (- (line-number-at-pos (window-end))
+                  (line-number-at-pos (point))))))
+      (< bottom-margin 10))
+    (if (< (window-height) 20)
+        (recenter)
+      (recenter -10)))))
+
+
+(defun rh-kill-ring-save-keep-mark (&rest _)
+  (setq deactivate-mark nil))
+
+(advice-add 'kill-ring-save :after #'rh-kill-ring-save-keep-mark)
+
+;;; /b/}
+
 ;;; /b/; Basic System Setup
 ;;; /b/{
 
@@ -127,8 +179,8 @@
   ;; (setq load-prefer-newer t)
 
   ;; No ceremony
-  (setq inhibit-splash-screen t)
-  (setq inhibit-startup-message t)
+  (customize-set-value 'inhibit-startup-screen t)
+  (customize-set-value 'inhibit-startup-message t)
 
   ;; No mice
   (menu-bar-mode -1)
@@ -138,16 +190,38 @@
   ;; No global parentheses mode
   (show-paren-mode -1)
 
-  (setq default-input-method "russian-computer")
+  (delete-selection-mode 1)
+
+  ;; Do not copy font and font faces on yank
+  (customize-set-value
+   'yank-excluded-properties
+   (append '(font face font-lock-face) yank-excluded-properties))
+
+  ;; Scroll line Notepad in Windows! :)
+  (setq scroll-conservatively 100000)
+  (setq scroll-margin 0)
+
+  (customize-set-value 'default-input-method "russian-computer")
 
   (setq frame-title-format
 	(concat "%b - emacs@" system-name))
+
+  (customize-set-value 'mouse-wheel-scroll-amount '(5 ((shift) . 1)))
+  (customize-set-value 'mouse-wheel-progressive-speed nil)
+  (customize-set-value 'mouse-wheel-follow-mouse t)
+  (customize-set-value 'mouse-drag-copy-region nil)
+  (customize-set-value 'mouse-yank-at-point t)
+
+  (add-hook
+   'next-error-hook
+   (lambda ()
+     (rh-recenter-sensibly)))
 
   ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
   (ffap-bindings)
 
   ;; Windows splitting
-  (setq split-height-threshold nil)
+  (customize-set-value 'split-height-threshold nil)
   (setq split-width-threshold 170)
 
   (defalias 'yes-or-no-p 'y-or-n-p)
@@ -164,6 +238,7 @@
                    crm-separator)
                   (car args))
           (cdr args)))
+
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
@@ -278,7 +353,11 @@
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
    ("C-z" . undo)
-   ("C-x f" . find-file-at-point))
+   ("C-x f" . find-file-at-point)
+   ("M-<down>" . rh-scroll-up-one-line)
+   ("M-<kp-down>" . rh-scroll-up-one-line)
+   ("M-<up>" . rh-scroll-down-one-line)
+   ("M-<kp-up>" . rh-scroll-down-one-line))
 
   :after color-theme-sanityinc-tomorrow
   :demand t)
@@ -405,29 +484,12 @@
 
 (use-package saveplace
   :init
-  (setq save-place-file rh-saved-places-file-path)
-
-  ;; TODO: update to the new advice style
-  ;; (defadvice save-place-find-file-hook
-  ;;     (around rh-save-place-find-file-hook activate)
-  ;;   (when ad-do-it
-  ;;     (run-with-timer
-  ;;      0 nil
-  ;;      (lambda (buf)
-  ;;        (dolist (win (get-buffer-window-list buf nil t))
-  ;;          (with-selected-window win (recenter))))
-  ;;      (current-buffer))))
-
-  ;; TODO: remove old emacs support
-  ;; (if (version< emacs-version "25.0")
-  ;;     (progn
-  ;;       (require 'saveplace)
-  ;;       (setq-default save-place t))
-  ;;   (save-place-mode 1))
+  (customize-set-value 'save-place-file rh-saved-places-file-path)
 
   :config
-  (save-place-mode 1)
+  (require 'config-saveplace)
 
+  (save-place-mode 1)
   (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
 
   :demand t)
