@@ -51,6 +51,10 @@
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
 
+(customize-set-value
+ 'custom-theme-directory
+ (file-name-concat (expand-file-name user-emacs-directory) "themes/"))
+
 (add-to-list 'load-path rh-user-lisp-dir)
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (load rh-user-site-start-file-path nil t t)
@@ -189,6 +193,9 @@
 
   ;; No global parentheses mode
   (show-paren-mode -1)
+
+  ;; No tabs in indentations
+  (customize-set-variable 'indent-tabs-mode nil)
 
   (delete-selection-mode 1)
   (column-number-mode 1)
@@ -369,7 +376,6 @@
 
 (defun configure-colour-themes ()
   (when (display-graphic-p)
-    ;; TODO: Fix trailing-whitespace face in color-theme-sanityinc-tomorrow-blue
     ;; (load-theme 'sanityinc-tomorrow-blue t)
     ;; (disable-theme 'sanityinc-tomorrow-blue)
     ;; (enable-theme 'sanityinc-tomorrow-blue)
@@ -401,7 +407,8 @@
     ;;  '(iedit-occurrence ((t (:background "dark blue"))))
     ;;  '(iedit-read-only-occurrence ((t (:background "dark slate blue")))))
 
-    (load-theme 'rh-sanityinc-tomorrow-blue t)))
+    ;; (load-theme 'rh-sanityinc-tomorrow-blue t)
+    ))
 
 (add-hook 'emacs-startup-hook #'configure-colour-themes)
 
@@ -414,6 +421,9 @@
 ;;   :demand t)
 
 (use-package color-theme-sanityinc-tomorrow
+  :config
+  (require 'config-color-theme-sanityinc-tomorrow)
+
   :straight t
   :ensure t)
 
