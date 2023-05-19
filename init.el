@@ -375,14 +375,14 @@
     ;; (enable-theme 'sanityinc-tomorrow-blue)
     (color-theme-sanityinc-tomorrow-blue)
 
-    (let ((colors (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))))
-      (set-face-attribute 'region nil
-                          :box
-                          `(:line-width
-                            (-1 . -1)
-                            :color ,(cdr (assoc 'selection colors))
-                            :style nil)
-                          :background (cdr (assoc 'selection colors))))
+    ;; (let ((colors (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))))
+    ;;   (set-face-attribute 'region nil
+    ;;                       :box
+    ;;                       `(:line-width
+    ;;                         (-1 . -1)
+    ;;                         :color ,(cdr (assoc 'selection colors))
+    ;;                         :style nil)
+    ;;                       :background (cdr (assoc 'selection colors))))
 
     ;; (cl-case
     ;;  (car custom-enabled-themes)
@@ -401,7 +401,7 @@
     ;;  '(iedit-occurrence ((t (:background "dark blue"))))
     ;;  '(iedit-read-only-occurrence ((t (:background "dark slate blue")))))
 
-    (load-theme 'custom-tomorrow-blue t)))
+    (load-theme 'rh-sanityinc-tomorrow-blue t)))
 
 (add-hook 'emacs-startup-hook #'configure-colour-themes)
 
