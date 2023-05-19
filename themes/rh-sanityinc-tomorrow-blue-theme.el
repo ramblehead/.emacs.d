@@ -1,9 +1,6 @@
 ;;; ramblehead's rh-sanityinc-tomorrow-blue theme
 
-;; (require 'color-theme-sanityinc-tomorrow)
-
-;; (color-theme-sanityinc-tomorrow-blue)
-;; (disable-theme 'sanityinc-tomorrow-blue)
+(require 'color-theme-sanityinc-tomorrow)
 
 (deftheme rh-sanityinc-tomorrow-blue)
 

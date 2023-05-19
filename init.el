@@ -379,36 +379,7 @@
     ;; (load-theme 'sanityinc-tomorrow-blue t)
     ;; (disable-theme 'sanityinc-tomorrow-blue)
     ;; (enable-theme 'sanityinc-tomorrow-blue)
-    (color-theme-sanityinc-tomorrow-blue)
-
-    ;; (let ((colors (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))))
-    ;;   (set-face-attribute 'region nil
-    ;;                       :box
-    ;;                       `(:line-width
-    ;;                         (-1 . -1)
-    ;;                         :color ,(cdr (assoc 'selection colors))
-    ;;                         :style nil)
-    ;;                       :background (cdr (assoc 'selection colors))))
-
-    ;; (cl-case
-    ;;  (car custom-enabled-themes)
-    ;;  (sanityinc-tomorrow-blue
-    ;;   (let ((colors (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
-    ;;                     (error "no such sanityinc-tomorrow theme flavor"))))
-
-    ;;     ;; (custom-set-faces
-    ;;     ;;  '(iedit-occurrence ((t (:background "dark blue"))))
-    ;;     ;;  '(iedit-read-only-occurrence ((t (:background "dark slate blue")))))
-
-    ;;     )))
-
-    ;; (custom-theme-set-faces
-    ;;  'sanityinc-tomorrow-blue
-    ;;  '(iedit-occurrence ((t (:background "dark blue"))))
-    ;;  '(iedit-read-only-occurrence ((t (:background "dark slate blue")))))
-
-    ;; (load-theme 'rh-sanityinc-tomorrow-blue t)
-    ))
+    (color-theme-sanityinc-tomorrow-blue)))
 
 (add-hook 'emacs-startup-hook #'configure-colour-themes)
 
@@ -464,7 +435,6 @@
   :straight t
   :ensure t)
 
-;; Example configuration for Consult
 (use-package consult
   :init
   ;; Optionally configure the register formatting. This improves the register
