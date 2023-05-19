@@ -431,6 +431,11 @@
   :config
   (vertico-mode 1)
 
+  :bind (:map vertico-map
+         ("<next>" . vertico-scroll-up)
+         ("<prior>" . vertico-scroll-down)
+         ("C-x <up>" . windmove-up))
+
   :straight t
   :ensure t
   :demand t)
@@ -606,14 +611,15 @@
 
   (when (display-graphic-p)
     (cl-case
-        (car custom-enabled-themes)
-      (sanityinc-tomorrow-blue
-       (let ((colors (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
-                         (error "no such theme flavor"))))
-         (custom-set-faces
-          '(iedit-occurrence ((t (:background "dark blue"))))
-          '(iedit-read-only-occurrence ((t (:background "dark slate blue"))))))))
-    )
+     (car custom-enabled-themes)
+     (sanityinc-tomorrow-blue
+      (let ((colors
+             (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
+                 (error "no such theme flavor"))))
+        (custom-set-faces
+         '(iedit-occurrence ((t (:background "dark blue"))))
+         '(iedit-read-only-occurrence
+           ((t (:background "dark slate blue")))))))))
 
   ;; (custom-set-faces
   ;;  '(iedit-occurrence ((t (:inherit highlight))))
