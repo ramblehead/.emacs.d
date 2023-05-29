@@ -40,9 +40,13 @@
 (defun rh-project-buffer-dir ()
   (or (and buffer-file-name
            (file-name-directory buffer-file-name))
-      ;; (and (eq major-mode 'compilation-mode)
       (and (or (eq major-mode 'compilation-mode)
-               (eq major-mode 'dired-mode))
+               (eq major-mode 'dired-mode)
+               ;; After some update lsp-mode in lsp-deps-providers plist calls
+               ;; this function in fundamental-mode with buffer-file-name equal
+               ;; nil. So, using the following check as a hack.
+               ;; Probably, should switch to eglot.
+               (eq major-mode 'fundamental-mode))
            default-directory)))
 
 (defun rh-project-get-path ()

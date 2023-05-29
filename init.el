@@ -574,9 +574,12 @@ when only symbol face names are needed."
         (add-to-list 'default-frame-alist
                      '(font . "Hack-10.5")))
 
-       ((= width-pixels 2560)
+       ((> width-pixels 2560)
         (add-to-list 'default-frame-alist
-                     '(font . "Hack-9")))))
+                     '(font . "Hack-10.5"))
+        (fringe-mode '(16 . 16))
+        (setq read-only-cursor-type '(hbar . 4))
+        (setq normal-cursor-type '(bar . 4)))))
 
     ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
     ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
@@ -609,7 +612,7 @@ when only symbol face names are needed."
     ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
     ;; (set-face-attribute 'default nil
     ;;                     :family "Hack"
-    ;;                     :height 90
+    ;;                     :height 105
     ;;                     :width 'semi-condensed
     ;;                     :weight 'normal)
 
@@ -1175,7 +1178,7 @@ Also sets SYMBOL to VALUE."
 
 (use-package xref
   :config
-  (require 'config-xref)
+  ;; (require 'config-xref)
 
   (add-to-list
    'display-buffer-alist
@@ -3255,19 +3258,19 @@ fields which we need."
   :if (rh-clangd-executable-find)
 
   :config
-  (require 'config-eglot)
+  ;; (require 'config-eglot)
 
-  (setf
-   (cdr (assoc '(c++-mode c-mode) eglot-server-programs))
-   `(,(or (rh-clangd-executable-find) "clangd")
-     "-j=6"
-     "--background-index"
-     "--cross-file-rename"
-     "--all-scopes-completion"
-     "--limit-results=0"
-     "--suggest-missing-includes"
-     "--completion-style=detailed"
-     "--log=info"))
+  ;; (setf
+  ;;  (cdr (assoc '(c++-mode c-mode) eglot-server-programs))
+  ;;  `(,(or (rh-clangd-executable-find) "clangd")
+  ;;    "-j=6"
+  ;;    "--background-index"
+  ;;    "--cross-file-rename"
+  ;;    "--all-scopes-completion"
+  ;;    "--limit-results=0"
+  ;;    "--suggest-missing-includes"
+  ;;    "--completion-style=detailed"
+  ;;    "--log=info"))
 
   :bind (:map eglot-mode-map
          ("C-<tab>" . company-complete)
