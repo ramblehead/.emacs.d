@@ -558,6 +558,8 @@
   (customize-set-value 'xref-show-definitions-function #'consult-xref)
 
   :config
+  (require 'config-consult)
+
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
