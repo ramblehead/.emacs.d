@@ -482,6 +482,20 @@
   :config
   (vertico-mode 1)
 
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
+
+  (add-to-list
+   ' load-path
+   (file-name-concat
+    (file-name-directory (locate-library "vertico"))
+    "extensions")
+   t)
+
   :bind (:map vertico-map
          ("<next>" . vertico-scroll-up)
          ("<prior>" . vertico-scroll-down)
@@ -490,6 +504,18 @@
   :straight t
   :ensure t
   :demand t)
+
+(use-package vertico-repeat
+  :config
+  (require 'vertico-repeat)
+
+  (add-to-list 'savehist-additional-variables 'vertico-repeat-history)
+
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+
+  :bind (("M-R" . vertico-repeat))
+  :after (vertico savehist)
+  :ensure nil)
 
 (use-package marginalia
   :config
