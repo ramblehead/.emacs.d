@@ -3290,6 +3290,8 @@ fields which we need."
   (defvar lsp-keymap-prefix "C-c l")
 
   :config
+  (require 'config-lsp-mode)
+
   (require 'company-capf)
   (require 'yarn-pnp)
 
@@ -3314,7 +3316,7 @@ fields which we need."
           "--log=info"))
 
   ;; (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
-  ;; (setq lsp-eldoc-render-all t)
+  (setq lsp-eldoc-render-all t)
 
   :bind (:map lsp-mode-map
          ("C-x C-<tab>" . company-capf))
