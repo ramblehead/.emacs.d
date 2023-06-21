@@ -2939,7 +2939,8 @@ fields which we need."
   :delight (eldoc-mode " ε")
   :config
   (add-to-list 'rm-blacklist " ε")
-  (setq eldoc-echo-area-use-multiline-p nil)
+
+  (require 'config-eldoc)
 
   :defer t)
 
@@ -3315,7 +3316,7 @@ fields which we need."
           ;; "--header-insertion-decorators=false"
           "--log=info"))
 
-  ;; (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
+  (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
   (setq lsp-eldoc-render-all t)
 
   :bind (:map lsp-mode-map
