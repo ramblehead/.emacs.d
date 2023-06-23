@@ -3325,6 +3325,10 @@ fields which we need."
   :defer t
   :ensure t)
 
+(use-package lsp-pyright
+  :ensure t
+  :defer t)
+
 (use-package rtags
   :if (locate-library "rtags")
   :config
@@ -3988,10 +3992,18 @@ fields which we need."
    'python-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)
-     (rh-python-company-setup)
-     (flycheck-mode 1)
-     (flycheck-disable-checker 'python-pylint)))
+     ;; (rh-python-company-setup)
+     ;; (flycheck-mode 1)
+     ;; (flycheck-disable-checker 'python-pylint)
+     ))
 
+  :defer t)
+
+(use-package blacken
+  :config
+  (add-to-list 'rm-blacklist " Black")
+
+  :ensure
   :defer t)
 
 (use-package bazel
