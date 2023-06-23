@@ -574,12 +574,13 @@ when only symbol face names are needed."
         (add-to-list 'default-frame-alist
                      '(font . "Hack-10.5")))
 
-       ((> width-pixels 2560)
+       ((= width-pixels 2560)
         (add-to-list 'default-frame-alist
-                     '(font . "Hack-10.5"))
-        (fringe-mode '(16 . 16))
-        (setq read-only-cursor-type '(hbar . 4))
-        (setq normal-cursor-type '(bar . 4)))))
+                     '(font . "Hack-9"))
+        ;; (fringe-mode '(16 . 16))
+        ;; (setq read-only-cursor-type '(hbar . 4))
+        ;; (setq normal-cursor-type '(bar . 4))
+        )))
 
     ;; see http://emacs.1067599.n8.nabble.com/bug-13011-24-2-Text-flickering-moving-cursor-with-box-around-text-enabled-td270885.html
     ;;     https://emacs.stackexchange.com/questions/47002/adding-box-around-text-without-changing-the-text-width
