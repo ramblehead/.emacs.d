@@ -163,6 +163,16 @@
         (recenter)
       (recenter -10)))))
 
+(defun rh-what-face (pos)
+  "Alternative to what-cursor-position [C-u C-x =] function
+when only symbol face names are needed."
+  (interactive "d")
+  (let ((face (or (get-char-property (point) 'read-face-name)
+                  (get-char-property (point) 'face))))
+    (if face (message "Face: %s" face) (message "No face at %d" pos)))
+  ;; (beacon-blink)
+  )
+
 
 (defun rh-kill-ring-save-keep-mark (&rest _)
   (setq deactivate-mark nil))
@@ -372,7 +382,8 @@
    ("M-<down>" . rh-scroll-up-one-line)
    ("M-<kp-down>" . rh-scroll-up-one-line)
    ("M-<up>" . rh-scroll-down-one-line)
-   ("M-<kp-up>" . rh-scroll-down-one-line))
+   ("M-<kp-up>" . rh-scroll-down-one-line)
+   ("<f12>" . rh-what-face))
 
   :demand t)
 
@@ -673,6 +684,8 @@
   :config
   (require 'config-rich-minority)
 
+  (add-to-list 'rm-blacklist " $")
+
   (rich-minority-mode 1)
 
   :straight t
@@ -696,17 +709,17 @@
   ;;  '(iedit-read-only-occurrence
   ;;    ((((background light)) (:background "pale turquoise")))))
 
-  (when (display-graphic-p)
-    (cl-case
-     (car custom-enabled-themes)
-     (sanityinc-tomorrow-blue
-      (let ((colors
-             (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
-                 (error "no such theme flavor"))))
-        (custom-set-faces
-         '(iedit-occurrence ((t (:background "dark blue"))))
-         '(iedit-read-only-occurrence
-           ((t (:background "dark slate blue")))))))))
+  ;; (when (display-graphic-p)
+  ;;   (cl-case
+  ;;    (car custom-enabled-themes)
+  ;;    (rh-sanityinc-tomorrow-blue
+  ;;     (let ((colors
+  ;;            (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
+  ;;                (error "no such theme flavor"))))
+  ;;       (custom-set-faces
+  ;;        '(iedit-occurrence ((t (:background "dark blue"))))
+  ;;        '(iedit-read-only-occurrence
+  ;;          ((t (:background "dark slate blue")))))))))
 
   ;; (custom-set-faces
   ;;  '(iedit-occurrence ((t (:inherit highlight))))
