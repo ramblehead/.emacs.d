@@ -370,9 +370,7 @@
    ("C-z" . undo)
    ("C-x f" . find-file-at-point)
    ("M-<down>" . rh-scroll-up-one-line)
-   ("M-<kp-down>" . rh-scroll-up-one-line)
-   ("M-<up>" . rh-scroll-down-one-line)
-   ("M-<kp-up>" . rh-scroll-down-one-line))
+   ("M-<up>" . rh-scroll-down-one-line))
 
   :demand t)
 
