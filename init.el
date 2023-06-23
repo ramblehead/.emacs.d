@@ -379,10 +379,8 @@ when only symbol face names are needed."
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
    ("C-z" . undo)
    ("C-x f" . find-file-at-point)
-   ("M-<down>" . rh-scroll-up-one-line)
-   ("M-<kp-down>" . rh-scroll-up-one-line)
    ("M-<up>" . rh-scroll-down-one-line)
-   ("M-<kp-up>" . rh-scroll-down-one-line)
+   ("M-<down>" . rh-scroll-up-one-line)
    ("<f12>" . rh-what-face))
 
   :demand t)
