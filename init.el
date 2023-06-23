@@ -1196,10 +1196,10 @@ Also sets SYMBOL to VALUE."
    'g2w-display-buffer-reuse-window-commands
    'xref-show-location-at-point)
 
-  :bind (("M-[" . rh-xref-return)
-         ("M-]" . rh-xref-undo-return))
-  ;; :bind (("M-[" . xref-go-back)
-  ;;        ("M-]" . xref-go-forward))
+  ;; :bind (("M-[" . rh-xref-return)
+  ;;        ("M-]" . rh-xref-undo-return))
+  :bind (("M-[" . xref-go-back)
+         ("M-]" . xref-go-forward))
   :demand t)
 
 (use-package bind-key
