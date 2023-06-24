@@ -8,6 +8,4 @@
        (with-selected-window win (recenter))))
    (current-buffer)))
 
-(add-hook 'save-place-after-find-file-hook #'rh-recenter-after-find-file)
-
 (provide 'config-saveplace)
