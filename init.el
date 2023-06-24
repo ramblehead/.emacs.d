@@ -550,45 +550,55 @@ when only symbol face names are needed."
   :straight t
   :ensure t)
 
-;; (use-package embark
-;;   :init
+(use-package embark
+  :init
 
-;;   ;; Optionally replace the key help with a completing-read interface
-;;   (setq prefix-help-command #'embark-prefix-help-command)
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
 
-;;   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-;;   ;; strategy, if you want to see the documentation from multiple providers.
-;;   (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-;;   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
-;;   :config
+  :config
 
-;;   ;; Hide the mode line of the Embark live/completions buffers
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-;;                  nil
-;;                  (window-parameters (mode-line-format . none))))
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
 
-;;   :bind
-;;   (("C-." . embark-act)         ;; pick some comfortable binding
-;;    ("C-'" . embark-dwim)        ;; good alternative: M-.
-;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-'" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
-;;   :straight t
-;;   :ensure t
-;;   :demand t)
+  :straight t
+  :ensure t
+  :demand t)
 
-;; ;; Consult users will also want the embark-consult package.
-;; (use-package embark-consult
-;;   :load-path "site-lisp/ess/lisp/"
 
-;;   :hook
-;;   (embark-collect-mode . consult-preview-at-point-mode)
+;; The main purpose of installing embark package is the
+;; following functionality:
+;;
+;; consult-line -> embark-export to occur-mode buffer ->
+;; occur-edit-mode for editing of matches in buffer.
+;;
+;; consult-grep -> embark-export to grep-mode buffer ->
+;; wgrep for editing of all matches.
+;;
+;; consult-find -> embark-export to dired-mode buffer ->
+;; wdired-change-to-wdired-mode for editing.
+(use-package embark-consult
+  :load-path "site-lisp/ess/lisp/"
 
-;;   ;; :pin manual
-;;   :straight t
-;;   :ensure t
-;;   :demand t)
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode)
+
+  :straight t
+  :ensure t
+  :demand t)
 
 (use-package consult
   :init
@@ -690,7 +700,10 @@ when only symbol face names are needed."
    ("M-s g" . consult-grep)
    ("M-s G" . consult-git-grep)
    ("M-s r" . consult-ripgrep)
+   ("C-c s" . consult-ripgrep)
    ("M-s l" . consult-line)
+   ("C-s"   . consult-line)                  ;; Use consult instead of isearch-forward
+   ("M-s s" . isearch-forward)               ;; Re-map isearch-forward
    ("M-s L" . consult-line-multi)
    ("M-s k" . consult-keep-lines)
    ("M-s u" . consult-focus-lines)
@@ -766,6 +779,11 @@ when only symbol face names are needed."
   :straight t
   :ensure t
   :demand t)
+
+(use-package wgrep
+  :straight t
+  :ensure t
+  :defer t)
 
 (use-package rainbow-mode
   :straight t

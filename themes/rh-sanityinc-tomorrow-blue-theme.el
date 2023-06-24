@@ -15,8 +15,10 @@
                          :color ,(cdr (assoc 'selection colors))
                          :style nil)
                         :background ,(cdr (assoc 'selection colors))))))
-   `(iedit-occurrence ((,class . (:background "dark blue"))))
-   `(iedit-read-only-occurrence ((,class . (:background "dark slate blue")))))
+   `(iedit-occurrence
+     ((,class . (:background "dark blue"))))
+   `(iedit-read-only-occurrence
+     ((,class . (:background "dark slate blue")))))
   (custom-theme-set-variables
    'rh-sanityinc-tomorrow-blue
    ;; Customize theme variables if needed
