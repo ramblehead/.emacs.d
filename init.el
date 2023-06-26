@@ -173,7 +173,6 @@ when only symbol face names are needed."
     (if face (message "Face: %s" face) (message "No face at %d" pos)))
   (beacon-blink))
 
-
 (defun rh-kill-ring-save-keep-mark (&rest _)
   (setq deactivate-mark nil))
 
