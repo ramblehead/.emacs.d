@@ -1011,6 +1011,77 @@ when only symbol face names are needed."
 
 ;;; /b/}
 
+;;; /b/; Human Languages
+;;; /b/{
+
+(use-package flyspell
+  :commands flyspell-visible-mode
+  :config
+  (require 'config-flyspell)
+
+  :bind (:map flyspell-mode-map
+         ("C-;" . nil))
+  :defer t)
+
+(use-package ispell
+  :config
+  ;; This call is required for spell-fu to work correctly. It initialises
+  ;; ispell-aspell-dictionary-alist before ispell-program-name is set to
+  ;; "hunspell".
+  (ispell-find-aspell-dictionaries)
+
+  ;; In case if it is not already set by OS or set to another value.
+  ;; (setenv "LANG" "en_GB.UTF-8")
+
+  (setq ispell-silently-savep t)
+  (setq ispell-use-framepop-p t)
+
+  ;; (setq ispell-program-name "aspell")
+
+  ;; (setq-default ispell-program-name "enchant-2")
+  ;; (setq ispell-really-enchant t)
+
+  (setq ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t)
+
+  ;; Configure two variants of English and Russian.
+  ;; ispell-set-spellchecker-params has to be called before
+  ;; ispell-hunspell-add-multi-dic will work
+  (ispell-set-spellchecker-params)
+  ;; (ispell-hunspell-add-multi-dic "en_GB,en_US,ru_RU")
+  (setq ispell-dictionary "en_GB,en_US,ru_RU")
+
+  ;; (setq ispell-local-dictionary-alist
+  ;;       '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)
+  ;;         ("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_GB") nil utf-8)
+  ;;         ("ru_RU" "[а-я]" "[^[:alpha:]]" "[']" t ("-d" "ru_RU") nil utf-8)))
+
+  (setq-default
+   ispell-local-dictionary-alist
+   '(("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_GB") nil utf-8)
+     ("en_US" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_US") nil utf-8)
+     ("ru_RU"
+      "[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
+      "[^АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
+      "['’]" nil ("-d" "ru_RU") nil utf-8)
+     ("en_GB,en_US,ru_RU" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t
+      ("-d" "en_GB,en_US,ru_RU") nil utf-8)))
+
+  ;; For saving words to the personal dictionary, don't infer it from
+  ;; the locale, otherwise it would save to ~/.hunspell_de_DE.
+  (setq ispell-personal-dictionary "~/.hunspell_personal")
+
+  ;; The personal dictionary file has to exist, otherwise hunspell will
+  ;; silently not use it.
+  (unless (file-exists-p ispell-personal-dictionary)
+    (write-region "" nil ispell-personal-dictionary nil 0))
+
+  :bind (("C-x w" . 'ispell-word))
+  :defer t)
+
+
+;;; /b/}
+
 ;;; /b/; Version Control
 ;;; /b/{
 
