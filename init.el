@@ -170,8 +170,7 @@ when only symbol face names are needed."
   (let ((face (or (get-char-property (point) 'read-face-name)
                   (get-char-property (point) 'face))))
     (if face (message "Face: %s" face) (message "No face at %d" pos)))
-  ;; (beacon-blink)
-  )
+  (beacon-blink))
 
 
 (defun rh-kill-ring-save-keep-mark (&rest _)
@@ -937,6 +936,43 @@ when only symbol face names are needed."
 
   :bind (("<f1>" . which-key-show-top-level))
 
+  :straight t
+  :demand t
+  :ensure t)
+
+(use-package beacon
+  :config
+  (customize-set-value 'beacon-lighter
+    (cond
+     ((char-displayable-p ?Λ) " Λ")
+     (t " (*)")))
+
+  (add-to-list 'rm-blacklist " (*)")
+  (add-to-list 'rm-blacklist " Λ")
+
+  (beacon-mode 1)
+
+  (customize-set-value 'beacon-dont-blink-commands
+                       '(mouse-set-point
+                         mouse-drag-region
+                         ;; pop-tag-mark
+                         ;; xref-pop-marker-stack
+                         compile-goto-error
+                         compilation-display-error
+                         ivy-done))
+
+  (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
+  (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
+  (add-to-list 'beacon-dont-blink-major-modes 'bs-mode t)
+
+  (customize-set-value 'beacon-blink-delay 0.2)
+  ;; (customize-set-value 'beacon-color "gtk_selection_bg_color")
+  (customize-set-value 'beacon-color 0.3)
+  (customize-set-value 'beacon-blink-when-window-scrolls nil)
+  ;; (customize-set-value 'beacon-blink-when-focused t)
+  ;; (customize-set-value 'beacon-push-mark 1)
+
+  :after rich-minority
   :straight t
   :demand t
   :ensure t)
