@@ -4420,6 +4420,21 @@ fields which we need."
 
 ;;; /b/}
 
+(use-package rust-mode
+  :config
+  (setq rust-format-on-save t)
+
+  :bind (:map rust-mode-map
+         ("C-c C-c C-u" . nil)
+         ("C-c C-c C-k" . nil)
+         ("C-c C-c C-t" . nil)
+         ("C-c C-c C-r" . nil)
+         ("C-c C-c C-l" . nil)
+         ("C-c C-f" . nil)      ; original rust-format-buffer
+         ("C-c C-n" . nil))     ; rust-goto-format-problem
+  :ensure t
+  :defer t)
+
 ;;; /b/}
 
 ;; -------------------------------------------------------------------
