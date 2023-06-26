@@ -558,7 +558,7 @@ when only symbol face names are needed."
 
   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
   ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
@@ -570,14 +570,13 @@ when only symbol face names are needed."
                  (window-parameters (mode-line-format . none))))
 
   :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-'" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  (("<menu>" . embark-act)         ;; pick some comfortable binding
+   ("C-<menu>" . embark-dwim)      ;; good alternative: M-.
+   ("C-h B" . embark-bindings))    ;; alternative for `describe-bindings'
 
   :straight t
   :ensure t
   :demand t)
-
 
 ;; The main purpose of installing embark package is the
 ;; following functionality:
@@ -591,7 +590,7 @@ when only symbol face names are needed."
 ;; consult-find -> embark-export to dired-mode buffer ->
 ;; wdired-change-to-wdired-mode for editing.
 (use-package embark-consult
-  :load-path "site-lisp/ess/lisp/"
+  ;; :load-path "site-lisp/ess/lisp/"
 
   :hook
   (embark-collect-mode . consult-preview-at-point-mode)
@@ -788,24 +787,23 @@ when only symbol face names are needed."
 (use-package rainbow-mode
   :straight t
   :ensure t
-  :demand t)
+  :defer t)
 
 (use-package ace-window
   :config (setq aw-dispatch-when-more-than 1)
 
-  :bind
-  (("C-c a a" . ace-window)
-   ("C-c a o" . ace-select-window)
-   ("C-c a s" . ace-swap-window)
-   ("C-c a d" . ace-delete-window)
-   ("C-x <up>" . windmove-up)
-   ("C-x <kp-up>" . windmove-up)
-   ("C-x <down>" . windmove-down)
-   ("C-x <kp-down>" . windmove-down)
-   ("C-x <right>" . windmove-right)
-   ("C-x <kp-right>" . windmove-right)
-   ("C-x <left>" . windmove-left)
-   ("C-x <kp-left>" . windmove-left))
+  :bind (("C-c a a" . ace-window)
+         ("C-c a o" . ace-select-window)
+         ("C-c a s" . ace-swap-window)
+         ("C-c a d" . ace-delete-window)
+         ("C-x <up>" . windmove-up)
+         ("C-x <kp-up>" . windmove-up)
+         ("C-x <down>" . windmove-down)
+         ("C-x <kp-down>" . windmove-down)
+         ("C-x <right>" . windmove-right)
+         ("C-x <kp-right>" . windmove-right)
+         ("C-x <left>" . windmove-left)
+         ("C-x <kp-left>" . windmove-left))
 
   :straight t
   :ensure t
@@ -882,6 +880,93 @@ when only symbol face names are needed."
   (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
 
   :demand t)
+
+(use-package xref
+  :bind (("M-[" . xref-go-back)
+         ("M-]" . xref-go-forward))
+  :demand t)
+
+(use-package autorevert
+  :config
+  (setq auto-revert-mode-text " ⭯")
+  (setq auto-revert-tail-mode-text " ⭳")
+
+  (add-to-list 'rm-blacklist " ⭯")
+
+  :defer t)
+
+(use-package undo-tree
+  :config
+  (add-to-list 'rm-blacklist " Undo-Tree")
+
+  (global-undo-tree-mode 1)
+  (customize-set-value 'undo-tree-auto-save-history nil)
+
+  :bind (("C-z" . undo-tree-undo)
+         ("C-S-z" . undo-tree-redo)
+         ("C-M-z" . undo-tree-visualize))
+
+  :straight t
+  :demand t
+  :ensure t)
+
+(use-package which-key
+  :init
+  (customize-set-value 'which-key-is-verbose t)
+
+  ;; This conflicts with which-key "C-h" popup
+  (global-unset-key (kbd "C-h C-h"))
+
+  :config
+  (add-to-list 'rm-blacklist " WK")
+
+  (customize-set-value 'which-key-show-prefix 'mode-line)
+  (customize-set-value 'which-key-max-description-length 30)
+  ;; (customize-set-value 'which-key-show-transient-maps t)
+
+  (customize-set-value 'which-key-sort-order 'which-key-description-order)
+  ;; (customize-set-value 'which-key-side-window-max-height 15)
+
+  (which-key-mode 1)
+
+  ;; (which-key-add-key-based-replacements
+  ;;   "M-s"   "interactive-search"
+  ;;   "M-s h" "highlight"
+  ;;   "M-g"   "goto"
+  ;;   "C-x 8" "unicode-keys")
+
+  :bind (("<f1>" . which-key-show-top-level))
+
+  :straight t
+  :demand t
+  :ensure t)
+
+;;; /b/}
+
+;;; /b/; Version Control
+;;; /b/{
+
+(use-package magit
+  :init
+  (defvar magit-log-margin '(t "%F %H:%M " magit-log-margin-width t 10))
+  (defvar magit-log-section-arguments
+    '("--graph" "--color" "--decorate" "-n256"))
+
+  :config
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-nm action)
+                   (and (not (eq major-mode 'magit-diff-mode))
+                        (eq (with-current-buffer buffer-nm major-mode)
+                            'magit-status-mode)))
+                 (display-buffer-same-window
+                  rh-display-buffer-reuse-right
+                  rh-display-buffer-reuse-left
+                  display-buffer-pop-up-window)))
+
+  :straight t
+  :demand t
+  :ensure t)
+
 
 ;;; /b/}
 
