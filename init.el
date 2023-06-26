@@ -109,7 +109,8 @@
   (package-install 'use-package))
 
 (use-package gnu-elpa-keyring-update
-  :config (gnu-elpa-keyring-update)
+  :config
+  (gnu-elpa-keyring-update)
 
   :demand t
   :ensure t)
@@ -977,6 +978,38 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
+(use-package hideshow
+  :config
+  (add-to-list 'rm-blacklist " hs")
+
+  (setq hs-allow-nesting t)
+  (setq hs-isearch-open t)
+
+  (defun rh-hs-set-up-overlay-handler (ov)
+    (overlay-put ov 'display
+                 (format (if (char-displayable-p ?•) " [• %d •] " " [* %d *] ")
+                         (count-lines (overlay-start ov)
+                                      (overlay-end ov))))
+    (overlay-put ov 'face 'shadow))
+
+  (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
+
+  :bind (:map hs-minor-mode-map
+         ("C-S-e" . hs-show-all))
+  :demand t
+  :ensure t)
+
+(use-package code-groups
+  :config
+  (add-to-list 'rm-blacklist " code-groups")
+
+  :straight (code-groups
+             :type git
+             ;; :host github
+             :repo "git@github.com:ramblehead/code-groups-emacs.git")
+  :demand t
+  :defer t)
+
 ;;; /b/}
 
 ;;; /b/; Version Control
@@ -1013,7 +1046,10 @@ when only symbol face names are needed."
   "Enables some minor modes, useful for programming."
   :lighter " rh-prog"
   (if rh-programming-minor-modes
-      (show-paren-local-mode 1)
+      (progn
+        (show-paren-local-mode 1)
+        (code-groups-mode 1))
+    (code-groups-mode -1)
     (show-paren-local-mode -1)))
 
 (add-to-list 'rm-blacklist " rh-prog")
