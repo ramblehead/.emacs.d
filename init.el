@@ -4424,6 +4424,13 @@ fields which we need."
   :config
   (setq rust-format-on-save t)
 
+  (add-hook
+   'rust-mode-hook
+   (lambda ()
+     ;; (setq-local company-backends (copy-tree company-backends))
+     ;; (company-mode 1)
+     (rh-programming-minor-modes 1)))
+
   :bind (:map rust-mode-map
          ("C-c C-c C-u" . nil)
          ("C-c C-c C-k" . nil)
