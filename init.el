@@ -4422,8 +4422,6 @@ fields which we need."
 
 (use-package rust-mode
   :config
-  (setq rust-format-on-save t)
-
   (add-hook
    'rust-mode-hook
    (lambda ()
