@@ -4422,6 +4422,8 @@ fields which we need."
 
 (use-package rust-mode
   :config
+  (setq rust-indent-offset 2)
+
   (add-hook
    'rust-mode-hook
    (lambda ()
