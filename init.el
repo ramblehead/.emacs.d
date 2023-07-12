@@ -4423,6 +4423,7 @@ fields which we need."
 (use-package rust-mode
   :config
   (setq rust-indent-offset 2)
+  (setq rust-indent-method-chain t)
 
   (add-hook
    'rust-mode-hook
