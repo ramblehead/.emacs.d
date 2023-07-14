@@ -3327,8 +3327,9 @@ fields which we need."
   :ensure t)
 
 (use-package lsp-pyright
-  :ensure t
-  :defer t)
+  :after lsp-mode
+  :defer t
+  :ensure t)
 
 (use-package rtags
   :if (locate-library "rtags")
