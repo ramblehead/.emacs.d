@@ -3245,7 +3245,8 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  (let ((path (or (executable-find "clangd-15")
+  (let ((path (or (executable-find "clangd-16")
+                  (executable-find "clangd-15")
                   (executable-find "clangd-14")
                   (executable-find "clangd-13")
                   (executable-find "clangd-12")
