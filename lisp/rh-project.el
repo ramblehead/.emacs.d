@@ -35,7 +35,12 @@
 
 (defvar rh-project-initialised-projects '())
 (defvar rh-project-trusted-dir-marker ".rh-trusted")
-(defvar rh-project-dir-name ".rh-project")
+
+;; TODO: Dot dir name should be removed after all rh projects
+;; are migrated to no-dot dir name
+(defvar rh-project-dot-dir-name ".rh-project")
+
+(defvar rh-project-dir-name "rh-project")
 
 (defun rh-project-buffer-dir ()
   (or (and buffer-file-name
@@ -54,9 +59,18 @@
          (src-tree-root (and buffer-dir
                              (locate-dominating-file
                               buffer-dir
-                              rh-project-dir-name))))
-    (when src-tree-root
-      (file-name-as-directory (concat src-tree-root rh-project-dir-name)))))
+                              rh-project-dir-name)))
+         (src-tree-root-dot (and buffer-dir
+                                 (locate-dominating-file
+                                  buffer-dir
+                                  rh-project-dot-dir-name))))
+    (cond
+     (src-tree-root
+      (file-name-as-directory
+       (file-name-concat src-tree-root rh-project-dir-name)))
+     (src-tree-root-dot
+      (file-name-as-directory
+       (file-name-concat src-tree-root rh-project-dot-dir-name))))))
 
 (defun rh-project-in-trusted-dir ()
   (locate-dominating-file
