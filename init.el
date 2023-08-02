@@ -2579,6 +2579,8 @@ fields which we need."
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
   ;; (setq flycheck-indication-mode nil)
 
+  (setq flycheck-checker-error-threshold 5000)
+
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
   :defer t
@@ -3245,7 +3247,8 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  (let ((path (or (executable-find "clangd-15")
+  (let ((path (or (executable-find "clangd-16")
+                  (executable-find "clangd-15")
                   (executable-find "clangd-14")
                   (executable-find "clangd-13")
                   (executable-find "clangd-12")
@@ -3986,7 +3989,7 @@ fields which we need."
      (display-buffer-reuse-window
       display-buffer-same-window)))
 
-  (setq python-indent-offset 2)
+  (setq python-indent-offset 4)
   (setq python-indent-def-block-scale 1)
   (setq python-shell-interpreter "python3")
 
