@@ -858,6 +858,11 @@ the window is selected."
   (setq hl-line-sticky-flag nil)
   :ensure t)
 
+(use-package hl-column
+  :config
+  (setq hl-line-sticky-flag nil)
+  :ensure t)
+
 (use-package total-lines
   :config
   (global-total-lines-mode 1)
@@ -4288,6 +4293,19 @@ fields which we need."
    (lambda ()
      (rh-programming-minor-modes t)
      (c-toggle-comment-style -1)))
+
+  :ensure t
+  :defer t)
+
+(use-package conf-mode
+  ;; :mode "\\.toml\\'"
+  :config
+  (add-hook
+   'conf-toml-mode-hook
+   (lambda ()
+     (setq-local company-backends (copy-tree company-backends))
+     (setq-local require-final-newline t)
+     (rh-programming-minor-modes 1)))
 
   :ensure t
   :defer t)
