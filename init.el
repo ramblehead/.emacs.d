@@ -3434,7 +3434,9 @@ fields which we need."
 
 (defun rh-clang-format-package-find ()
   "Finds clang-format.el package."
-  (or (locate-library "clang-format-15/clang-format.el")
+  (or (locate-library "clang-format-17/clang-format.el")
+      (locate-library "clang-format-16/clang-format.el")
+      (locate-library "clang-format-15/clang-format.el")
       (locate-library "clang-format-14/clang-format.el")
       (locate-library "clang-format-13/clang-format.el")
       (locate-library "clang-format-12/clang-format.el")
