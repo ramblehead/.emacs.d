@@ -860,7 +860,8 @@ the window is selected."
 
 (use-package hl-column
   :config
-  (setq hl-line-sticky-flag nil)
+  (setq hl-column-highlight-point nil)
+  (setq hl-column-sticky-flag nil)
   :ensure t)
 
 (use-package total-lines
@@ -4298,10 +4299,13 @@ fields which we need."
   :defer t)
 
 (use-package conf-mode
-  ;; :mode "\\.toml\\'"
+  :mode
+  ("\\.toml\\'\\|\\.yaml\\'\\|\\.ini\\'\\|\\.env\\'"
+   "\\.service\\'\\|\\.service.template\\'")
+
   :config
   (add-hook
-   'conf-toml-mode-hook
+   'conf-mode-hook
    (lambda ()
      (setq-local company-backends (copy-tree company-backends))
      (setq-local require-final-newline t)
