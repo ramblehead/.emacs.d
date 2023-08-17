@@ -25,7 +25,8 @@
 
 (defun flyspell-visible--overlay-refresh-from-timer ()
   (with-local-quit
-    (when (equal flyspell-visible--delay-buffer (current-buffer))
+    (when (and (eq flyspell-visible--delay-buffer (current-buffer))
+               (not (eq (buffer-size (current-buffer)) 0)))
       (let* ((start (window-start))
              (end (window-end))
              (range (list start end)))
