@@ -956,8 +956,7 @@ when only symbol face names are needed."
   (customize-set-value 'undo-tree-auto-save-history nil)
 
   :bind (("C-z" . undo-tree-undo)
-         ("C-S-z" . undo-tree-redo)
-         ("C-M-z" . undo-tree-visualize))
+         ("C-M-z" . undo-tree-redo))
 
   :straight t
   :demand t
@@ -1047,8 +1046,8 @@ when only symbol face names are needed."
 
   (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
 
-  :bind (:map hs-minor-mode-map
-         ("C-S-e" . hs-show-all))
+  ;; :bind (:map hs-minor-mode-map
+  ;;        ("C-M-e" . hs-show-all))
   :demand t
   :ensure t)
 
