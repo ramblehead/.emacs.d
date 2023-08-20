@@ -851,7 +851,6 @@ when only symbol face names are needed."
        (setq cursor-type normal-cursor-type))))
 
   (recentf-mode 1)
-
   ;; When a buffer is closed, remove the associated file from the recentf
   ;; list if (1) recentf would have, by default, removed the file, or
   ;; (2) the buffer was never displayed.
@@ -882,8 +881,11 @@ when only symbol face names are needed."
   :demand t)
 
 (use-package xref
-  :bind (("M-[" . xref-go-back)
-         ("M-]" . xref-go-forward))
+  :config
+  (when (display-graphic-p)
+    (bind-key "M-[" #'xref-go-back))
+
+  :bind (("M-]" . xref-go-forward))
   :demand t)
 
 (use-package autorevert
