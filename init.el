@@ -178,6 +178,40 @@ when only symbol face names are needed."
 
 (advice-add 'kill-ring-save :after #'rh-kill-ring-save-keep-mark)
 
+(defun rh-window-for-display-at-direction (direction &optional arg window)
+  (let ((win (windmove-find-other-window direction arg window)))
+    (when win
+      ;; Check if win is not dedicated, not side window and not minibuffer
+      (if (or (window-dedicated-p win)
+              (window-parameter win 'window-side)
+              (window-minibuffer-p win))
+          (rh-window-for-display-at-direction direction arg win)
+        win))))
+
+(defun rh-display-buffer-reuse-up (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'up)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
+(defun rh-display-buffer-reuse-down (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'down)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
+(defun rh-display-buffer-reuse-right (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'right)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
+(defun rh-display-buffer-reuse-left (buffer alist)
+  (let ((win (rh-window-for-display-at-direction 'left)))
+    (when win
+      (window--display-buffer buffer win 'reuse alist)
+      win)))
+
 ;;; /b/}
 
 ;;; /b/; Basic System Setup
@@ -185,6 +219,19 @@ when only symbol face names are needed."
 
 (use-package emacs
   :config
+  (defconst
+   display-buffer-fallback-action
+   '((display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      rh-display-buffer-reuse-down
+      rh-display-buffer-reuse-up
+      ;; display-buffer--maybe-pop-up-frame-or-window
+      display-buffer-in-previous-window
+      ;; display-buffer-use-some-window
+      display-buffer-pop-up-window
+      display-buffer-pop-up-frame)))
+
   ;; If the option load-prefer-newer is non-nil, then when searching suffixes,
   ;; load selects whichever version of a file (‘.elc’, ‘.el’, etc.) has been
   ;; modified most recently. In this case, load doesn’t load the ‘.eln’
@@ -857,10 +904,12 @@ when only symbol face names are needed."
   ;; see http://www.emacswiki.org/RecentFiles#toc16
   (customize-set-value 'recentf-keep '(rh-keep-default-and-visible-recentf-p))
 
+  (when (display-graphic-p)
+    (bind-key "<escape>" #'recentf-cancel-dialog))
+
   :bind
   (("<f4>" . recentf-open-files)
    :map recentf-dialog-mode-map
-   ("<escape>" . recentf-cancel-dialog)
    ("<space>" . widget-button-press)
    ("<f4>" . rh-recentf-open-edit))
 
