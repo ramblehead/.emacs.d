@@ -847,7 +847,8 @@ when only symbol face names are needed."
   (add-hook
    'recentf-dialog-mode-hook
    (lambda ()
-     (setq cursor-type normal-cursor-type)))
+     (when (display-graphic-p)
+       (setq cursor-type normal-cursor-type))))
 
   (recentf-mode 1)
 
