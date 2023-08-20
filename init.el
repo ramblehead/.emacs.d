@@ -510,11 +510,13 @@ when only symbol face names are needed."
 ;; (configure-default-mode-line)
 
 (defun configure-colour-themes ()
-  (when (display-graphic-p)
-    ;; (load-theme 'sanityinc-tomorrow-blue t)
-    ;; (disable-theme 'sanityinc-tomorrow-blue)
-    ;; (enable-theme 'sanityinc-tomorrow-blue)
-    (color-theme-sanityinc-tomorrow-blue)))
+  (color-theme-sanityinc-tomorrow-blue)
+  ;; (when (display-graphic-p)
+  ;;   ;; (load-theme 'sanityinc-tomorrow-blue t)
+  ;;   ;; (disable-theme 'sanityinc-tomorrow-blue)
+  ;;   ;; (enable-theme 'sanityinc-tomorrow-blue)
+  ;;   (color-theme-sanityinc-tomorrow-blue))
+  )
 
 (add-hook 'emacs-startup-hook #'configure-colour-themes)
 
