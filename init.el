@@ -298,17 +298,21 @@ when only symbol face names are needed."
   (customize-set-value 'mouse-drag-copy-region nil)
   (customize-set-value 'mouse-yank-at-point t)
 
+  ;; (add-hook
+  ;;  'next-error-hook
+  ;;  (lambda ()
+  ;;    (rh-recenter-sensibly)))
   (add-hook
    'next-error-hook
-   (lambda ()
-     (rh-recenter-sensibly)))
+   #'rh-recenter-sensibly)
 
   ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
   (ffap-bindings)
 
   ;; Windows splitting
   (customize-set-value 'split-height-threshold nil)
-  (setq split-width-threshold 170)
+  ;; (setq split-width-threshold 170)
+  (customize-set-value 'split-width-threshold 170)
 
   (defalias 'yes-or-no-p 'y-or-n-p)
 
