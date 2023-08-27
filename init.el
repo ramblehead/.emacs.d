@@ -3253,7 +3253,8 @@ fields which we need."
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
-  (let ((path (or (executable-find "clangd-16")
+  (let ((path (or (executable-find "clangd-17")
+                  (executable-find "clangd-16")
                   (executable-find "clangd-15")
                   (executable-find "clangd-14")
                   (executable-find "clangd-13")
@@ -3313,6 +3314,7 @@ fields which we need."
   (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
   (setq lsp-headerline-breadcrumb-segments '(symbols))
   (lsp-enable-which-key-integration t)
+  (setq lsp-headerline-breadcrumb-icons-enable nil)
 
   (setq lsp-clients-clangd-args
         '("-j=6"
@@ -3335,9 +3337,52 @@ fields which we need."
   :defer t
   :ensure t)
 
+
 (use-package lsp-pyright
   :after lsp-mode
   :defer t
+  :ensure t)
+
+(use-package dap-mode
+  ;; :custom
+  ;; (dap-auto-configure-mode t                           "Automatically configure dap.")
+  ;; (dap-auto-configure-features
+  ;;  '(sessions locals breakpoints expressions tooltip)  "Remove the button panel in the top.")
+  :config
+  (setq dap-auto-configure-mode t)
+
+  ;;; dap for c++
+  (require 'dap-lldb)
+
+  ;;; set the debugger executable (c++)
+  ;; (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
+  (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
+
+  ;; ask user for executable to debug if not specified explicitly (c++)
+  (setq dap-lldb-debugged-program-function
+        (lambda ()
+          (read-file-name "Select file to debug.")))
+
+  ;;; default debug template for (c++)
+  (dap-register-debug-template
+   "C++ LLDB dap"
+   (list :type "lldb-vscode"
+         :cwd nil
+         :args nil
+         :request "launch"
+         :program nil))
+
+  ;; (defun dap-debug-create-or-edit-json-template ()
+  ;;   "Edit the C++ debugging configuration or create + edit if none exists yet."
+  ;;   (interactive)
+  ;;   (let ((filename (concat (lsp-workspace-root) "/launch.json"))
+  ;;         (default "~/.emacs.d/default-launch.json"))
+  ;;     (unless (file-exists-p filename)
+  ;;       (copy-file default filename))
+  ;;     (find-file-existing filename)))
+
+  :defer
+  ;; :demand t
   :ensure t)
 
 (use-package rtags
