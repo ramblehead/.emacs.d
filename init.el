@@ -3340,50 +3340,54 @@ fields which we need."
 
 (use-package lsp-pyright
   :after lsp-mode
+  :config
+  (setq lsp-pyright-auto-search-paths nil)
+  ;; (setq lsp-pyright-disable-language-services t)
+
   :defer t
   :ensure t)
 
-(use-package dap-mode
-  ;; :custom
-  ;; (dap-auto-configure-mode t                           "Automatically configure dap.")
-  ;; (dap-auto-configure-features
-  ;;  '(sessions locals breakpoints expressions tooltip)  "Remove the button panel in the top.")
-  :config
-  (setq dap-auto-configure-mode t)
+;; (use-package dap-mode
+;;   ;; :custom
+;;   ;; (dap-auto-configure-mode t                           "Automatically configure dap.")
+;;   ;; (dap-auto-configure-features
+;;   ;;  '(sessions locals breakpoints expressions tooltip)  "Remove the button panel in the top.")
+;;   :config
+;;   (setq dap-auto-configure-mode t)
 
-  ;;; dap for c++
-  (require 'dap-lldb)
+;;   ;;; dap for c++
+;;   (require 'dap-lldb)
 
-  ;;; set the debugger executable (c++)
-  ;; (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
-  (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
+;;   ;;; set the debugger executable (c++)
+;;   ;; (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
+;;   (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode-15"))
 
-  ;; ask user for executable to debug if not specified explicitly (c++)
-  (setq dap-lldb-debugged-program-function
-        (lambda ()
-          (read-file-name "Select file to debug.")))
+;;   ;; ask user for executable to debug if not specified explicitly (c++)
+;;   (setq dap-lldb-debugged-program-function
+;;         (lambda ()
+;;           (read-file-name "Select file to debug.")))
 
-  ;;; default debug template for (c++)
-  (dap-register-debug-template
-   "C++ LLDB dap"
-   (list :type "lldb-vscode"
-         :cwd nil
-         :args nil
-         :request "launch"
-         :program nil))
+;;   ;;; default debug template for (c++)
+;;   (dap-register-debug-template
+;;    "C++ LLDB dap"
+;;    (list :type "lldb-vscode"
+;;          :cwd nil
+;;          :args nil
+;;          :request "launch"
+;;          :program nil))
 
-  ;; (defun dap-debug-create-or-edit-json-template ()
-  ;;   "Edit the C++ debugging configuration or create + edit if none exists yet."
-  ;;   (interactive)
-  ;;   (let ((filename (concat (lsp-workspace-root) "/launch.json"))
-  ;;         (default "~/.emacs.d/default-launch.json"))
-  ;;     (unless (file-exists-p filename)
-  ;;       (copy-file default filename))
-  ;;     (find-file-existing filename)))
+;;   ;; (defun dap-debug-create-or-edit-json-template ()
+;;   ;;   "Edit the C++ debugging configuration or create + edit if none exists yet."
+;;   ;;   (interactive)
+;;   ;;   (let ((filename (concat (lsp-workspace-root) "/launch.json"))
+;;   ;;         (default "~/.emacs.d/default-launch.json"))
+;;   ;;     (unless (file-exists-p filename)
+;;   ;;       (copy-file default filename))
+;;   ;;     (find-file-existing filename)))
 
-  :defer
-  ;; :demand t
-  :ensure t)
+;;   :defer
+;;   ;; :demand t
+;;   :ensure t)
 
 (use-package rtags
   :if (locate-library "rtags")
@@ -4330,6 +4334,15 @@ fields which we need."
   :defer t)
 
 (use-package protobuf-mode
+  :config
+
+  (add-hook
+   'protobuf-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes t)
+     (abbrev-mode -1)
+     (c-toggle-comment-style -1)))
+
   :ensure t
   :defer t)
 
@@ -5056,10 +5069,14 @@ or buffer major mode symbol")
    "^\\*lsp-log\\*$"
    "^\\*ts-ls\\*$"
    "^\\*clangd\\*$"
+   "^\\*pyright\\*$"
+   "^\\*ruff-lsp\\*$"
    ;; eglot
    "^\\*EGLOT .*$"
    ;; flymake
    "^\\*Flymake log\\*$"
+   ;; flycheck
+   "^\\*Flycheck error messages\\*$"
    ;; pretter
    "^\\*prettier (local)\\*$"
    ;; rtags buffers
@@ -5069,6 +5086,8 @@ or buffer major mode symbol")
    "^\\*RTags Log\\*$"
    ;; AUCTeX output files
    " output\\*$"
+   ;; vterm
+   VTerm
    ;; tailwind
    "^\\*tailwindcss\\*$"))
 
