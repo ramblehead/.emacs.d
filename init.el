@@ -4360,7 +4360,7 @@ fields which we need."
 
 (use-package conf-mode
   :mode
-  ("\\.toml\\'\\|\\.yaml\\'\\|\\.ini\\'\\|\\.env[.-].*\\'"
+  ("\\.toml\\'\\|\\.yaml\\'\\|\\.ini\\'\\|\\.env[.-]?.*\\'"
    "\\.service\\'\\|\\.service.template\\'")
 
   :config
