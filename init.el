@@ -1674,6 +1674,11 @@ Also sets SYMBOL to VALUE."
   ;; copy from one dired dir to the next dired dir shown in a split window
   (setq dired-dwim-target t)
 
+  ;; https://www.n16f.net/blog/decluttering-dired-for-peace-of-mind/
+  (setq dired-listing-switches
+        "-alhD --group-directories-first --time-style=long-iso")
+
+
   (add-hook
    'dired-mode-hook
    (lambda ()
@@ -1691,6 +1696,8 @@ Also sets SYMBOL to VALUE."
      ;;            (hl-line-mode -1))))))
      ;;  nil t)
      ))
+
+  ;; (add-hook 'dired-after-readin-hook (lambda ()))
 
   :bind (:map dired-mode-map
          ("RET" . rh-dired-find-file)
@@ -1712,7 +1719,6 @@ Also sets SYMBOL to VALUE."
 (if (equal system-type 'windows-nt)
     ;; In MS Windows systems
     (progn
-      (setq dired-listing-switches "-alhgG")
       (setq vr-dired-coding-system 'cp1251))
   ;; In unix-like systems
   ;; Sort dirs and files in dired as in "C"
@@ -1722,7 +1728,6 @@ Also sets SYMBOL to VALUE."
         "--group-directories-first --time-style=long-iso -alh"
         )
   (setq vr-dired-coding-system nil))
-
 ;; (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)
 (global-set-key (kbd "C-x d") #'dired-jump)
 
