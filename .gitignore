@@ -8,7 +8,7 @@
 /eln-cache
 /elpa
 /eshell
-/forge-database.sqlite
+/forge-database*.sqlite
 /games
 /history
 /irony
