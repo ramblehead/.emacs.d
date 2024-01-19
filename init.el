@@ -3307,6 +3307,7 @@ fields which we need."
 
   :init
   (defvar lsp-keymap-prefix "C-c l")
+  (setq lsp-use-plists t)
 
   :config
   (require 'config-lsp-mode)
@@ -3315,6 +3316,9 @@ fields which we need."
   (require 'yarn-pnp)
 
   ;; (yarn-pnp-lsp-enable)
+
+  (setq gc-cons-threshold (* 100 1024 1024)) ; 100MB
+  (setq read-process-output-max (* 1024 1024)) ; 1MB
 
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
@@ -3610,13 +3614,21 @@ fields which we need."
 ;;; /b/}
 
 (use-package go-mode
+  :if (executable-find "go")
   :config
   (setq lsp-go-hover-kind "FullDocumentation")
 
-  (lsp-register-custom-settings
-   '(("gopls.staticcheck" t t)
-     ;; ("gopls.verboseOutput" t t)
-     ))
+  (with-eval-after-load 'lsp-go
+    (when (null lsp-go-env)
+      (setq lsp-go-env (make-hash-table :test 'equal)))
+
+    ;; (puthash
+    ;;  "GOPATH" "/home/rh/xxx"
+    ;;  lsp-go-env)
+
+    (lsp-register-custom-settings
+     '(("gopls.staticcheck" t t)
+       ("gopls.verboseOutput" t t))))
 
   (add-hook
    'go-mode-hook
