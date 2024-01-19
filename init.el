@@ -3609,6 +3609,27 @@ fields which we need."
 
 ;;; /b/}
 
+(use-package go-mode
+  :config
+  (setq lsp-go-hover-kind "FullDocumentation")
+
+  (lsp-register-custom-settings
+   '(("gopls.staticcheck" t t)
+     ;; ("gopls.verboseOutput" t t)
+     ))
+
+  (add-hook
+   'go-mode-hook
+   (lambda ()
+     (setq-local tab-width 2)
+     (add-hook 'before-save-hook #'lsp-format-buffer t t)
+     (add-hook 'before-save-hook #'lsp-organize-imports t t)
+     (rh-programming-minor-modes 1)
+     (lsp-deferred)))
+
+  :defer t
+  :ensure t)
+
 (use-package csharp-mode
   :config
   (add-hook
