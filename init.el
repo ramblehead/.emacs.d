@@ -1678,11 +1678,13 @@ Also sets SYMBOL to VALUE."
   (setq dired-listing-switches
         "-alhD --group-directories-first --time-style=long-iso")
 
+  (setq dired-omit-files "\\`[.]\\'")
 
   (add-hook
    'dired-mode-hook
    (lambda ()
      (hl-line-mode 1)
+     (dired-omit-mode)
      (setq-local coding-system-for-read vr-dired-coding-system)
      (setq-local find-file-visit-truename nil)
      ;; (add-hook
@@ -3920,6 +3922,9 @@ fields which we need."
   :init
   (setq lsp-tailwindcss-add-on-mode t)
 
+  (setq lsp-tailwindcss-class-attributes
+        ["class" "className" "UNSAFE_className" "ngClass"])
+
   :defer t
   :ensure t)
 
@@ -5054,6 +5059,7 @@ or buffer major mode symbol")
    "^\\*Ido Completions\\*$"
    "^\\*buffer-selection\\*$"
    "^\\*httpd\\*$"
+   "^\\*Async-native-compile-log\\*$"
    help-mode
    debugger-mode
    special-mode
