@@ -706,6 +706,8 @@ when only symbol face names are needed."
          ("C-v" . yank)
          ("M-v" . yank-pop)
          ("C-z" . undo)
+         ;; Adjust text scale
+         ("C-+" . text-scale-adjust)
          ;; Resize windows
          ("M-s-<up>" . enlarge-window)
          ("M-s-<kp-up>" . enlarge-window)
