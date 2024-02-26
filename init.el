@@ -1215,3 +1215,9 @@ when only symbol face names are needed."
   :demand t)
 
 ;;; /b/}
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-native-compile: t
+;; no-update-autoloads: t
+;; End:
