@@ -3,8 +3,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(sanityinc-tomorrow-blue))
  '(custom-safe-themes
-   '("82d2cac368ccdec2fcc7573f24c3f79654b78bf133096f9b40c20d97ec1d8016" default))
+   '("76ddb2e196c6ba8f380c23d169cf2c8f561fd2013ad54b987c516d3cabc00216" default))
  '(package-selected-packages '(gnu-elpa-keyring-update)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

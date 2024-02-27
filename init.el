@@ -80,6 +80,8 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+;; (setq straight-recipes-gnu-elpa-use-mirror t)
+
 ;;; /b/}
 
 ;;; /b/; package
@@ -578,7 +580,8 @@ when only symbol face names are needed."
          ("<prior>" . vertico-scroll-down)
          ("C-x <up>" . windmove-up))
 
-  :straight t
+  ;; :straight (:flavor elpa)
+  :straight (:flavor elpa)
   :ensure t
   :demand t)
 
@@ -663,6 +666,7 @@ when only symbol face names are needed."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode)
 
+  :after consult
   :straight t
   :ensure t
   :demand t)
@@ -726,7 +730,8 @@ when only symbol face names are needed."
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :hook
+  (completion-list-mode . consult-preview-at-point-mode)
 
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind
@@ -783,6 +788,7 @@ when only symbol face names are needed."
    ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
    ;; Minibuffer history
    :map minibuffer-local-map
+   ("C-s" . goto-history-element)
    ("M-s" . consult-history)                 ;; orig. next-matching-history-element
    ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
