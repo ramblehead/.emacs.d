@@ -427,11 +427,27 @@ when only symbol face names are needed."
 
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+   ("C-v" . yank)
+   ("M-v" . yank-pop)
    ("C-z" . undo)
    ("C-x f" . find-file-at-point)
+   ("C-=" . text-scale-adjust)
    ("M-<up>" . rh-scroll-down-one-line)
    ("M-<down>" . rh-scroll-up-one-line)
    ("<f12>" . rh-what-face))
+
+  :demand t)
+
+(use-package windmove
+  :bind
+  (("C-x <up>" . windmove-up)
+   ("C-x <kp-up>" . windmove-up)
+   ("C-x <down>" . windmove-down)
+   ("C-x <kp-down>" . windmove-down)
+   ("C-x <right>" . windmove-right)
+   ("C-x <kp-right>" . windmove-right)
+   ("C-x <left>" . windmove-left)
+   ("C-x <kp-left>" . windmove-left))
 
   :demand t)
 
@@ -847,15 +863,7 @@ when only symbol face names are needed."
   :bind (("C-c a a" . ace-window)
          ("C-c a o" . ace-select-window)
          ("C-c a s" . ace-swap-window)
-         ("C-c a d" . ace-delete-window)
-         ("C-x <up>" . windmove-up)
-         ("C-x <kp-up>" . windmove-up)
-         ("C-x <down>" . windmove-down)
-         ("C-x <kp-down>" . windmove-down)
-         ("C-x <right>" . windmove-right)
-         ("C-x <kp-right>" . windmove-right)
-         ("C-x <left>" . windmove-left)
-         ("C-x <kp-left>" . windmove-left))
+         ("C-c a d" . ace-delete-window))
 
   :straight t
   :ensure t
