@@ -708,7 +708,9 @@ when only symbol face names are needed."
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; "C-+"
+  (customize-set-value 'consult-narrow-key "<") ;; "C-+"
+
+  ;; (customize-set-value 'consult-line-start-from-top t)
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
