@@ -975,6 +975,9 @@ when only symbol face names are needed."
   (global-undo-tree-mode 1)
   (customize-set-value 'undo-tree-auto-save-history nil)
 
+  (when (display-graphic-p)
+    (bind-key "C-S-z" #'undo-tree-redo))
+
   :bind (("C-z" . undo-tree-undo)
          ("C-M-z" . undo-tree-redo))
 
