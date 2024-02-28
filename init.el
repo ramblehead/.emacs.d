@@ -290,6 +290,7 @@ when only symbol face names are needed."
 
   (prefer-coding-system 'utf-8-unix)
   (customize-set-value 'default-input-method "russian-computer")
+  ;; (setq-default default-process-coding-system '(utf-8 . utf-8))
 
   (setq frame-title-format
         (concat "%b - emacs@" system-name))
@@ -530,6 +531,25 @@ when only symbol face names are needed."
        )))))
 
 ;; (configure-default-mode-line)
+
+(use-package smart-mode-line
+  :config
+  (require 'config-smart-mode-line)
+
+  (customize-set-value 'sml/theme 'automatic)
+  (customize-set-value 'sml/name-width 0)
+  (customize-set-value 'sml/show-eol t)
+  (customize-set-value 'sml/col-number-format "%3c")
+  (customize-set-value 'sml/size-indication-format "%I")
+  (customize-set-value 'sml/shorten-mode-string "")
+  (customize-set-value 'sml/shorten-modes nil)
+
+  (sml/setup)
+
+  :straight t
+  :after (total-lines)
+  :ensure t
+  :demand t)
 
 (defun configure-colour-themes ()
   (color-theme-sanityinc-tomorrow-blue)
@@ -1231,6 +1251,13 @@ when only symbol face names are needed."
   (:map lisp-mode-shared-map
    ("<f5>" . rh-lisp-eval-region-or-last-sexp))
   :after ielm
+  :demand t)
+
+(use-package eldoc
+  :delight (eldoc-mode " ε")
+  :config
+  (add-to-list 'rm-blacklist " ε")
+
   :demand t)
 
 ;;; /b/}

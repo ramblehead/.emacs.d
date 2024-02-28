@@ -1,4 +1,4 @@
-;;; consult-patch.el --- Consulting completing-read -*- lexical-binding: t -*-
+;;; ramblehead's consult configuration -*- lexical-binding: t -*-
 
 (require 'consult)
 
