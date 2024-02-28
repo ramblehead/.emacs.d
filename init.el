@@ -1095,7 +1095,9 @@ when only symbol face names are needed."
 
   (defun rh-hs-set-up-overlay-handler (ov)
     (overlay-put ov 'display
-                 (format (if (char-displayable-p ?•) " [• %d •] " " [* %d *] ")
+                 (format (if (char-displayable-p ?•)
+                             " [• %d •] "
+                           " [* %d *] ")
                          (count-lines (overlay-start ov)
                                       (overlay-end ov))))
     (overlay-put ov 'face 'shadow))
@@ -1264,7 +1266,6 @@ when only symbol face names are needed."
    'emacs-lisp-mode-hook
    (lambda ()
      (rh-programming-minor-modes 1)))
-
 
   :bind
   (:map lisp-mode-shared-map
