@@ -159,6 +159,14 @@
     (unless (= point-line window-start-line)
       (goto-char point))))
 
+(defun rh-scroll-left-one-line ()
+  (interactive)
+  (scroll-left 1))
+
+(defun rh-scroll-right-one-line ()
+  (interactive)
+  (scroll-right 1))
+
 (defun rh-recenter-sensibly ()
   (interactive)
   (cond
@@ -441,14 +449,15 @@ when only symbol face names are needed."
    (kbd "C-<kp-right>")
    (lookup-key (current-global-map) (kbd "C-<right>")))
 
-  (eval-after-load 'term/xterm
-    '(bind-key "<xterm-paste>" #'yank))
-
   (when (display-graphic-p)
-   ("S-<insert>" . yank)
-   ("S-<kp-insert>" . yank)
-   ("M-S-<insert>" . rh-yank-pop-forwards)
-   ("M-S-<kp-insert>" . rh-yank-pop-forwards))
+    (bind-key "S-<insert>" #'yank)
+    ;; (bind-key "S-<kp-insert>" #'yank)
+    (bind-key "M-S-<insert>" #'rh-yank-pop-forwards)
+    ;; (bind-key "M-S-<kp-insert>" #'rh-yank-pop-forwards)
+    )
+
+  ;; (eval-after-load 'term/xterm
+  ;;   '(bind-key "<xterm-paste>" #'yank))
 
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
@@ -461,6 +470,8 @@ when only symbol face names are needed."
    ("C-=" . text-scale-adjust)
    ("M-<up>" . rh-scroll-down-one-line)
    ("M-<down>" . rh-scroll-up-one-line)
+   ("M-<right>" . rh-scroll-left-one-line)
+   ("M-<left>" . rh-scroll-right-one-line)
    ("<f12>" . rh-what-face))
 
   :demand t)
@@ -468,13 +479,14 @@ when only symbol face names are needed."
 (use-package windmove
   :bind
   (("C-x <up>" . windmove-up)
-   ("C-x <kp-up>" . windmove-up)
+   ;; ("C-x <kp-up>" . windmove-up)
    ("C-x <down>" . windmove-down)
-   ("C-x <kp-down>" . windmove-down)
+   ;; ("C-x <kp-down>" . windmove-down)
    ("C-x <right>" . windmove-right)
-   ("C-x <kp-right>" . windmove-right)
+   ;; ("C-x <kp-right>" . windmove-right)
    ("C-x <left>" . windmove-left)
-   ("C-x <kp-left>" . windmove-left))
+   ;; ("C-x <kp-left>" . windmove-left)
+   )
 
   :demand t)
 
