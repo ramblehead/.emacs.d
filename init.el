@@ -17,21 +17,29 @@
   (progn
     (setq rh-user-data-dir (expand-file-name "~/.local/share/"))
 
-    ;; Make the "~/.local/share/emacs" directories if does not already exist
+    ;; Make the "~/.local/share/emacs" directories
+    ;; if does not already exist
     (if (not (file-exists-p (concat rh-user-data-dir "emacs")))
         (make-directory (concat rh-user-data-dir "emacs") t))
     (setq rh-savehist-file
-          (file-name-concat rh-user-data-dir emacs-config-name "emacs-history"))
+          (file-name-concat rh-user-data-dir
+                            emacs-config-name
+                            "emacs-history"))
     (setq rh-recent-files-file-path
-          (file-name-concat rh-user-data-dir emacs-config-name "recent-files"))
+          (file-name-concat rh-user-data-dir
+                            emacs-config-name
+                            "recent-files"))
     (setq rh-saved-places-file-path
-          (file-name-concat rh-user-data-dir emacs-config-name "saved-places"))
+          (file-name-concat rh-user-data-dir
+                            emacs-config-name
+                            "saved-places"))
     (setq rh-bm-repository-file-path
-          (file-name-concat rh-user-data-dir emacs-config-name "bm-repository"))
-    (setq rh-ido-last-file-path
-          (file-name-concat rh-user-data-dir emacs-config-name "ido-last"))
+          (file-name-concat rh-user-data-dir
+                            emacs-config-name
+                            "bm-repository"))
 
-    ;; Paths for the site-start.el files, located in /usr/local/share/emacs/
+    ;; Paths for the site-start.el files,
+    ;; located in /usr/local/share/emacs/
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
           (ver-file-path
            (concat
@@ -44,9 +52,11 @@
         (when (file-exists-p ver-file-path)
           (add-to-list 'rh-site-start-file-paths ver-file-path)))))))
 
-(setq rh-user-lisp-dir (concat (expand-file-name user-emacs-directory) "lisp/"))
+(setq rh-user-lisp-dir
+      (concat (expand-file-name user-emacs-directory) "lisp/"))
 
-(setq rh-user-site-start-file-path (concat rh-user-lisp-dir "site-start.el"))
+(setq rh-user-site-start-file-path
+      (concat rh-user-lisp-dir "site-start.el"))
 
 (load "~/.config/emacs-private/secret.el" t)
 (load (concat "~/.config/emacs-private/systems/" system-name ".el") t)
@@ -89,7 +99,8 @@
 
 (require 'package)
 
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
 ;;              '("melpa" . "http://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
@@ -180,7 +191,8 @@ when only symbol face names are needed."
 
 (advice-add 'kill-ring-save :after #'rh-kill-ring-save-keep-mark)
 
-(defun rh-window-for-display-at-direction (direction &optional arg window)
+(defun rh-window-for-display-at-direction
+    (direction &optional arg window)
   (let ((win (windmove-find-other-window direction arg window)))
     (when win
       ;; Check if win is not dedicated, not side window and not minibuffer
@@ -234,10 +246,10 @@ when only symbol face names are needed."
       display-buffer-pop-up-window
       display-buffer-pop-up-frame)))
 
-  ;; If the option load-prefer-newer is non-nil, then when searching suffixes,
-  ;; load selects whichever version of a file (‘.elc’, ‘.el’, etc.) has been
-  ;; modified most recently. In this case, load doesn’t load the ‘.eln’
-  ;; natively-compiled file even if it exists.
+  ;; If the option load-prefer-newer is non-nil, then when searching
+  ;; suffixes, load selects whichever version of a file (‘.elc’,
+  ;; ‘.el’, etc.) has been modified most recently. In this case, load
+  ;; doesn’t load the ‘.eln’ natively-compiled file even if it exists.
   ;; (setq load-prefer-newer t)
 
   ;; No ceremony
@@ -323,7 +335,8 @@ when only symbol face names are needed."
   (setq enable-recursive-minibuffers t)
 
   ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  ;; We display [CRM<separator>], e.g.,
+  ;; [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
                   (replace-regexp-in-string
@@ -1121,9 +1134,9 @@ when only symbol face names are needed."
 
 (use-package ispell
   :config
-  ;; This call is required for spell-fu to work correctly. It initialises
-  ;; ispell-aspell-dictionary-alist before ispell-program-name is set to
-  ;; "hunspell".
+  ;; This call is required for spell-fu to work correctly. It
+  ;; initialises ispell-aspell-dictionary-alist before
+  ;; ispell-program-name is set to "hunspell".
   (ispell-find-aspell-dictionaries)
 
   ;; In case if it is not already set by OS or set to another value.
@@ -1154,8 +1167,10 @@ when only symbol face names are needed."
 
   (setq-default
    ispell-local-dictionary-alist
-   '(("en_GB" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_GB") nil utf-8)
-     ("en_US" "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_US") nil utf-8)
+   '(("en_GB"
+      "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_GB") nil utf-8)
+     ("en_US"
+      "[[:alpha:]]" "[^[:alpha:]]" "['’]" t ("-d" "en_US") nil utf-8)
      ("ru_RU"
       "[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
       "[^АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
@@ -1183,7 +1198,9 @@ when only symbol face names are needed."
 
 (use-package magit
   :init
-  (defvar magit-log-margin '(t "%F %H:%M " magit-log-margin-width t 10))
+  (defvar magit-log-margin
+    '(t "%F %H:%M " magit-log-margin-width t 10))
+
   (defvar magit-log-section-arguments
     '("--graph" "--color" "--decorate" "-n256"))
 
@@ -1214,9 +1231,11 @@ when only symbol face names are needed."
   (if rh-programming-minor-modes
       (progn
         (show-paren-local-mode 1)
-        (code-groups-mode 1))
+        (code-groups-mode 1)
+        (display-fill-column-indicator-mode 1))
     (code-groups-mode -1)
-    (show-paren-local-mode -1)))
+    (show-paren-local-mode -1)
+    (display-fill-column-indicator-mode -1)))
 
 (add-to-list 'rm-blacklist " rh-prog")
 
@@ -1251,6 +1270,13 @@ when only symbol face names are needed."
   (:map lisp-mode-shared-map
    ("<f5>" . rh-lisp-eval-region-or-last-sexp))
   :after ielm
+  :demand t)
+
+(use-package display-fill-column-indicator
+  :config
+  (setq display-fill-column-indicator-column 80)
+  ;; (setq display-fill-column-indicator-character ?|)
+
   :demand t)
 
 (use-package eldoc
