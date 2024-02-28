@@ -441,11 +441,22 @@ when only symbol face names are needed."
    (kbd "C-<kp-right>")
    (lookup-key (current-global-map) (kbd "C-<right>")))
 
+  (eval-after-load 'term/xterm
+    '(bind-key "<xterm-paste>" #'yank))
+
+  (when (display-graphic-p)
+   ("S-<insert>" . yank)
+   ("S-<kp-insert>" . yank)
+   ("M-S-<insert>" . rh-yank-pop-forwards)
+   ("M-S-<kp-insert>" . rh-yank-pop-forwards))
+
   :bind
   (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
    ("C-v" . yank)
-   ("M-v" . yank-pop)
-   ("C-z" . undo)
+   ("M-v" . consult-yank-pop)
+   ("M-V" . rh-yank-pop-forwards)
+   ("M-Y" . rh-yank-pop-forwards)
+   ;; ("C-z" . undo)
    ("C-x f" . find-file-at-point)
    ("C-=" . text-scale-adjust)
    ("M-<up>" . rh-scroll-down-one-line)
@@ -1241,6 +1252,54 @@ when only symbol face names are needed."
 
 (add-to-list 'rm-blacklist " rh-prog")
 
+(use-package flycheck
+  ;; :custom
+  ;; (flycheck-mode-line-prefix "Φ")
+  ;; (flycheck-check-syntax-automatically '(save mode-enabled))
+  ;; (flycheck-indication-mode nil)
+
+  ;; :custom-face
+  ;; (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
+  ;; (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
+
+  :config
+  ;; (customize-set-variable 'flycheck-mode-line-prefix "Φ")
+  ;; (customize-set-variable 'flycheck-check-syntax-automatically
+  ;;                         '(save mode-enabled))
+  ;; (customize-set-variable 'flycheck-indication-mode nil)
+
+  ;; (if (display-graphic-p)
+  ;;     (flycheck-pos-tip-mode 1)
+  ;;   (flycheck-popup-tip-mode 1))
+
+  ;; (setq flycheck-mode-line-prefix "Φ")
+  (customize-set-value 'flycheck-mode-line-prefix "Φ")
+
+  (customize-set-value 'flycheck-check-syntax-automatically
+                       '(save mode-enabled))
+  ;; (setq flycheck-check-syntax-automatically '(save mode-enabled))
+
+  ;; (setq flycheck-indication-mode nil)
+
+  ;; (setq flycheck-checker-error-threshold 5000)
+  (customize-set-value flycheck-checker-error-threshold 5000)
+
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package sh-script
+  :config
+  (customize-set-value 'sh-basic-offset 2)
+
+  (add-hook
+   'sh-set-shell-hook
+   (lambda ()
+     (flycheck-mode 1)
+     (rh-programming-minor-modes 1)))
+
+  :defer t)
+
 (use-package ielm
   :config
   (setq eval-expression-print-length nil)
@@ -1275,8 +1334,8 @@ when only symbol face names are needed."
 
 (use-package display-fill-column-indicator
   :config
-  (setq display-fill-column-indicator-column 80)
-  ;; (setq display-fill-column-indicator-character ?|)
+  (setq-default display-fill-column-indicator-column 80)
+  ;; (setq-default display-fill-column-indicator-character ?|)
 
   :demand t)
 
