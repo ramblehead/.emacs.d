@@ -1156,12 +1156,9 @@ when only symbol face names are needed."
              ;; :host github
              :repo "git@github.com:ramblehead/code-groups-emacs.git")
   :demand t
-  :defer t)
+  :ensure t)
 
 (use-package company
-  :init
-  (defvar rh-company-display-permanent-doc-buffer nil)
-
   :config
   (add-to-list
    'display-buffer-alist
@@ -1173,152 +1170,77 @@ when only symbol face names are needed."
       display-buffer-pop-up-window)
      (inhibit-same-window . t)))
 
-  (setq company-lighter-base "CA")
+  (customize-set-value 'company-lighter-base "CA")
   (add-to-list 'rm-blacklist " CA")
 
   (require 'config-company)
 
   (customize-set-value
    'company-format-margin-function
-   #'company-detect-icons-margin
-   ;; #'company-text-icons-margin
-   ;; #'company-detect-icons-margin
-   ;; #'company-vscode-light-icons-margin
-   ;; #'company-vscode-dark-icons-margin
-   )
+   #'company-detect-icons-margin)
 
-  ;; Use "M-h" for company-show-doc-buffer
-  (define-key company-active-map (kbd "<f1>") nil)
-  (define-key company-active-map (kbd "C-h") nil)
-  ;; Use company-filter-candidates by default, i.e. C-s
-  ;; In search mode use C-o to switch between filtered and unfiltered
-  (define-key company-active-map (kbd "C-M-s") nil)
-  ;; Use some other tools for code navigation
-  (define-key company-active-map (kbd "C-w") nil)
+  (customize-set-value 'company-tooltip-align-annotations t)
+  (customize-set-value 'company-echo-truncate-lines nil)
+  (company-echo-show)
+  (customize-set-value 'company-minimum-prefix-length 1)
+  (customize-set-value 'company-frontends
+                       '(rh-company-pseudo-tooltip-on-explicit-action
+                         company-preview-frontend
+                         company-echo-metadata-frontend))
+  (customize-set-value 'company-require-match nil)
 
-  (define-key company-active-map (kbd "<escape>") #'company-abort)
-  (define-key company-active-map (kbd "<delete>") #'company-abort)
-  ;; (define-key company-active-map (kbd "<kp-delete>") #'company-abort)
+  (customize-set-value 'company-idle-delay 0)
+  (customize-set-value 'company-tooltip-maximum-width 80)
+  (customize-set-value 'company-tooltip-minimum-width 35)
+  (customize-set-value 'company-tooltip-offset-display 'lines)
 
-  (define-key company-active-map (kbd "C-n")
-    (rh-company-tooltip-key (kbd "C-n") #'company-select-next))
-  (define-key company-active-map (kbd "C-p")
-    (rh-company-tooltip-key (kbd "C-p") #'company-select-previous))
-  (define-key company-active-map (kbd "<down>")
-    (rh-company-tooltip-key (kbd "<down>") #'company-select-next))
-  (define-key company-active-map (kbd "<up>")
-    (rh-company-tooltip-key (kbd "<up>") #'company-select-previous))
+  (customize-set-value
+   'company-backends
+   #''((company-keywords company-dabbrev-code)
+       company-files (company-dabbrev company-ispell)))
 
-  (define-key company-active-map (kbd "<return>")
-    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
-  (define-key company-active-map (kbd "<kp-return>")
-    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
-  (define-key company-active-map (kbd "<kp-enter>")
-    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
-
-  (define-key company-active-map (kbd "C-s")
-    (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
-
-  (define-key company-active-map (kbd "M-h")
-    (lambda ()
-      (interactive)
-      (when (fboundp rh-company-display-permanent-doc-buffer)
-        (funcall rh-company-display-permanent-doc-buffer))
-      (company-show-doc-buffer)))
-
-  (define-key company-active-map (kbd "M-l") #'company-show-location)
-
-  ;; (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
-  ;; (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
-
-  (define-key company-active-map [remap scroll-up-command]
-    (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
-  (define-key company-active-map [remap scroll-down-command]
-    (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
-
-  (define-key company-active-map (kbd "<tab>") #'company-complete-selection)
-  (define-key company-active-map (kbd "TAB") #'company-complete-selection)
-
-  (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
-  (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
-  (define-key company-active-map
-    (kbd "C-S-<iso-lefttab>") #'company-select-previous)
-
-  ;; (define-key company-search-map (kbd "M-n") 'nil)
-  ;; (define-key company-search-map (kbd "M-p") 'nil)
-
-  (define-key company-search-map (kbd "<escape>") #'company-search-abort)
-
-  (define-key company-search-map (kbd "<tab>") #'company-complete-selection)
-  (define-key company-search-map (kbd "TAB") #'company-complete-selection)
-  (define-key company-search-map (kbd "C-n") #'company-select-next)
-  (define-key company-search-map (kbd "C-p") #'company-select-previous)
-  (define-key company-search-map (kbd "<down>") #'company-select-next)
-  (define-key company-search-map (kbd "<up>") #'company-select-previous)
-  (define-key company-search-map (kbd "<kp-down>") #'company-select-next)
-  (define-key company-search-map (kbd "<kp-up>") #'company-select-previous)
-
-  ;; (custom-set-faces
-  ;;  '(company-preview
-  ;;    ((t (:foreground "darkgray" :underline t))))
-  ;;  '(company-preview-common
-  ;;    ((t (:inherit company-preview))))
-  ;;  '(company-tooltip
-  ;;    ((t (:background "lightgray" :foreground "black"))))
-  ;;  '(company-tooltip-selection
-  ;;    ((t (:background "steelblue" :foreground "white"))))
-  ;;  '(company-tooltip-common
-  ;;    ((((type x)) (:inherit company-tooltip :weight bold))
-  ;;     (t (:inherit company-tooltip))))
-  ;;  '(company-tooltip-common-selection
-  ;;    ((((type x)) (:inherit company-tooltip-selection :weight bold))
-  ;;     (t (:inherit company-tooltip-selection)))))
-
-  ;; (setq company-lighter
-  ;;       '(" "
-  ;;         (company-candidates
-  ;;          (:eval
-  ;;           (if (consp company-backend)
-  ;;               (company--group-lighter (nth company-selection
-  ;;                                            company-candidates)
-  ;;                                       company-lighter-base)
-  ;;             (cond
-  ;;              ((eq company-backend 'company-tern) "CA-ρ")
-  ;;              ((eq company-backend 'company-tide) "CA-τ")
-  ;;              (t (symbol-name company-backend)))))
-  ;;          company-lighter-base)))
+  :bind
+  (:map
+   company-active-map
+   ("<f1>" . nil)
+   ("C-h" . nil)
+   ("C-M-s" . nil)
+   ("C-w" . nil)
+   ("<escape>" . company-abort)
+   ("<delete>" . company-abort)
+   ("M-h" . company-show-doc-buffer)
+   ("<tab>" . company-complete-selection)
+   ("TAB" . company-complete-selection)
+   ("C-<tab>" . company-select-next)
+   ("C-S-<tab>" . company-select-previous)
+   ("C-S-<iso-lefttab>" . company-select-previous)
+   :map
+   company-search-map
+   ("<escape>" . company-search-abort))
 
   :straight t
   :demand t
   :ensure t)
 
-;; (use-package company
-;;   :init
-;;   (customize-set-value
-;;    'company-format-margin-function
-;;    #'company-detect-icons-margin
-;;    ;; #'company-text-icons-margin
-;;    ;; #'company-vscode-light-icons-margin
-;;    ;; #'company-vscode-dark-icons-margin
-;;    )
+(defun rh-complete-dwim ()
+  (interactive)
+  (cond
+   ((cgs-looking-at-auto-code-group-head-or-tail)
+    (let ((lsp-mode-enabled (bound-and-true-p lsp-mode)))
+      (unwind-protect
+          (progn
+            (when lsp-mode-enabled (lsp-disconnect))
+            (cgs-generate-auto-code-group))
+        (when lsp-mode-enabled (lsp)))))
+   ((bound-and-true-p company-mode)
+    (company-complete))
+   (t
+    (message "No completion candidates."))))
 
-;;   :config
-;;   (add-to-list
-;;    'display-buffer-alist
-;;    '("*company-documentation*"
-;;      (display-buffer-reuse-window
-;;       rh-display-buffer-reuse-right
-;;       rh-display-buffer-reuse-left
-;;       display-buffer-use-some-window
-;;       display-buffer-pop-up-window)
-;;      (inhibit-same-window . t)))
+(global-set-key (kbd "C-<tab>") #'rh-complete-dwim)
 
-;;   (setq company-lighter-base "CA")
-;;   (add-to-list 'rm-blacklist " CA")
-
-;;   :straight t
-;;   :demand t
-;;   :ensure t)
+(eval-after-load 'company
+  (global-set-key [remap company-complete] #'rh-complete-dwim))
 
 ;;; /b/}
 
@@ -1442,36 +1364,15 @@ when only symbol face names are needed."
 (add-to-list 'rm-blacklist " rh-prog")
 
 (use-package flycheck
-  ;; :custom
-  ;; (flycheck-mode-line-prefix "Φ")
-  ;; (flycheck-check-syntax-automatically '(save mode-enabled))
-  ;; (flycheck-indication-mode nil)
-
-  ;; :custom-face
-  ;; (flycheck-warning ((t (:underline (:color "orange" :style wave)))))
-  ;; (flycheck-warning ((t (:underline (:color "deep sky blue" :style wave)))))
-
   :config
-  ;; (customize-set-variable 'flycheck-mode-line-prefix "Φ")
-  ;; (customize-set-variable 'flycheck-check-syntax-automatically
-  ;;                         '(save mode-enabled))
-  ;; (customize-set-variable 'flycheck-indication-mode nil)
+  (customize-set-value 'flycheck-mode-line-prefix "Φ")
 
-  ;; (if (display-graphic-p)
-  ;;     (flycheck-pos-tip-mode 1)
-  ;;   (flycheck-popup-tip-mode 1))
+  (customize-set-value 'flycheck-check-syntax-automatically
+                       '(save mode-enabled))
 
-  (setq flycheck-mode-line-prefix "Φ")
-  ;; (customize-set-value 'flycheck-mode-line-prefix "Φ")
+  ;; (customize-set-value 'flycheck-indication-mode nil)
 
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  ;; (customize-set-value 'flycheck-check-syntax-automatically
-  ;;                      '(save mode-enabled))
-
-  ;; (setq flycheck-indication-mode nil)
-
-  (setq flycheck-checker-error-threshold 5000)
-  ;; (customize-set-value flycheck-checker-error-threshold 5000)
+  (customize-set-value 'flycheck-checker-error-threshold 5000)
 
   :straight t
   :defer t
