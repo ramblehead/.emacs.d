@@ -3,6 +3,16 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
+;; (defun my-frame-config (frame)
+;;   "Custom behaviours for new frames."
+;;   (with-selected-frame frame
+;;     ;; Place your GUI settings here.
+;;     ))
+
+;; (if (daemonp)
+;;     (add-hook 'after-make-frame-functions #'my-frame-config)
+;;   (my-frame-config (selected-frame)))
+
 (setq custom-file (file-name-concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
   (load custom-file))
@@ -1190,7 +1200,7 @@ when only symbol face names are needed."
                          compilation-display-error))
 
   (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
-  (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
+  ;; (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
   (add-to-list 'beacon-dont-blink-major-modes 'bs-mode t)
 
   (customize-set-value 'beacon-blink-delay 0.2)
