@@ -1343,6 +1343,10 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
+(use-package git-timemachine
+  :straight t
+  :defer t
+  :ensure t)
 
 ;;; /b/}
 

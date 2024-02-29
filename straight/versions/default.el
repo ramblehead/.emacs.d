@@ -15,6 +15,7 @@
  ("emacsmirror-mirror" . "cee023f5e045f395a25d2056735900c6443cc401")
  ("embark" . "c93abadc8220c0caa6fea805f7a736c346d47e7e")
  ("flycheck" . "02148c6ce7edb0fd0986460db327cc9463939747")
+ ("git-timemachine" . "69474bfc653bb076f94d97d22903e2299a3d8a8b")
  ("gnu-elpa-mirror" . "06f5e407b5e39e4baa5ab3ea59fbf8cb2d1ea847")
  ("iedit" . "27c61866b1b9b8d77629ac702e5f48e67dfe0d3b")
  ("magit" . "fc485bae0da283a8d5ae319ac287c2a7c79ea5d4")
