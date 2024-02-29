@@ -290,6 +290,12 @@ when only symbol face names are needed."
   ;; No tabs in indentations
   (customize-set-variable 'indent-tabs-mode nil)
 
+  ;; (customize-set-variable 'tab-stop-list
+  ;;  '(4 8 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+
+  ;; No automatic backup files
+  (customize-set-variable 'make-backup-files nil)
+
   (delete-selection-mode 1)
   (column-number-mode 1)
 
@@ -505,6 +511,81 @@ when only symbol face names are needed."
 
   :demand t)
 
+(use-package iflipb
+  :config
+  (require 'rh-buffers)
+
+  (customize-set-value
+   'iflipb-ignore-buffers
+   '((lambda (buffer-nm)
+       (rh-buffers-match
+        rh-buffers-not-file-group
+        (get-buffer buffer-nm)))))
+
+  (customize-set-value 'iflipb-wrap-around t)
+
+  :bind (("C-<next>" . iflipb-next-buffer)
+         ("C-<kp-next>" . iflipb-next-buffer)
+         ("C-<prior>" . iflipb-previous-buffer)
+         ("C-<kp-prior>" . iflipb-previous-buffer))
+
+  :straight t
+  :ensure t
+  :demand t)
+
+(use-package bs
+  :config
+  (require 'config-bs)
+
+  (setq
+   bs-configurations
+   '(("sys" nil nil nil
+      (lambda (buffer)
+        (not (rh-buffers-match '("\\` ") buffer)))
+      rh-bs-sort-by-file-path-interns-are-last)
+     ("all" nil nil nil
+      (lambda (buffer)
+        (rh-buffers-match '("\\` ") buffer))
+      rh-bs-sort-by-file-path-interns-are-last)
+     ("files" nil nil nil
+      (lambda (buffer)
+        (rh-buffers-match rh-buffers-not-file-group buffer))
+      rh-bs-sort-by-file-path-interns-are-last)))
+
+  (dolist (buffer-group rh-buffers-groups)
+    (add-to-list
+     'bs-configurations
+     (rh-bs-make-configuration-from-buffer-group (car buffer-group))
+     t))
+
+  (setq bs-cycle-configuration-name "files")
+
+  (setq
+   bs-mode-font-lock-keywords
+   '(;; Headers
+     ("^[ ]+\\([-M].*\\)$" 1 font-lock-keyword-face)
+     ;; Boring buffers
+     ("^\\(.*\\*.*\\*.*\\)$" 1 font-lock-comment-face)
+     ;; Dired buffers
+     ("^[ .*%]+\\(Dired.*\\)$" 1 font-lock-type-face)
+     ;; Modified buffers
+     ("^[ .]+\\(\\*\\)" 1 font-lock-warning-face)
+     ;; Read-only buffers
+     ("^[ .*]+\\(\\%\\)" 1 font-lock-variable-name-face)))
+
+  (add-hook
+   'bs-mode-hook
+   (lambda ()
+     (hl-line-mode 1)))
+
+  :bind (("C-x C-b" . rh-bs-show)
+         ("C-c C-b" . rh-bs-toggle-bs-in-bottom-0-side-window)
+         ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window))
+
+  :after (ace-window)
+  :demand t)
+
+;; The following function is experimental and is not used at the moment
 (defun configure-default-mode-line ()
   (define-key-after
     (lookup-key mode-line-column-line-number-mode-map
@@ -712,7 +793,7 @@ when only symbol face names are needed."
                  (window-parameters (mode-line-format . none))))
 
   :bind
-  (("<menu>" . embark-act)         ;; pick some comfortable binding
+  (("S-<menu>" . embark-act)         ;; pick some comfortable binding
    ("C-<menu>" . embark-dwim)      ;; good alternative: M-.
    ("C-h B" . embark-bindings))    ;; alternative for `describe-bindings'
 
@@ -937,7 +1018,8 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package ace-window
-  :config (setq aw-dispatch-when-more-than 1)
+  :config
+  (customize-set-value 'aw-dispatch-when-more-than 1)
 
   :bind (("C-c a a" . ace-window)
          ("C-c a o" . ace-select-window)
@@ -1105,8 +1187,7 @@ when only symbol face names are needed."
                          ;; pop-tag-mark
                          ;; xref-pop-marker-stack
                          compile-goto-error
-                         compilation-display-error
-                         ivy-done))
+                         compilation-display-error))
 
   (add-to-list 'beacon-dont-blink-major-modes 'dired-mode t)
   (add-to-list 'beacon-dont-blink-major-modes 'paradox-menu-mode t)
@@ -1142,8 +1223,6 @@ when only symbol face names are needed."
 
   (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
 
-  ;; :bind (:map hs-minor-mode-map
-  ;;        ("C-M-e" . hs-show-all))
   :demand t
   :ensure t)
 
@@ -1157,6 +1236,16 @@ when only symbol face names are needed."
              :repo "git@github.com:ramblehead/code-groups-emacs.git")
   :demand t
   :ensure t)
+
+;; (use-package rh-project
+;;   :config
+;;   (add-to-list 'rm-blacklist " rh-project")
+
+;;   :straight (rh-project
+;;              :type git
+;;              :repo "git@github.com:ramblehead/rh-project.git")
+;;   :demand t
+;;   :ensure t)
 
 (use-package company
   :config
@@ -1434,6 +1523,62 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package vterm
+  :if (locate-library "vterm")
+  :commands (vterm vterm-mode)
+  :config
+  (require 'config-vterm)
+
+  ;; (setq vterm-use-vterm-prompt-detection-method nil)
+  (setq term-prompt-regexp
+        (concat "^" user-login-name "@" system-name ":.*\\$ *"))
+  ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
+
+  (add-hook
+   'vterm-mode-hook
+   (lambda ()
+     (setq-local column-number-mode nil)
+     (setq-local line-number-mode nil)))
+
+  :bind
+  (("<menu>" . rh-vterm-here)
+   :map vterm-mode-map
+   ("<kp-end>" . rh-vterm-send-end)
+   ("<kp-home>" . rh-vterm-send-home)
+   ("<deletechar>" . rh-vterm-send-C-d)
+   ("<kp-begin>" . rh-vterm-copy-mode)
+   ("<insert>" . rh-vterm-send-insert)
+   ("C-<home>" . rh-vterm-send-C-home)
+   ("C-<kp-home>" . rh-vterm-send-C-home)
+   ("C-<end>" . rh-vterm-send-C-end)
+   ("C-<kp-end>" . rh-vterm-send-C-end)
+   ("<kp-multiply>" . rh-vterm-send-<kp-multiply>)
+   ("<kp-add>" . rh-vterm-send-<kp-add>)
+   ("<kp-subtract>" . rh-vterm-send-<kp-subtract>)
+   ("C-<up>" . rh-vterm-send-C-up)
+   ("C-<down>" . rh-vterm-send-C-down)
+   ("C-<kp-up>" . rh-vterm-send-C-up)
+   ("C-<kp-down>" . rh-vterm-send-C-down)
+   ("C-<kp-down>" . rh-vterm-send-C-down)
+   ("C-x c" . rh-vterm-send-C-x_c)
+   ("C-x s" . rh-vterm-send-C-x_s)
+   ("C-x v" . rh-vterm-send-C-x_v)
+   ("C-x C-s" . rh-vterm-send-C-x_C-s)
+   ("C-< C-x" . rh-vterm-send-C-x)
+   ("C-< C-c" . rh-vterm-send-C-c)
+   ("C-< C-v" . rh-vterm-send-C-v)
+   ("S-<f2>" . rh-vterm-send-S-f2)
+   ("M-<return>" . rh-vterm-send-M-<return>)
+   ("<f1>" . rh-vterm-send-f1)
+   ("<f12>" . what-face)
+   :map vterm-copy-mode-map
+   ("RET" . nil)
+   ("<return>" . nil)
+   ("<kp-begin>" . rh-vterm-copy-mode)
+   ("<kp-multiply>" . compilation-minor-mode))
+  :defer t
+  :pin manual)
+
 (use-package sh-script
   :config
   (customize-set-value 'sh-basic-offset 2)
@@ -1445,6 +1590,14 @@ when only symbol face names are needed."
      (rh-programming-minor-modes 1)))
 
   :defer t)
+
+(use-package blacken
+  :config
+  (add-to-list 'rm-blacklist " Black")
+
+  :straight t
+  :defer t
+  :ensure t)
 
 (use-package ielm
   :config

@@ -18,6 +18,7 @@
  ("git-timemachine" . "69474bfc653bb076f94d97d22903e2299a3d8a8b")
  ("gnu-elpa-mirror" . "06f5e407b5e39e4baa5ab3ea59fbf8cb2d1ea847")
  ("iedit" . "27c61866b1b9b8d77629ac702e5f48e67dfe0d3b")
+ ("iflipb" . "9ec1888335107bd314e8f40b3e113d525fed8083")
  ("magit" . "fc485bae0da283a8d5ae319ac287c2a7c79ea5d4")
  ("marginalia" . "ea356ebb1ddb8d6da78574b517155475cf52d46f")
  ("melpa" . "0a85d1c88405477b39c38da6d7d81ea62c757d38")
