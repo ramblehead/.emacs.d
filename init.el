@@ -234,6 +234,21 @@ when only symbol face names are needed."
       (window--display-buffer buffer win 'reuse alist)
       win)))
 
+(defun rh-clangd-executable-find ()
+  "Finds clangd executable if present."
+  (let ((path (or (executable-find "clangd-17")
+                  (executable-find "clangd-16")
+                  (executable-find "clangd-15")
+                  (executable-find "clangd-14")
+                  (executable-find "clangd-13")
+                  (executable-find "clangd-12")
+                  (executable-find "clangd-11")
+                  (executable-find "clangd-10")
+                  (executable-find "clangd-9")
+                  (executable-find "clangd-8")
+                  (executable-find "clangd"))))
+    (when path (file-name-nondirectory path))))
+
 ;;; /b/}
 
 ;;; /b/; Basic System Setup
@@ -1143,6 +1158,168 @@ when only symbol face names are needed."
   :demand t
   :defer t)
 
+(use-package company
+  :init
+  (defvar rh-company-display-permanent-doc-buffer nil)
+
+  :config
+  (add-to-list
+   'display-buffer-alist
+   '("*company-documentation*"
+     (display-buffer-reuse-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      display-buffer-use-some-window
+      display-buffer-pop-up-window)
+     (inhibit-same-window . t)))
+
+  (setq company-lighter-base "CA")
+  (add-to-list 'rm-blacklist " CA")
+
+  (require 'config-company)
+
+  (customize-set-value
+   'company-format-margin-function
+   #'company-detect-icons-margin
+   ;; #'company-text-icons-margin
+   ;; #'company-detect-icons-margin
+   ;; #'company-vscode-light-icons-margin
+   ;; #'company-vscode-dark-icons-margin
+   )
+
+  ;; Use "M-h" for company-show-doc-buffer
+  (define-key company-active-map (kbd "<f1>") nil)
+  (define-key company-active-map (kbd "C-h") nil)
+  ;; Use company-filter-candidates by default, i.e. C-s
+  ;; In search mode use C-o to switch between filtered and unfiltered
+  (define-key company-active-map (kbd "C-M-s") nil)
+  ;; Use some other tools for code navigation
+  (define-key company-active-map (kbd "C-w") nil)
+
+  (define-key company-active-map (kbd "<escape>") #'company-abort)
+  (define-key company-active-map (kbd "<delete>") #'company-abort)
+  ;; (define-key company-active-map (kbd "<kp-delete>") #'company-abort)
+
+  (define-key company-active-map (kbd "C-n")
+    (rh-company-tooltip-key (kbd "C-n") #'company-select-next))
+  (define-key company-active-map (kbd "C-p")
+    (rh-company-tooltip-key (kbd "C-p") #'company-select-previous))
+  (define-key company-active-map (kbd "<down>")
+    (rh-company-tooltip-key (kbd "<down>") #'company-select-next))
+  (define-key company-active-map (kbd "<up>")
+    (rh-company-tooltip-key (kbd "<up>") #'company-select-previous))
+
+  (define-key company-active-map (kbd "<return>")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+  (define-key company-active-map (kbd "<kp-return>")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+  (define-key company-active-map (kbd "<kp-enter>")
+    (rh-company-tooltip-key (kbd "RET") #'company-complete-selection))
+
+  (define-key company-active-map (kbd "C-s")
+    (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates))
+
+  (define-key company-active-map (kbd "M-h")
+    (lambda ()
+      (interactive)
+      (when (fboundp rh-company-display-permanent-doc-buffer)
+        (funcall rh-company-display-permanent-doc-buffer))
+      (company-show-doc-buffer)))
+
+  (define-key company-active-map (kbd "M-l") #'company-show-location)
+
+  ;; (define-key company-active-map (kbd "M-h") #'company-show-doc-buffer)
+  ;; (define-key company-active-map (kbd "M-i") #'company-show-doc-buffer)
+
+  (define-key company-active-map [remap scroll-up-command]
+    (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page))
+  (define-key company-active-map [remap scroll-down-command]
+    (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page))
+
+  (define-key company-active-map (kbd "<tab>") #'company-complete-selection)
+  (define-key company-active-map (kbd "TAB") #'company-complete-selection)
+
+  (define-key company-active-map (kbd "C-<tab>") #'company-select-next)
+  (define-key company-active-map (kbd "C-S-<tab>") #'company-select-previous)
+  (define-key company-active-map
+    (kbd "C-S-<iso-lefttab>") #'company-select-previous)
+
+  ;; (define-key company-search-map (kbd "M-n") 'nil)
+  ;; (define-key company-search-map (kbd "M-p") 'nil)
+
+  (define-key company-search-map (kbd "<escape>") #'company-search-abort)
+
+  (define-key company-search-map (kbd "<tab>") #'company-complete-selection)
+  (define-key company-search-map (kbd "TAB") #'company-complete-selection)
+  (define-key company-search-map (kbd "C-n") #'company-select-next)
+  (define-key company-search-map (kbd "C-p") #'company-select-previous)
+  (define-key company-search-map (kbd "<down>") #'company-select-next)
+  (define-key company-search-map (kbd "<up>") #'company-select-previous)
+  (define-key company-search-map (kbd "<kp-down>") #'company-select-next)
+  (define-key company-search-map (kbd "<kp-up>") #'company-select-previous)
+
+  ;; (custom-set-faces
+  ;;  '(company-preview
+  ;;    ((t (:foreground "darkgray" :underline t))))
+  ;;  '(company-preview-common
+  ;;    ((t (:inherit company-preview))))
+  ;;  '(company-tooltip
+  ;;    ((t (:background "lightgray" :foreground "black"))))
+  ;;  '(company-tooltip-selection
+  ;;    ((t (:background "steelblue" :foreground "white"))))
+  ;;  '(company-tooltip-common
+  ;;    ((((type x)) (:inherit company-tooltip :weight bold))
+  ;;     (t (:inherit company-tooltip))))
+  ;;  '(company-tooltip-common-selection
+  ;;    ((((type x)) (:inherit company-tooltip-selection :weight bold))
+  ;;     (t (:inherit company-tooltip-selection)))))
+
+  ;; (setq company-lighter
+  ;;       '(" "
+  ;;         (company-candidates
+  ;;          (:eval
+  ;;           (if (consp company-backend)
+  ;;               (company--group-lighter (nth company-selection
+  ;;                                            company-candidates)
+  ;;                                       company-lighter-base)
+  ;;             (cond
+  ;;              ((eq company-backend 'company-tern) "CA-ρ")
+  ;;              ((eq company-backend 'company-tide) "CA-τ")
+  ;;              (t (symbol-name company-backend)))))
+  ;;          company-lighter-base)))
+
+  :straight t
+  :demand t
+  :ensure t)
+
+;; (use-package company
+;;   :init
+;;   (customize-set-value
+;;    'company-format-margin-function
+;;    #'company-detect-icons-margin
+;;    ;; #'company-text-icons-margin
+;;    ;; #'company-vscode-light-icons-margin
+;;    ;; #'company-vscode-dark-icons-margin
+;;    )
+
+;;   :config
+;;   (add-to-list
+;;    'display-buffer-alist
+;;    '("*company-documentation*"
+;;      (display-buffer-reuse-window
+;;       rh-display-buffer-reuse-right
+;;       rh-display-buffer-reuse-left
+;;       display-buffer-use-some-window
+;;       display-buffer-pop-up-window)
+;;      (inhibit-same-window . t)))
+
+;;   (setq company-lighter-base "CA")
+;;   (add-to-list 'rm-blacklist " CA")
+
+;;   :straight t
+;;   :demand t
+;;   :ensure t)
+
 ;;; /b/}
 
 ;;; /b/; Human Languages
@@ -1284,17 +1461,69 @@ when only symbol face names are needed."
   ;;     (flycheck-pos-tip-mode 1)
   ;;   (flycheck-popup-tip-mode 1))
 
-  ;; (setq flycheck-mode-line-prefix "Φ")
-  (customize-set-value 'flycheck-mode-line-prefix "Φ")
+  (setq flycheck-mode-line-prefix "Φ")
+  ;; (customize-set-value 'flycheck-mode-line-prefix "Φ")
 
-  (customize-set-value 'flycheck-check-syntax-automatically
-                       '(save mode-enabled))
-  ;; (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  ;; (customize-set-value 'flycheck-check-syntax-automatically
+  ;;                      '(save mode-enabled))
 
   ;; (setq flycheck-indication-mode nil)
 
-  ;; (setq flycheck-checker-error-threshold 5000)
-  (customize-set-value flycheck-checker-error-threshold 5000)
+  (setq flycheck-checker-error-threshold 5000)
+  ;; (customize-set-value flycheck-checker-error-threshold 5000)
+
+  :straight t
+  :defer t
+  :ensure t)
+
+;; (use-package lsp-mode
+;;   :if (rh-clangd-executable-find)
+
+;;   :init
+;;   (defvar lsp-keymap-prefix "C-c l")
+;;   (setq lsp-use-plists t)
+
+;;   :config
+;;   (require 'config-lsp-mode)
+
+;;   (require 'company-capf)
+
+;;   (setq gc-cons-threshold (* 100 1024 1024)) ; 100MB
+;;   (setq read-process-output-max (* 1024 1024)) ; 1MB
+
+;;   (setq lsp-enable-on-type-formatting nil)
+;;   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
+;;   (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
+;;   (setq lsp-headerline-breadcrumb-segments '(symbols))
+;;   (lsp-enable-which-key-integration t)
+;;   (setq lsp-headerline-breadcrumb-icons-enable nil)
+
+;;   (setq lsp-clients-clangd-args
+;;         '("-j=6"
+;;           "--clang-tidy"
+;;           "--background-index"
+;;           "--all-scopes-completion"
+;;           "--limit-results=0"
+;;           "--header-insertion=iwyu"
+;;           ;; "--completion-style=detailed"
+;;           "--completion-style=bundled"
+;;           ;; "--header-insertion-decorators=false"
+;;           "--log=info"))
+
+;;   (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
+;;   (setq lsp-eldoc-render-all t)
+
+;;   :bind (:map lsp-mode-map
+;;          ("C-x C-<tab>" . company-capf))
+
+;;   :straight t
+;;   :defer t
+;;   :ensure t)
+
+(use-package blacken
+  :config
+  (add-to-list 'rm-blacklist " Black")
 
   :straight t
   :defer t
@@ -1336,6 +1565,13 @@ when only symbol face names are needed."
   (add-hook
    'emacs-lisp-mode-hook
    (lambda ()
+     (cond
+      ((or (eq major-mode 'emacs-lisp-mode)
+           (eq major-mode 'lisp-interaction-mode))
+       (setq-local company-backends
+                   '((company-capf company-files) company-ispell))
+       (company-mode 1)))
+
      (rh-programming-minor-modes 1)))
 
   :bind
