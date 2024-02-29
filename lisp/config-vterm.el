@@ -1,7 +1,5 @@
 ;;; ramblehead's vterm configuration
 
-(defvar rh-vterm--side-window-height 15)
-
 (customize-set-value 'vterm-kill-buffer-on-exit nil)
 (customize-set-value 'vterm-max-scrollback 100000)
 
@@ -78,23 +76,6 @@
 (defvar rh-vterm-here-buffer-name
   "*term-here*")
 
-(defun rh-vterm--display-buffer-in-bootom-0-side-window (buffer-or-name)
-  (let ((buffer (get-buffer-create buffer-or-name)))
-    (display-buffer-in-side-window
-     buffer
-     `((side . bottom)
-       (slot . 0)
-       (inhibit-same-window . t)
-       (window-height . ,rh-vterm--side-window-height)))))
-
-(defun rh-vterm--get-bootom-0-side-window ()
-  (let ((windows (window-list)))
-    (seq-find
-     (lambda (window)
-       (and (eq (window-parameter window 'window-side) 'bottom)
-            (eq (window-parameter window 'window-slot) 0)))
-     windows)))
-
 (defun rh-vterm-here ()
   (interactive)
   (if (and (eq major-mode 'vterm-mode)
@@ -106,8 +87,8 @@
           (origin-window (frame-selected-window)))
       (if (and vterm-buffer (get-buffer-process vterm-buffer))
           (progn
-            (rh-vterm--display-buffer-in-bootom-0-side-window vterm-buffer)
-            (select-window (rh-vterm--get-bootom-0-side-window))
+            (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+            (select-window (rh-bs-get-bootom-0-side-window))
             (setq-local rh-vterm-here-origin-window origin-window)
             (unless (string= (expand-file-name default-directory) vterm-pwd)
               (setq-local default-directory vterm-pwd)
@@ -121,8 +102,8 @@
           (setq-local vterm-kill-buffer-on-exit t)
           (setq-local default-directory vterm-pwd)
           (vterm-mode))
-        (rh-vterm--display-buffer-in-bootom-0-side-window vterm-buffer)
-        (select-window (rh-vterm--get-bootom-0-side-window))
+        (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
+        (select-window (rh-bs-get-bootom-0-side-window))
         (setq-local rh-vterm-here-origin-window origin-window)))))
 
 (defun rh-vterm-copy-mode (&optional arg)

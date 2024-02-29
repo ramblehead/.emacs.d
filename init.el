@@ -1576,7 +1576,9 @@ when only symbol face names are needed."
    ("<return>" . nil)
    ("<kp-begin>" . rh-vterm-copy-mode)
    ("<kp-multiply>" . compilation-minor-mode))
+
   :defer t
+  :after (bs)
   :pin manual)
 
 (use-package sh-script
@@ -1606,7 +1608,7 @@ when only symbol face names are needed."
 
   :demand t)
 
-(use-package lisp-mode
+(use-package elisp-mode
   :delight
   (emacs-lisp-mode "ξλ")
   (lisp-interaction-mode "ξλ")
@@ -1634,8 +1636,15 @@ when only symbol face names are needed."
 
   :bind
   (:map lisp-mode-shared-map
-   ("<f5>" . rh-lisp-eval-region-or-last-sexp))
-  :after ielm
+   ("<f5>" . rh-lisp-eval-region-or-last-sexp)
+   :map emacs-lisp-mode-map
+   ("M-TAB" . nil)
+   ("C-c C-b" . nil)
+   :map lisp-interaction-mode-map
+   ("M-TAB" . nil)
+   ("C-c C-b" . nil))
+
+  :after (ielm)
   :demand t)
 
 (use-package display-fill-column-indicator
