@@ -1745,11 +1745,11 @@ when only symbol face names are needed."
   :defer t)
 
 
-;; (use-package css-in-js-mode
-;;   :straight '(css-in-js-mode
-;;               :type git
-;;               :host github
-;;               :repo "orzechowskid/tree-sitter-css-in-js"))
+(use-package css-in-js-mode
+  :straight '(css-in-js-mode
+              :type git
+              :host github
+              :repo "orzechowskid/tree-sitter-css-in-js"))
 
 ;;; /b/}
 
