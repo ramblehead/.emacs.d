@@ -816,9 +816,9 @@ when only symbol face names are needed."
                  (window-parameters (mode-line-format . none))))
 
   :bind
-  (("S-<menu>" . embark-act)         ;; pick some comfortable binding
-   ("C-<menu>" . embark-dwim)      ;; good alternative: M-.
-   ("C-h B" . embark-bindings))    ;; alternative for `describe-bindings'
+  (("<f9>" . embark-act)         ;; pick some comfortable binding
+   ("M-<f9>" . embark-dwim)      ;; good alternative: M-.
+   ("C-h B" . embark-bindings))  ;; alternative for `describe-bindings'
 
   :straight t
   :ensure t

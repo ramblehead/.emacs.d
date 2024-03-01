@@ -72,6 +72,7 @@ or buffer major mode symbol")
    "^\\*buffer-selection\\*$"
    "^\\*httpd\\*$"
    "^\\*Async-native-compile-log\\*$"
+   "^\\*Backtrace\\*$"
    Buffer-menu-mode
    help-mode
    debugger-mode
@@ -105,7 +106,9 @@ or buffer major mode symbol")
    ;; vterm
    VTerm
    ;; tailwind
-   "^\\*tailwindcss\\*$"))
+   "^\\*tailwindcss\\*$"
+   ;; straight
+   "^\\*straight-byte-compilation\\*$"))
 
 (setq rh-buffers-groups '())
 
