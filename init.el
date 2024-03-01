@@ -262,6 +262,11 @@ when only symbol face names are needed."
 (defvar normal-cursor-type 'bar)
 
 (defun rh-frame-config (frame)
+  ;; ;; Alternative approach would be with-selected-frame()
+  ;; (with-selected-frame frame
+  ;;   ;; Place your GUI settings here.
+  ;;   ))
+
   (when (display-graphic-p frame)
     ;; (setq-default line-spacing nil)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
@@ -1323,6 +1328,12 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
+(use-package company-prescient
+  :straight t
+  :after (company)
+  :defer t
+  :ensure t)
+
 (defun rh-complete-dwim ()
   (interactive)
   (cond
@@ -1620,7 +1631,7 @@ when only symbol face names are needed."
 
   :demand t)
 
-(use-package elisp-mode
+(use-package lisp-mode
   :delight
   (emacs-lisp-mode "ξλ")
   (lisp-interaction-mode "ξλ")
@@ -1634,15 +1645,16 @@ when only symbol face names are needed."
           (eval-region (region-beginning) (region-end)))
       (eval-last-sexp current-prefix-arg)))
 
-  (add-hook
-   'emacs-lisp-mode-hook
-   (lambda ()
-     (when (or (eq major-mode 'emacs-lisp-mode)
-               (eq major-mode 'lisp-interaction-mode))
-       ;; '((company-capf company-files) company-ispell))
-       (setq-local company-backends '((company-capf))))
-     (company-mode 1)
-     (rh-programming-minor-modes 1)))
+  (defun rh-emacs-lisp-mode-hook-handler ()
+    (when (or (eq major-mode 'emacs-lisp-mode)
+              (eq major-mode 'lisp-interaction-mode))
+      (setq-local company-backends
+                  '((company-capf company-files) company-ispell))
+      (company-prescient-mode 1))
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'emacs-lisp-mode-hook #'rh-emacs-lisp-mode-hook-handler)
 
   :bind
   (:map lisp-mode-shared-map
