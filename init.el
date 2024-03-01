@@ -1255,8 +1255,8 @@ when only symbol face names are needed."
 
   :straight (code-groups
              :type git
-             ;; :host github
-             :repo "git@github.com:ramblehead/code-groups-emacs.git")
+             :host github
+             :repo "ramblehead/code-groups-emacs")
   :demand t
   :ensure t)
 
@@ -1266,7 +1266,8 @@ when only symbol face names are needed."
 
   :straight (rh-project
              :type git
-             :repo "git@github.com:ramblehead/rh-project.el.git")
+             :host github
+             :repo "ramblehead/rh-project.el")
   :after (vterm bs)
   :demand t
   :ensure t)
@@ -1703,13 +1704,15 @@ when only symbol face names are needed."
 
   :demand t)
 
+;; see https://github.com/renzmann/treesit-auto?tab=readme-ov-file#a-rough-vanilla-equivalent
 (use-package treesit
   :config
   (customize-set-value
    'treesit-language-source-alist
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
      (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
-     (python . ("https://github.com/tree-sitter/tree-sitter-python"))))
+     (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+     (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))))
 
   (dolist (source treesit-language-source-alist)
     (unless (treesit-ready-p (car source))
@@ -1717,40 +1720,36 @@ when only symbol face names are needed."
 
   :demand t)
 
+(use-package typescript-ts-mode
+  :mode 
+  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+  ("\\.tsx\\'" . tsx-ts-mode)
 
-;; (use-package tree-sitter
-;;   ;; :hook (typescript-mode . tree-sitter-hl-mode)
-;;   :config
-;;   ;; (setf (alist-get 'typescript-tsx-mode tree-sitter-major-mode-language-alist) 'tsx)
+  :delight
+  (typescript-ts-mode "ts")
+  (tsx-ts-mode "tsx")
 
-;;   (add-to-list 'rm-blacklist " tree-sitter")
+  :config
+  (defun rh-typescript-ts-mode-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
 
-;;   ;; activate tree-sitter on any buffer containing code for which it
-;;   ;; has a parser available
-;;   (global-tree-sitter-mode 1)
+  (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
 
-;;   ;; you can easily see the difference tree-sitter-hl-mode makes for
-;;   ;; python, ts or tsx by switching on and off
-;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  (defun rh-tsx-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
 
-;;   :straight t
-;;   :demand t
-;;   :ensure t)
+  (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
-;; (use-package tree-sitter-langs
-;;   ;; :config
-;;   ;; (tree-sitter-require 'tsx)
+  :defer t)
 
-;;   ;; (add-to-list
-;;   ;;  'tree-sitter-major-mode-language-alist
-;;   ;;  '(web-mode . tsx)
-;;   ;;  ;; '(typescript-mode . tsx)
-;;   ;;  )
 
-;;   :straight t
-;;   :after (tree-sitter)
-;;   :demand t
-;;   :ensure t)
+;; (use-package css-in-js-mode
+;;   :straight '(css-in-js-mode
+;;               :type git
+;;               :host github
+;;               :repo "orzechowskid/tree-sitter-css-in-js"))
 
 ;;; /b/}
 
