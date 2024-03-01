@@ -3,15 +3,8 @@
 ;; Author: Victor Rybynok
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
-;; (defun my-frame-config (frame)
-;;   "Custom behaviours for new frames."
-;;   (with-selected-frame frame
-;;     ;; Place your GUI settings here.
-;;     ))
-
-;; (if (daemonp)
-;;     (add-hook 'after-make-frame-functions #'my-frame-config)
-;;   (my-frame-config (selected-frame)))
+;; https://github.com/oantolin/orderless/issues/80
+;; https://github.com/radian-software/prescient.el
 
 (setq custom-file (file-name-concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
@@ -777,8 +770,13 @@ when only symbol face names are needed."
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+
   (customize-set-value 'completion-styles '(orderless basic))
+  ;; (customize-set-value 'completion-styles '(basic orderless))
+
   (customize-set-value 'completion-category-defaults nil)
+  ;; (customize-set-value
+  ;;  'orderless-matching-styles '(orderless-regexp orderless-flex))
   (customize-set-value
    'completion-category-overrides '((file (styles partial-completion))))
 
@@ -1639,13 +1637,11 @@ when only symbol face names are needed."
   (add-hook
    'emacs-lisp-mode-hook
    (lambda ()
-     (cond
-      ((or (eq major-mode 'emacs-lisp-mode)
-           (eq major-mode 'lisp-interaction-mode))
-       (setq-local company-backends
-                   '((company-capf company-files) company-ispell))
-       (company-mode 1)))
-
+     (when (or (eq major-mode 'emacs-lisp-mode)
+               (eq major-mode 'lisp-interaction-mode))
+       ;; '((company-capf company-files) company-ispell))
+       (setq-local company-backends '((company-capf))))
+     (company-mode 1)
      (rh-programming-minor-modes 1)))
 
   :bind
