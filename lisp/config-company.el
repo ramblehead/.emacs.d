@@ -31,4 +31,10 @@
       (company-select-previous-or-abort arg)
     (previous-line)))
 
+(defun just-one-face (fn &rest args)
+  (let ((orderless-match-faces [completions-common-part]))
+    (apply fn args)))
+
+(advice-add 'company-capf--candidates :around #'just-one-face)
+
 (provide 'config-company)

@@ -24,22 +24,26 @@
     ;; if does not already exist
     (if (not (file-exists-p (concat rh-user-data-dir "emacs")))
         (make-directory (concat rh-user-data-dir "emacs") t))
-    (setq rh-savehist-file
-          (file-name-concat rh-user-data-dir
-                            emacs-config-name
-                            "emacs-history"))
-    (setq rh-recent-files-file-path
-          (file-name-concat rh-user-data-dir
-                            emacs-config-name
-                            "recent-files"))
-    (setq rh-saved-places-file-path
-          (file-name-concat rh-user-data-dir
-                            emacs-config-name
-                            "saved-places"))
-    (setq rh-bm-repository-file-path
-          (file-name-concat rh-user-data-dir
-                            emacs-config-name
-                            "bm-repository"))
+
+    (defvar rh-savehist-file
+      (file-name-concat rh-user-data-dir
+                        emacs-config-name
+                        "emacs-history.el"))
+
+    (defvar rh-recent-files-file-path
+      (file-name-concat rh-user-data-dir
+                        emacs-config-name
+                        "recent-files.el"))
+
+    (defvar rh-saved-places-file-path
+      (file-name-concat rh-user-data-dir
+                        emacs-config-name
+                        "saved-places.el"))
+
+    (defvar rh-prescient-save-file
+      (file-name-concat rh-user-data-dir
+                        emacs-config-name
+                        "prescient-save.el"))
 
     ;; Paths for the site-start.el files,
     ;; located in /usr/local/share/emacs/
@@ -783,7 +787,11 @@ when only symbol face names are needed."
   ;; (customize-set-value
   ;;  'orderless-matching-styles '(orderless-regexp orderless-flex))
   (customize-set-value
-   'completion-category-overrides '((file (styles partial-completion))))
+   'completion-category-overrides '((file (styles basic partial-completion))))
+
+  ;; Add "&" separator for company-mode multicomponent completion
+  ;; see https://github.com/oantolin/orderless?tab=readme-ov-file#company
+  (customize-set-value 'orderless-component-separator "[ &]")
 
   :straight t
   :ensure t)
@@ -1328,9 +1336,20 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
-(use-package company-prescient
+(use-package prescient
+  :config
+  (customize-set-value 'prescient-save-file rh-prescient-save-file)
+
   :straight t
-  :after (company)
+  :defer t
+  :ensure t)
+
+(use-package company-prescient
+  :config
+  (add-hook 'company-prescient-mode-hook 'prescient-persist-mode)
+
+  :straight t
+  :after (company prescient)
   :defer t
   :ensure t)
 
