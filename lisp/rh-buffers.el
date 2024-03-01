@@ -72,6 +72,8 @@ or buffer major mode symbol")
    "^\\*buffer-selection\\*$"
    "^\\*httpd\\*$"
    "^\\*Async-native-compile-log\\*$"
+   "^\\*Native-compile-Log\\*$"
+   "^\\*Compile-Log\\*$"
    "^\\*Backtrace\\*$"
    Buffer-menu-mode
    help-mode

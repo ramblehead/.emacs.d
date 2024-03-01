@@ -140,7 +140,7 @@
 
 ;;; /b/}
 
-;;; /b/; Extending Some Basic Elisp Functions
+;;; /b/; Some Basic Elisp Functions
 ;;; /b/{
 
 ;; see https://www.emacswiki.org/emacs/KillingAndYanking
@@ -1374,6 +1374,13 @@ when only symbol face names are needed."
 (eval-after-load 'company
   (global-set-key [remap company-complete] #'rh-complete-dwim))
 
+(use-package display-fill-column-indicator
+  :config
+  (setq-default display-fill-column-indicator-column 80)
+  ;; (setq-default display-fill-column-indicator-character ?|)
+
+  :demand t)
+
 ;;; /b/}
 
 ;;; /b/; Human Languages
@@ -1689,19 +1696,46 @@ when only symbol face names are needed."
   :after (ielm)
   :demand t)
 
-(use-package display-fill-column-indicator
-  :config
-  (setq-default display-fill-column-indicator-column 80)
-  ;; (setq-default display-fill-column-indicator-character ?|)
-
-  :demand t)
-
 (use-package eldoc
   :delight (eldoc-mode " ε")
   :config
   (add-to-list 'rm-blacklist " ε")
 
   :demand t)
+
+;; (use-package tree-sitter
+;;   ;; :hook (typescript-mode . tree-sitter-hl-mode)
+;;   :config
+;;   ;; (setf (alist-get 'typescript-tsx-mode tree-sitter-major-mode-language-alist) 'tsx)
+
+;;   (add-to-list 'rm-blacklist " tree-sitter")
+
+;;   ;; activate tree-sitter on any buffer containing code for which it
+;;   ;; has a parser available
+;;   (global-tree-sitter-mode 1)
+
+;;   ;; you can easily see the difference tree-sitter-hl-mode makes for
+;;   ;; python, ts or tsx by switching on and off
+;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+
+;;   :straight t
+;;   :demand t
+;;   :ensure t)
+
+;; (use-package tree-sitter-langs
+;;   ;; :config
+;;   ;; (tree-sitter-require 'tsx)
+
+;;   ;; (add-to-list
+;;   ;;  'tree-sitter-major-mode-language-alist
+;;   ;;  '(web-mode . tsx)
+;;   ;;  ;; '(typescript-mode . tsx)
+;;   ;;  )
+
+;;   :straight t
+;;   :after (tree-sitter)
+;;   :demand t
+;;   :ensure t)
 
 ;;; /b/}
 
