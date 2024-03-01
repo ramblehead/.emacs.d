@@ -264,6 +264,46 @@ when only symbol face names are needed."
 ;;; /b/; Basic System Setup
 ;;; /b/{
 
+(defvar overwrite-cursor-type 'box)
+(defvar read-only-cursor-type 'hbar)
+(defvar normal-cursor-type 'bar)
+
+(defun rh-frame-config (frame)
+  (when (display-graphic-p frame)
+    ;; (setq-default line-spacing nil)
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+    ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+
+    ;; face-font-family-alternatives
+
+    ;; HiDPI
+    (let ((width-pixels
+           (elt (assoc 'geometry (car (display-monitor-attributes-list frame)))
+                3)))
+      (cond
+       ((= width-pixels 1920)
+        ;; (fringe-mode '(16 . 16))
+        ;; (setq read-only-cursor-type '(hbar . 4))
+        ;; (setq normal-cursor-type '(bar . 4))
+        ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
+        ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+        (set-face-attribute 'default frame
+                            :family "Hack"
+                            :height 105
+                            :width 'semi-condensed
+                            :weight 'normal))
+       ((= width-pixels 2560)
+        ;; (add-to-list 'default-frame-alist '(font . "Hack-9"))
+        (set-face-attribute 'default frame
+                            :family "Hack"
+                            :height 90
+                            :width 'semi-condensed
+                            :weight 'normal))))))
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions #'rh-frame-config)
+  (rh-frame-config (selected-frame)))
+
 (use-package emacs
   :config
   (defconst
@@ -352,10 +392,6 @@ when only symbol face names are needed."
   (customize-set-value 'mouse-drag-copy-region nil)
   (customize-set-value 'mouse-yank-at-point t)
 
-  ;; (add-hook
-  ;;  'next-error-hook
-  ;;  (lambda ()
-  ;;    (rh-recenter-sensibly)))
   (add-hook
    'next-error-hook
    #'rh-recenter-sensibly)
@@ -391,62 +427,28 @@ when only symbol face names are needed."
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-  (when (display-graphic-p)
-    ;; Change cursor type according to mode
-    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-    (setq overwrite-cursor-type 'box)
-    (setq read-only-cursor-type 'hbar)
-    (setq normal-cursor-type 'bar)
+  ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+  (defun rh-set-cursor-according-to-mode ()
+    "Change cursor type according to some minor modes."
+    (cond
+     (buffer-read-only
+      (setq cursor-type read-only-cursor-type))
+     (overwrite-mode
+      (setq cursor-type overwrite-cursor-type))
+     (t
+      (setq cursor-type normal-cursor-type))))
 
-    ;; (setq-default line-spacing nil)
-    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-    ;; (add-to-list 'default-frame-alist
-    ;;              '(font . "Hack-10.5"))
+  (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode)
 
-    ;; HiDPI
-    (let ((width-pixels
-           (elt (assoc 'geometry (car (display-monitor-attributes-list))) 3)))
-      (cond
-       ((= width-pixels 1920)
-        ;; (fringe-mode '(16 . 16))
-        ;; (setq read-only-cursor-type '(hbar . 4))
-        ;; (setq normal-cursor-type '(bar . 4))
-        ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
-        (add-to-list 'default-frame-alist '(font . "Hack-10.5")))
-
-       ((= width-pixels 2560)
-        (add-to-list 'default-frame-alist '(font . "Hack-9")))))
-
-    ;; face-font-family-alternatives
-
-    ;; (set-face-attribute 'default nil :font "Noto Mono" :height 90)
-    ;; (set-face-attribute 'default nil
-    ;;                     :family "Hack"
-    ;;                     :height 90
-    ;;                     :width 'semi-condensed
-    ;;                     :weight 'normal)
-
-    ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
-    (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
-    (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-    (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
-    (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
-    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
-    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
-    (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
-    ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-
-    (defun rh-set-cursor-according-to-mode ()
-      "Change cursor type according to some minor modes."
-      (cond
-       (buffer-read-only
-        (setq cursor-type read-only-cursor-type))
-       (overwrite-mode
-        (setq cursor-type overwrite-cursor-type))
-       (t
-        (setq cursor-type normal-cursor-type))))
-
-    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode))
+  ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+  (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+  (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
+  (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
+  (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
+  (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+  (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
+  (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
+  ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
 
   ;; (customize-set-variable 'find-file-visit-truename t)
   (customize-set-value 'find-file-visit-truename t)
