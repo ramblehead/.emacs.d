@@ -1653,8 +1653,8 @@ when only symbol face names are needed."
 
 (use-package ielm
   :config
-  (setq eval-expression-print-length nil)
-  (setq eval-expression-print-level nil)
+  (customize-set-value 'eval-expression-print-length nil)
+  (customize-set-value 'eval-expression-print-level nil)
 
   :demand t)
 
@@ -1702,6 +1702,21 @@ when only symbol face names are needed."
   (add-to-list 'rm-blacklist " ε")
 
   :demand t)
+
+(use-package treesit
+  :config
+  (customize-set-value
+   'treesit-language-source-alist
+   '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+     (python . ("https://github.com/tree-sitter/tree-sitter-python"))))
+
+  (dolist (source treesit-language-source-alist)
+    (unless (treesit-ready-p (car source))
+      (treesit-install-language-grammar (car source))))
+
+  :demand t)
+
 
 ;; (use-package tree-sitter
 ;;   ;; :hook (typescript-mode . tree-sitter-hl-mode)
