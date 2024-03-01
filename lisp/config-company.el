@@ -19,4 +19,16 @@
 (advice-add 'company-preview-show-at-point :filter-args
             #'company-preview-show-at-point:filter-args)
 
+(defun rh-company-select-next-or-abort (&optional arg)
+  (interactive "p")
+  (if (company-tooltip-visible-p)
+      (company-select-next-or-abort arg)
+    (next-line)))
+
+(defun rh-company-select-previous-or-abort (&optional arg)
+  (interactive "p")
+  (if (company-tooltip-visible-p)
+      (company-select-previous-or-abort arg)
+    (previous-line)))
+
 (provide 'config-company)

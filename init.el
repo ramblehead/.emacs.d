@@ -1297,12 +1297,11 @@ when only symbol face names are needed."
 
   (customize-set-value
    'company-backends
-   #''((company-keywords company-dabbrev-code)
-       company-files (company-dabbrev company-ispell)))
+   #'((company-keywords company-dabbrev-code)
+      company-files (company-dabbrev company-ispell)))
 
   :bind
-  (:map
-   company-active-map
+  (:map company-active-map
    ("<f1>" . nil)
    ("C-h" . nil)
    ("C-M-s" . nil)
@@ -1315,8 +1314,11 @@ when only symbol face names are needed."
    ("C-<tab>" . company-select-next)
    ("C-S-<tab>" . company-select-previous)
    ("C-S-<iso-lefttab>" . company-select-previous)
-   :map
-   company-search-map
+   ("C-n" . rh-company-select-next-or-abort)
+   ("C-p" . rh-company-select-previous-or-abort)
+   ("<down>" . rh-company-select-next-or-abort)
+   ("<up>" . rh-company-select-previous-or-abort)
+   :map company-search-map
    ("<escape>" . company-search-abort))
 
   :straight t
