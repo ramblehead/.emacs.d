@@ -87,8 +87,8 @@
           (origin-window (frame-selected-window)))
       (if (and vterm-buffer (get-buffer-process vterm-buffer))
           (progn
-            (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
-            (select-window (rh-bs-get-bootom-0-side-window))
+            (rh-bs-display-buffer-in-botom-0-side-window vterm-buffer)
+            (select-window (rh-bs-get-botom-0-side-window))
             (setq-local rh-vterm-here-origin-window origin-window)
             (unless (string= (expand-file-name default-directory) vterm-pwd)
               (setq-local default-directory vterm-pwd)
@@ -102,8 +102,8 @@
           (setq-local vterm-kill-buffer-on-exit t)
           (setq-local default-directory vterm-pwd)
           (vterm-mode))
-        (rh-bs-display-buffer-in-bootom-0-side-window vterm-buffer)
-        (select-window (rh-bs-get-bootom-0-side-window))
+        (rh-bs-display-buffer-in-botom-0-side-window vterm-buffer)
+        (select-window (rh-bs-get-botom-0-side-window))
         (setq-local rh-vterm-here-origin-window origin-window)))))
 
 (defun rh-vterm-copy-mode (&optional arg)

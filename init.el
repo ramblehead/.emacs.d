@@ -1260,15 +1260,16 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
-;; (use-package rh-project
-;;   :config
-;;   (add-to-list 'rm-blacklist " rh-project")
+(use-package rh-project
+  :config
+  (add-to-list 'rm-blacklist " rh-project")
 
-;;   :straight (rh-project
-;;              :type git
-;;              :repo "git@github.com:ramblehead/rh-project.git")
-;;   :demand t
-;;   :ensure t)
+  :straight (rh-project
+             :type git
+             :repo "git@github.com:ramblehead/rh-project.el.git")
+  :after (vterm bs)
+  :demand t
+  :ensure t)
 
 (use-package company
   :config
