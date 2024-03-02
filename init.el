@@ -1712,13 +1712,42 @@ when only symbol face names are needed."
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
      (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-     (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))))
+     ;; (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
+     ))
 
   (dolist (source treesit-language-source-alist)
     (unless (treesit-ready-p (car source))
       (treesit-install-language-grammar (car source))))
 
   :demand t)
+
+;; (use-package jtsx
+;;   :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
+;;          ("\\.tsx\\'" . jtsx-tsx-mode)
+;;          ("\\.ts\\'" . jtsx-typescript-mode))
+
+;;   :config
+;;   (defun rh-jtsx-jsx-mode-handler ()
+;;     (company-mode 1)
+;;     (rh-programming-minor-modes 1))
+
+;;   (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
+
+;;   (defun rh-jtsx-tsx-mode-handler ()
+;;     (company-mode 1)
+;;     (rh-programming-minor-modes 1))
+
+;;   (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
+
+;;   (defun rh-jtsx-typescript-mode-handler ()
+;;     (company-mode 1)
+;;     (rh-programming-minor-modes 1))
+
+;;   (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
+
+;;   :straight t
+;;   :defer t
+;;   :ensure t)
 
 (use-package typescript-ts-mode
   :mode 
@@ -1743,7 +1772,6 @@ when only symbol face names are needed."
   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
   :defer t)
-
 
 ;; (use-package css-in-js-mode
 ;;   :straight '(css-in-js-mode
