@@ -1715,11 +1715,46 @@ when only symbol face names are needed."
      ;; (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      ))
 
-  (dolist (source treesit-language-source-alist)
-    (unless (treesit-ready-p (car source))
-      (treesit-install-language-grammar (car source))))
+  (dolist (grammar treesit-language-source-alist)
+    (unless (treesit-ready-p (car grammar))
+      (treesit-install-language-grammar (car grammar))))
+
+  (customize-set-value 'treesit-font-lock-level 4)
 
   :demand t)
+
+(use-package combobulate
+  :preface
+  (setq combobulate-key-prefix "C-c o")
+
+  :straight (combobulate
+             :type git
+             :host github
+             :repo "mickeynp/combobulate"))
+
+(use-package typescript-ts-mode
+  :mode 
+  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+  ("\\.tsx\\'" . tsx-ts-mode)
+
+  :delight
+  (typescript-ts-mode "ts")
+  (tsx-ts-mode "tsx")
+
+  :config
+  (defun rh-typescript-ts-mode-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
+
+  (defun rh-tsx-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
+
+  :defer t)
 
 ;; (use-package jtsx
 ;;   :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
@@ -1748,30 +1783,6 @@ when only symbol face names are needed."
 ;;   :straight t
 ;;   :defer t
 ;;   :ensure t)
-
-(use-package typescript-ts-mode
-  :mode 
-  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
-  ("\\.tsx\\'" . tsx-ts-mode)
-
-  :delight
-  (typescript-ts-mode "ts")
-  (tsx-ts-mode "tsx")
-
-  :config
-  (defun rh-typescript-ts-mode-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
-
-  (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
-
-  (defun rh-tsx-ts-mode-hook-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
-
-  (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
-
-  :defer t)
 
 ;; (use-package css-in-js-mode
 ;;   :straight '(css-in-js-mode
