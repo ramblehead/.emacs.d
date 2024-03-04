@@ -1790,21 +1790,18 @@ when only symbol face names are needed."
 
   (defun rh-jtsx-jsx-mode-handler ()
     (company-mode 1)
-    ;; (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
 
   (defun rh-jtsx-tsx-mode-handler ()
     (company-mode 1)
-    ;; (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
 
   (defun rh-jtsx-typescript-mode-handler ()
     (company-mode 1)
-    ;; (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
@@ -1815,14 +1812,6 @@ when only symbol face names are needed."
              :repo "ramblehead/jtsx")
   :defer t
   :ensure t)
-
-;; (use-package css-in-js-mode
-;;   :straight '(css-in-js-mode
-;;               :type git
-;;               :host github
-;;               :repo "orzechowskid/tree-sitter-css-in-js")
-;; :defer t
-;; :ensure t)
 
 (use-package lsp-mode
   :init
@@ -1892,6 +1881,17 @@ when only symbol face names are needed."
   :after (lsp-mode)
   :defer t
   :ensure t)
+
+;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
+(use-package mmm-mode
+  :straight t
+  :defer t
+  :ensure t)
+
+;; (use-package scss-mode
+;;   :straight t
+;;   :defer t
+;;   :ensure t)
 
 ;;; /b/}
 
