@@ -4,7 +4,8 @@
 ;; Copyright (C) 2019-2023, Victor Rybynok, all rights reserved.
 
 ;; Disable package.el in favor of straight.el and manual init
-(setq package-enable-at-startup nil)
+(customize-set-value 'package-enable-at-startup nil)
+(setenv "LSP_USE_PLISTS" "true")
 
 ;; Local Variables:
 ;; no-byte-compile: t

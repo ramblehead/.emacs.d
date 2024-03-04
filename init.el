@@ -741,10 +741,11 @@ when only symbol face names are needed."
     "extensions")
    t)
 
-  :bind (:map vertico-map
-         ("<next>" . vertico-scroll-up)
-         ("<prior>" . vertico-scroll-down)
-         ("C-x <up>" . windmove-up))
+  :bind
+  (:map vertico-map
+   ("<next>" . vertico-scroll-up)
+   ("<prior>" . vertico-scroll-down)
+   ("C-x <up>" . windmove-up))
 
   ;; :straight (:flavor elpa)
   :straight (:flavor elpa)
@@ -1044,10 +1045,11 @@ when only symbol face names are needed."
   :config
   (customize-set-value 'aw-dispatch-when-more-than 1)
 
-  :bind (("C-c a a" . ace-window)
-         ("C-c a o" . ace-select-window)
-         ("C-c a s" . ace-swap-window)
-         ("C-c a d" . ace-delete-window))
+  :bind
+  (("C-c a a" . ace-window)
+   ("C-c a o" . ace-select-window)
+   ("C-c a s" . ace-swap-window)
+   ("C-c a d" . ace-delete-window))
 
   :straight t
   :ensure t
@@ -1194,6 +1196,8 @@ when only symbol face names are needed."
 
 (use-package beacon
   :config
+  (require 'rich-minority)
+
   (customize-set-value 'beacon-lighter
     (cond
      ((char-displayable-p ?Λ) " Λ")
@@ -1223,7 +1227,6 @@ when only symbol face names are needed."
   ;; (customize-set-value 'beacon-blink-when-focused t)
   ;; (customize-set-value 'beacon-push-mark 1)
 
-  :after rich-minority
   :straight t
   :demand t
   :ensure t)
@@ -1268,9 +1271,41 @@ when only symbol face names are needed."
              :type git
              :host github
              :repo "ramblehead/rh-project.el")
-  :after (vterm bs)
   :demand t
   :ensure t)
+
+(use-package hydra
+  :straight t
+  :demand t
+  :ensure t)
+
+(use-package yasnippet-snippets
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package yasnippet
+  :delight (yas-minor-mode " ⵙ")
+  :config
+  (add-to-list 'rm-blacklist " ⵙ")
+
+  (yasnippet-snippets-initialize)
+
+  :bind (:map yas-minor-mode-map
+         ("<tab>" . nil)
+         ("TAB" . nil)
+         ("C-`" . yas-expand)
+         ("C-~" . yas-prev-field))
+
+  :straight t
+  :after (yasnippet-snippets)
+  :defer t
+  :ensure t)
+
+;; (use-package ivy-hydra
+;;   :straight t
+;;   :demand t
+;;   :ensure t)
 
 (use-package company
   :config
@@ -1291,7 +1326,8 @@ when only symbol face names are needed."
 
   (customize-set-value
    'company-format-margin-function
-   #'company-detect-icons-margin)
+   ;; #'company-detect-icons-margin
+   #'company-text-icons-margin)
 
   (customize-set-value 'company-tooltip-align-annotations t)
   (customize-set-value 'company-echo-truncate-lines nil)
@@ -1526,53 +1562,24 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-;; (use-package lsp-mode
-;;   :if (rh-clangd-executable-find)
+(use-package eldoc
+  :delight (eldoc-mode " ε")
+  :config
+  (add-to-list 'rm-blacklist " ε")
 
-;;   :init
-;;   (defvar lsp-keymap-prefix "C-c l")
-;;   (setq lsp-use-plists t)
+  (require 'config-eldoc)
 
-;;   :config
-;;   (require 'config-lsp-mode)
-
-;;   (require 'company-capf)
-
-;;   (setq gc-cons-threshold (* 100 1024 1024)) ; 100MB
-;;   (setq read-process-output-max (* 1024 1024)) ; 1MB
-
-;;   (setq lsp-enable-on-type-formatting nil)
-;;   (setq lsp-clients-clangd-executable (rh-clangd-executable-find))
-;;   (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
-;;   (setq lsp-headerline-breadcrumb-segments '(symbols))
-;;   (lsp-enable-which-key-integration t)
-;;   (setq lsp-headerline-breadcrumb-icons-enable nil)
-
-;;   (setq lsp-clients-clangd-args
-;;         '("-j=6"
-;;           "--clang-tidy"
-;;           "--background-index"
-;;           "--all-scopes-completion"
-;;           "--limit-results=0"
-;;           "--header-insertion=iwyu"
-;;           ;; "--completion-style=detailed"
-;;           "--completion-style=bundled"
-;;           ;; "--header-insertion-decorators=false"
-;;           "--log=info"))
-
-;;   (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
-;;   (setq lsp-eldoc-render-all t)
-
-;;   :bind (:map lsp-mode-map
-;;          ("C-x C-<tab>" . company-capf))
-
-;;   :straight t
-;;   :defer t
-;;   :ensure t)
+  :defer t)
 
 (use-package blacken
+  :delight (blacken-mode " B")
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package prettier
   :config
-  (add-to-list 'rm-blacklist " Black")
+  (customize-set-value 'prettier-lighter " P")
 
   :straight t
   :defer t
@@ -1632,8 +1639,8 @@ when only symbol face names are needed."
    ("<kp-begin>" . rh-vterm-copy-mode)
    ("<kp-multiply>" . compilation-minor-mode))
 
-  :defer t
   :after (bs)
+  :demand t
   :pin manual)
 
 (use-package sh-script
@@ -1662,6 +1669,12 @@ when only symbol face names are needed."
   (customize-set-value 'eval-expression-print-level nil)
 
   :demand t)
+
+(use-package json
+  :config
+  (require 'config-json)
+
+  :defer t)
 
 (use-package lisp-mode
   :delight
@@ -1718,8 +1731,7 @@ when only symbol face names are needed."
      ;; (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-     ;; (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
-     ))
+     (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))))
 
   (dolist (grammar treesit-language-source-alist)
     (unless (treesit-ready-p (car grammar))
@@ -1803,6 +1815,76 @@ when only symbol face names are needed."
 ;;               :type git
 ;;               :host github
 ;;               :repo "orzechowskid/tree-sitter-css-in-js"))
+
+(use-package lsp-mode
+  :init
+  (defvar lsp-keymap-prefix "C-c l")
+  ;; (setq lsp-use-plists t)
+  ;; (setq lsp-use-plists nil)
+
+  :config
+  (require 'company-capf)
+
+  ;; /b/; common
+  ;; /b/{
+
+  (setq gc-cons-threshold (* 100 1024 1024)) ; 100MB
+  (setq read-process-output-max (* 1024 1024)) ; 1MB
+
+  (advice-add 'lsp--render-string :filter-return #'string-trim)
+
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
+  (setq lsp-headerline-breadcrumb-segments '(symbols))
+  (lsp-enable-which-key-integration t)
+  (setq lsp-headerline-breadcrumb-icons-enable nil)
+
+  ;; /b/}
+
+  ;; /b/; typescript, javascript and all in between
+  ;; /b/{
+
+  (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
+
+  ;; /b/}
+
+  ;; /b/; typescript, javascript and all in between
+  ;; /b/{
+
+  (setq lsp-eldoc-render-all t)
+
+  ;; /b/}
+
+  :bind
+  (:map lsp-mode-map
+   ("C-x C-<tab>" . company-capf))
+
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package lsp-pyright
+  :after lsp-mode
+  :config
+  (customize-set-value 'lsp-pyright-auto-search-paths nil)
+  ;; (customize-set-value 'lsp-pyright-disable-language-services t)
+
+  :straight t
+  :after (lsp-mode)
+  :defer t
+  :ensure t)
+
+(use-package lsp-tailwindcss
+  :init
+  (customize-set-value 'lsp-tailwindcss-add-on-mode t)
+
+  (customize-set-value 'lsp-tailwindcss-class-attributes
+                       ["class" "className" "UNSAFE_className" "ngClass"])
+
+  :straight t
+  :after (lsp-mode)
+  :defer t
+  :ensure t)
 
 ;;; /b/}
 
