@@ -1331,8 +1331,12 @@ when only symbol face names are needed."
    ("C-p" . rh-company-select-previous-or-abort)
    ("<down>" . rh-company-select-next-or-abort)
    ("<up>" . rh-company-select-previous-or-abort)
+   ([return] . newline)
+   ("RET" . newline)
    :map company-search-map
-   ("<escape>" . company-search-abort))
+   ("<escape>" . company-search-abort)
+   ([return] . newline)
+   ("RET" . newline))
 
   :straight t
   :demand t
@@ -1711,7 +1715,9 @@ when only symbol face names are needed."
    'treesit-language-source-alist
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
      (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+     ;; (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
      ;; (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      ))
 
@@ -1730,59 +1736,67 @@ when only symbol face names are needed."
   :straight (combobulate
              :type git
              :host github
-             :repo "mickeynp/combobulate"))
+             :repo "mickeynp/combobulate")
+  :defer t
+  :ensure t)
 
-(use-package typescript-ts-mode
-  :mode 
-  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
-  ("\\.tsx\\'" . tsx-ts-mode)
+;; (use-package typescript-ts-mode
+;;   :mode 
+;;   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+;;   ("\\.tsx\\'" . tsx-ts-mode)
 
-  :delight
-  (typescript-ts-mode "ts")
-  (tsx-ts-mode "tsx")
-
-  :config
-  (defun rh-typescript-ts-mode-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
-
-  (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
-
-  (defun rh-tsx-ts-mode-hook-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
-
-  (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
-
-  :defer t)
-
-;; (use-package jtsx
-;;   :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
-;;          ("\\.tsx\\'" . jtsx-tsx-mode)
-;;          ("\\.ts\\'" . jtsx-typescript-mode))
+;;   :delight
+;;   (typescript-ts-mode "ts")
+;;   (tsx-ts-mode "tsx")
 
 ;;   :config
-;;   (defun rh-jtsx-jsx-mode-handler ()
+;;   (defun rh-typescript-ts-mode-handler ()
 ;;     (company-mode 1)
 ;;     (rh-programming-minor-modes 1))
 
-;;   (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
+;;   (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
 
-;;   (defun rh-jtsx-tsx-mode-handler ()
+;;   (defun rh-tsx-ts-mode-hook-handler ()
 ;;     (company-mode 1)
 ;;     (rh-programming-minor-modes 1))
 
-;;   (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
+;;   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
-;;   (defun rh-jtsx-typescript-mode-handler ()
-;;     (company-mode 1)
-;;     (rh-programming-minor-modes 1))
+;;   :defer t)
 
-;;   (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
+(use-package jtsx
+  :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
+         ("\\.tsx\\'" . jtsx-tsx-mode)
+         ("\\.ts\\'" . jtsx-typescript-mode))
 
-;;   :straight t
-;;   :defer t
-;;   :ensure t)
+  :config
+  ;; (customize-set-value 'js-indent-level 2)
+  (customize-set-value 'typescript-ts-mode-indent-offset 2)
+
+  (defun rh-jtsx-jsx-mode-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
+
+  (defun rh-jtsx-tsx-mode-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
+
+  (defun rh-jtsx-typescript-mode-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
+
+  :straight (jtsx
+             :type git
+             :host github
+             :repo "ramblehead/jtsx")
+  :defer t
+  :ensure t)
 
 ;; (use-package css-in-js-mode
 ;;   :straight '(css-in-js-mode
