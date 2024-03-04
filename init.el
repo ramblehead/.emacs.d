@@ -988,7 +988,8 @@ when only symbol face names are needed."
 
   (add-to-list 'rm-blacklist " $")
 
-  (rich-minority-mode 1)
+  ;; smart-line mode activates rich-minority
+  ;; (rich-minority-mode 1)
 
   :straight t
   :demand t
@@ -1281,7 +1282,7 @@ when only symbol face names are needed."
 
 (use-package yasnippet-snippets
   :straight t
-  :defer t
+  :demand t
   :ensure t)
 
 (use-package yasnippet
@@ -1290,6 +1291,8 @@ when only symbol face names are needed."
   (add-to-list 'rm-blacklist " ⵙ")
 
   (yasnippet-snippets-initialize)
+  (abbrev-mode -1)
+  (yas-global-mode 1)
 
   :bind (:map yas-minor-mode-map
          ("<tab>" . nil)
@@ -1299,7 +1302,7 @@ when only symbol face names are needed."
 
   :straight t
   :after (yasnippet-snippets)
-  :defer t
+  :demand t
   :ensure t)
 
 (use-package company
@@ -1720,7 +1723,8 @@ when only symbol face names are needed."
 
   :demand t)
 
-;; see https://github.com/renzmann/treesit-auto?tab=readme-ov-file#a-rough-vanilla-equivalent
+;; see https://github.com/mickeynp/combobulate?tab=readme-ov-file#complete-example-with-tree-sitter-grammar-installation
+;; and https://github.com/renzmann/treesit-auto?tab=readme-ov-file#a-rough-vanilla-equivalent
 (use-package treesit
   :config
   (customize-set-value
