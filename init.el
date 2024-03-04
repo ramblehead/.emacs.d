@@ -1302,11 +1302,6 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-;; (use-package ivy-hydra
-;;   :straight t
-;;   :demand t
-;;   :ensure t)
-
 (use-package company
   :config
   (add-to-list
@@ -1349,6 +1344,8 @@ when only symbol face names are needed."
    #'((company-keywords company-dabbrev-code)
       company-files (company-dabbrev company-ispell)))
 
+  (global-set-key [remap company-complete] #'rh-complete-dwim)
+
   :bind
   (:map company-active-map
    ("<f1>" . nil)
@@ -1378,23 +1375,6 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
-(use-package prescient
-  :config
-  (customize-set-value 'prescient-save-file rh-prescient-save-file)
-
-  :straight t
-  :defer t
-  :ensure t)
-
-(use-package company-prescient
-  :config
-  (add-hook 'company-prescient-mode-hook 'prescient-persist-mode)
-
-  :straight t
-  :after (company prescient)
-  :defer t
-  :ensure t)
-
 (defun rh-complete-dwim ()
   (interactive)
   (cond
@@ -1412,8 +1392,22 @@ when only symbol face names are needed."
 
 (global-set-key (kbd "C-<tab>") #'rh-complete-dwim)
 
-(eval-after-load 'company
-  (global-set-key [remap company-complete] #'rh-complete-dwim))
+(use-package prescient
+  :config
+  (customize-set-value 'prescient-save-file rh-prescient-save-file)
+
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package company-prescient
+  :config
+  (add-hook 'company-prescient-mode-hook 'prescient-persist-mode)
+
+  :straight t
+  :after (company prescient)
+  :defer t
+  :ensure t)
 
 (use-package display-fill-column-indicator
   :config
@@ -1421,6 +1415,11 @@ when only symbol face names are needed."
   ;; (setq-default display-fill-column-indicator-character ?|)
 
   :demand t)
+
+(use-package htmlize
+  :straight t
+  :defer t
+  :ensure t)
 
 ;;; /b/}
 
@@ -1727,11 +1726,11 @@ when only symbol face names are needed."
   (customize-set-value
    'treesit-language-source-alist
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
-     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
      ;; (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-     (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-     (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))))
+     (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
+     (python . ("https://github.com/tree-sitter/tree-sitter-python"))))
 
   (dolist (grammar treesit-language-source-alist)
     (unless (treesit-ready-p (car grammar))
@@ -1782,23 +1781,28 @@ when only symbol face names are needed."
          ("\\.ts\\'" . jtsx-typescript-mode))
 
   :config
+  (require 'css-in-js-mode)
+
   ;; (customize-set-value 'js-indent-level 2)
   (customize-set-value 'typescript-ts-mode-indent-offset 2)
 
   (defun rh-jtsx-jsx-mode-handler ()
     (company-mode 1)
+    (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
 
   (defun rh-jtsx-tsx-mode-handler ()
     (company-mode 1)
+    (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
 
   (defun rh-jtsx-typescript-mode-handler ()
     (company-mode 1)
+    (css-in-js-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
@@ -1810,17 +1814,18 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-;; (use-package css-in-js-mode
-;;   :straight '(css-in-js-mode
-;;               :type git
-;;               :host github
-;;               :repo "orzechowskid/tree-sitter-css-in-js"))
+(use-package css-in-js-mode
+  :straight '(css-in-js-mode
+              :type git
+              :host github
+              :repo "orzechowskid/tree-sitter-css-in-js")
+  :defer t
+  :ensure t)
 
 (use-package lsp-mode
   :init
   (defvar lsp-keymap-prefix "C-c l")
   ;; (setq lsp-use-plists t)
-  ;; (setq lsp-use-plists nil)
 
   :config
   (require 'company-capf)
