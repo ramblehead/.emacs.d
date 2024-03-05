@@ -37,8 +37,18 @@ Also sets SYMBOL to VALUE."
    `((total-lines-mode
       (:propertize
        (:eval (format
-               (let ((width (max (length (number-to-string total-lines))
-                                 (or display-line-numbers-width 0))))
+               (let* ((width-min (if (and (integerp display-line-numbers-width)
+                                          (> display-line-numbers-width 0))
+                                     display-line-numbers-width
+                                   0))
+                      (width (max (length (number-to-string total-lines))
+                                  width-min
+                                  2)))
+                 ;; left margin to align with actual
+                 ;; display-line-numbers with as well as practical
+                 (if (> width width-min)
+                     (cl-incf width 1)
+                   (cl-incf width 2))
                  (concat "%" (number-to-string width) "d"))
                total-lines))
        ;; face sml/col-number
