@@ -6,14 +6,18 @@
 ;; https://github.com/oantolin/orderless/issues/80
 ;; https://github.com/radian-software/prescient.el
 
-(setq custom-file (file-name-concat user-emacs-directory "custom.el"))
+(customize-set-value 'custom-file
+                     (file-name-concat user-emacs-directory "custom.el"))
+
 (when (file-exists-p custom-file)
-  (load custom-file))
+  ;; Do not load custom themes yet. They will be loaded manually later.
+  (cl-letf (((symbol-function 'load-theme) (lambda (&rest args) nil)))
+    (load custom-file)))
 
-(setq rh-site-start-file-paths ())
+(defvar rh-site-start-file-paths ())
 
-(setq emacs-config-name
-      (file-name-base (directory-file-name user-emacs-directory)))
+(defvar rh-emacs-config-name
+  (file-name-base (directory-file-name user-emacs-directory)))
 
 (cond
  ((equal system-type 'gnu/linux)
@@ -27,27 +31,27 @@
 
     (defvar rh-savehist-file
       (file-name-concat rh-user-data-dir
-                        emacs-config-name
+                        rh-emacs-config-name
                         "emacs-history.el"))
 
     (defvar rh-recent-files-file-path
       (file-name-concat rh-user-data-dir
-                        emacs-config-name
+                        rh-emacs-config-name
                         "recent-files.el"))
 
     (defvar rh-saved-places-file-path
       (file-name-concat rh-user-data-dir
-                        emacs-config-name
+                        rh-emacs-config-name
                         "saved-places.el"))
 
     (defvar rh-prescient-save-file
       (file-name-concat rh-user-data-dir
-                        emacs-config-name
+                        rh-emacs-config-name
                         "prescient-save.el"))
 
     (defvar rh-bm-repository-file-path
       (file-name-concat rh-user-data-dir
-                        emacs-config-name
+                        rh-emacs-config-name
                         "bm-repository.el"))
 
     ;; Paths for the site-start.el files,
@@ -766,8 +770,24 @@ when only symbol face names are needed."
   :ensure t
   :demand t)
 
+(use-package color-theme-sanityinc-tomorrow
+  :config
+  (require 'config-color-theme-sanityinc-tomorrow)
+
+  :straight t
+  :demand t
+  :ensure t)
+
 (defun configure-colour-themes ()
   (color-theme-sanityinc-tomorrow-blue)
+
+  ;; (customize-set-variable 'custom-enabled-themes
+  ;;                         (list 'sanityinc-tomorrow-blue))
+
+  ;; (customize-set-value 'custom-enabled-themes
+  ;;                      (list 'sanityinc-tomorrow-blue))
+  ;; (load-theme 'sanityinc-tomorrow-blue t)
+
   ;; (when (display-graphic-p)
   ;;   ;; (load-theme 'sanityinc-tomorrow-blue t)
   ;;   ;; (disable-theme 'sanityinc-tomorrow-blue)
@@ -785,16 +805,11 @@ when only symbol face names are needed."
 ;;   :ensure t
 ;;   :demand t)
 
-(use-package color-theme-sanityinc-tomorrow
-  :config
-  (require 'config-color-theme-sanityinc-tomorrow)
-
-  :straight t
-  :ensure t)
-
 (use-package vertico
   :config
   (vertico-mode 1)
+
+  (setq read-minibuffer-restore-windows nil)
 
   (setq completion-in-region-function
         (lambda (&rest args)
@@ -1057,8 +1072,7 @@ when only symbol face names are needed."
 
   (add-to-list 'rm-blacklist " $")
 
-  ;; smart-line mode activates rich-minority
-  ;; (rich-minority-mode 1)
+  (rich-minority-mode 1)
 
   :straight t
   :demand t
@@ -1096,6 +1110,9 @@ when only symbol face names are needed."
   ;; (custom-set-faces
   ;;  '(iedit-occurrence ((t (:inherit highlight))))
   ;;  '(iedit-read-only-occurrence ((t (:inherit highlight)))))
+
+  :bind
+  (("C-c ;" . iedit-mode))
 
   :straight t
   :ensure t
@@ -1329,7 +1346,7 @@ when only symbol face names are needed."
   :straight (code-groups
              :type git
              :host github
-             :repo "ramblehead/code-groups-emacs")
+             :repo "ramblehead/code-groups.el")
   :demand t
   :ensure t)
 

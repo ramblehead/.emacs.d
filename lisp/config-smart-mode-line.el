@@ -72,8 +72,8 @@ Also sets SYMBOL to VALUE."
                               (or display-line-numbers-width 0))
                        (or display-line-numbers-width 0))))
                 (concat "%" (number-to-string width) "l")))
-       ;; face sml/line-number
-       face mode-line-highlight
+       face sml/line-number
+       ;; face mode-line-highlight
        help-echo ,(concat "Line number mode\n"
                           "mouse-1: Display Line "
                           "and Column Mode Menu")
