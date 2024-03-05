@@ -1691,7 +1691,7 @@ Also sets SYMBOL to VALUE."
    'dired-mode-hook
    (lambda ()
      (hl-line-mode 1)
-     (dired-omit-mode)
+     (dired-omit-mode 1)
      (setq-local coding-system-for-read vr-dired-coding-system)
      (setq-local find-file-visit-truename nil)
      ;; (add-hook
