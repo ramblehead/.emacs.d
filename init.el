@@ -1691,7 +1691,7 @@ Also sets SYMBOL to VALUE."
    'dired-mode-hook
    (lambda ()
      (hl-line-mode 1)
-     (dired-omit-mode 1)
+     ;; (dired-omit-mode 1)
      (setq-local coding-system-for-read vr-dired-coding-system)
      (setq-local find-file-visit-truename nil)
      ;; (add-hook
@@ -3314,7 +3314,7 @@ fields which we need."
 
   :init
   (defvar lsp-keymap-prefix "C-c l")
-  (setq lsp-use-plists t)
+  ;; (setq lsp-use-plists t)
 
   :config
   (require 'config-lsp-mode)
@@ -3354,7 +3354,6 @@ fields which we need."
 
   :defer t
   :ensure t)
-
 
 (use-package lsp-pyright
   :after lsp-mode
