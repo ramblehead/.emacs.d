@@ -4,7 +4,7 @@
  ("beacon" . "85261a928ae0ec3b41e639f05291ffd6bf7c231c")
  ("blacken" . "722ecbbcb71bfd517e2fc851e30c112e66ab621b")
  ("bm" . "1351e2e15a7666e614c94b41414c8f024dc10a50")
- ("code-groups-emacs" . "e23ca79b4b16bdbaefea3405f67ba82c2754eb29")
+ ("code-groups.el" . "e23ca79b4b16bdbaefea3405f67ba82c2754eb29")
  ("color-theme-sanityinc-tomorrow" . "e74bb5bbf714c8ec9649d161a90708f0b9b093d6")
  ("combobulate" . "abc2be2a47edd2d108ce0dbe1d11e0cd2fe6796d")
  ("company-mode" . "42c2aa60b86c7fe5477feace6649eaf7811d0bba")
