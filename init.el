@@ -778,8 +778,15 @@ when only symbol face names are needed."
   :demand t
   :ensure t)
 
+;; (use-package modus-themes
+;;   :straight t
+;;   :demand t
+;;   :ensure t)
+
 (defun configure-colour-themes ()
   (color-theme-sanityinc-tomorrow-blue)
+  ;; (modus-themes-load-theme 'modus-operandi-tinted)
+  ;; (load-theme 'modus-operandi)
 
   ;; (customize-set-variable 'custom-enabled-themes
   ;;                         (list 'sanityinc-tomorrow-blue))
@@ -949,6 +956,7 @@ when only symbol face names are needed."
 
   :config
   (require 'config-consult)
+  (require 'consult-patch)
 
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
@@ -1112,7 +1120,7 @@ when only symbol face names are needed."
   ;;  '(iedit-read-only-occurrence ((t (:inherit highlight)))))
 
   :bind
-  (("C-c ;" . iedit-mode))
+  (("M-i" . iedit-mode))
 
   :straight t
   :ensure t
@@ -1435,30 +1443,78 @@ when only symbol face names are needed."
 
   (global-set-key [remap company-complete] #'rh-complete-dwim)
 
+  (bind-key
+   [remap scroll-up-command]
+   (rh-company-tooltip-cmd #'scroll-up-command #'company-next-page)
+   company-active-map)
+
+  (bind-key
+   [remap scroll-down-command]
+   (rh-company-tooltip-cmd #'scroll-down-command #'company-previous-page)
+   company-active-map)
+  
+  (bind-key
+   (kbd "<down>")
+   (rh-company-tooltip-key (kbd "<down>") #'company-select-next)
+   company-active-map)
+
+  (bind-key
+   (kbd "<up>")
+   (rh-company-tooltip-key (kbd "<up>") #'company-select-previous)
+   company-active-map)
+
+  (bind-key
+   (kbd "RET")
+   (rh-company-tooltip-key (kbd "RET") #'company-complete-selection)
+   company-active-map)
+
+  (bind-key
+   (kbd "<return>")
+   (rh-company-tooltip-key (kbd "RET") #'company-complete-selection)
+   company-active-map)
+
+  (bind-key
+   (kbd "<kp-return>")
+   (rh-company-tooltip-key (kbd "RET") #'company-complete-selection)
+   company-active-map)
+
+  (bind-key
+   (kbd "<kp-enter>")
+   (rh-company-tooltip-key (kbd "RET") #'company-complete-selection)
+   company-active-map)
+
+  (bind-key
+   (kbd "C-s")
+   (rh-company-tooltip-key (kbd "C-s") #'company-filter-candidates)
+   company-active-map)
+
   :bind
   (:map company-active-map
+  ;; Use "M-h" for company-show-doc-buffer
    ("<f1>" . nil)
    ("C-h" . nil)
+  ;; Use company-filter-candidates by default, i.e. C-s
+  ;; In search mode use C-o to switch between filtered and unfiltered
    ("C-M-s" . nil)
+  ;; Use M-l for code navigation
    ("C-w" . nil)
+   ("M-l" . company-show-location)
    ("<escape>" . company-abort)
    ("<delete>" . company-abort)
+   ("<kp-delete>" . company-abort)
    ("M-h" . company-show-doc-buffer)
    ("<tab>" . company-complete-selection)
    ("TAB" . company-complete-selection)
    ("C-<tab>" . company-select-next)
-   ("C-S-<tab>" . company-select-previous)
-   ("C-S-<iso-lefttab>" . company-select-previous)
-   ("C-n" . rh-company-select-next-or-abort)
-   ("C-p" . rh-company-select-previous-or-abort)
-   ("<down>" . rh-company-select-next-or-abort)
-   ("<up>" . rh-company-select-previous-or-abort)
-   ([return] . newline)
-   ("RET" . newline)
+   ("<backtab>" . company-select-next)
+   ;; ("C-S-<tab>" . company-select-previous)
+   ;; ("C-S-<iso-lefttab>" . company-select-previous)
+   ;; ("<down>" . rh-company-select-next-or-abort)
+   ;; ("<up>" . rh-company-select-previous-or-abort)
+   ;; ([return] . newline)
+   ;; ("RET" . newline)
    :map company-search-map
-   ("<escape>" . company-search-abort)
-   ([return] . newline)
-   ("RET" . newline))
+   ("<escape>" . company-search-abort))
 
   :straight t
   :demand t
@@ -1480,6 +1536,7 @@ when only symbol face names are needed."
     (message "No completion candidates."))))
 
 (global-set-key (kbd "C-<tab>") #'rh-complete-dwim)
+(global-set-key (kbd "<backtab>") #'rh-complete-dwim)
 
 (use-package prescient
   :config
