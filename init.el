@@ -149,7 +149,7 @@
 
 ;;; /b/}
 
-;;; /b/; Some Basic Elisp Functions
+;;; /b/; Some Ramblehead's Elisp Functions
 ;;; /b/{
 
 ;; see https://www.emacswiki.org/emacs/KillingAndYanking
@@ -249,6 +249,46 @@ when only symbol face names are needed."
     (when win
       (window--display-buffer buffer win 'reuse alist)
       win)))
+
+;; My adaptation of the native emacs function balance-windows
+(defun rh-balance-windows-horizontally (&optional window-or-frame)
+  (interactive)
+  (let* ((window (cond
+                  ((or (not window-or-frame)
+                       (frame-live-p window-or-frame))
+                   (frame-root-window window-or-frame))
+                  ((or (window-live-p window-or-frame)
+                       (window-child window-or-frame))
+                   window-or-frame)
+                  (t (error "Not a window or frame %s" window-or-frame))))
+         (frame (window-frame window)))
+    ;; Balance horizontally.
+    (window--resize-reset (window-frame window) t)
+    (balance-windows-1 window t)
+    (when (window--resize-apply-p frame t)
+      (window-resize-apply frame t)
+      (window--pixel-to-total frame t)
+      (run-window-configuration-change-hook frame))))
+
+;; My adaptation of the native emacs function balance-windows
+(defun rh-balance-windows-vertically (&optional window-or-frame)
+  (interactive)
+  (let* ((window (cond
+                  ((or (not window-or-frame)
+                       (frame-live-p window-or-frame))
+                   (frame-root-window window-or-frame))
+                  ((or (window-live-p window-or-frame)
+                       (window-child window-or-frame))
+                   window-or-frame)
+                  (t (error "Not a window or frame %s" window-or-frame))))
+         (frame (window-frame window)))
+    ;; Balance vertically.
+    (window--resize-reset (window-frame window))
+    (balance-windows-1 window)
+    (when (window--resize-apply-p frame)
+      (window-resize-apply frame)
+      (window--pixel-to-total frame)
+      (run-window-configuration-change-hook frame))))
 
 (defun rh-clangd-executable-find ()
   "Finds clangd executable if present."
@@ -504,7 +544,9 @@ when only symbol face names are needed."
   ;;   '(bind-key "<xterm-paste>" #'yank))
 
   :bind
-  (("C-x r q" . save-buffers-kill-terminal) ; Exit Emacs!
+  (;; Exit Emacs!
+   ("C-x r q" . save-buffers-kill-terminal)
+   ;; Editor
    ("C-v" . yank)
    ("M-v" . consult-yank-pop)
    ("M-V" . rh-yank-pop-forwards)
@@ -516,7 +558,18 @@ when only symbol face names are needed."
    ("M-<down>" . rh-scroll-up-one-line)
    ("M-<right>" . rh-scroll-left-one-line)
    ("M-<left>" . rh-scroll-right-one-line)
-   ("<f12>" . rh-what-face))
+   ("<f12>" . rh-what-face)
+   ;; Resize windows
+   ("M-s-<up>" . enlarge-window)
+   ("M-s-<kp-up>" . enlarge-window)
+   ("M-s-<down>" . shrink-window)
+   ("M-s-<kp-down>" . shrink-window)
+   ("M-s-<left>" . shrink-window-horizontally)
+   ("M-s-<kp-left>" . shrink-window-horizontally)
+   ("M-s-<right>" . enlarge-window-horizontally)
+   ("M-s-<kp-right>" . enlarge-window-horizontally)
+   ("M-s-<kp-begin>" . rh-balance-windows-horizontally)
+   ("S-M-s-<kp-begin>" . rh-balance-windows-vertically))
 
   :demand t)
 
