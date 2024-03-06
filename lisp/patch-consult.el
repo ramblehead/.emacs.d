@@ -222,4 +222,4 @@ INPUT is the input string entered by the user."
         (setq match (cons (car match) (cons `(orig ,orig-selected ,highlight-func) (cdr match))))))
     match))
 
-(provide 'consult-patch)
+(provide 'patch-consult)

@@ -816,7 +816,8 @@ when only symbol face names are needed."
   :config
   (vertico-mode 1)
 
-  (setq read-minibuffer-restore-windows nil)
+  ;; (customize-set-value 'vertico-resize t)
+  ;; (setq read-minibuffer-restore-windows t)
 
   (setq completion-in-region-function
         (lambda (&rest args)
@@ -955,8 +956,9 @@ when only symbol face names are needed."
   (customize-set-value 'xref-show-definitions-function #'consult-xref)
 
   :config
+  (require 'consult)
+  (require 'patch-consult)
   (require 'config-consult)
-  (require 'consult-patch)
 
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
@@ -1090,46 +1092,6 @@ when only symbol face names are needed."
   :straight t
   :ensure t
   :demand t)
-
-;; Might need "gsettings set org.freedesktop.ibus.panel.emoji hotkey ['']"
-;; see https://www.reddit.com/r/emacs/comments/wwyrgs/ctrl_semicolon_behaves_strangely/
-(use-package iedit
-  :config
-  (setq iedit-auto-save-occurrence-in-kill-ring nil)
-
-  ;; (custom-set-faces
-  ;;  '(iedit-occurrence
-  ;;    ((((background light)) (:background "deep sky blue"))))
-  ;;  '(iedit-read-only-occurrence
-  ;;    ((((background light)) (:background "pale turquoise")))))
-
-  ;; (when (display-graphic-p)
-  ;;   (cl-case
-  ;;    (car custom-enabled-themes)
-  ;;    (rh-sanityinc-tomorrow-blue
-  ;;     (let ((colors
-  ;;            (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
-  ;;                (error "no such theme flavor"))))
-  ;;       (custom-set-faces
-  ;;        '(iedit-occurrence ((t (:background "dark blue"))))
-  ;;        '(iedit-read-only-occurrence
-  ;;          ((t (:background "dark slate blue")))))))))
-
-  ;; (custom-set-faces
-  ;;  '(iedit-occurrence ((t (:inherit highlight))))
-  ;;  '(iedit-read-only-occurrence ((t (:inherit highlight)))))
-
-  :bind
-  (("M-i" . iedit-mode))
-
-  :straight t
-  :ensure t
-  :demand t)
-
-(use-package wgrep
-  :straight t
-  :ensure t
-  :defer t)
 
 (use-package rainbow-mode
   :straight t
@@ -1373,6 +1335,66 @@ when only symbol face names are needed."
   :straight t
   :demand t
   :ensure t)
+
+(use-package pcre2el
+  :straight t
+  :demand t
+  :ensure t)
+
+(use-package visual-regexp
+  :config
+  ;; see https://stackoverflow.com/questions/15895313/let-emacs-move-the-cursor-off-screen
+
+  (setq vr/match-separator-use-custom-face t)
+  ;; (custom-set-variables '(vr/match-separator-string " -> "))
+
+  :bind
+  (("C-c q" . vr/query-replace)
+   :map vr/minibuffer-keymap
+   ("S-<return>" . newline))
+  :straight t
+  :defer t
+  :ensure t)
+
+;; Might need "gsettings set org.freedesktop.ibus.panel.emoji hotkey ['']"
+;; see https://www.reddit.com/r/emacs/comments/wwyrgs/ctrl_semicolon_behaves_strangely/
+(use-package iedit
+  :config
+  (setq iedit-auto-save-occurrence-in-kill-ring nil)
+
+  ;; (custom-set-faces
+  ;;  '(iedit-occurrence
+  ;;    ((((background light)) (:background "deep sky blue"))))
+  ;;  '(iedit-read-only-occurrence
+  ;;    ((((background light)) (:background "pale turquoise")))))
+
+  ;; (when (display-graphic-p)
+  ;;   (cl-case
+  ;;    (car custom-enabled-themes)
+  ;;    (rh-sanityinc-tomorrow-blue
+  ;;     (let ((colors
+  ;;            (or (cdr (assoc 'blue color-theme-sanityinc-tomorrow-colors))
+  ;;                (error "no such theme flavor"))))
+  ;;       (custom-set-faces
+  ;;        '(iedit-occurrence ((t (:background "dark blue"))))
+  ;;        '(iedit-read-only-occurrence
+  ;;          ((t (:background "dark slate blue")))))))))
+
+  ;; (custom-set-faces
+  ;;  '(iedit-occurrence ((t (:inherit highlight))))
+  ;;  '(iedit-read-only-occurrence ((t (:inherit highlight)))))
+
+  :bind
+  (("M-i" . iedit-mode))
+
+  :straight t
+  :ensure t
+  :demand t)
+
+(use-package wgrep
+  :straight t
+  :ensure t
+  :defer t)
 
 (use-package yasnippet-snippets
   :straight t
@@ -1645,6 +1667,24 @@ when only symbol face names are needed."
 ;;; /b/; Version Control
 ;;; /b/{
 
+(defun rh-transient--fit-window-to-buffer:before (window)
+  (setq my-original-window window)
+  (setq my-original-window-height (window-total-height window)))
+
+(advice-add 'transient--fit-window-to-buffer :before
+            #'rh-transient--fit-window-to-buffer:before)
+
+(defun rh-transient-exit-hook-handler ()
+  ;; (setq my-original-window-configuration (current-window-configuration))
+  (when (window-live-p my-original-window)
+    (with-selected-window my-original-window
+      (let* ((current-height (window-total-height))
+             (orig-height my-original-window-height)
+             (delta (- orig-height current-height)))
+        (enlarge-window delta)))))
+
+(add-hook 'transient-exit-hook #'rh-transient-exit-hook-handler)
+
 (use-package magit
   :init
   (defvar magit-log-margin
@@ -1654,15 +1694,29 @@ when only symbol face names are needed."
     '("--graph" "--color" "--decorate" "-n256"))
 
   :config
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-nm action)
-                   (and (not (eq major-mode 'magit-diff-mode))
-                        (eq (with-current-buffer buffer-nm major-mode)
-                            'magit-status-mode)))
-                 (display-buffer-same-window
-                  rh-display-buffer-reuse-right
-                  rh-display-buffer-reuse-left
-                  display-buffer-pop-up-window)))
+  (add-to-list
+   'display-buffer-alist
+   '((lambda (buffer-nm action)
+       (and (not (eq major-mode 'magit-diff-mode))
+            (eq (with-current-buffer buffer-nm major-mode)
+                'magit-status-mode)))
+     (display-buffer-same-window
+      rh-display-buffer-reuse-right
+      rh-display-buffer-reuse-left
+      display-buffer-pop-up-window)))
+
+  (customize-set-value
+   'transient-display-buffer-action
+   ;; '(display-buffer-below-selected (side . bottom)))
+   '(display-buffer-in-side-window
+     (side . bottom)
+     (inhibit-same-window . t)))
+
+  ;; (customize-set-value 'transient-show-common-commands t)
+
+  (add-hook
+   'magit-process-find-password-functions
+   #'magit-process-password-auth-source)
 
   :straight t
   :demand t
@@ -1749,6 +1803,7 @@ when only symbol face names are needed."
 
   :bind
   (("<menu>" . rh-vterm-here)
+   ("C-c v" . rh-vterm-here)
    :map vterm-mode-map
    ("<kp-end>" . rh-vterm-send-end)
    ("<kp-home>" . rh-vterm-send-home)
