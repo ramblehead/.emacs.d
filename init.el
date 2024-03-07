@@ -913,8 +913,9 @@ when only symbol face names are needed."
   :config
   (marginalia-mode 1)
 
-  :bind (:map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
+  :bind
+  (:map minibuffer-local-map
+   ("M-A" . marginalia-cycle))
 
   :straight t
   :ensure t
@@ -2022,9 +2023,9 @@ when only symbol face names are needed."
 ;;   :defer t)
 
 (use-package jtsx
-  :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
+  :mode (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
          ("\\.tsx\\'" . jtsx-tsx-mode)
-         ("\\.ts\\'" . jtsx-typescript-mode))
+         ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
   ;; (customize-set-value 'js-indent-level 2)
@@ -2047,6 +2048,10 @@ when only symbol face names are needed."
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
+
+  :bind
+  (:map jtsx-jsx-mode-map
+   ("M-." . nil))
 
   :straight (jtsx
              :type git
@@ -2084,9 +2089,15 @@ when only symbol face names are needed."
 
   (setq lsp-clients-typescript-server-args '("--stdio" "--log-level=4"))
 
+  (add-to-list 'lsp-language-id-configuration
+               '("\\.cjs\\'\\|\\.mjs\\'" . "javascript") t)
+
+  (add-to-list 'lsp-language-id-configuration
+               '("\\.cts\\'\\|\\.mts\\'" . "typescript") t)
+
   ;; /b/}
 
-  ;; /b/; typescript, javascript and all in between
+  ;; /b/; emacs
   ;; /b/{
 
   (setq lsp-eldoc-render-all t)
