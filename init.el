@@ -1720,13 +1720,12 @@ when only symbol face names are needed."
 ;;; /b/; Version Control
 ;;; /b/{
 
-(defun rh-transient--fit-window-to-buffer:override (window)
-  (let ((window-resize-pixelwise t)
-        (window-size-fixed nil))
-    (fit-window-to-buffer window nil 1)))
+(defun rh-transient--fit-window-to-buffer:around (orig-fun window &rest r)
+  (cl-letf (((car (window-parameter window 'quit-restore)) nil))
+    (apply orig-fun (cons window r))))
 
-(advice-add 'transient--fit-window-to-buffer :override
-            #'rh-transient--fit-window-to-buffer:override)
+(advice-add 'transient--fit-window-to-buffer :around
+            #'rh-transient--fit-window-to-buffer:around)
 
 (defvar rh-transient-previous-window nil)
 (defvar rh-transient-previous-window-height nil)
@@ -1757,14 +1756,10 @@ when only symbol face names are needed."
 (add-hook 'transient-exit-hook #'rh-transient-exit-hook-handler)
 
 (defun rh-transient-display-buffer-in-side-window (buffer _alist)
-  (let ((win (display-buffer-in-side-window
-              buffer
-              '((side . bottom)
-                (inhibit-same-window . t)))))
-    ;; (message "xxx %s" win)
-    ;; (setq rh-transient-previous-window win)
-    ;; (setq rh-transient-previous-window-height (window-total-height win)))
-    win))
+  (display-buffer-in-side-window
+   buffer
+   '((side . bottom)
+     (inhibit-same-window . t))))
 
 (use-package transient
   :config
