@@ -1720,42 +1720,43 @@ when only symbol face names are needed."
 ;;; /b/; Version Control
 ;;; /b/{
 
-(defun rh-transient--fit-window-to-buffer:around (orig-fun window &rest r)
+(defun rh-transient--fit-window-to-buffer:around (orig-fun window &rest rest)
   (cl-letf (((car (window-parameter window 'quit-restore)) nil))
-    (apply orig-fun (cons window r))))
+    (apply orig-fun (cons window rest))))
 
 (advice-add 'transient--fit-window-to-buffer :around
             #'rh-transient--fit-window-to-buffer:around)
 
-(defvar rh-transient-previous-window nil)
-(defvar rh-transient-previous-window-height nil)
+(defvar rh-transient-orig-window)
 
 (defun rh-transient-setup:before (&optional name &rest _rest)
-  (setq rh-transient-previous-window
-        (get-window-with-predicate
-         (lambda (win)
-           (and (eq (window-parameter win 'window-side) 'bottom)
-                (eq (window-parameter win 'window-slot) 0)))))
-
-  (if rh-transient-previous-window
-      (setq rh-transient-previous-window-height
-            (window-total-height rh-transient-previous-window))
-    (setq rh-transient-previous-window-height nil)))
+  (let ((orig-window
+         (get-window-with-predicate
+          (lambda (window)
+            (and (eq (window-parameter window 'window-side) 'bottom)
+                 (eq (window-parameter window 'window-slot) 0))))))
+    (if orig-window
+        (setq rh-transient-orig-window
+              (list :window orig-window
+                    :height (window-total-height orig-window)))
+      (setq rh-transient-orig-window nil))))
 
 (advice-add 'transient-setup :before
             #'rh-transient-setup:before)
 
 (defun rh-transient-exit-hook-handler ()
-  (when (window-live-p rh-transient-previous-window)
-    (with-selected-window rh-transient-previous-window
+  (when-let* (((identity rh-transient-orig-window))
+              (window (plist-get rh-transient-orig-window :window))
+              ((window-live-p window))
+              (orig-height (plist-get rh-transient-orig-window :height)))
+    (with-selected-window window
       (let* ((current-height (window-total-height))
-             (orig-height rh-transient-previous-window-height)
              (delta (- orig-height current-height)))
         (enlarge-window delta)))))
 
 (add-hook 'transient-exit-hook #'rh-transient-exit-hook-handler)
 
-(defun rh-transient-display-buffer-in-side-window (buffer _alist)
+(defun rh-transient-display-buffer-in-bottom-0-side-window (buffer _alist)
   (display-buffer-in-side-window
    buffer
    '((side . bottom)
@@ -1766,7 +1767,7 @@ when only symbol face names are needed."
   (customize-set-value
    'transient-display-buffer-action
    ;; '(display-buffer-below-selected (side . bottom)))
-   '(rh-transient-display-buffer-in-side-window))
+   '(rh-transient-display-buffer-in-bottom-0-side-window))
 
   ;; (customize-set-value 'transient-show-common-commands t)
 
