@@ -1720,23 +1720,64 @@ when only symbol face names are needed."
 ;;; /b/; Version Control
 ;;; /b/{
 
-(defun rh-transient--fit-window-to-buffer:before (window)
-  (setq my-original-window window)
-  (setq my-original-window-height (window-total-height window)))
+(defun rh-transient--fit-window-to-buffer:override (window)
+  (let ((window-resize-pixelwise t)
+        (window-size-fixed nil))
+    (fit-window-to-buffer window nil 1)))
 
-(advice-add 'transient--fit-window-to-buffer :before
-            #'rh-transient--fit-window-to-buffer:before)
+(advice-add 'transient--fit-window-to-buffer :override
+            #'rh-transient--fit-window-to-buffer:override)
+
+(defvar rh-transient-previous-window nil)
+(defvar rh-transient-previous-window-height nil)
+
+(defun rh-transient-setup:before (&optional name &rest _rest)
+  (setq rh-transient-previous-window
+        (get-window-with-predicate
+         (lambda (win)
+           (and (eq (window-parameter win 'window-side) 'bottom)
+                (eq (window-parameter win 'window-slot) 0)))))
+
+  (if rh-transient-previous-window
+      (setq rh-transient-previous-window-height
+            (window-total-height rh-transient-previous-window))
+    (setq rh-transient-previous-window-height nil)))
+
+(advice-add 'transient-setup :before
+            #'rh-transient-setup:before)
 
 (defun rh-transient-exit-hook-handler ()
-  ;; (setq my-original-window-configuration (current-window-configuration))
-  (when (window-live-p my-original-window)
-    (with-selected-window my-original-window
+  (when (window-live-p rh-transient-previous-window)
+    (with-selected-window rh-transient-previous-window
       (let* ((current-height (window-total-height))
-             (orig-height my-original-window-height)
+             (orig-height rh-transient-previous-window-height)
              (delta (- orig-height current-height)))
         (enlarge-window delta)))))
 
 (add-hook 'transient-exit-hook #'rh-transient-exit-hook-handler)
+
+(defun rh-transient-display-buffer-in-side-window (buffer _alist)
+  (let ((win (display-buffer-in-side-window
+              buffer
+              '((side . bottom)
+                (inhibit-same-window . t)))))
+    ;; (message "xxx %s" win)
+    ;; (setq rh-transient-previous-window win)
+    ;; (setq rh-transient-previous-window-height (window-total-height win)))
+    win))
+
+(use-package transient
+  :config
+  (customize-set-value
+   'transient-display-buffer-action
+   ;; '(display-buffer-below-selected (side . bottom)))
+   '(rh-transient-display-buffer-in-side-window))
+
+  ;; (customize-set-value 'transient-show-common-commands t)
+
+  :straight t
+  :demand t
+  :ensure t)
 
 (use-package magit
   :init
@@ -1758,20 +1799,14 @@ when only symbol face names are needed."
       rh-display-buffer-reuse-left
       display-buffer-pop-up-window)))
 
-  (customize-set-value
-   'transient-display-buffer-action
-   ;; '(display-buffer-below-selected (side . bottom)))
-   '(display-buffer-in-side-window
-     (side . bottom)
-     (inhibit-same-window . t)))
-
-  ;; (customize-set-value 'transient-show-common-commands t)
+  (customize-set-value 'magit-bury-buffer-function #'quit-window)
 
   (add-hook
    'magit-process-find-password-functions
    #'magit-process-password-auth-source)
 
   :straight t
+  :after (transient)
   :demand t
   :ensure t)
 
