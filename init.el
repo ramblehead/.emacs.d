@@ -394,6 +394,9 @@ when only symbol face names are needed."
   ;; (customize-set-variable 'tab-stop-list
   ;;  '(4 8 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 
+  ;; Enable some default-disabled functions
+  (put 'upcase-region 'disabled nil)
+
   ;; No automatic backup files
   (customize-set-variable 'make-backup-files nil)
 
@@ -573,6 +576,12 @@ when only symbol face names are needed."
 
   :demand t)
 
+(use-package minibuffer
+  :bind
+  (:map read--expression-map
+        ("C-x <up>" . nil))
+  :demand t)
+
 (use-package windmove
   :bind
   (("C-x <up>" . windmove-up)
@@ -654,9 +663,10 @@ when only symbol face names are needed."
    (lambda ()
      (hl-line-mode 1)))
 
-  :bind (("C-x C-b" . rh-bs-show)
-         ("C-c C-b" . rh-bs-toggle-bs-in-bottom-0-side-window)
-         ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window))
+  :bind
+  (("C-x C-b" . rh-bs-show)
+   ("C-c C-b" . rh-bs-toggle-bs-in-bottom-0-side-window)
+   ("C-c b" . rh-bs-tmp-toggle-bottom-0-side-window))
 
   :after (ace-window)
   :demand t)
