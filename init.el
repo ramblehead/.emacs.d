@@ -396,6 +396,7 @@ when only symbol face names are needed."
 
   ;; Enable some default-disabled functions
   (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
 
   ;; No automatic backup files
   (customize-set-variable 'make-backup-files nil)
