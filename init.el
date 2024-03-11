@@ -1825,6 +1825,20 @@ when only symbol face names are needed."
 
   :defer t)
 
+(use-package highlight-indent-guides
+  :config
+  (customize-set-value 'highlight-indent-guides-method 'character)
+  ;; (customize-set-value 'highlight-indent-guides-character ?\x2502)
+  (customize-set-value 'highlight-indent-guides-responsive 'top)
+
+  ;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
+  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
+  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
+
+  :straight t
+  :defer t
+  :ensure t)
+
 (use-package blacken
   :delight (blacken-mode " B")
   :straight t
