@@ -2006,7 +2006,15 @@ when only symbol face names are needed."
      (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
-     (python . ("https://github.com/tree-sitter/tree-sitter-python"))))
+     (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+
+     ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+     ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+     ;; (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+     ;; (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     ;; (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+
+     ))
 
   (dolist (grammar treesit-language-source-alist)
     (unless (treesit-ready-p (car grammar))
@@ -2105,11 +2113,13 @@ when only symbol face names are needed."
 
   (advice-add 'lsp--render-string :filter-return #'string-trim)
 
+  (setq lsp-eldoc-render-all t)
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
   (setq lsp-headerline-breadcrumb-segments '(symbols))
   (lsp-enable-which-key-integration t)
   (setq lsp-headerline-breadcrumb-icons-enable nil)
+
 
   ;; /b/}
 
@@ -2123,13 +2133,6 @@ when only symbol face names are needed."
 
   (add-to-list 'lsp-language-id-configuration
                '("\\.cts\\'\\|\\.mts\\'" . "typescript") t)
-
-  ;; /b/}
-
-  ;; /b/; emacs
-  ;; /b/{
-
-  (setq lsp-eldoc-render-all t)
 
   ;; /b/}
 
