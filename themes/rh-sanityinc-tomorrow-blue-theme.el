@@ -18,7 +18,21 @@
    `(iedit-occurrence
      ((,class . (:background "dark blue"))))
    `(iedit-read-only-occurrence
-     ((,class . (:background "dark slate blue")))))
+     ((,class . (:background "dark slate blue"))))
+
+   `(highlight-indent-guides-character-face
+     ((,class . (:foreground ,(cdr (assoc 'selection colors))))))
+   `(highlight-indent-guides-top-character-face
+     ((,class . (:foreground ,(cdr (assoc 'comment colors))))))
+
+   `(highlight-indent-guides-odd-face
+     ((,class . (:background ,(cdr (assoc 'alt-background colors))))))
+   `(highlight-indent-guides-even-face
+     ((,class . (:background ,(cdr (assoc 'current-line colors))))))
+   `(highlight-indent-guides-top-odd-face
+     ((,class . (:background ,(cdr (assoc 'selection colors))))))
+   `(highlight-indent-guides-top-even-face
+     ((,class . (:background ,(cdr (assoc 'selection colors)))))))
   (custom-theme-set-variables
    'rh-sanityinc-tomorrow-blue
    ;; Customize theme variables if needed
