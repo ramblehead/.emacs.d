@@ -1681,9 +1681,8 @@ Also sets SYMBOL to VALUE."
   ;; copy from one dired dir to the next dired dir shown in a split window
   (setq dired-dwim-target t)
 
-  ;; https://www.n16f.net/blog/decluttering-dired-for-peace-of-mind/
   (setq dired-listing-switches
-        "-alhD --group-directories-first --time-style=long-iso")
+        "-alhDG1v --group-directories-first --time-style=long-iso")
 
   (setq dired-omit-files "\\`[.]\\'")
 
