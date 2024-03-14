@@ -88,7 +88,7 @@
   (setenv "LC_COLLATE" "C")
   (setq dired-listing-switches
         ;; "--group-directories-first --time-style=long-iso -alhD"
-        "--group-directories-first --time-style=long-iso -alh")
+        "-alhDG1v --group-directories-first --time-style=long-iso")
   (setq vr-dired-coding-system nil))
 
 ;; (global-set-key (kbd "C-x d") 'rh-dired-guess-dir)

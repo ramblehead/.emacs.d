@@ -12,9 +12,10 @@
    `(region ((,class . (:box
                         (:line-width
                          (-2 . -2)
-                         :color ,(cdr (assoc 'selection colors))
+                         ;; :color ,(cdr (assoc 'aqua colors))
+                         :color "#3b2000" ;; "#001938" "#512d00"
                          :style nil)
-                        :background ,(cdr (assoc 'selection colors))))))
+                        :background "#3b2000"))))
    `(iedit-occurrence
      ((,class . (:background "dark blue"))))
    `(iedit-read-only-occurrence
@@ -32,6 +33,9 @@
    `(highlight-indent-guides-top-odd-face
      ((,class . (:background ,(cdr (assoc 'selection colors))))))
    `(highlight-indent-guides-top-even-face
+     ((,class . (:background ,(cdr (assoc 'selection colors))))))
+
+   `(consult-preview-insertion
      ((,class . (:background ,(cdr (assoc 'selection colors)))))))
   (custom-theme-set-variables
    'rh-sanityinc-tomorrow-blue

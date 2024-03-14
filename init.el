@@ -848,9 +848,10 @@ when only symbol face names are needed."
 ;;   :ensure t)
 
 (defun configure-colour-themes ()
+  ;; (load-theme 'rh-default-customisations t)
   (color-theme-sanityinc-tomorrow-blue)
   
- ;; (modus-themes-load-theme 'modus-operandi-tinted)
+  ;; (modus-themes-load-theme 'modus-operandi-tinted)
   ;; (load-theme 'modus-operandi)
 
   ;; (customize-set-variable 'custom-enabled-themes
@@ -1000,10 +1001,36 @@ when only symbol face names are needed."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode)
 
-  :after consult
+  :after (consult)
   :straight t
   :ensure t
   :demand t)
+
+;; (use-package consult-dir
+;;   :config
+;;   (defvar rh-consult-dir--source-recentf
+;;   `(:name "Directory"
+;;     :narrow ?d
+;;     :category file
+;;     :face consult-file
+;;     :history file-name-history
+;;     :action ,#'dired
+;;     :state ,#'consult--file-preview
+;;     :enabled ,(lambda () recentf-mode)
+;;     :items ,#'consult-dir--recentf-dirs)
+;;   "Recentf directory source for `consult-buffer-sources'.")
+
+;;   (add-to-list 'consult-buffer-sources 'rh-consult-dir--source-recentf t)
+  
+;;   ;; :bind (("C-x C-d" . consult-dir)
+;;   ;;        :map minibuffer-local-completion-map
+;;   ;;        ("C-x C-d" . consult-dir)
+;;   ;;        ("C-x C-j" . consult-dir-jump-file))
+
+;;   :after (consult)
+;;   :straight t
+;;   :ensure t
+;;   :demand t)
 
 (use-package consult
   :init
@@ -1026,6 +1053,8 @@ when only symbol face names are needed."
   (require 'patch-consult)
   (require 'config-consult)
 
+  (add-to-list 'consult-buffer-sources 'rh-consult-source-recentf-dirs t)
+
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
@@ -1044,7 +1073,7 @@ when only symbol face names are needed."
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
-  (customize-set-value 'consult-narrow-key "<") ;; "C-+"
+  (customize-set-value 'consult-narrow-key "`") ;; "<", "C-+"
 
   ;; (customize-set-value 'consult-line-start-from-top t)
 
@@ -1163,6 +1192,17 @@ when only symbol face names are needed."
   :straight t
   :ensure t
   :defer t)
+
+(use-package avy
+  :config
+  (customize-set-value 'avy-all-windows 'all-frames)
+
+  :bind (("M-f" . avy-goto-char)
+         ("M-d" . avy-goto-line))
+
+  :straight t
+  :ensure t
+  :demand t)
 
 (use-package ace-window
   :config
