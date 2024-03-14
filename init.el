@@ -1988,6 +1988,15 @@ when only symbol face names are needed."
   :after (ielm)
   :demand t)
 
+(use-package edebug
+  :config
+  (require 'config-edebug)
+
+  (customize-set-value 'edebug-print-length -1)
+  (add-hook 'edebug-mode-hook 'rh-edebug-mode-hook-handler)
+
+  :demand t)
+
 (use-package eldoc
   :delight (eldoc-mode " ε")
   :config
@@ -2068,23 +2077,33 @@ when only symbol face names are needed."
   ;; (customize-set-value 'js-indent-level 2)
   (customize-set-value 'typescript-ts-mode-indent-offset 2)
 
-  (defun rh-jtsx-jsx-mode-handler ()
+  (defun rh-jtsx-jsx-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
-  (add-hook 'jtsx-jsx-mode-hook 'rh-jtsx-jsx-mode-handler)
+  (add-hook 'jtsx-jsx-mode-hook #'rh-jtsx-jsx-mode-hook-handler)
 
-  (defun rh-jtsx-tsx-mode-handler ()
+  (defun rh-jtsx-tsx-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
-  (add-hook 'jtsx-tsx-mode-hook 'rh-jtsx-tsx-mode-handler)
+  (add-hook 'jtsx-tsx-mode-hook #'rh-jtsx-tsx-mode-hook-handler)
 
-  (defun rh-jtsx-typescript-mode-handler ()
+  (defun rh-jtsx-typescript-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
-  (add-hook 'jtsx-typescript-mode-hook 'rh-jtsx-typescript-mode-handler)
+  (add-hook 'jtsx-typescript-mode-hook #'rh-jtsx-typescript-mode-hook-handler)
+
+  (bind-key
+   [remap backward-up-list]
+   #'jtsx-backward-up-list
+   jtsx-jsx-mode-map)
+
+  (bind-key
+   [remap backward-up-list]
+   #'jtsx-backward-up-list
+   jtsx-tsx-mode-map)
 
   :bind
   (:map jtsx-jsx-mode-map
