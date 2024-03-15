@@ -5,19 +5,19 @@
   (interactive)
   (consult-line isearch-string))
 
+(defun rh-consult--file-directory-safe (file)
+  (if (or (and (file-remote-p file) (string-suffix-p "/" file))
+          (file-directory-p file))
+      (file-name-as-directory file)
+    (file-name-directory file)))
+
 (defun rh-consult--recentf-dirs ()
   "Return list of recentf dirs."
-  (let* ((file-directory-safe
-          (lambda (f)
-            (or (and (if (file-remote-p f)
-                         (string-suffix-p "/" f)
-                       (file-directory-p f))
-                     (file-name-as-directory f))
-                (file-name-directory f)))))
-    (thread-last recentf-list
-      (mapcar file-directory-safe)
-      (delete-dups)
-      (mapcar #'abbreviate-file-name))))
+  (thread-last
+    recentf-list
+    (mapcar #'rh-consult--file-directory-safe)
+    (delete-dups)
+    (mapcar #'abbreviate-file-name)))
 
 (defvar rh-consult-source-recentf-dirs
   `(:name "Directory"
