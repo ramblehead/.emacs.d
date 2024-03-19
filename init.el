@@ -1858,6 +1858,32 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package dumb-jump
+  :config
+  (require 'hydra)
+
+  (defhydra dumb-jump-hydra (:color blue :columns 3)
+    "Dumb Jump"
+    ("j" dumb-jump-go "Go")
+    ("o" dumb-jump-go-other-window "Other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back"))
+
+  (customize-set-value 'dumb-jump-selector 'completing-read)
+
+  :bind
+  (("C-M-/" . dumb-jump-hydra/body)
+   ("C-M-." . dumb-jump-go)
+   ("C-M-," . dumb-jump-back)
+   ("C-M-[" . dumb-jump-back))
+
+  :straight t
+  :defer t
+  :ensure t)
+
 (use-package eldoc
   :delight (eldoc-mode " ε")
   :config
@@ -1984,6 +2010,7 @@ when only symbol face names are needed."
 
   :demand t)
 
+;; TODO: Remove this after more treesit tests
 (use-package json
   :config
   (require 'config-json)
@@ -2068,6 +2095,17 @@ when only symbol face names are needed."
   (dolist (grammar treesit-language-source-alist)
     (unless (treesit-ready-p (car grammar))
       (treesit-install-language-grammar (car grammar))))
+
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (typescript-mode . jtsx-typescript-mode)
+             ;; (js2-mode . js-ts-mode)
+             (js2-mode . jtsx-jsx-mode)
+             ;; (css-mode . css-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
 
   (customize-set-value 'treesit-font-lock-level 4)
 
