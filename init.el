@@ -183,23 +183,22 @@
   (interactive)
   (scroll-right 1))
 
+(defvar rh-recenter-sensibly-window-height-min 20)
+(defvar rh-recenter-sensibly-margin 10)
+
 (defun rh-recenter-sensibly ()
   (interactive)
-  (cond
-   ((let ((top-margin
-           (1+ (- (line-number-at-pos (point))
-                  (line-number-at-pos (window-start))))))
-      (< top-margin 10))
-    (if (< (window-height) 20)
-        (recenter)
-      (recenter 10)))
-   ((let ((bottom-margin
-           (1+ (- (line-number-at-pos (window-end))
-                  (line-number-at-pos (point))))))
-      (< bottom-margin 10))
-    (if (< (window-height) 20)
-        (recenter)
-      (recenter -10)))))
+  (if (< (window-height) rh-recenter-sensibly-window-height-min)
+      (recenter)
+    (cond
+     ((let ((top-margin (1- (- (line-number-at-pos (point))
+                               (line-number-at-pos (window-start))))))
+        (< top-margin rh-recenter-sensibly-margin))
+      (recenter rh-recenter-sensibly-margin))
+     ((let ((bottom-margin (1- (- (line-number-at-pos (window-end))
+                                  (line-number-at-pos (point))))))
+        (< bottom-margin rh-recenter-sensibly-margin))
+      (recenter (- rh-recenter-sensibly-margin))))))
 
 (defun rh-what-face (pos)
   "Alternative to what-cursor-position [C-u C-x =] function
@@ -447,9 +446,7 @@ when only symbol face names are needed."
   (customize-set-value 'mouse-drag-copy-region nil)
   (customize-set-value 'mouse-yank-at-point t)
 
-  (add-hook
-   'next-error-hook
-   #'rh-recenter-sensibly)
+  (add-hook 'next-error-hook #'rh-recenter-sensibly)
 
   ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
   (ffap-bindings)
@@ -1872,13 +1869,16 @@ when only symbol face names are needed."
     ("l" dumb-jump-quick-look "Quick look")
     ("b" dumb-jump-back "Back"))
 
-  (customize-set-value 'dumb-jump-selector 'completing-read)
+  (customize-set-value
+   'dumb-jump-selector
+   'xref-show-definitions-completing-read)
+
+  (customize-set-value 'dumb-jump-prefer-searcher 'rg)
+
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 
   :bind
-  (("C-M-/" . dumb-jump-hydra/body)
-   ("C-M-." . dumb-jump-go)
-   ("C-M-," . dumb-jump-back)
-   ("C-M-[" . dumb-jump-back))
+  (("C-M-/" . dumb-jump-hydra/body))
 
   :straight t
   :defer t

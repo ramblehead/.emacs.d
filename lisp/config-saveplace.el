@@ -3,10 +3,10 @@
 (defun rh-recenter-after-find-file-timer-handler (buf)
   (when (buffer-live-p buf)
     (dolist (win (get-buffer-window-list buf nil t))
-      (with-selected-window win (recenter)))))
+      (with-selected-window win (rh-recenter-sensibly)))))
 
 (defun rh-recenter-after-find-file ()
-  (run-with-timer
+  (run-with-idle-timer
    0 nil
    #'rh-recenter-after-find-file-timer-handler
    (current-buffer)))
