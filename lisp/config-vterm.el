@@ -81,7 +81,8 @@
      (:inherit default))
     (((class color) (background dark)) .
      ;; (:background "#000204" :inherit default)))
-     (:background "#000d1e" :inherit default)))
+     ;; (:background "#000d1e" :inherit default)))
+     (:background "#001938" :inherit default)))
   "Default face to use in vterm mode."
   :group 'vterm)
 
