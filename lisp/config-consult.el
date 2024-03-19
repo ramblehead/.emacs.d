@@ -25,7 +25,41 @@
     :category file
     :face consult-file
     :history file-name-history
-    :action ,#'dired
+    ;; :action ,#'dired
+    :action ,(lambda (file)
+               ;; (with-current-buffer (dired file)
+               ;;   (font-lock-mode 1)
+               ;;   (font-lock-ensure)
+               ;;   (redisplay t)
+               ;;   (font-lock-default-fontify-buffer)
+               ;;   (font-lock-update))
+
+               ;; (let ((original-window (selected-window))
+               ;;       (windows (get-buffer-window-list (dired file) nil t)))
+               ;;   (dolist (window windows)
+               ;;     (select-window window)
+               ;;     (redisplay t))
+               ;;   (select-window original-window))
+
+               ;; (let ((original-window (selected-window))
+               ;;       (windows (get-buffer-window-list (dired file) nil t)))
+               ;;   (dolist (window windows)
+               ;;     (let ((frame (window-frame window)))
+               ;;       (select-frame-set-input-focus frame)
+               ;;       (select-window window)
+               ;;       (sit-for 0)))
+               ;;   (select-window original-window))
+
+               ;; (let ((original-window (selected-window))
+               ;;       (windows (get-buffer-window-list (dired file) nil t)))
+               ;;   (dolist (window windows)
+               ;;     (select-window window)
+               ;;     (redisplay t)
+               ;;     (sit-for 0))
+               ;;   (select-window original-window))
+
+               (dired file))
+    ;; :state ,#'consult--file-state
     :state ,#'consult--file-preview
     :enabled ,(lambda () recentf-mode)
     :items ,#'rh-consult--recentf-dirs)
