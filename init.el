@@ -1935,11 +1935,7 @@ when only symbol face names are needed."
         (concat "^" user-login-name "@" system-name ":.*\\$ *"))
   ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
 
-  (add-hook
-   'vterm-mode-hook
-   (lambda ()
-     (setq-local column-number-mode nil)
-     (setq-local line-number-mode nil)))
+  (add-hook 'vterm-mode-hook #'rh-vterm-mode-hook-handler)
 
   :bind
   (("<menu>" . rh-vterm-here)
@@ -2102,7 +2098,7 @@ when only symbol face names are needed."
              ;; (js2-mode . js-ts-mode)
              (js2-mode . jtsx-jsx-mode)
              ;; (css-mode . css-ts-mode)
-             (bash-mode . bash-ts-mode)
+             ;; (bash-mode . bash-ts-mode)
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
