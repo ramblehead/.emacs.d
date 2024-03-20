@@ -6,8 +6,9 @@
 ;; https://github.com/oantolin/orderless/issues/80
 ;; https://github.com/radian-software/prescient.el
 
-(customize-set-value 'custom-file
-                     (file-name-concat user-emacs-directory "custom.el"))
+(customize-set-value
+ 'custom-file
+ (file-name-concat user-emacs-directory "custom.el"))
 
 (when (file-exists-p custom-file)
   ;; Do not load custom themes yet. They will be loaded manually later.
@@ -197,8 +198,31 @@
       (recenter rh-recenter-sensibly-margin))
      ((let ((bottom-margin (1- (- (line-number-at-pos (window-end))
                                   (line-number-at-pos (point))))))
-        (< bottom-margin rh-recenter-sensibly-margin))
-      (recenter (- rh-recenter-sensibly-margin))))))
+        (if (= bottom-margin 0)
+            (recenter)
+          (recenter (- rh-recenter-sensibly-margin))))))))
+
+(defun rh-recenter--sensibly-idle-timer-handler (buf)
+  (when (buffer-live-p buf)
+    (dolist (win (get-buffer-window-list buf nil t))
+      (with-selected-window win (rh-recenter-sensibly)))))
+
+(defun rh-recenter-sensibly-with-idle-timer ()
+  (run-with-idle-timer
+   0 nil
+   #'rh-recenter--sensibly-idle-timer-handler
+   (current-buffer)))
+
+(defun rh-recenter--idle-timer-handler (buf)
+  (when (buffer-live-p buf)
+    (dolist (win (get-buffer-window-list buf nil t))
+      (with-selected-window win (recenter)))))
+
+(defun rh-recenter-with-idle-timer ()
+  (run-with-idle-timer
+   0 nil
+   #'rh-recenter--idle-timer-handler
+   (current-buffer)))
 
 (defun rh-what-face (pos)
   "Alternative to what-cursor-position [C-u C-x =] function
@@ -446,7 +470,7 @@ when only symbol face names are needed."
   (customize-set-value 'mouse-drag-copy-region nil)
   (customize-set-value 'mouse-yank-at-point t)
 
-  (add-hook 'next-error-hook #'rh-recenter-sensibly)
+  (add-hook 'next-error-hook #'rh-recenter-sensibly-with-idle-timer)
 
   ;; http://stackoverflow.com/questions/259354/goto-file-in-emacs
   (ffap-bindings)
@@ -1258,6 +1282,7 @@ when only symbol face names are needed."
        (setq cursor-type normal-cursor-type))))
 
   (recentf-mode 1)
+
   ;; When a buffer is closed, remove the associated file from the recentf
   ;; list if (1) recentf would have, by default, removed the file, or
   ;; (2) the buffer was never displayed.
@@ -1280,11 +1305,10 @@ when only symbol face names are needed."
   (customize-set-value 'save-place-file rh-saved-places-file-path)
 
   :config
-  (require 'config-saveplace)
-
   (save-place-mode 1)
 
-  (add-hook 'save-place-after-find-file-hook #'rh-recenter-after-find-file)
+  (add-hook 'save-place-after-find-file-hook #'rh-recenter-with-idle-timer)
+
   (remove-hook 'dired-initial-position-hook #'save-place-dired-hook)
 
   :demand t)
@@ -1881,7 +1905,7 @@ when only symbol face names are needed."
   (("C-M-/" . dumb-jump-hydra/body))
 
   :straight t
-  :defer t
+  :demand t
   :ensure t)
 
 (use-package highlight-indent-guides
