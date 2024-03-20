@@ -11,8 +11,8 @@ with ellipsis truncation."
         (apply oldfun first-line args)
       (funcall oldfun (format "%s..." (substring first-line 0 max-length))))))
 
-(advice-add
- 'eldoc-minibuffer-message
- :around #'rh-eldoc-minibuffer-message-with-ellipsis)
+(defun rh-eldoc-special-mode-hook-handler ()
+  (when (string-prefix-p "*eldoc" (buffer-name))
+    (visual-line-mode 1)))
 
 (provide 'config-eldoc)

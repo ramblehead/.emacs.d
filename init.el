@@ -1884,15 +1884,6 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-(use-package eldoc
-  :delight (eldoc-mode " ε")
-  :config
-  (add-to-list 'rm-blacklist " ε")
-
-  (require 'config-eldoc)
-
-  :defer t)
-
 (use-package highlight-indent-guides
   :init
   (setq highlight-indent-guides-auto-enabled nil)
@@ -2065,7 +2056,17 @@ when only symbol face names are needed."
   :config
   (add-to-list 'rm-blacklist " ε")
 
-  :demand t)
+  (require 'config-eldoc)
+
+  (advice-add
+   'eldoc-minibuffer-message
+   :around #'rh-eldoc-minibuffer-message-with-ellipsis)
+
+  (add-hook
+   'special-mode-hook
+   #'rh-eldoc-special-mode-hook-handler)
+
+  :defer t)
 
 ;; see https://github.com/mickeynp/combobulate?tab=readme-ov-file#complete-example-with-tree-sitter-grammar-installation
 ;; and https://github.com/renzmann/treesit-auto?tab=readme-ov-file#a-rough-vanilla-equivalent

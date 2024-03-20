@@ -13,7 +13,7 @@
                         (:line-width
                          (-2 . -2)
                          ;; :color ,(cdr (assoc 'aqua colors))
-                         :color "#3b2000" ;; "#001938" "#512d00"
+                         :color "#3b2000" ; "#001938" "#221800" "#512d00"
                          :style nil)
                         :background "#3b2000"))))
    `(iedit-occurrence
