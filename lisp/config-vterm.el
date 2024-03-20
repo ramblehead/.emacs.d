@@ -89,7 +89,8 @@
 (defun rh-vterm-mode-hook-handler ()
   (setq-local column-number-mode nil)
   (setq-local line-number-mode nil)
-  (face-remap-add-relative 'default 'rh-vterm-color-default))
+  ;; (face-remap-add-relative 'default 'rh-vterm-color-default)
+  )
 
 (defun rh-vterm-here ()
   (interactive)

@@ -859,9 +859,9 @@ when only symbol face names are needed."
   ;; (load-theme 'sanityinc-tomorrow-blue t)
 
   ;; (when (display-graphic-p)
-  ;;   ;; (load-theme 'sanityinc-tomorrow-blue t)
-  ;;   ;; (disable-theme 'sanityinc-tomorrow-blue)
-  ;;   ;; (enable-theme 'sanityinc-tomorrow-blue)
+  ;;   ;; (load-theme 'rh-sanityinc-tomorrow-blue t)
+  ;;   ;; (disable-theme 'rh-sanityinc-tomorrow-blue)
+  ;;   ;; (enable-theme 'rh-sanityinc-tomorrow-blue)
   ;;   (color-theme-sanityinc-tomorrow-blue))
   )
 

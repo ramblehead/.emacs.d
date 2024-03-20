@@ -49,23 +49,39 @@
    ;; '(term-color-white ((t . (:foreground "grey90" :background "gray90"))))
 
    '(vterm-color-black
-     ((t . (:background "#767875" :foreground "#2e3436"))))
+     ((t . (:foreground "black" :background "black"))))
    '(vterm-color-red
-     ((t . (:background "light coral" :foreground "IndianRed1"))))
+     ((t . (:foreground "red3" :background "red3"))))
    '(vterm-color-green
-     ((t . (:background "#94c368" :foreground "medium sea green"))))
+     ((t . (:foreground "green3" :background "green3"))))
    '(vterm-color-yellow
-     ((t . (:background "#fce94f" :foreground "#d3ac00"))))
+     ((t . (:foreground "yellow3" :background "yellow3"))))
    `(vterm-color-blue
-     ;; ((t . (:background ,(cdr (assoc 'blue colors)) :foreground ,(cdr (assoc 'background colors))))))
-     ;; ((t . (:background "#88aacf" :foreground "#3465a4"))))
-     ((t . (:background ,(cdr (assoc 'blue colors)) :foreground "#002f6b"))))
+     ((t . (:foreground "blue2" :background "blue2"))))
    '(vterm-color-magenta
-     ((t . (:background "#c497bf" :foreground "#a177a8"))))
+     ((t . (:foreground "magenta3" :background "magenta3"))))
    '(vterm-color-cyan
-     ((t . (:background "#34e2e2" :foreground "#06989a"))))
+     ((t . (:foreground "cyan3" :background "cyan3"))))
    '(vterm-color-white
-     ((t . (:background "#eeeeec" :foreground "#d3d7cf"))))
+     ((t . (:foreground "grey90" :background "gray90"))))
+
+   '(vterm-color-bright-black
+     ((t . (:foreground "gray30" :background "gray30"))))
+   '(vterm-color-bright-red
+     ((t . (:foreground "red2" :background "red2"))))
+   '(vterm-color-bright-green
+     ((t . (:foreground "green2" :background "green2"))))
+   '(vterm-color-bright-yellow
+     ((t . (:foreground "yellow2" :background "yellow2"))))
+   `(vterm-color-bright-blue
+     ((t . (:foreground "blue1" :background "blue1"))))
+   '(vterm-color-bright-magenta
+     ((t . (:foreground "magenta2" :background "magenta2"))))
+   '(vterm-color-bright-cyan
+     ((t . (:foreground "cyan2" :background "cyan2"))))
+   '(vterm-color-bright-white
+     ((t . (:foreground "white" :background "white"))))
+
    '(vterm-color-underline
      ((t . (:underline t))))
    '(vterm-color-inverse-video
