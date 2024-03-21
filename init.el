@@ -2202,9 +2202,6 @@ when only symbol face names are needed."
    ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
-  ;; (customize-set-value 'js-indent-level 2)
-  (customize-set-value 'typescript-ts-mode-indent-offset 2)
-
   (defun rh-jtsx-jsx-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1))
