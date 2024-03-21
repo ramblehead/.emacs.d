@@ -1210,6 +1210,15 @@ when only symbol face names are needed."
   :demand t)
 
 (use-package rainbow-mode
+  :config
+  (dolist (mode
+           '(jtsx-jsx-mode
+             jtsx-tsx-mode
+             jtsx-typescript-mode
+             python-mode
+             python-ts-mode))
+    (add-to-list 'rainbow-x-colors-major-mode-list mode t))
+
   :straight t
   :ensure t
   :defer t)
@@ -2180,9 +2189,10 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package jtsx
-  :mode (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
-         ("\\.tsx\\'" . jtsx-tsx-mode)
-         ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
+  :mode
+  (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
+   ("\\.tsx\\'" . jtsx-tsx-mode)
+   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
   ;; (customize-set-value 'js-indent-level 2)
