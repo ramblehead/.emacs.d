@@ -1449,10 +1449,12 @@ when only symbol face names are needed."
   :config
   (add-to-list 'rm-blacklist " code-groups")
 
-  :straight (code-groups
-             :type git
-             :host github
-             :repo "ramblehead/code-groups.el")
+  :straight
+  (code-groups
+   :type git
+   :host github
+   :repo "ramblehead/code-groups.el")
+
   :demand t
   :ensure t)
 
@@ -1460,10 +1462,12 @@ when only symbol face names are needed."
   :config
   (add-to-list 'rm-blacklist " rh-project")
 
-  :straight (rh-project
-             :type git
-             :host github
-             :repo "ramblehead/rh-project.el")
+  :straight
+  (rh-project
+   :type git
+   :host github
+   :repo "ramblehead/rh-project.el")
+
   :demand t
   :ensure t)
 
@@ -1488,6 +1492,7 @@ when only symbol face names are needed."
   (("C-c q" . vr/query-replace)
    :map vr/minibuffer-keymap
    ("S-<return>" . newline))
+
   :straight t
   :defer t
   :ensure t)
@@ -2145,10 +2150,12 @@ when only symbol face names are needed."
   :preface
   (setq combobulate-key-prefix "C-c o")
 
-  :straight (combobulate
-             :type git
-             :host github
-             :repo "mickeynp/combobulate")
+  :straight
+  (combobulate
+   :type git
+   :host github
+   :repo "mickeynp/combobulate")
+
   :defer t
   :ensure t)
 
@@ -2230,10 +2237,11 @@ when only symbol face names are needed."
   (:map jtsx-jsx-mode-map
    ("M-." . nil))
 
-  :straight (jtsx
-             :type git
-             :host github
-             :repo "ramblehead/jtsx")
+  :straight
+  (jtsx
+   :type git
+   :host github
+   :repo "ramblehead/jtsx")
 
   :defer t
   :ensure t)
