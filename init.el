@@ -2118,12 +2118,12 @@ when only symbol face names are needed."
       (treesit-install-language-grammar (car grammar))))
 
   (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (typescript-mode . jtsx-typescript-mode)
+           '((typescript-mode . jtsx-typescript-mode)
              ;; (js2-mode . js-ts-mode)
              (js2-mode . jtsx-jsx-mode)
              ;; (css-mode . css-ts-mode)
              ;; (bash-mode . bash-ts-mode)
+             (python-mode . python-ts-mode)
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
@@ -2166,6 +2166,18 @@ when only symbol face names are needed."
 ;;   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
 ;;   :defer t)
+
+(use-package python
+  :config
+  (setq python-indent-def-block-scale 1)
+
+  (defun rh-python-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'python-ts-mode-hook #'rh-python-ts-mode-hook-handler)
+
+  :defer t)
 
 (use-package jtsx
   :mode (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
@@ -2212,6 +2224,7 @@ when only symbol face names are needed."
              :type git
              :host github
              :repo "ramblehead/jtsx")
+
   :defer t
   :ensure t)
 
