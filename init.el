@@ -337,7 +337,7 @@ when only symbol face names are needed."
 (defvar read-only-cursor-type 'hbar)
 (defvar normal-cursor-type 'bar)
 
-(defun rh-frame-config (frame)
+(defun rh-frame-configure (frame)
   ;; ;; Alternative approach would be with-selected-frame()
   ;; (with-selected-frame frame
   ;;   ;; Place your GUI settings here.
@@ -375,8 +375,8 @@ when only symbol face names are needed."
                             :weight 'normal))))))
 
 (if (daemonp)
-    (add-hook 'after-make-frame-functions #'rh-frame-config)
-  (rh-frame-config (selected-frame)))
+    (add-hook 'after-make-frame-functions #'rh-frame-configure)
+  (rh-frame-configure (selected-frame)))
 
 (use-package emacs
   :config
