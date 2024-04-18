@@ -364,14 +364,14 @@ when only symbol face names are needed."
         (set-face-attribute 'default frame
                             :family "Hack"
                             :height 105
-                            :width 'semi-condensed
+                            ;; :width 'semi-condensed
                             :weight 'normal))
        ((= width-pixels 2560)
         ;; (add-to-list 'default-frame-alist '(font . "Hack-9"))
         (set-face-attribute 'default frame
                             :family "Hack"
                             :height 90
-                            :width 'semi-condensed
+                            ;; :width 'semi-condensed
                             :weight 'normal))))))
 
 (if (daemonp)
@@ -2118,6 +2118,7 @@ when only symbol face names are needed."
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+     (json . ("https://github.com/tree-sitter/tree-sitter-json"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
