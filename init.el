@@ -355,22 +355,22 @@ when only symbol face names are needed."
            (elt (assoc 'geometry (car (display-monitor-attributes-list frame)))
                 3)))
       (cond
-       ((= width-pixels 1920)
+       ((or (= width-pixels 2560) (= width-pixels 2400))
+        ;; (add-to-list 'default-frame-alist '(font . "Hack-9"))
+        (set-face-attribute 'default frame
+                            :family "Hack"
+                            :height 90
+                            ;; :width 'semi-condensed
+                            :weight 'normal))
+       (t
         ;; (fringe-mode '(16 . 16))
         ;; (setq read-only-cursor-type '(hbar . 4))
         ;; (setq normal-cursor-type '(bar . 4))
         ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
         ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
-        (set-face-attribute 'default frame
+        (set-face-attribute 'default (selected-frame)
                             :family "Hack"
                             :height 105
-                            ;; :width 'semi-condensed
-                            :weight 'normal))
-       ((= width-pixels 2560)
-        ;; (add-to-list 'default-frame-alist '(font . "Hack-9"))
-        (set-face-attribute 'default frame
-                            :family "Hack"
-                            :height 90
                             ;; :width 'semi-condensed
                             :weight 'normal))))))
 
@@ -2119,6 +2119,8 @@ when only symbol face names are needed."
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
      (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+     (c . ("https://github.com/tree-sitter/tree-sitter-c.git"))
+     (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -2140,7 +2142,8 @@ when only symbol face names are needed."
              ;; (bash-mode . bash-ts-mode)
              (python-mode . python-ts-mode)
              (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
+             (js-json-mode . json-ts-mode)
+             (c-mode . c-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
 
   (customize-set-value 'treesit-font-lock-level 4)
