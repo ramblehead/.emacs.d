@@ -328,6 +328,25 @@ when only symbol face names are needed."
                   (executable-find "clangd"))))
     (when path (file-name-nondirectory path))))
 
+(defun rh-clang-format-package-find ()
+  "Finds clang-format.el package."
+  (or (locate-library "clang-format-17/clang-format.el")
+      (locate-library "clang-format-16/clang-format.el")
+      (locate-library "clang-format-15/clang-format.el")
+      (locate-library "clang-format-14/clang-format.el")
+      (locate-library "clang-format-13/clang-format.el")
+      (locate-library "clang-format-12/clang-format.el")
+      (locate-library "clang-format-11/clang-format.el")
+      (locate-library "clang-format-10/clang-format.el")
+      (locate-library "clang-format-9/clang-format.el")
+      (locate-library "clang-format-8/clang-format.el")
+      (locate-library "clang-format.el")))
+
+(defun get-cpu-threads-count ()
+  "Get the number of CPU threads."
+  (string-to-number
+   (shell-command-to-string "nproc")))
+
 ;;; /b/}
 
 ;;; /b/; Basic System Setup
@@ -2163,6 +2182,50 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(defun rh-clang-format-package-find ()
+  "Finds clang-format.el package."
+  (or (locate-library "clang-format-17/clang-format.el")
+      (locate-library "clang-format-16/clang-format.el")
+      (locate-library "clang-format-15/clang-format.el")
+      (locate-library "clang-format-14/clang-format.el")
+      (locate-library "clang-format-13/clang-format.el")
+      (locate-library "clang-format-12/clang-format.el")
+      (locate-library "clang-format-11/clang-format.el")
+      (locate-library "clang-format-10/clang-format.el")
+      (locate-library "clang-format-9/clang-format.el")
+      (locate-library "clang-format-8/clang-format.el")
+      (locate-library "clang-format.el")))
+
+(use-package clang-format
+  :if (rh-clang-format-package-find)
+  :load-path (lambda ()
+               (file-name-directory
+                (rh-clang-format-package-find)))
+  :defer t
+  :pin manual)
+
+(use-package c-ts-mode
+  :config
+  (defun rh-c-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'c-ts-mode-hook #'rh-c-ts-mode-hook-handler)
+
+  :defer t)
+
+(use-package python
+  :config
+  (setq python-indent-def-block-scale 1)
+
+  (defun rh-python-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'python-ts-mode-hook #'rh-python-ts-mode-hook-handler)
+
+  :defer t)
+
 ;; (use-package typescript-ts-mode
 ;;   :mode 
 ;;   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
@@ -2186,18 +2249,6 @@ when only symbol face names are needed."
 ;;   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
 ;;   :defer t)
-
-(use-package python
-  :config
-  (setq python-indent-def-block-scale 1)
-
-  (defun rh-python-ts-mode-hook-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
-
-  (add-hook 'python-ts-mode-hook #'rh-python-ts-mode-hook-handler)
-
-  :defer t)
 
 (use-package jtsx
   :mode
@@ -2263,13 +2314,15 @@ when only symbol face names are needed."
 
   (advice-add 'lsp--render-string :filter-return #'string-trim)
 
-  (setq lsp-eldoc-render-all t)
-  (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-signature-auto-activate '(:on-trigger-char :after-completion))
-  (setq lsp-headerline-breadcrumb-segments '(symbols))
-  (lsp-enable-which-key-integration t)
-  (setq lsp-headerline-breadcrumb-icons-enable nil)
+  (customize-set-value 'lsp-eldoc-render-all t)
+  (customize-set-value 'lsp-enable-on-type-formatting nil)
+  (customize-set-value 'lsp-signature-auto-activate
+                       '(:on-trigger-char :after-completion))
 
+  (lsp-enable-which-key-integration t)
+
+  (customize-set-value 'lsp-headerline-breadcrumb-icons-enable nil)
+  (customize-set-value 'lsp-headerline-breadcrumb-segments '(symbols))
 
   ;; /b/}
 
@@ -2294,8 +2347,30 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package lsp-clangd
+  :config
+  (customize-set-value
+   'lsp-clients-clangd-args
+   `(,(concat "-j="
+              (number-to-string
+               (let ((cpu-threads-count (1- (get-cpu-threads-count))))
+                 (if (< 1 cpu-threads-count) cpu-threads-count 1))))
+     "--clang-tidy"
+     "--background-index"
+     "--all-scopes-completion"
+     "--limit-results=0"
+     "--header-insertion=iwyu"
+     ;; "--completion-style=detailed"
+     "--completion-style=bundled"
+     ;; "--header-insertion-decorators=false"
+     "--log=info"))
+
+  :after (lsp-mode)
+  :defer t
+  ;; Should be a part of lsp-mode
+  :pin manual)
+
 (use-package lsp-pyright
-  :after lsp-mode
   :config
   (customize-set-value 'lsp-pyright-auto-search-paths nil)
   ;; (customize-set-value 'lsp-pyright-disable-language-services t)
@@ -2316,6 +2391,22 @@ when only symbol face names are needed."
   :after (lsp-mode)
   :defer t
   :ensure t)
+
+(use-package clang-format
+  :if (rh-clang-format-package-find)
+  :load-path (lambda ()
+               (file-name-directory
+                (rh-clang-format-package-find)))
+  :defer t
+  :pin manual)
+
+(define-minor-mode clang-format-mode
+  "Minor mode to call clang-format on save."
+  :lighter  " P"
+  (if clang-format-mode
+      (progn
+        (add-hook 'before-save-hook #'clang-format-buffer nil t))
+    (remove-hook 'before-save-hook #'clang-format-buffer t)))
 
 ;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
 (use-package mmm-mode
