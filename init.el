@@ -2205,6 +2205,7 @@ when only symbol face names are needed."
   :pin manual)
 
 (use-package c-ts-mode
+  :mode "\\.c\\'\\|\\.h\\'"
   :config
   (defun rh-c-ts-mode-hook-handler ()
     (company-mode 1)
