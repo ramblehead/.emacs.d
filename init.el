@@ -393,9 +393,12 @@ when only symbol face names are needed."
                             ;; :width 'semi-condensed
                             :weight 'normal))))))
 
-(if (daemonp)
-    (add-hook 'after-make-frame-functions #'rh-frame-configure)
-  (rh-frame-configure (selected-frame)))
+;; (if (daemonp)
+;;     (add-hook 'after-make-frame-functions #'rh-frame-configure)
+;;   (rh-frame-configure (selected-frame)))
+
+(add-hook 'after-make-frame-functions #'rh-frame-configure)
+(rh-frame-configure (selected-frame))
 
 (use-package emacs
   :config
@@ -619,8 +622,9 @@ when only symbol face names are needed."
 
 (use-package minibuffer
   :bind
-  (:map read--expression-map
-        ("C-x <up>" . nil))
+  (:map
+   read--expression-map
+   ("C-x <up>" . nil))
   :demand t)
 
 (use-package windmove
@@ -940,7 +944,8 @@ when only symbol face names are needed."
    t)
 
   :bind
-  (:map vertico-map
+  (:map
+   vertico-map
    ("<next>" . vertico-scroll-up)
    ("<prior>" . vertico-scroll-down)
    ("C-x <up>" . windmove-up))
@@ -967,7 +972,8 @@ when only symbol face names are needed."
   (marginalia-mode 1)
 
   :bind
-  (:map minibuffer-local-map
+  (:map
+   minibuffer-local-map
    ("M-A" . marginalia-cycle))
 
   :straight t
@@ -1188,13 +1194,15 @@ when only symbol face names are needed."
    ("M-s u" . consult-focus-lines)
    ;; Isearch integration
    ("M-s e" . consult-isearch-history)
-   :map isearch-mode-map
+   :map
+   isearch-mode-map
    ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
    ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
    ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
    ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
    ;; Minibuffer history
-   :map minibuffer-local-map
+   :map
+   minibuffer-local-map
    ("C-s" . goto-history-element)
    ("M-s" . consult-history)                 ;; orig. next-matching-history-element
    ("M-r" . consult-history))                ;; orig. previous-matching-history-element
@@ -1279,7 +1287,8 @@ when only symbol face names are needed."
   (require 'config-dired)
 
   :bind
-  (:map dired-mode-map
+  (:map
+   dired-mode-map
    ("RET" . rh-dired-find-file)
    ("<return>" . rh-dired-find-file)
    ("f" . rh-dired-find-file)
@@ -1322,7 +1331,8 @@ when only symbol face names are needed."
 
   :bind
   (("<f4>" . recentf-open-files)
-   :map recentf-dialog-mode-map
+   :map
+   recentf-dialog-mode-map
    ("<space>" . widget-button-press)
    ("<f4>" . rh-recentf-open-edit))
 
@@ -1509,7 +1519,8 @@ when only symbol face names are needed."
 
   :bind
   (("C-c q" . vr/query-replace)
-   :map vr/minibuffer-keymap
+   :map
+   vr/minibuffer-keymap
    ("S-<return>" . newline))
 
   :straight t
@@ -1554,7 +1565,7 @@ when only symbol face names are needed."
 (use-package wgrep
   :straight t
   :ensure t
-  :defer t)
+  :demand t)
 
 (use-package yasnippet-snippets
   :straight t
@@ -1570,11 +1581,13 @@ when only symbol face names are needed."
   (abbrev-mode -1)
   (yas-global-mode 1)
 
-  :bind (:map yas-minor-mode-map
-         ("<tab>" . nil)
-         ("TAB" . nil)
-         ("C-`" . yas-expand)
-         ("C-~" . yas-prev-field))
+  :bind
+  (:map
+   yas-minor-mode-map
+   ("<tab>" . nil)
+   ("TAB" . nil)
+   ("C-`" . yas-expand)
+   ("C-~" . yas-prev-field))
 
   :straight t
   :after (yasnippet-snippets)
@@ -1671,7 +1684,8 @@ when only symbol face names are needed."
    company-active-map)
 
   :bind
-  (:map company-active-map
+  (:map
+   company-active-map
   ;; Use "M-h" for company-show-doc-buffer
    ("<f1>" . nil)
    ("C-h" . nil)
@@ -1695,7 +1709,8 @@ when only symbol face names are needed."
    ;; ("<up>" . rh-company-select-previous-or-abort)
    ;; ([return] . newline)
    ;; ("RET" . newline)
-   :map company-search-map
+   :map
+   company-search-map
    ("<escape>" . company-search-abort))
 
   :straight t
@@ -1759,8 +1774,10 @@ when only symbol face names are needed."
   :config
   (require 'config-flyspell)
 
-  :bind (:map flyspell-mode-map
-         ("C-;" . nil))
+  :bind
+  (:map
+   flyspell-mode-map
+   ("C-;" . nil))
   :defer t)
 
 (use-package ispell
@@ -1914,6 +1931,7 @@ when only symbol face names are needed."
 
 (use-package dumb-jump
   :config
+  (require 'config-dumb-jump)
   (require 'hydra)
 
   (defhydra dumb-jump-hydra (:color blue :columns 3)
@@ -1935,7 +1953,8 @@ when only symbol face names are needed."
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 
   :bind
-  (("C-M-/" . dumb-jump-hydra/body))
+  (("C-M-." . rh-dumb-jump-xref-find-definitions)
+   ("C-M-/" . dumb-jump-hydra/body))
 
   :straight t
   :demand t
@@ -1988,7 +2007,8 @@ when only symbol face names are needed."
   :bind
   (("<menu>" . rh-vterm-here)
    ("C-c v" . rh-vterm-here)
-   :map vterm-mode-map
+   :map
+   vterm-mode-map
    ("<kp-end>" . rh-vterm-send-end)
    ("<kp-home>" . rh-vterm-send-home)
    ("<deletechar>" . rh-vterm-send-C-d)
@@ -2017,7 +2037,8 @@ when only symbol face names are needed."
    ("M-<return>" . rh-vterm-send-M-<return>)
    ("<f1>" . rh-vterm-send-f1)
    ("<f12>" . what-face)
-   :map vterm-copy-mode-map
+   :map
+   vterm-copy-mode-map
    ("RET" . nil)
    ("<return>" . nil)
    ("<kp-begin>" . rh-vterm-copy-mode)
@@ -2087,12 +2108,15 @@ when only symbol face names are needed."
   (add-hook 'emacs-lisp-mode-hook #'rh-emacs-lisp-mode-hook-handler)
 
   :bind
-  (:map lisp-mode-shared-map
+  (:map
+   lisp-mode-shared-map
    ("<f5>" . rh-lisp-eval-region-or-last-sexp)
-   :map emacs-lisp-mode-map
+   :map
+   emacs-lisp-mode-map
    ("M-TAB" . nil)
    ("C-c C-b" . nil)
-   :map lisp-interaction-mode-map
+   :map
+   lisp-interaction-mode-map
    ("M-TAB" . nil)
    ("C-c C-b" . nil))
 
@@ -2287,7 +2311,8 @@ when only symbol face names are needed."
    jtsx-tsx-mode-map)
 
   :bind
-  (:map jtsx-jsx-mode-map
+  (:map
+   jtsx-jsx-mode-map
    ("M-." . nil))
 
   :straight
@@ -2341,8 +2366,10 @@ when only symbol face names are needed."
   ;; /b/}
 
   :bind
-  (:map lsp-mode-map
-   ("C-x C-<tab>" . company-capf))
+  (:map
+   lsp-mode-map
+   ("C-c C-a" . lsp-signature-activate)
+   ("C-c C-<tab>" . company-capf))
 
   :straight t
   :defer t
@@ -2360,6 +2387,8 @@ when only symbol face names are needed."
      "--background-index"
      "--all-scopes-completion"
      "--limit-results=0"
+     "--limit-references=0"
+     "--rename-file-limit=0"
      "--header-insertion=iwyu"
      ;; "--completion-style=detailed"
      "--completion-style=bundled"
