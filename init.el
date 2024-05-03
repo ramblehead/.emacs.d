@@ -1527,6 +1527,11 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package multiple-cursors
+  :straight t
+  :ensure t
+  :demand t)
+
 ;; Might need "gsettings set org.freedesktop.ibus.panel.emoji hotkey ['']"
 ;; see https://www.reddit.com/r/emacs/comments/wwyrgs/ctrl_semicolon_behaves_strangely/
 (use-package iedit
@@ -1559,6 +1564,7 @@ when only symbol face names are needed."
   (("M-i" . iedit-mode))
 
   :straight t
+  :after (multiple-cursors)
   :ensure t
   :demand t)
 
