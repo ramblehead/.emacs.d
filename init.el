@@ -442,6 +442,7 @@ when only symbol face names are needed."
   ;; Enable some default-disabled functions
   (put 'upcase-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
+  (put 'narrow-to-region 'disabled nil)
 
   ;; No automatic backup files
   (customize-set-variable 'make-backup-files nil)
@@ -455,10 +456,10 @@ when only symbol face names are needed."
    (append '(font face font-lock-face) yank-excluded-properties))
 
   ;; Scroll line Notepad in Windows! :)
-  (setq scroll-conservatively 100000)
-  (setq scroll-margin 0)
+  (setq-default scroll-conservatively 100000)
+  (setq-default scroll-margin 0)
 
-  (setq hscroll-margin 0)
+  (setq-default hscroll-margin 0)
 
   (when (and (eq window-system 'x)
              (string-match "GTK+" (version)))
@@ -466,25 +467,25 @@ when only symbol face names are needed."
 
   (customize-set-value 'standard-indent 2)
 
-  (setq tab-width 8)
-  (setq fill-column 80)
+  (setq-default tab-width 8)
+  (setq-default fill-column 80)
 
   (setq-default display-line-numbers-width 4)
 
   ;; Be quite
-  (setq visible-bell t)
+  (setq-default visible-bell t)
 
   ;; undo behaviour
-  (setq undo-limit (* 1024 1024))
-  (setq undo-strong-limit (* undo-limit 2))
-  (setq undo-outer-limit (* undo-limit 100))
+  (setq-default undo-limit (* 1024 1024))
+  (setq-default undo-strong-limit (* undo-limit 2))
+  (setq-default undo-outer-limit (* undo-limit 100))
 
   (prefer-coding-system 'utf-8-unix)
   (customize-set-value 'default-input-method "russian-computer")
   ;; (setq-default default-process-coding-system '(utf-8 . utf-8))
 
-  (setq frame-title-format
-        (concat "%b - emacs@" system-name))
+  (setq-default frame-title-format
+                (concat "%b - emacs@" system-name))
 
   (customize-set-value 'mouse-wheel-scroll-amount '(5 ((shift) . 1)))
   (customize-set-value 'mouse-wheel-progressive-speed nil)
@@ -1770,6 +1771,69 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package sudo-edit
+  :straight t
+  :defer t
+  :ensure t)
+
+(use-package vterm
+  :if (locate-library "vterm")
+  :commands (vterm vterm-mode)
+  :config
+  (require 'config-vterm)
+
+  ;; (setq vterm-use-vterm-prompt-detection-method nil)
+  (setq term-prompt-regexp
+        (concat "^" user-login-name "@" system-name ":.*\\$ *"))
+  ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
+
+  (add-hook 'vterm-mode-hook #'rh-vterm-mode-hook-handler)
+
+  :bind
+  (("<menu>" . rh-vterm-here)
+   ("C-c v" . rh-vterm-here)
+   ("C-c C-v" . vterm)
+   :map
+   vterm-mode-map
+   ("<kp-end>" . rh-vterm-send-end)
+   ("<kp-home>" . rh-vterm-send-home)
+   ("<deletechar>" . rh-vterm-send-C-d)
+   ("<kp-begin>" . rh-vterm-copy-mode)
+   ("<insert>" . rh-vterm-send-insert)
+   ("C-<home>" . rh-vterm-send-C-home)
+   ("C-<kp-home>" . rh-vterm-send-C-home)
+   ("C-<end>" . rh-vterm-send-C-end)
+   ("C-<kp-end>" . rh-vterm-send-C-end)
+   ("<kp-multiply>" . rh-vterm-send-<kp-multiply>)
+   ("<kp-add>" . rh-vterm-send-<kp-add>)
+   ("<kp-subtract>" . rh-vterm-send-<kp-subtract>)
+   ("C-<up>" . rh-vterm-send-C-up)
+   ("C-<down>" . rh-vterm-send-C-down)
+   ("C-<kp-up>" . rh-vterm-send-C-up)
+   ("C-<kp-down>" . rh-vterm-send-C-down)
+   ("C-<kp-down>" . rh-vterm-send-C-down)
+   ("C-x c" . rh-vterm-send-C-x_c)
+   ("C-x s" . rh-vterm-send-C-x_s)
+   ("C-x v" . rh-vterm-send-C-x_v)
+   ("C-x C-s" . rh-vterm-send-C-x_C-s)
+   ("C-< C-x" . rh-vterm-send-C-x)
+   ("C-< C-c" . rh-vterm-send-C-c)
+   ("C-< C-v" . rh-vterm-send-C-v)
+   ("S-<f2>" . rh-vterm-send-S-f2)
+   ("M-<return>" . rh-vterm-send-M-<return>)
+   ("<f1>" . rh-vterm-send-f1)
+   ("<f12>" . what-face)
+   :map
+   vterm-copy-mode-map
+   ("RET" . nil)
+   ("<return>" . nil)
+   ("<kp-begin>" . rh-vterm-copy-mode)
+   ("<kp-multiply>" . compilation-minor-mode))
+
+  :after (bs)
+  :demand t
+  :pin manual)
+
 ;;; /b/}
 
 ;;; /b/; Human Languages
@@ -1983,77 +2047,6 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-(use-package blacken
-  :delight (blacken-mode " B")
-  :straight t
-  :defer t
-  :ensure t)
-
-(use-package prettier
-  :config
-  (customize-set-value 'prettier-lighter " P")
-
-  :straight t
-  :defer t
-  :ensure t)
-
-(use-package vterm
-  :if (locate-library "vterm")
-  :commands (vterm vterm-mode)
-  :config
-  (require 'config-vterm)
-
-  ;; (setq vterm-use-vterm-prompt-detection-method nil)
-  (setq term-prompt-regexp
-        (concat "^" user-login-name "@" system-name ":.*\\$ *"))
-  ;; (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] ")
-
-  (add-hook 'vterm-mode-hook #'rh-vterm-mode-hook-handler)
-
-  :bind
-  (("<menu>" . rh-vterm-here)
-   ("C-c v" . rh-vterm-here)
-   :map
-   vterm-mode-map
-   ("<kp-end>" . rh-vterm-send-end)
-   ("<kp-home>" . rh-vterm-send-home)
-   ("<deletechar>" . rh-vterm-send-C-d)
-   ("<kp-begin>" . rh-vterm-copy-mode)
-   ("<insert>" . rh-vterm-send-insert)
-   ("C-<home>" . rh-vterm-send-C-home)
-   ("C-<kp-home>" . rh-vterm-send-C-home)
-   ("C-<end>" . rh-vterm-send-C-end)
-   ("C-<kp-end>" . rh-vterm-send-C-end)
-   ("<kp-multiply>" . rh-vterm-send-<kp-multiply>)
-   ("<kp-add>" . rh-vterm-send-<kp-add>)
-   ("<kp-subtract>" . rh-vterm-send-<kp-subtract>)
-   ("C-<up>" . rh-vterm-send-C-up)
-   ("C-<down>" . rh-vterm-send-C-down)
-   ("C-<kp-up>" . rh-vterm-send-C-up)
-   ("C-<kp-down>" . rh-vterm-send-C-down)
-   ("C-<kp-down>" . rh-vterm-send-C-down)
-   ("C-x c" . rh-vterm-send-C-x_c)
-   ("C-x s" . rh-vterm-send-C-x_s)
-   ("C-x v" . rh-vterm-send-C-x_v)
-   ("C-x C-s" . rh-vterm-send-C-x_C-s)
-   ("C-< C-x" . rh-vterm-send-C-x)
-   ("C-< C-c" . rh-vterm-send-C-c)
-   ("C-< C-v" . rh-vterm-send-C-v)
-   ("S-<f2>" . rh-vterm-send-S-f2)
-   ("M-<return>" . rh-vterm-send-M-<return>)
-   ("<f1>" . rh-vterm-send-f1)
-   ("<f12>" . what-face)
-   :map
-   vterm-copy-mode-map
-   ("RET" . nil)
-   ("<return>" . nil)
-   ("<kp-begin>" . rh-vterm-copy-mode)
-   ("<kp-multiply>" . compilation-minor-mode))
-
-  :after (bs)
-  :demand t
-  :pin manual)
-
 (use-package sh-script
   :config
   (customize-set-value 'sh-basic-offset 2)
@@ -2065,14 +2058,6 @@ when only symbol face names are needed."
      (rh-programming-minor-modes 1)))
 
   :defer t)
-
-(use-package blacken
-  :config
-  (add-to-list 'rm-blacklist " Black")
-
-  :straight t
-  :defer t
-  :ensure t)
 
 (use-package ielm
   :config
@@ -2170,12 +2155,12 @@ when only symbol face names are needed."
      (json . ("https://github.com/tree-sitter/tree-sitter-json"))
      (c . ("https://github.com/tree-sitter/tree-sitter-c.git"))
      (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
      ;; (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-     ;; (toml "https://github.com/tree-sitter/tree-sitter-toml")
-     ;; (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
 
      ))
 
@@ -2245,6 +2230,28 @@ when only symbol face names are needed."
 
   :defer t)
 
+(use-package toml-ts-mode
+  :mode "\\.toml\\'"
+  :config
+  (defun rh-toml-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'toml-ts-mode-hook #'rh-toml-ts-mode-hook-handler)
+
+  :defer t)
+
+(use-package yaml-ts-mode
+  :mode "\\.yaml\\'\\|\\.yml\\'"
+  :config
+  (defun rh-yaml-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'yaml-ts-mode-hook #'rh-yaml-ts-mode-hook-handler)
+
+  :defer t)
+
 (use-package python
   :config
   (setq python-indent-def-block-scale 1)
@@ -2256,6 +2263,15 @@ when only symbol face names are needed."
   (add-hook 'python-ts-mode-hook #'rh-python-ts-mode-hook-handler)
 
   :defer t)
+
+(use-package blacken
+  :delight (blacken-mode " B")
+  :config
+  (add-to-list 'rm-blacklist " Black")
+
+  :straight t
+  :defer t
+  :ensure t)
 
 ;; (use-package typescript-ts-mode
 ;;   :mode 
@@ -2327,6 +2343,14 @@ when only symbol face names are needed."
    :host github
    :repo "ramblehead/jtsx")
 
+  :defer t
+  :ensure t)
+
+(use-package prettier
+  :config
+  (customize-set-value 'prettier-lighter " P")
+
+  :straight t
   :defer t
   :ensure t)
 
