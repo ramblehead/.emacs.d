@@ -135,8 +135,8 @@
 ;;; /b/{
 
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  (straight-use-package 'use-package)
+  (require 'use-package))
 
 (use-package gnu-elpa-keyring-update
   :config
