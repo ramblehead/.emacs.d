@@ -134,7 +134,7 @@
 ;;; /b/; use-package
 ;;; /b/{
 
-(unless (package-installed-p 'use-package)
+(unless (require 'use-package nil 'noerror)
   (straight-use-package 'use-package)
   (require 'use-package))
 
@@ -143,9 +143,12 @@
   (gnu-elpa-keyring-update)
 
   :demand t
+  :straight t
   :ensure t)
 
 (use-package use-package-ensure-system-package
+  :demand t
+  :straight t
   :ensure t)
 
 ;;; /b/}
