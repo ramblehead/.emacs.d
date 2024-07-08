@@ -1970,7 +1970,7 @@ when only symbol face names are needed."
 
 ;;; /b/}
 
-;;; /b/; Programming Languages (Compilers, Debuggers, Profilers etc.)
+;;; /b/; Programming Languages (Compilers, Debuggers, Profilers, VMs etc.)
 ;;; /b/{
 
 (define-minor-mode rh-programming-minor-modes
@@ -2160,6 +2160,7 @@ when only symbol face names are needed."
      (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
      (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
+     (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -2252,6 +2253,17 @@ when only symbol face names are needed."
     (rh-programming-minor-modes 1))
 
   (add-hook 'yaml-ts-mode-hook #'rh-yaml-ts-mode-hook-handler)
+
+  :defer t)
+
+(use-package dockerfile-ts-mode
+  :mode "[dD]ockerfile\\'"
+  :config
+  (defun rh-dockerfile-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'dockerfile-ts-mode-hook #'rh-dockerfile-ts-mode-hook-handler)
 
   :defer t)
 
