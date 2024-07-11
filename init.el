@@ -2161,6 +2161,7 @@ when only symbol face names are needed."
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
      (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
      (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
+     (nix . ("git@github.com:nix-community/tree-sitter-nix.git"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -2266,6 +2267,19 @@ when only symbol face names are needed."
   (add-hook 'dockerfile-ts-mode-hook #'rh-dockerfile-ts-mode-hook-handler)
 
   :defer t)
+
+(use-package nix-ts-mode
+  :mode "\\.nix\\'"
+  :config
+  (defun rh-nix-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'nix-ts-mode-hook #'rh-nix-ts-mode-hook-handler)
+
+  :straight t
+  :defer t
+  :ensure t)
 
 (use-package python
   :config
