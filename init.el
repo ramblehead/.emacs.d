@@ -2463,7 +2463,7 @@ when only symbol face names are needed."
   :config
   (customize-set-value 'lsp-pyright-auto-search-paths nil)
   ;; (customize-set-value 'lsp-pyright-disable-language-services t)
-  (customize-set-value 'lsp-file-watch-threshold 10000)
+  (customize-set-value 'lsp-file-watch-threshold 100000)
 
   :straight t
   :after (lsp-mode)
