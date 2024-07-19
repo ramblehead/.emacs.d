@@ -2281,6 +2281,37 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+(use-package web-mode
+  :mode "\\.mako\\'"
+  :config
+  (setq web-mode-script-padding 2)
+  (setq web-mode-style-padding 2)
+  (setq web-mode-block-padding 2)
+
+  (setq web-mode-enable-auto-indentation nil)
+  (setq web-mode-enable-auto-closing nil)
+  (setq web-mode-enable-auto-pairing nil)
+  (setq web-mode-enable-auto-opening nil)
+  (setq web-mode-enable-auto-quoting nil)
+  (setq web-mode-enable-current-element-highlight nil)
+
+  (add-hook
+   'web-mode-hook
+   (lambda ()
+     (setq-local company-backends (copy-tree company-backends))
+     (company-mode 1)
+
+     (setq-local electric-indent-inhibit t)
+     (setq-local require-final-newline nil)
+
+     (rh-programming-minor-modes 1)))
+
+  :bind (:map web-mode-map
+         ("C-c C-b" . nil))
+  :straight t
+  :defer t
+  :ensure t)
+
 (use-package python
   :config
   (setq python-indent-def-block-scale 1)
