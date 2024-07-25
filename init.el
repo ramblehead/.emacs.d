@@ -55,6 +55,11 @@
                         rh-emacs-config-name
                         "bm-repository.el"))
 
+    (defvar rh-transient-history-file-path
+      (file-name-concat rh-user-data-dir
+                        rh-emacs-config-name
+                        "transient/history.el"))
+
     ;; Paths for the site-start.el files,
     ;; located in /usr/local/share/emacs/
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
@@ -1924,6 +1929,8 @@ when only symbol face names are needed."
    'transient-display-buffer-action
    ;; '(display-buffer-below-selected (side . bottom)))
    '(rh-transient-display-buffer-in-bottom-0-side-window))
+
+  (customize-set-value 'transient-history-file rh-transient-history-file-path)
 
   ;; (customize-set-value 'transient-show-common-commands t)
 
