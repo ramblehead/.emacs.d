@@ -1923,7 +1923,8 @@ when only symbol face names are needed."
   (defun rh-markdown-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1)
-    (flyspell-visible-mode 1))
+    (flyspell-visible-mode 1)
+    (visual-line-mode 1))
 
   (add-hook 'markdown-mode-hook #'rh-markdown-mode-hook-handler)
 
