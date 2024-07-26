@@ -2096,6 +2096,11 @@ when only symbol face names are needed."
 
   :defer t)
 
+(use-package just-mode
+  :straight t
+  :defer t
+  :ensure t)
+
 (use-package lisp-mode
   :delight
   (emacs-lisp-mode "ξλ")
