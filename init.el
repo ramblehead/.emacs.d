@@ -1916,6 +1916,18 @@ when only symbol face names are needed."
   :bind (("C-x w" . 'ispell-word))
   :defer t)
 
+(use-package markdown-mode
+  :config
+  (require 'flyspell)
+
+  (defun rh-markdown-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1)
+    (flyspell-visible-mode 1))
+
+  (add-hook 'markdown-mode-hook #'rh-markdown-mode-hook-handler)
+
+  :defer t)
 
 ;;; /b/}
 
