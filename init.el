@@ -2313,6 +2313,7 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+;; see https://nixos.wiki/wiki/Editor_Modes_for_Nix_Files
 (use-package lsp-nix
   :config
   (customize-set-value 'lsp-nix-nil-formatter ["alejandra" "--"])
