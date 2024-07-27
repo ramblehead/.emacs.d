@@ -58,7 +58,12 @@
     (defvar rh-transient-history-file-path
       (file-name-concat rh-user-data-dir
                         rh-emacs-config-name
-                        "transient/history.el"))
+                        "transient-history.el"))
+
+    (defvar rh-lsp-session-file-path
+      (file-name-concat rh-user-data-dir
+                        rh-emacs-config-name
+                        "lsp-session-v1"))
 
     ;; Paths for the site-start.el files,
     ;; located in /usr/local/share/emacs/
@@ -2298,13 +2303,24 @@ when only symbol face names are needed."
   :config
   (defun rh-nix-ts-mode-hook-handler ()
     (company-mode 1)
-    (rh-programming-minor-modes 1))
+    (rh-programming-minor-modes 1)
+    (lsp-format-buffer-mode)
+    (lsp-deferred))
 
   (add-hook 'nix-ts-mode-hook #'rh-nix-ts-mode-hook-handler)
 
   :straight t
   :defer t
   :ensure t)
+
+(use-package lsp-nix
+  :config
+  (customize-set-value 'lsp-nix-nil-formatter ["alejandra" "--"])
+
+  :after (lsp-mode)
+  :defer t
+  ;; Should be a part of lsp-mode
+  :pin manual)
 
 (use-package web-mode
   :mode "\\.mako\\'"
@@ -2455,6 +2471,7 @@ when only symbol face names are needed."
 
   (advice-add 'lsp--render-string :filter-return #'string-trim)
 
+  (customize-set-value 'lsp-session-file rh-lsp-session-file-path)
   (customize-set-value 'lsp-eldoc-render-all t)
   (customize-set-value 'lsp-enable-on-type-formatting nil)
   (customize-set-value 'lsp-signature-auto-activate
@@ -2489,6 +2506,14 @@ when only symbol face names are needed."
   :straight t
   :defer t
   :ensure t)
+
+(define-minor-mode lsp-format-buffer-mode
+  "Minor mode to call lsp-format-buffer on save."
+  :lighter  " P"
+  (if lsp-format-buffer-mode
+      (progn
+        (add-hook 'before-save-hook #'lsp-format-buffer nil t))
+    (remove-hook 'before-save-hook #'lsp-format-buffer t)))
 
 (use-package lsp-clangd
   :config
