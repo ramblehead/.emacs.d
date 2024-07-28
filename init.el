@@ -2313,7 +2313,22 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-;; see https://nixos.wiki/wiki/Editor_Modes_for_Nix_Files
+;; (use-package nix-mode
+;;   :mode "\\.nix\\'"
+;;   :config
+;;   (defun rh-nix-mode-hook-handler ()
+;;     (company-mode 1)
+;;     (rh-programming-minor-modes 1)
+;;     (lsp-format-buffer-mode)
+;;     (lsp-deferred))
+
+;;   (add-hook 'nix-mode-hook #'rh-nix-mode-hook-handler)
+
+;;   :straight t
+;;   :defer t
+;;   :ensure t)
+
+;; see https://Nixos.wiki/wiki/Editor_Modes_for_Nix_Files
 (use-package lsp-nix
   :config
   (customize-set-value 'lsp-nix-nil-formatter ["alejandra" "--"])
