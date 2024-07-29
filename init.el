@@ -2102,6 +2102,13 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package just-mode
+  :config
+  (defun rh-just-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'just-mode-hook #'rh-just-mode-hook-handler)
+
   :straight t
   :defer t
   :ensure t)
