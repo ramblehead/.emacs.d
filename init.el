@@ -152,14 +152,14 @@
   :config
   (gnu-elpa-keyring-update)
 
-  :demand t
   ;; :straight t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package use-package-ensure-system-package
-  :demand t
   :straight t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 ;;; /b/}
 
@@ -742,8 +742,9 @@ when only symbol face names are needed."
   ;; where to store persistant files
   (setq bm-repository-file rh-bm-repository-file-path)
 
+  ;; Fringe is not available in TTY mode
   ;; Only highlight the fringe of the line
-  (setq bm-highlight-style 'bm-highlight-only-fringe)
+  ;; (setq bm-highlight-style 'bm-highlight-only-fringe)
 
   ;; save bookmarks
   (setq-default bm-buffer-persistence t)
@@ -791,8 +792,8 @@ when only symbol face names are needed."
    ("C-<f2>" . bm-toggle))
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 ;; The following function is experimental and is not used at the moment
 (defun configure-default-mode-line ()
@@ -897,8 +898,8 @@ when only symbol face names are needed."
   (require 'config-color-theme-sanityinc-tomorrow)
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 ;; (use-package modus-themes
 ;;   :straight t
@@ -1273,7 +1274,7 @@ when only symbol face names are needed."
 
   :straight t
   :ensure t
-  :demand t)
+  :defer t)
 
 (use-package ace-window
   :config
@@ -1350,7 +1351,7 @@ when only symbol face names are needed."
    ("<space>" . widget-button-press)
    ("<f4>" . rh-recentf-open-edit))
 
-  :demand t)
+  :defer t)
 
 (use-package saveplace
   :init
@@ -1580,17 +1581,17 @@ when only symbol face names are needed."
   :straight t
   :after (multiple-cursors)
   :ensure t
-  :demand t)
+  :defer t)
 
 (use-package wgrep
   :straight t
   :ensure t
-  :demand t)
+  :defer t)
 
 (use-package yasnippet-snippets
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package yasnippet
   :delight (yas-minor-mode " ⵙ")
@@ -1611,8 +1612,8 @@ when only symbol face names are needed."
 
   :straight t
   :after (yasnippet-snippets)
-  :demand t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package company
   :config
