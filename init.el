@@ -1308,6 +1308,7 @@ when only symbol face names are needed."
    ("<return>" . rh-dired-find-file)
    ("f" . rh-dired-find-file)
    ("<backspace>" . rh-dired-change-to-parent-dir)
+   ("DEL" . rh-dired-change-to-parent-dir)
    ("TAB" . rh-dired-select-next-dired-window)
    ("<kp-return>" . rh-dired-find-file)
    ("C-x C-f" . rh-dired-change-to-file)
