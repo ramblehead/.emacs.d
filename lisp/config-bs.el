@@ -6,6 +6,7 @@
 
 ;; (require 'compile)
 (require 'ace-window)
+(require 'rh-buffers)
 
 ;; -------------------------------------------------------------------
 ;;; bs patches

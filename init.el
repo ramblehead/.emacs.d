@@ -124,20 +124,20 @@
 ;;; /b/; package
 ;;; /b/{
 
-(require 'package)
+;; (require 'package)
 
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
-;;              '("melpa" . "http://melpa.org/packages/"))
-;; (add-to-list 'package-archives
-;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
-;; (add-to-list 'package-archives
-;;              '("gnu" . "http://elpa.gnu.org/packages/"))
+;;              '("melpa" . "https://melpa.org/packages/"))
+;; ;; (add-to-list 'package-archives
+;; ;;              '("melpa" . "http://melpa.org/packages/"))
+;; ;; (add-to-list 'package-archives
+;; ;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
+;; ;; (add-to-list 'package-archives
+;; ;;              '("gnu" . "http://elpa.gnu.org/packages/"))
 
-;; (setq package-check-signature nil)
+;; ;; (setq package-check-signature nil)
 
-(package-initialize)
+;; (package-initialize)
 
 ;;; /b/}
 
@@ -148,13 +148,13 @@
   (straight-use-package 'use-package)
   (require 'use-package))
 
-(use-package gnu-elpa-keyring-update
-  :config
-  (gnu-elpa-keyring-update)
+;; (use-package gnu-elpa-keyring-update
+;;   :config
+;;   (gnu-elpa-keyring-update)
 
-  ;; :straight t
-  :ensure t
-  :demand t)
+;;   ;; :straight t
+;;   :ensure t
+;;   :demand t)
 
 (use-package use-package-ensure-system-package
   :straight t
@@ -674,7 +674,7 @@ when only symbol face names are needed."
          ("C-<kp-prior>" . iflipb-previous-buffer))
 
   :straight t
-  :ensure t
+  :defer t
   :demand t)
 
 (use-package bs
@@ -793,7 +793,7 @@ when only symbol face names are needed."
 
   :straight t
   :ensure t
-  :demand t)
+  :defer t)
 
 ;; The following function is experimental and is not used at the moment
 (defun configure-default-mode-line ()
@@ -1231,8 +1231,8 @@ when only symbol face names are needed."
   (global-total-lines-mode 1)
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package rich-minority
   :config
@@ -1243,8 +1243,8 @@ when only symbol face names are needed."
   (rich-minority-mode 1)
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package delight
   :straight t
@@ -1373,7 +1373,7 @@ when only symbol face names are needed."
     (bind-key "M-[" #'xref-go-back))
 
   :bind (("M-]" . xref-go-forward))
-  :demand t)
+  :defer t)
 
 (use-package autorevert
   :config
@@ -1487,8 +1487,8 @@ when only symbol face names are needed."
 
   (setq hs-set-up-overlay 'rh-hs-set-up-overlay-handler)
 
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package code-groups
   :config
@@ -1500,8 +1500,8 @@ when only symbol face names are needed."
    :host github
    :repo "ramblehead/code-groups.el")
 
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package rh-project
   :config
@@ -1514,12 +1514,13 @@ when only symbol face names are needed."
    :repo "ramblehead/rh-project.el")
 
   :demand t
+  :after (vterm)
   :ensure t)
 
 (use-package hydra
   :straight t
   :demand t
-  :ensure t)
+  :defer t)
 
 (use-package pcre2el
   :straight t
@@ -1540,8 +1541,8 @@ when only symbol face names are needed."
    ("S-<return>" . newline))
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package multiple-cursors
   :straight t
@@ -1582,7 +1583,7 @@ when only symbol face names are needed."
   :straight t
   :after (multiple-cursors)
   :ensure t
-  :defer t)
+  :demand t)
 
 (use-package wgrep
   :straight t
@@ -1736,8 +1737,8 @@ when only symbol face names are needed."
    ("<escape>" . company-search-abort))
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (defun rh-complete-dwim ()
   (interactive)
@@ -1762,8 +1763,8 @@ when only symbol face names are needed."
   (customize-set-value 'prescient-save-file rh-prescient-save-file)
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package company-prescient
   :config
@@ -1771,8 +1772,8 @@ when only symbol face names are needed."
 
   :straight t
   :after (company prescient)
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package display-fill-column-indicator
   :config
@@ -1783,13 +1784,13 @@ when only symbol face names are needed."
 
 (use-package htmlize
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package sudo-edit
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package vterm
   :if (locate-library "vterm")
@@ -1956,8 +1957,8 @@ when only symbol face names are needed."
   ;; (customize-set-value 'transient-show-common-commands t)
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package magit
   :init
@@ -1987,13 +1988,13 @@ when only symbol face names are needed."
 
   :straight t
   :after (transient)
-  :demand t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package git-timemachine
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; /b/}
 
@@ -2026,8 +2027,8 @@ when only symbol face names are needed."
   (customize-set-value 'flycheck-checker-error-threshold 5000)
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package dumb-jump
   :config
@@ -2057,8 +2058,8 @@ when only symbol face names are needed."
    ("C-M-/" . dumb-jump-hydra/body))
 
   :straight t
-  :demand t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package highlight-indent-guides
   :init
@@ -2231,8 +2232,8 @@ when only symbol face names are needed."
    :host github
    :repo "mickeynp/combobulate")
 
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (defun rh-clang-format-package-find ()
   "Finds clang-format.el package."
@@ -2322,8 +2323,8 @@ when only symbol face names are needed."
   (add-hook 'nix-ts-mode-hook #'rh-nix-ts-mode-hook-handler)
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;; (use-package nix-mode
 ;;   :mode "\\.nix\\'"
@@ -2378,8 +2379,8 @@ when only symbol face names are needed."
   :bind (:map web-mode-map
          ("C-c C-b" . nil))
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package python
   :config
@@ -2399,8 +2400,8 @@ when only symbol face names are needed."
   (add-to-list 'rm-blacklist " Black")
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;; (use-package typescript-ts-mode
 ;;   :mode 
@@ -2472,16 +2473,16 @@ when only symbol face names are needed."
    :host github
    :repo "ramblehead/jtsx")
 
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package prettier
   :config
   (customize-set-value 'prettier-lighter " P")
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package lsp-mode
   :init
@@ -2532,8 +2533,8 @@ when only symbol face names are needed."
    ("C-c C-<tab>" . company-capf))
 
   :straight t
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (define-minor-mode lsp-format-buffer-mode
   "Minor mode to call lsp-format-buffer on save."
@@ -2576,8 +2577,8 @@ when only symbol face names are needed."
 
   :straight t
   :after (lsp-mode)
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package lsp-tailwindcss
   :init
@@ -2588,8 +2589,8 @@ when only symbol face names are needed."
 
   :straight t
   :after (lsp-mode)
-  :defer t
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package clang-format
   :if (rh-clang-format-package-find)
