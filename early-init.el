@@ -9,6 +9,6 @@
 
 ;; Local Variables:
 ;; no-byte-compile: t
-;; no-native-compile: t
+;; no-native-compile: nil
 ;; no-update-autoloads: t
 ;; End:

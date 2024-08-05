@@ -2096,13 +2096,6 @@ when only symbol face names are needed."
 
   :demand t)
 
-;; TODO: Remove this after more treesit tests
-(use-package json
-  :config
-  (require 'config-json)
-
-  :defer t)
-
 (use-package just-mode
   :config
   (defun rh-just-mode-hook-handler ()
@@ -2271,6 +2264,16 @@ when only symbol face names are needed."
     (rh-programming-minor-modes 1))
 
   (add-hook 'c-ts-mode-hook #'rh-c-ts-mode-hook-handler)
+
+  :defer t)
+
+;; TODO: Remove this after more treesit tests
+(use-package json-ts-mode
+  :config
+  (add-hook
+   'json-ts-mode-hook
+   (lambda ()
+     (rh-programming-minor-modes 1)))
 
   :defer t)
 
@@ -2619,6 +2622,6 @@ when only symbol face names are needed."
 
 ;; Local Variables:
 ;; no-byte-compile: t
-;; no-native-compile: t
+;; no-native-compile: nil
 ;; no-update-autoloads: t
 ;; End:
