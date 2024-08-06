@@ -2195,6 +2195,7 @@ when only symbol face names are needed."
      (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
      (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
      (nix . ("git@github.com:nix-community/tree-sitter-nix.git"))
+     (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -2265,6 +2266,26 @@ when only symbol face names are needed."
     (rh-programming-minor-modes 1))
 
   (add-hook 'c-ts-mode-hook #'rh-c-ts-mode-hook-handler)
+
+  :defer t)
+
+;; (use-package rust-mode
+;;   :mode ("\\.rh\\'" . rust-ts-mode)
+;;   :init
+;;   (setq rust-mode-treesitter-derive t)
+
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
+
+(use-package rust-ts-mode
+  :mode "\\.rs\\'"
+  :config
+  (defun rh-rust-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'rust-ts-mode-hook #'rh-rust-ts-mode-hook-handler)
 
   :defer t)
 
