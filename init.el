@@ -419,6 +419,10 @@ when only symbol face names are needed."
 (rh-frame-configure (selected-frame))
 
 (use-package emacs
+  :init
+  (customize-set-value
+   'auto-save-list-file-prefix rh-auto-save-list-file-prefix)
+
   :config
   (defconst
    display-buffer-fallback-action
@@ -432,9 +436,6 @@ when only symbol face names are needed."
       ;; display-buffer-use-some-window
       display-buffer-pop-up-window
       display-buffer-pop-up-frame)))
-
-  (customize-set-value
-   'auto-save-list-file-prefix rh-auto-save-list-file-prefix)
 
   ;; If the option load-prefer-newer is non-nil, then when searching
   ;; suffixes, load selects whichever version of a file (‘.elc’,
