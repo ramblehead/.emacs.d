@@ -474,10 +474,6 @@ when only symbol face names are needed."
 
   (setq-default hscroll-margin 0)
 
-  (when (and (eq window-system 'x)
-             (string-match "GTK+" (version)))
-    (setq focus-follows-mouse t))
-
   (customize-set-value 'standard-indent 2)
 
   (setq-default tab-width 8)
@@ -539,29 +535,6 @@ when only symbol face names are needed."
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-  ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-  (defun rh-set-cursor-according-to-mode ()
-    "Change cursor type according to some minor modes."
-    (cond
-     (buffer-read-only
-      (setq cursor-type read-only-cursor-type))
-     (overwrite-mode
-      (setq cursor-type overwrite-cursor-type))
-     (t
-      (setq cursor-type normal-cursor-type))))
-
-  (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode)
-
-  ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
-  (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
-  (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
-  (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
-  (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
-  (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
-  (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
-  (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
-  ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
-
   ;; (customize-set-variable 'find-file-visit-truename t)
   (customize-set-value 'find-file-visit-truename t)
 
@@ -594,15 +567,42 @@ when only symbol face names are needed."
    (kbd "C-<kp-right>")
    (lookup-key (current-global-map) (kbd "C-<right>")))
 
+  ;; (eval-after-load 'term/xterm
+  ;;   '(bind-key "<xterm-paste>" #'yank))
+
   (when (display-graphic-p)
+    (when (and (eq window-system 'x)
+               (string-match "GTK+" (version)))
+      (setq focus-follows-mouse t))
+
+    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+    (defun rh-set-cursor-according-to-mode ()
+      "Change cursor type according to some minor modes."
+      (cond
+       (buffer-read-only
+        (setq cursor-type read-only-cursor-type))
+       (overwrite-mode
+        (setq cursor-type overwrite-cursor-type))
+       (t
+        (setq cursor-type normal-cursor-type))))
+
+    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode)
+
+    ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
+    (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
+    (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
+    (set-fontset-font t (decode-char 'ucs #x2605) "Noto Sans Mono CJK SC-8") ; ★
+    (set-fontset-font t (decode-char 'ucs #o20434) "Symbola-8.5") ; ℜ
+    (set-fontset-font t (decode-char 'ucs #x2b6f) "Symbola-8.5") ; ⭯
+    (set-fontset-font t (decode-char 'ucs #x2b73) "Symbola-8.5") ; ⭳
+    (set-fontset-font t (decode-char 'ucs #x1f806) "Symbola-8.5") ; 🠆
+    ;; (set-fontset-font t (decode-char 'ucs #x1f426) "Symbola-9.5") ; 🐦
+
     (bind-key "S-<insert>" #'yank)
     ;; (bind-key "S-<kp-insert>" #'yank)
     (bind-key "M-S-<insert>" #'rh-yank-pop-forwards)
     ;; (bind-key "M-S-<kp-insert>" #'rh-yank-pop-forwards)
     )
-
-  ;; (eval-after-load 'term/xterm
-  ;;   '(bind-key "<xterm-paste>" #'yank))
 
   :bind
   (;; Exit Emacs!
@@ -1969,6 +1969,8 @@ when only symbol face names are needed."
     '("--graph" "--color" "--decorate" "-n256"))
 
   :config
+  (require 'transient)
+
   (add-to-list
    'display-buffer-alist
    '((lambda (buffer-nm action)
@@ -1986,8 +1988,14 @@ when only symbol face names are needed."
    'magit-process-find-password-functions
    #'magit-process-password-auth-source)
 
+  :bind
+  (:map
+   magit-minibuffer-local-ns-map
+   ;; Remap "C-x <up>" to "C-x C-<up>"
+   ("C-x <up>" . nil)
+   ("C-x C-<up>" . minibuffer-complete-history))
+
   :straight t
-  :after (transient)
   :ensure t
   :defer t)
 
@@ -2096,6 +2104,13 @@ when only symbol face names are needed."
   (customize-set-value 'eval-expression-print-level nil)
 
   :demand t)
+
+;; TODO: Remove this after Emacs 28- become irrelevant
+(use-package json
+  :config
+  (require 'config-json)
+
+  :defer t)
 
 (use-package just-mode
   :config
