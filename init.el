@@ -65,6 +65,11 @@
                         rh-emacs-config-name
                         "lsp-session-v1"))
 
+    (defvar rh-auto-save-list-file-prefix
+      (file-name-concat rh-user-data-dir
+                        rh-emacs-config-name
+                        "auto-save-list"))
+
     ;; Paths for the site-start.el files,
     ;; located in /usr/local/share/emacs/
     (let ((file-path "/usr/local/share/emacs/site-lisp/site-start.el")
@@ -427,6 +432,9 @@ when only symbol face names are needed."
       ;; display-buffer-use-some-window
       display-buffer-pop-up-window
       display-buffer-pop-up-frame)))
+
+  (customize-set-value
+   'auto-save-list-file-prefix rh-auto-save-list-file-prefix)
 
   ;; If the option load-prefer-newer is non-nil, then when searching
   ;; suffixes, load selects whichever version of a file (‘.elc’,
