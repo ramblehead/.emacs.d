@@ -1871,7 +1871,7 @@ when only symbol face names are needed."
   ;; This call is required for spell-fu to work correctly. It
   ;; initialises ispell-aspell-dictionary-alist before
   ;; ispell-program-name is set to "hunspell".
-  (ispell-find-aspell-dictionaries)
+  ;; (ispell-find-aspell-dictionaries)
 
   ;; In case if it is not already set by OS or set to another value.
   ;; (setenv "LANG" "en_GB.UTF-8")
