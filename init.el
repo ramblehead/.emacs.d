@@ -682,7 +682,7 @@ when only symbol face names are needed."
          ("C-<kp-prior>" . iflipb-previous-buffer))
 
   :straight t
-  :defer t
+  :ensure t
   :demand t)
 
 (use-package bs
@@ -1303,7 +1303,9 @@ when only symbol face names are needed."
 (use-package savehist
   :config
   (customize-set-value 'savehist-file rh-savehist-file)
-  (savehist-mode 1))
+  (savehist-mode 1)
+
+  :demand t)
 
 (use-package dired
   :config
@@ -1360,7 +1362,7 @@ when only symbol face names are needed."
    ("<space>" . widget-button-press)
    ("<f4>" . rh-recentf-open-edit))
 
-  :defer t)
+  :demand t)
 
 (use-package saveplace
   :init
