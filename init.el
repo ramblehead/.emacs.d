@@ -153,10 +153,7 @@
   (straight-use-package 'use-package)
   (require 'use-package))
 
-(use-package use-package-ensure-system-package
-  :straight t
-  :ensure t
-  :demand t)
+(require 'use-package-ensure-system-package)
 
 ;; (use-package gnu-elpa-keyring-update
 ;;   :config
