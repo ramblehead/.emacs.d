@@ -1,0 +1,73 @@
+#!/bin/bash
+
+set -eu
+set -o pipefail
+
+SDPATH="$(dirname "${BASH_SOURCE[0]}")"
+if [[ ! -d "${SDPATH}" ]]; then SDPATH="${PWD}"; fi
+SDPATH="$(cd -P "${SDPATH}" && pwd)"
+readonly SDPATH
+
+PRJ_ROOT_PATH="${SDPATH}/../.."
+PRJ_ROOT_PATH="$(cd "${PRJ_ROOT_PATH}" && pwd)"
+readonly PRJ_ROOT_PATH
+
+cd "${SDPATH}" && echo + cd "${PWD}"
+
+if [[ ! -f ./remote-sync-params.sh ]]; then
+ cat << "EOF" >> ./remote-sync-params.sh
+#!/bin/bash
+
+# shellcheck disable=2034
+
+readonly REMOTE_SYNC_ADDRESS=
+readonly REMOTE_SYNC_PATH=
+readonly REMOTE_SYNC_LOGIN=
+readonly REMOTE_SYNC_PASSWORD=
+EOF
+fi
+
+CMD=(source "./remote-sync-params.sh")
+echo + "${CMD[@]}" && "${CMD[@]}"
+
+if [[ -z ${REMOTE_SYNC_ADDRESS:+-} ]]; then
+  echo REMOTE_SYNC_ADDRESS should be set to romote host address
+  exit 1
+fi
+
+if [[ -z ${REMOTE_SYNC_PATH:+-} ]]; then
+  echo REMOTE_SYNC_PATH should be set to the path at remote host
+  exit 1
+fi
+
+if [[ -z ${REMOTE_SYNC_LOGIN:+-} ]]; then
+  echo REMOTE_SYNC_LOGIN should be set to remote login name
+  exit 1
+fi
+
+if [[ -z ${REMOTE_SYNC_PASSWORD:+-} ]]; then
+  echo REMOTE_SYNC_PASSWORD should be set to remote login password
+  exit 1
+fi
+
+echo
+cd "${PRJ_ROOT_PATH}" && echo + cd "${PWD}"
+
+echo
+CMD=(rsync)
+CMD+=('--rsh="ssh -o StrictHostKeyChecking=no"')
+CMD+=(-rltvu)
+CMD+=(--delete)
+CMD+=("--exclude='utils/maintenance/remote-sync-params.sh'")
+CMD+=("--exclude='*.bkp'")
+CMD+=(.)
+CMD+=("${REMOTE_SYNC_LOGIN}@${REMOTE_SYNC_ADDRESS}:${REMOTE_SYNC_PATH}")
+
+# Echo what we are doing, but hide password
+echo + "${CMD[*]}" && eval "sshpass -p '${REMOTE_SYNC_PASSWORD}' ${CMD[*]}"
+
+echo
+sshpass -p "${REMOTE_SYNC_PASSWORD}" ssh -q "${REMOTE_SYNC_LOGIN}@${REMOTE_SYNC_ADDRESS}" << "ENDSSH"
+CMD=(sync)
+echo + ${CMD[*]} && ${CMD[@]}
+ENDSSH

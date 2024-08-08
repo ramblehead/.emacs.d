@@ -30,3 +30,5 @@
 *.~undo-tree~
 
 .mc-lists.el
+
+/utils/maintenance/remote-sync-params.sh
