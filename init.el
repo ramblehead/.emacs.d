@@ -450,7 +450,6 @@ when only symbol face names are needed."
   ;; No mice
   (menu-bar-mode -1)
   (tool-bar-mode -1)
-  (scroll-bar-mode -1)
 
   ;; No global parentheses mode
   (show-paren-mode -1)
@@ -580,6 +579,8 @@ when only symbol face names are needed."
   ;;   '(bind-key "<xterm-paste>" #'yank))
 
   (when (display-graphic-p)
+    (scroll-bar-mode -1)
+
     (when (and (eq window-system 'x)
                (string-match "GTK+" (version)))
       (setq focus-follows-mouse t))
