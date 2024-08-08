@@ -129,20 +129,20 @@
 ;;; /b/; package
 ;;; /b/{
 
-;; (require 'package)
+(require 'package)
 
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
 ;; (add-to-list 'package-archives
-;;              '("melpa" . "https://melpa.org/packages/"))
-;; ;; (add-to-list 'package-archives
-;; ;;              '("melpa" . "http://melpa.org/packages/"))
-;; ;; (add-to-list 'package-archives
-;; ;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
-;; ;; (add-to-list 'package-archives
-;; ;;              '("gnu" . "http://elpa.gnu.org/packages/"))
+;;              '("melpa" . "http://melpa.org/packages/"))
+;; (add-to-list 'package-archives
+;;              '("melpa-stable" . "https://stable.melpa.org/packages/"))
+;; (add-to-list 'package-archives
+;;              '("gnu" . "http://elpa.gnu.org/packages/"))
 
 ;; ;; (setq package-check-signature nil)
 
-;; (package-initialize)
+(package-initialize)
 
 ;;; /b/}
 
@@ -153,18 +153,18 @@
   (straight-use-package 'use-package)
   (require 'use-package))
 
-;; (use-package gnu-elpa-keyring-update
-;;   :config
-;;   (gnu-elpa-keyring-update)
-
-;;   ;; :straight t
-;;   :ensure t
-;;   :demand t)
-
 (use-package use-package-ensure-system-package
   :straight t
   :ensure t
   :demand t)
+
+;; (use-package gnu-elpa-keyring-update
+;;   :config
+;;   (gnu-elpa-keyring-update)
+
+;;   :straight t
+;;   :ensure t
+;;   :demand t)
 
 ;;; /b/}
 
