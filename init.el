@@ -2587,6 +2587,15 @@ when only symbol face names are needed."
   :ensure t
   :defer t)
 
+(use-package lsp-ui
+  :config
+  (customize-set-value 'lsp-ui-sideline-enable nil)
+  (customize-set-value 'lsp-ui-doc-enable nil)
+
+  :straight t
+  :ensure t
+  :defer t)
+
 (define-minor-mode lsp-format-buffer-mode
   "Minor mode to call lsp-format-buffer on save."
   :lighter  " P"
