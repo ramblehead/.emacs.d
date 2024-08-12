@@ -2293,17 +2293,21 @@ when only symbol face names are needed."
 
   :defer t)
 
-;; (use-package rust-mode
-;;   :mode ("\\.rh\\'" . rust-ts-mode)
-;;   :init
-;;   (setq rust-mode-treesitter-derive t)
+;; (use-package rust-ts-mode
+;;   :mode "\\.rs\\'"
+;;   :config
+;;   (defun rh-rust-ts-mode-hook-handler ()
+;;     (company-mode 1)
+;;     (rh-programming-minor-modes 1))
 
-;;   :straight t
-;;   :ensure t
+;;   (add-hook 'rust-ts-mode-hook #'rh-rust-ts-mode-hook-handler)
+
 ;;   :defer t)
 
-(use-package rust-ts-mode
-  :mode "\\.rs\\'"
+(use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t)
+
   :config
   (defun rh-rust-ts-mode-hook-handler ()
     (company-mode 1)
@@ -2311,6 +2315,8 @@ when only symbol face names are needed."
 
   (add-hook 'rust-ts-mode-hook #'rh-rust-ts-mode-hook-handler)
 
+  :straight t
+  :ensure t
   :defer t)
 
 ;; TODO: Remove this after more treesit tests
