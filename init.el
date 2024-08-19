@@ -2208,7 +2208,7 @@ when only symbol face names are needed."
    'treesit-language-source-alist
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
      ;; (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")hk)
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
@@ -2217,6 +2217,7 @@ when only symbol face names are needed."
      (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
      (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
+     (kdl . ("https://github.com/tree-sitter-grammars/tree-sitter-kdl.git"))
      (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
      (nix . ("git@github.com:nix-community/tree-sitter-nix.git"))
      (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git"))
@@ -2349,6 +2350,24 @@ when only symbol face names are needed."
 
   (add-hook 'yaml-ts-mode-hook #'rh-yaml-ts-mode-hook-handler)
 
+  :defer t)
+
+(use-package kdl-ts-mode
+  :mode "\\.kdl\\'"
+  :config
+  (defun rh-kdl-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'kdl-ts-mode-hook #'rh-kdl-ts-mode-hook-handler)
+
+  :straight
+  (kdl-ts-mode
+   :type git
+   :host github
+   :repo "dataphract/kdl-ts-mode")
+
+  :ensure t
   :defer t)
 
 (use-package dockerfile-ts-mode
