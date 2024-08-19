@@ -2208,7 +2208,7 @@ when only symbol face names are needed."
    'treesit-language-source-alist
    '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
      ;; (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")hk)
+     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
      (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
