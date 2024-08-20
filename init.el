@@ -1859,6 +1859,19 @@ when only symbol face names are needed."
   :demand t
   :pin manual)
 
+(use-package eat
+  :straight
+  (eat
+   :type git
+   :host codeberg
+   :repo "akib/emacs-eat"
+   ;; The following files are copy/paste from the project repository README.org
+   :files ("*.el" ("term" "term/*.el") "*.texi"
+          "*.ti" ("terminfo/e" "terminfo/e/*")
+          ("terminfo/65" "terminfo/6 5/*")
+          ("integration" "integration/*")
+          (:exclude ".dir-locals.el" "*-tests.el"))))
+
 ;;; /b/}
 
 ;;; /b/; Human Languages
