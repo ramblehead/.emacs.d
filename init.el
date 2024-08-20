@@ -2319,8 +2319,8 @@ when only symbol face names are needed."
 ;;   :defer t)
 
 (use-package rust-mode
-  :init
-  (setq rust-mode-treesitter-derive t)
+  ;; :init
+  ;; (setq rust-mode-treesitter-derive t)
 
   :config
   (defun rh-rust-ts-mode-hook-handler ()
