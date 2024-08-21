@@ -585,13 +585,14 @@ when only symbol face names are needed."
     ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
     (defun rh-set-cursor-according-to-mode ()
       "Change cursor type according to some minor modes."
-      (cond
-       (buffer-read-only
-        (setq cursor-type read-only-cursor-type))
-       (overwrite-mode
-        (setq cursor-type overwrite-cursor-type))
-       (t
-        (setq cursor-type normal-cursor-type))))
+      (unless (seq-contains-p '(eat-mode vterm-mode) major-mode)
+        (cond
+         (buffer-read-only
+          (setq cursor-type read-only-cursor-type))
+         (overwrite-mode
+          (setq cursor-type overwrite-cursor-type))
+         (t
+          (setq cursor-type normal-cursor-type)))))
 
     (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode)
 
