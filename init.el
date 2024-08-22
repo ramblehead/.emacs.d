@@ -2325,9 +2325,9 @@ when only symbol face names are needed."
 
   :config
   (defun rh-rust-ts-mode-hook-handler ()
-    (setq-local lsp-ui-sideline-show-diagnostics nil)
-    (setq-local lsp-ui-sideline-show-hover t)
-    (setq-local lsp-ui-sideline-show-code-actions nil)
+    ;; (setq-local lsp-ui-sideline-show-diagnostics nil)
+    ;; (setq-local lsp-ui-sideline-show-hover t)
+    ;; (setq-local lsp-ui-sideline-show-code-actions nil)
     (setq-local eldoc-message-function #'(lambda (&rest args) nil))
 
     (company-mode 1)
@@ -2476,15 +2476,20 @@ when only symbol face names are needed."
   :config
   (setq python-indent-def-block-scale 1)
 
-  (defun rh-python-ts-mode-hook-handler ()
+  (defun rh-python-mode-lsp-hook-handler ()
     (setq-local lsp-ui-sideline-show-diagnostics nil)
     (setq-local lsp-ui-sideline-show-hover nil)
-    (setq-local lsp-ui-sideline-show-code-actions nil)
+    (setq-local lsp-ui-sideline-show-code-actions nil))
+
+  (defun rh-python-mode-hook-handler ()
+    (add-hook 'lsp-after-initialize-hook
+              #'rh-python-mode-lsp-hook-handler nil t)
 
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
-  (add-hook 'python-ts-mode-hook #'rh-python-ts-mode-hook-handler)
+  (add-hook 'python-ts-mode-hook #'rh-python-mode-hook-handler)
+  (add-hook 'python-mode-hook #'rh-python-mode-hook-handler)
 
   :defer t)
 
@@ -2632,16 +2637,50 @@ when only symbol face names are needed."
 
 (use-package lsp-ui
   :config
-  ;; (customize-set-value 'lsp-ui-sideline-enable nil)
-  (customize-set-value 'lsp-ui-sideline-show-diagnostics t)
+  (require 'config-lsp-ui)
+
+  (advice-add #'lsp-ui-sideline--compute-height
+              :override #'lsp-ui-sideline--compute-height:override)
+
+  (advice-add #'lsp-ui-sideline--align
+              :override #'lsp-ui-sideline--align:override)
+
+  (custom-set-faces '(lsp-ui-sideline-global ((t :height 0.85))))
+
+  (customize-set-value 'lsp-ui-sideline-enable t)
+  (customize-set-value 'lsp-ui-sideline-show-diagnostics nil)
   (customize-set-value 'lsp-ui-sideline-show-hover t)
-  (customize-set-value 'lsp-ui-sideline-show-code-actions t)
+  (customize-set-value 'lsp-ui-sideline-show-code-actions nil)
+  (customize-set-value 'lsp-ui-sideline-ignore-duplicate t)
+  (customize-set-value 'lsp-ui-sideline-diagnostic-max-line-length 80)
 
   (customize-set-value 'lsp-ui-doc-enable nil)
 
   :straight t
   :ensure t
   :defer t)
+
+;; (use-package sideline
+;;   :init
+;;   (setq sideline-backends-right '(sideline-lsp sideline-flycheck))
+
+;;   :config
+;;   (require 'sideline-flycheck)
+;;   (require 'sideline-lsp)
+
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
+
+;; (use-package sideline-lsp
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
+
+;; (use-package sideline-flycheck
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
 
 (define-minor-mode lsp-format-buffer-mode
   "Minor mode to call lsp-format-buffer on save."
