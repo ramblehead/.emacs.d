@@ -2325,6 +2325,11 @@ when only symbol face names are needed."
 
   :config
   (defun rh-rust-ts-mode-hook-handler ()
+    (setq-local lsp-ui-sideline-show-diagnostics nil)
+    (setq-local lsp-ui-sideline-show-hover t)
+    (setq-local lsp-ui-sideline-show-code-actions nil)
+    (setq-local eldoc-message-function #'(lambda (&rest args) nil))
+
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
@@ -2472,6 +2477,10 @@ when only symbol face names are needed."
   (setq python-indent-def-block-scale 1)
 
   (defun rh-python-ts-mode-hook-handler ()
+    (setq-local lsp-ui-sideline-show-diagnostics nil)
+    (setq-local lsp-ui-sideline-show-hover nil)
+    (setq-local lsp-ui-sideline-show-code-actions nil)
+
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
@@ -2623,7 +2632,11 @@ when only symbol face names are needed."
 
 (use-package lsp-ui
   :config
-  (customize-set-value 'lsp-ui-sideline-enable nil)
+  ;; (customize-set-value 'lsp-ui-sideline-enable nil)
+  (customize-set-value 'lsp-ui-sideline-show-diagnostics t)
+  (customize-set-value 'lsp-ui-sideline-show-hover t)
+  (customize-set-value 'lsp-ui-sideline-show-code-actions t)
+
   (customize-set-value 'lsp-ui-doc-enable nil)
 
   :straight t
