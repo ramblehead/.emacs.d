@@ -2329,6 +2329,7 @@ when only symbol face names are needed."
     (rh-programming-minor-modes 1))
 
   (add-hook 'rust-ts-mode-hook #'rh-rust-ts-mode-hook-handler)
+  (add-hook 'rust-mode-hook #'rh-rust-ts-mode-hook-handler)
 
   :straight t
   :ensure t
@@ -2661,6 +2662,17 @@ when only symbol face names are needed."
   :defer t
   ;; Should be a part of lsp-mode
   :pin manual)
+
+(use-package lsp-rust
+  :config
+  (add-to-list 'lsp-rust-analyzer-library-directories
+               "/nix/var/nix/profiles/default")
+
+  :after (lsp-mode)
+  :defer t
+  ;; Should be a part of lsp-mode
+  :pin manual)
+
 
 (use-package lsp-pyright
   :config
