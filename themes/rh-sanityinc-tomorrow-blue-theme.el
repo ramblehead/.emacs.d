@@ -38,6 +38,9 @@
    `(consult-preview-insertion
      ((,class . (:background ,(cdr (assoc 'selection colors))))))
 
+   `(lsp-ui-doc-background
+     ((,class . (:background ,(cdr (assoc 'background colors))))))
+
    ;; ;; /b/; Emacs defaults
    ;; ;; /b/{
 

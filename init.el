@@ -2324,17 +2324,28 @@ when only symbol face names are needed."
   ;; (setq rust-mode-treesitter-derive t)
 
   :config
-  (defun rh-rust-ts-mode-hook-handler ()
-    ;; (setq-local lsp-ui-sideline-show-diagnostics nil)
-    ;; (setq-local lsp-ui-sideline-show-hover t)
-    ;; (setq-local lsp-ui-sideline-show-code-actions nil)
-    (setq-local eldoc-message-function #'(lambda (&rest args) nil))
+  (require 'config-eldoc)
+
+  (advice-add
+   'eldoc-minibuffer-message
+   :filter-args #'rh-eldoc-minibuffer-message-rust-filter-args
+   '((depth . -100)))
+
+  ;; (defun rh-rust-mode-lsp-hook-handler ()
+  ;;   (setq-local lsp-ui-sideline-show-hover t))
+
+  (defun rh-rust-mode-hook-handler ()
+    ;; (add-hook 'lsp-after-initialize-hook
+    ;;           #'rh-rust-mode-lsp-hook-handler nil t)
+    ;; (rh-rust-mode-lsp-hook-handler)
+
+    ;; (setq-local eldoc-message-function #'(lambda (&rest args) nil))
 
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
-  (add-hook 'rust-ts-mode-hook #'rh-rust-ts-mode-hook-handler)
-  (add-hook 'rust-mode-hook #'rh-rust-ts-mode-hook-handler)
+  (add-hook 'rust-ts-mode-hook #'rh-rust-mode-hook-handler)
+  (add-hook 'rust-mode-hook #'rh-rust-mode-hook-handler)
 
   :straight t
   :ensure t
@@ -2476,14 +2487,14 @@ when only symbol face names are needed."
   :config
   (setq python-indent-def-block-scale 1)
 
-  (defun rh-python-mode-lsp-hook-handler ()
-    (setq-local lsp-ui-sideline-show-diagnostics nil)
-    (setq-local lsp-ui-sideline-show-hover nil)
-    (setq-local lsp-ui-sideline-show-code-actions nil))
+  ;; (defun rh-python-mode-lsp-hook-handler ()
+  ;;   (setq-local lsp-ui-sideline-show-diagnostics nil)
+  ;;   (setq-local lsp-ui-sideline-show-hover nil)
+  ;;   (setq-local lsp-ui-sideline-show-code-actions nil))
 
   (defun rh-python-mode-hook-handler ()
-    (add-hook 'lsp-after-initialize-hook
-              #'rh-python-mode-lsp-hook-handler nil t)
+    ;; (add-hook 'lsp-after-initialize-hook
+    ;;           #'rh-python-mode-lsp-hook-handler nil t)
 
     (company-mode 1)
     (rh-programming-minor-modes 1))
@@ -2649,12 +2660,12 @@ when only symbol face names are needed."
 
   (customize-set-value 'lsp-ui-sideline-enable t)
   (customize-set-value 'lsp-ui-sideline-show-diagnostics nil)
-  (customize-set-value 'lsp-ui-sideline-show-hover t)
+  (customize-set-value 'lsp-ui-sideline-show-hover nil)
   (customize-set-value 'lsp-ui-sideline-show-code-actions nil)
   (customize-set-value 'lsp-ui-sideline-ignore-duplicate t)
   (customize-set-value 'lsp-ui-sideline-diagnostic-max-line-length 80)
 
-  (customize-set-value 'lsp-ui-doc-enable nil)
+  (customize-set-value 'lsp-ui-doc-enable t)
 
   :straight t
   :ensure t
