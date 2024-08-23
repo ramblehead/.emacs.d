@@ -44,6 +44,11 @@ with ellipsis truncation."
          (max-length (- (frame-width) 3)))
     ;; TODO: find how to remove bold face from minibuffer
     ;; (remove-text-properties 0 (length first-line) '(face bold) first-line)
+
+    ;; (add-text-properties 0 (length first-line)
+    ;;                      '(face (:family (face-attribute 'default :family)))
+    ;;                      first-line)
+
     (if (<= (length first-line) max-length)
         (apply oldfun first-line args)
       (funcall oldfun "%s..." (substring first-line 0 max-length)))))
@@ -53,3 +58,4 @@ with ellipsis truncation."
     (visual-line-mode 1)))
 
 (provide 'config-eldoc)
+
