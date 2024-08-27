@@ -376,7 +376,6 @@ when only symbol face names are needed."
   ;; (with-selected-frame frame
   ;;   ;; Place your GUI settings here.
   ;;   ))
-
   (when (display-graphic-p frame)
     ;; (setq-default line-spacing nil)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
@@ -2108,6 +2107,40 @@ when only symbol face names are needed."
   :straight t
   :defer t
   :ensure t)
+
+(use-package whitespace-mode
+  :config
+  (customize-set-value
+   'whitespace-style
+   '(face
+     tabs
+     spaces
+     trailing
+     newline
+     space-before-tab
+     space-after-tab
+     space-mark
+     tab-mark
+     newline-mark))
+
+  ;; see http://xahlee.org/emacs/whitespace-mode.html
+  ;; make whitespace-mode to use "MS Word-style" characters.
+  ;; together with the rest of its defaults
+  (customize-set-value
+   'whitespace-display-mappings
+   '((space-mark 32 [183] [46])          ; normal space, ·
+     (space-mark 160 [164] [95])
+     (space-mark 2208 [2212] [95])
+     (space-mark 2336 [2340] [95])
+     (space-mark 3616 [3620] [95])
+     (space-mark 3872 [3876] [95])
+     (newline-mark 10 [182 10] [36 10])  ; newlne, ¶
+     ;; (tab-mark 9 [8594 9] [92 9])        ; tab, →
+     ;; (tab-mark 9 [187 9] [92 9])         ; tab, »
+     (tab-mark 9 [9654 9] [92 9])        ; tab, ▶
+     ;; (tab-mark 9 [9655 9] [92 9])        ; tab, ▷
+     ))
+  :defer t)
 
 (use-package sh-script
   :config

@@ -5,9 +5,11 @@
 
 (defun rh-take-until-dash (lines)
   "Return a new list containing elements from STRINGS up to, but not including,
-\"-\".  If \"-\" is not found, return the entire list."
+\"---\" or \"___\".  If \"---\" or \"___\" is not found, return the entire
+list."
   (let (result)
-    (while (and lines (not (string-equal "---" (car lines))))
+    (while (and lines (not (seq-contains-p
+                            '("---" "___") (car lines) #'string-equal)))
       (setq result (cons (car lines) result))
       (setq lines (cdr lines)))
     (nreverse result)))
@@ -23,11 +25,13 @@
                               (s-lines (string-trim message-string)))))
              (non-comment-lines (--filter (not (or (string-empty-p it)
                                                    (s-prefix? "//" it)))
-                                          lines)))
+                                          lines))
+             ;; TODO: Add alt background to ↵ / \n
+             (ret (if (char-displayable-p ?↵) " ↵ " " \\n ")))
         (if non-comment-lines
             (append
              (list format-string
-                   (funcall #'string-join non-comment-lines " ↵ "))
+                   (funcall #'string-join non-comment-lines ret))
              (cddr args))
           args))
     args))
@@ -42,8 +46,6 @@ with ellipsis truncation."
          ;;   (apply #'format (or format-string "") args)))
          (first-line (string-trim (car (split-string message-string "\n"))))
          (max-length (- (frame-width) 3)))
-    ;; TODO: find how to remove bold face from minibuffer
-    ;; (remove-text-properties 0 (length first-line) '(face bold) first-line)
 
     ;; (add-text-properties 0 (length first-line)
     ;;                      '(face (:family (face-attribute 'default :family)))
@@ -58,4 +60,3 @@ with ellipsis truncation."
     (visual-line-mode 1)))
 
 (provide 'config-eldoc)
-
