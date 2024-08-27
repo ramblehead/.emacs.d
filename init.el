@@ -1950,6 +1950,16 @@ when only symbol face names are needed."
   :config
   (require 'flyspell)
 
+  ;; The following font customisation is needed as by default "fixed-pitch" face
+  ;; is not defined and without it markdown-mode renders code blocks with
+  ;; system/hardcoded Emacs font rather than the frame default.
+  ;;
+  ;; As lsp-mode uses markdown-mode to render on-hover docs such as eldoc,
+  ;; wrong font often causes vertical line height shifts and visual
+  ;; inconsistencies.
+  (custom-set-faces
+   '(markdown-code-face ((t (:inherit fixed-pitch :font "Hack")))))
+
   (defun rh-markdown-mode-hook-handler ()
     (company-mode 1)
     (rh-programming-minor-modes 1)

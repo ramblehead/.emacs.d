@@ -26,8 +26,16 @@ list."
              (non-comment-lines (--filter (not (or (string-empty-p it)
                                                    (s-prefix? "//" it)))
                                           lines))
-             ;; TODO: Add alt background to ↵ / \n
-             (ret (if (char-displayable-p ?↵) " ↵ " " \\n ")))
+             (ret-colour (face-attribute 'secondary-selection :background))
+             (ret (if (char-displayable-p ?↵)
+                      (concat
+                       " "
+                       (propertize "↵" 'face (list :background ret-colour))
+                       " ")
+                    (concat
+                       " "
+                       (propertize "\\n" 'face (list :background ret-colour))
+                       " "))))
         (if non-comment-lines
             (append
              (list format-string
@@ -41,15 +49,8 @@ list."
   "Wrapper function that combines original `eldoc-minibuffer-message` behavior
 with ellipsis truncation."
   (let* ((message-string (apply #'format (or format-string "") args))
-         ;; (message-string
-         ;;  (rh-eldoc-minibuffer-message-pre-processor
-         ;;   (apply #'format (or format-string "") args)))
          (first-line (string-trim (car (split-string message-string "\n"))))
          (max-length (- (frame-width) 3)))
-
-    ;; (add-text-properties 0 (length first-line)
-    ;;                      '(face (:family (face-attribute 'default :family)))
-    ;;                      first-line)
 
     (if (<= (length first-line) max-length)
         (apply oldfun first-line args)
