@@ -3,6 +3,9 @@
 (require 's)
 (require 'dash)
 
+;; TODO: write to GH issue after testing this code for Rust
+;; https://github.com/emacs-lsp/lsp-mode/issues/2613
+
 (defun rh-take-until-dash (lines)
   "Return a new list containing elements from STRINGS up to, but not including,
 \"---\" or \"___\".  If \"---\" or \"___\" is not found, return the entire
