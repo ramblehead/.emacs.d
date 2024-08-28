@@ -53,7 +53,7 @@ list."
 with ellipsis truncation."
   (let* ((message-string (apply #'format (or format-string "") args))
          (first-line (string-trim (car (split-string message-string "\n"))))
-         (max-length (- (frame-width) 3)))
+         (max-length (- (frame-width) 4)))
 
     (if (<= (length first-line) max-length)
         (apply oldfun first-line args)
