@@ -392,6 +392,21 @@ when only symbol face names are needed."
         ;; (add-to-list 'default-frame-alist '(font . "Hack-9"))
         (set-face-attribute 'default frame
                             :family "Hack"
+
+                            ;; :family "D2CodingLigatureNerdFont"
+                            ;; :family "EnvyCodeRNerdFont"
+
+                            ;; :family "UbuntuMonoNerdFont"
+                            ;; :family "ZedMonoNerdFont"
+                            ;; :family "FantasqueSansMNerdFont"
+
+                            ;; :family "ArimoNerdFont"
+
+                            ;; :family "CousineNerdFont"
+                            ;; :family "LiterationMonoNerdFont"
+
+                            ;; :family "OpenDyslexicAltNerdFont"
+
                             :height 90
                             ;; :width 'semi-condensed
                             :weight 'normal))
@@ -403,8 +418,7 @@ when only symbol face names are needed."
         ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
         (set-face-attribute 'default (selected-frame)
                             :family "Hack"
-                            :height 105
-                            ;; :width 'semi-condensed
+                            :height 90
                             :weight 'normal))))))
 
 ;; (if (daemonp)
