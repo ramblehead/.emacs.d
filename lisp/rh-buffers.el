@@ -75,6 +75,7 @@ or buffer major mode symbol")
    "^\\*Native-compile-Log\\*$"
    "^\\*Compile-Log\\*$"
    "^\\*Backtrace\\*$"
+   "^\\*Diff\\*$"
    Buffer-menu-mode
    help-mode
    debugger-mode
@@ -95,6 +96,7 @@ or buffer major mode symbol")
    "^\\*clangd\\*$"
    "^\\*pyright\\*$"
    "^\\*ruff-lsp\\*$"
+   "^\\*nix-nil\\*$"
    ;; eglot
    "^\\*EGLOT .*$"
    ;; flymake
@@ -110,7 +112,9 @@ or buffer major mode symbol")
    ;; tailwind
    "^\\*tailwindcss\\*$"
    ;; straight
-   "^\\*straight-byte-compilation\\*$"))
+   "^\\*straight-byte-compilation\\*$"
+   ;; embark
+   "^\\*Embark Export:.*\\*$"))
 
 (setq rh-buffers-groups '())
 
