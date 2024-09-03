@@ -2398,6 +2398,8 @@ when only symbol face names are needed."
 
     ;; (setq-local eldoc-message-function #'(lambda (&rest args) nil))
 
+    ;; Default max line width for rustfmt
+    (setq-local display-fill-column-indicator-column 100)
     (company-mode 1)
     (rh-programming-minor-modes 1))
 
