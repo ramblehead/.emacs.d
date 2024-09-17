@@ -97,6 +97,7 @@ or buffer major mode symbol")
    "^\\*pyright\\*$"
    "^\\*ruff-lsp\\*$"
    "^\\*nix-nil\\*$"
+   "^\\*rust-analyzer\\*$"
    ;; eglot
    "^\\*EGLOT .*$"
    ;; flymake
