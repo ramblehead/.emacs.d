@@ -2471,6 +2471,14 @@ when only symbol face names are needed."
 
   :defer t)
 
+(use-package envrc
+  :config
+  (add-hook 'after-init-hook 'envrc-global-mode)
+
+  :straight t
+  :ensure t
+  :demand t)
+
 (use-package nix-ts-mode
   :mode "\\.nix\\'"
   :config
