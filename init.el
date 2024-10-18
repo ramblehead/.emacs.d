@@ -2434,7 +2434,7 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package yaml-ts-mode
-  :mode "\\.yaml\\'\\|\\.yml\\'"
+  :mode "\\.yaml\\'\\|\\.yml\\'\\|\\.clang-format\\'\\|\\.clangd\\'\\|.clang-tidy\\'"
   :config
   (defun rh-yaml-ts-mode-hook-handler ()
     (company-mode 1)
