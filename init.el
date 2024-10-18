@@ -2017,6 +2017,8 @@ when only symbol face names are needed."
   :config
   (require 'transient)
 
+  (customize-set-value 'transient-default-level 7)
+
   (add-to-list
    'display-buffer-alist
    '((lambda (buffer-nm action)
