@@ -1961,6 +1961,11 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package markdown-mode
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.mdx\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :commands (markdown-mode gfm-mode)
   :config
   (require 'flyspell)
 
