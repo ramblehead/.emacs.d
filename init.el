@@ -2850,6 +2850,11 @@ when only symbol face names are needed."
         (add-hook 'before-save-hook #'clang-format-buffer nil t))
     (remove-hook 'before-save-hook #'clang-format-buffer t)))
 
+;; TODO: need to try polymode for mdx files
+;; see https://github.com/polymode/polymode
+;; also see:
+;; https://nextjs.org/docs/app/building-your-application/configuring/mdx
+
 ;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
 (use-package mmm-mode
   :straight t
