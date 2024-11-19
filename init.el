@@ -1954,7 +1954,8 @@ when only symbol face names are needed."
 
   ;; The personal dictionary file has to exist, otherwise hunspell will
   ;; silently not use it.
-  (unless (file-exists-p ispell-personal-dictionary)
+  (when (and ispell-personal-dictionary
+             (not (file-exists-p ispell-personal-dictionary)))
     (write-region "" nil ispell-personal-dictionary nil 0))
 
   :bind (("C-x w" . 'ispell-word))
