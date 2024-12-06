@@ -1960,13 +1960,19 @@ when only symbol face names are needed."
 
   ;; The personal dictionary file has to exist, otherwise hunspell will
   ;; silently not use it.
-  (unless (file-exists-p ispell-personal-dictionary)
+  (when (and ispell-personal-dictionary
+             (not (file-exists-p ispell-personal-dictionary)))
     (write-region "" nil ispell-personal-dictionary nil 0))
 
   :bind (("C-x w" . 'ispell-word))
   :defer t)
 
 (use-package markdown-mode
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.mdx\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :commands (markdown-mode gfm-mode)
   :config
   (require 'flyspell)
 
@@ -2850,6 +2856,11 @@ when only symbol face names are needed."
       (progn
         (add-hook 'before-save-hook #'clang-format-buffer nil t))
     (remove-hook 'before-save-hook #'clang-format-buffer t)))
+
+;; TODO: need to try polymode for mdx files
+;; see https://github.com/polymode/polymode
+;; also see:
+;; https://nextjs.org/docs/app/building-your-application/configuring/mdx
 
 ;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
 (use-package mmm-mode
