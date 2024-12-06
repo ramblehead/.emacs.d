@@ -362,6 +362,12 @@ when only symbol face names are needed."
   (string-to-number
    (shell-command-to-string "nproc")))
 
+(defun unfill-region (beg end)
+  "Unfill the region, joining text paragraphs into a single logical line."
+  (interactive "*r")
+  (let ((fill-column (point-max)))
+    (fill-region beg end)))
+
 ;;; /b/}
 
 ;;; /b/; Basic System Setup
