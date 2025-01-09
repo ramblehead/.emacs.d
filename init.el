@@ -2095,6 +2095,8 @@ when only symbol face names are needed."
 
   (customize-set-value 'flycheck-checker-error-threshold 5000)
 
+  (flycheck-add-mode 'javascript-eslint 'jtsx-typescript-mode)
+
   :straight t
   :ensure t
   :defer t)
@@ -2535,7 +2537,7 @@ when only symbol face names are needed."
   :pin manual)
 
 (use-package web-mode
-  :mode "\\.mako\\'"
+  :mode "\\.mako\\'\\|\\.svelte"
   :config
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
