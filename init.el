@@ -416,7 +416,7 @@ when only symbol face names are needed."
         ;; (setq normal-cursor-type '(bar . 4))
         ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
         ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
-        (set-face-attribute 'default (selected-frame)
+        (set-face-attribute 'default frame
                             :family "Hack"
                             :height 90
                             :weight 'normal))))))
