@@ -371,6 +371,18 @@ when only symbol face names are needed."
 (defvar read-only-cursor-type 'hbar)
 (defvar normal-cursor-type 'bar)
 
+;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
+(defun rh-set-cursor-according-to-mode ()
+  "Change cursor type according to some minor modes."
+  (unless (seq-contains-p '(eat-mode vterm-mode dired-mode) major-mode)
+    (cond
+     (buffer-read-only
+      (setq cursor-type read-only-cursor-type))
+     (overwrite-mode
+      (setq cursor-type overwrite-cursor-type))
+     (t
+      (setq cursor-type normal-cursor-type)))))
+
 (defun rh-frame-configure (frame)
   ;; ;; Alternative approach would be with-selected-frame()
   ;; (with-selected-frame frame
@@ -380,6 +392,14 @@ when only symbol face names are needed."
     ;; (setq-default line-spacing nil)
     ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono"))
     ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
+
+    (scroll-bar-mode -1)
+
+    (when (and (eq window-system 'x)
+               (string-match "GTK+" (version)))
+      (setq focus-follows-mouse t))
+
+    (add-hook 'post-command-hook #'rh-set-cursor-according-to-mode)
 
     ;; face-font-family-alternatives
 
@@ -589,26 +609,6 @@ when only symbol face names are needed."
   ;;   '(bind-key "<xterm-paste>" #'yank))
 
   (when (display-graphic-p)
-    (scroll-bar-mode -1)
-
-    (when (and (eq window-system 'x)
-               (string-match "GTK+" (version)))
-      (setq focus-follows-mouse t))
-
-    ;; http://emacs-fu.blogspot.co.uk/2009/12/changing-cursor-color-and-shape.html
-    (defun rh-set-cursor-according-to-mode ()
-      "Change cursor type according to some minor modes."
-      (unless (seq-contains-p '(eat-mode vterm-mode dired-mode) major-mode)
-        (cond
-         (buffer-read-only
-          (setq cursor-type read-only-cursor-type))
-         (overwrite-mode
-          (setq cursor-type overwrite-cursor-type))
-         (t
-          (setq cursor-type normal-cursor-type)))))
-
-    (add-hook 'post-command-hook 'rh-set-cursor-according-to-mode)
-
     ;; see https://github.com/shosti/.emacs.d/blob/master/personal/p-display.el#L9
     (set-fontset-font t (decode-char 'ucs #x2d5b) "Noto Sans Tifinagh-9") ; ⵛ
     (set-fontset-font t (decode-char 'ucs #x2d59) "Noto Sans Tifinagh-9") ; ⵙ
@@ -907,8 +907,6 @@ when only symbol face names are needed."
   (customize-set-value 'sml/shorten-mode-string "")
   (customize-set-value 'sml/shorten-modes nil)
 
-  (sml/setup)
-
   :straight t
   :after (total-lines)
   :ensure t
@@ -927,8 +925,9 @@ when only symbol face names are needed."
 ;;   :demand t
 ;;   :ensure t)
 
-(defun configure-colour-themes ()
+(defun configure-visual-themes ()
   ;; (load-theme 'rh-default-customisations t)
+  (sml/setup)
   (color-theme-sanityinc-tomorrow-blue)
   
   ;; (modus-themes-load-theme 'modus-operandi-tinted)
@@ -948,7 +947,7 @@ when only symbol face names are needed."
   ;;   (color-theme-sanityinc-tomorrow-blue))
   )
 
-(add-hook 'emacs-startup-hook #'configure-colour-themes)
+(add-hook 'emacs-startup-hook #'configure-visual-themes)
 
 ;; (use-package ctrlf
 ;;   :config
