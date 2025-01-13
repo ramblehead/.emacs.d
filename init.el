@@ -2096,6 +2096,8 @@ when only symbol face names are needed."
   (customize-set-value 'flycheck-checker-error-threshold 5000)
 
   (flycheck-add-mode 'javascript-eslint 'jtsx-typescript-mode)
+  (flycheck-add-mode 'javascript-eslint 'jtsx-jsx-mode)
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
 
   :straight t
   :ensure t
