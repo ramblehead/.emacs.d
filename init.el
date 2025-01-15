@@ -2310,6 +2310,7 @@ when only symbol face names are needed."
      (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
      (nix . ("git@github.com:nix-community/tree-sitter-nix.git"))
      (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git"))
+     (css . ("git@github.com:tree-sitter/tree-sitter-css.git"))
 
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -2325,7 +2326,7 @@ when only symbol face names are needed."
            '((typescript-mode . jtsx-typescript-mode)
              ;; (js2-mode . js-ts-mode)
              (js2-mode . jtsx-jsx-mode)
-             ;; (css-mode . css-ts-mode)
+             (css-mode . css-ts-mode)
              ;; (bash-mode . bash-ts-mode)
              (python-mode . python-ts-mode)
              (json-mode . json-ts-mode)
@@ -2489,14 +2490,6 @@ when only symbol face names are needed."
 
   :defer t)
 
-(use-package envrc
-  :config
-  (add-hook 'after-init-hook 'envrc-global-mode)
-
-  :straight t
-  :ensure t
-  :demand t)
-
 (use-package nix-ts-mode
   :mode "\\.nix\\'"
   :config
@@ -2566,6 +2559,16 @@ when only symbol face names are needed."
          ("C-c C-b" . nil))
   :straight t
   :ensure t
+  :defer t)
+
+(use-package css-mode
+  :config
+  (defun rh-css-mode-hook-handler ()
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'css-mode-hook #'rh-css-mode-hook-handler)
+  (add-hook 'css-ts-mode-hook #'rh-css-mode-hook-handler)
+
   :defer t)
 
 (use-package python
@@ -2872,10 +2875,13 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
-;; (use-package scss-mode
-;;   :straight t
-;;   :defer t
-;;   :ensure t)
+(use-package envrc
+  :config
+  (add-hook 'after-init-hook 'envrc-global-mode)
+
+  :straight t
+  :ensure t
+  :demand t)
 
 ;;; /b/}
 
