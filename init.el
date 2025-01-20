@@ -2723,6 +2723,12 @@ when only symbol face names are needed."
   (add-to-list 'lsp-language-id-configuration
                '("\\.cts\\'\\|\\.mts\\'" . "typescript") t)
 
+  (add-to-list 'lsp-language-id-configuration
+               '(jtsx-typescript-mode . "typescript") t)
+
+  (add-to-list 'lsp-language-id-configuration
+               '(jtsx-tsx-mode . "typescriptreact") t)
+
   ;; /b/}
 
   :bind
@@ -2843,6 +2849,10 @@ when only symbol face names are needed."
 
   (customize-set-value 'lsp-tailwindcss-class-attributes
                        ["class" "className" "UNSAFE_className" "ngClass"])
+
+  :config
+  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode)
+  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-jsx-mode)
 
   :straight t
   :after (lsp-mode)
