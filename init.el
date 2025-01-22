@@ -2564,6 +2564,8 @@ when only symbol face names are needed."
 
 (use-package css-mode
   :config
+  (customize-set-value 'css-indent-offset 2)
+
   (defun rh-css-mode-hook-handler ()
     (rh-programming-minor-modes 1))
 
@@ -2574,7 +2576,7 @@ when only symbol face names are needed."
 
 (use-package python
   :config
-  (setq python-indent-def-block-scale 1)
+  (customize-set-value python-indent-def-block-scale 1)
 
   ;; (defun rh-python-mode-lsp-hook-handler ()
   ;;   (setq-local lsp-ui-sideline-show-diagnostics nil)
