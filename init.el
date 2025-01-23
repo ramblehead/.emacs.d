@@ -2576,7 +2576,7 @@ when only symbol face names are needed."
 
 (use-package python
   :config
-  (customize-set-value python-indent-def-block-scale 1)
+  (customize-set-value 'python-indent-def-block-scale 1)
 
   ;; (defun rh-python-mode-lsp-hook-handler ()
   ;;   (setq-local lsp-ui-sideline-show-diagnostics nil)
