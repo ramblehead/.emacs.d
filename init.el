@@ -2480,6 +2480,10 @@ when only symbol face names are needed."
          ("C-M-j" . treesit-fold-toggle))
   :defer t)
 
+(use-package lsp-yaml
+  :after (lsp-mode)
+  :defer t)
+
 (use-package kdl-ts-mode
   :mode "\\.kdl\\'"
   :config
