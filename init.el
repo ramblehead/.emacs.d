@@ -2339,6 +2339,19 @@ when only symbol face names are needed."
 
   :demand t)
 
+(use-package treesit-fold
+  :config
+  (add-to-list 'rm-blacklist " Treesit-Fold")
+
+  :straight
+  (treesit-fold
+   :type git
+   :host github
+   :repo "emacs-tree-sitter/treesit-fold")
+
+  :ensure t
+  :demand t)
+
 (use-package combobulate
   :preface
   (setq combobulate-key-prefix "C-c o")
@@ -2445,6 +2458,7 @@ when only symbol face names are needed."
   :config
   (defun rh-toml-ts-mode-hook-handler ()
     (company-mode 1)
+    (treesit-fold-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'toml-ts-mode-hook #'rh-toml-ts-mode-hook-handler)
@@ -2456,10 +2470,18 @@ when only symbol face names are needed."
   :config
   (defun rh-yaml-ts-mode-hook-handler ()
     (company-mode 1)
-    (rh-programming-minor-modes 1))
+    (treesit-fold-mode 1)
+    (show-paren-local-mode 1)
+    (display-fill-column-indicator-mode 1))
 
   (add-hook 'yaml-ts-mode-hook #'rh-yaml-ts-mode-hook-handler)
 
+  :bind (("C-S-j" . treesit-fold-toggle)
+         ("C-M-j" . treesit-fold-toggle))
+  :defer t)
+
+(use-package lsp-yaml
+  :after (lsp-mode)
   :defer t)
 
 (use-package kdl-ts-mode
@@ -2564,6 +2586,8 @@ when only symbol face names are needed."
 
 (use-package css-mode
   :config
+  (customize-set-value 'css-indent-offset 2)
+
   (defun rh-css-mode-hook-handler ()
     (rh-programming-minor-modes 1))
 
@@ -2574,7 +2598,7 @@ when only symbol face names are needed."
 
 (use-package python
   :config
-  (setq python-indent-def-block-scale 1)
+  (customize-set-value 'python-indent-def-block-scale 1)
 
   ;; (defun rh-python-mode-lsp-hook-handler ()
   ;;   (setq-local lsp-ui-sideline-show-diagnostics nil)
