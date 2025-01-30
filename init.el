@@ -2341,6 +2341,11 @@ when only symbol face names are needed."
 
   :demand t)
 
+;; (use-package origami
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
+
 (use-package treesit-fold
   :config
   (add-to-list 'rm-blacklist " Treesit-Fold")
@@ -2642,6 +2647,8 @@ when only symbol face names are needed."
   :config
   (defun typescript-ts-mode-hook-handler ()
     (treesit-fold-mode 1)
+    ;; (code-groups-mode 1)
+    ;; (origami-mode 1)
     (show-paren-local-mode 1)
     (display-fill-column-indicator-mode 1))
 
@@ -2649,12 +2656,16 @@ when only symbol face names are needed."
 
   (defun rh-tsx-ts-mode-hook-handler ()
     (treesit-fold-mode 1)
+    ;; (code-groups-mode 1)
+    ;; (origami-mode 1)
     (show-paren-local-mode 1)
     (display-fill-column-indicator-mode 1))
 
   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
-  ;; :bind (("C-S-j" . treesit-fold-toggle)
+  :bind (("C-S-j" . treesit-fold-toggle)
+         ("C-M-j" . treesit-fold-toggle))
+  ;; :bind (("C-S-j" . origami-toggle-node)
   ;;        ("C-M-j" . treesit-fold-toggle))
   :defer t)
 
