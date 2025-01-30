@@ -2094,10 +2094,12 @@ when only symbol face names are needed."
 
   (customize-set-value 'flycheck-checker-error-threshold 5000)
 
-  (flycheck-add-mode 'javascript-eslint 'jtsx-typescript-mode)
-  (flycheck-add-mode 'javascript-eslint 'jtsx-jsx-mode)
-  (flycheck-add-mode 'javascript-eslint 'jtsx-tsx-mode)
-  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  (dolist (mode
+           '(jtsx-typescript-mode
+             jtsx-jsx-mode
+             jtsx-tsx-mode
+             web-mode))
+    (flycheck-add-mode 'javascript-eslint 'mode))
 
   :straight t
   :ensure t
@@ -2323,7 +2325,7 @@ when only symbol face names are needed."
     (unless (treesit-ready-p (car grammar))
       (treesit-install-language-grammar (car grammar))))
 
-  (dolist (mapping
+  (dolist (mode
            '((typescript-mode . jtsx-typescript-mode)
              ;; (js2-mode . js-ts-mode)
              (js2-mode . jtsx-jsx-mode)
@@ -2333,7 +2335,7 @@ when only symbol face names are needed."
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)
              (c-mode . c-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
+    (add-to-list 'major-mode-remap-alist mode))
 
   (customize-set-value 'treesit-font-lock-level 4)
 
@@ -2626,35 +2628,35 @@ when only symbol face names are needed."
   :ensure t
   :defer t)
 
-;; (use-package typescript-ts-mode
-;;   :mode 
-;;   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
-;;   ("\\.tsx\\'" . tsx-ts-mode)
+(use-package typescript-ts-mode
+  :mode 
+  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+  ("\\.tsx\\'" . tsx-ts-mode)
 
-;;   :delight
-;;   (typescript-ts-mode "ts")
-;;   (tsx-ts-mode "tsx")
+  :delight
+  (typescript-ts-mode "ts")
+  (tsx-ts-mode "tsx")
 
-;;   :config
-;;   (defun rh-typescript-ts-mode-handler ()
-;;     (company-mode 1)
-;;     (rh-programming-minor-modes 1))
+  :config
+  (defun typescript-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
 
-;;   (add-hook 'typescript-ts-mode-hook 'rh-typescript-ts-mode-handler)
+  (add-hook 'typescript-ts-mode-hook 'typescript-ts-mode-hook-handler)
 
-;;   (defun rh-tsx-ts-mode-hook-handler ()
-;;     (company-mode 1)
-;;     (rh-programming-minor-modes 1))
+  (defun rh-tsx-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
 
-;;   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
+  (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
-;;   :defer t)
+  :defer t)
 
 (use-package jtsx
-  :mode
-  (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
-   ("\\.tsx\\'" . jtsx-tsx-mode)
-   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
+  ;; :mode
+  ;; (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
+  ;;  ("\\.tsx\\'" . jtsx-tsx-mode)
+  ;;  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
   (defun rh-jtsx-jsx-mode-hook-handler ()
@@ -2749,6 +2751,9 @@ when only symbol face names are needed."
 
   (add-to-list 'lsp-language-id-configuration
                '(jtsx-typescript-mode . "typescript") t)
+
+  (add-to-list 'lsp-language-id-configuration
+               '(jtsx-jsx-mode . "typescriptreact") t)
 
   (add-to-list 'lsp-language-id-configuration
                '(jtsx-tsx-mode . "typescriptreact") t)
@@ -2875,11 +2880,20 @@ when only symbol face names are needed."
                        ["class" "className" "UNSAFE_className" "ngClass"])
 
   :config
-  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode)
-  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-jsx-mode)
+  (dolist (mode
+           '(css-mode
+             css-ts-mode
+             typescript-mode
+             typescript-ts-mode
+             tsx-ts-mode
+             js-ts-mode
+             jtsx-jsx-mode
+             jtsx-tsx-mode
+             jtsx-typescript-mode))
+    (add-to-list 'lsp-tailwindcss-major-modes mode))
 
   :straight t
-  :after (lsp-mode)
+  ;; :after (lsp-mode)
   :ensure t
   :defer t)
 
