@@ -2099,7 +2099,7 @@ when only symbol face names are needed."
              jtsx-jsx-mode
              jtsx-tsx-mode
              web-mode))
-    (flycheck-add-mode 'javascript-eslint 'mode))
+    (flycheck-add-mode 'javascript-eslint mode))
 
   :straight t
   :ensure t
