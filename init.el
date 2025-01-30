@@ -2530,6 +2530,7 @@ when only symbol face names are needed."
   :ensure t
   :defer t)
 
+
 ;; (use-package nix-mode
 ;;   :mode "\\.nix\\'"
 ;;   :config
@@ -2556,7 +2557,7 @@ when only symbol face names are needed."
   :pin manual)
 
 (use-package web-mode
-  :mode "\\.mako\\'\\|\\.svelte"
+  :mode "\\.mako\\'\\|\\.svelte\\|\\.jsx\\'\\|\\.tsx\\'"
   :config
   (setq web-mode-script-padding 2)
   (setq web-mode-style-padding 2)
@@ -2629,9 +2630,10 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package typescript-ts-mode
-  :mode 
-  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
-  ("\\.tsx\\'" . tsx-ts-mode)
+  ;; :mode
+  ;; (("\\.js\\'\\|\\.cjs\\'\\|\\.mjs\\'" . typescript-ts-mode)
+  ;;  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+  ;;  ("\\.jsx\\'\\|\\.tsx\\'" . tsx-ts-mode))
 
   :delight
   (typescript-ts-mode "ts")
@@ -2639,64 +2641,66 @@ when only symbol face names are needed."
 
   :config
   (defun typescript-ts-mode-hook-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
+    (treesit-fold-mode 1)
+    (show-paren-local-mode 1)
+    (display-fill-column-indicator-mode 1))
 
   (add-hook 'typescript-ts-mode-hook 'typescript-ts-mode-hook-handler)
 
   (defun rh-tsx-ts-mode-hook-handler ()
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
+    (treesit-fold-mode 1)
+    (show-paren-local-mode 1)
+    (display-fill-column-indicator-mode 1))
 
   (add-hook 'tsx-ts-mode-hook 'rh-tsx-ts-mode-hook-handler)
 
+  ;; :bind (("C-S-j" . treesit-fold-toggle)
+  ;;        ("C-M-j" . treesit-fold-toggle))
   :defer t)
 
 (use-package jtsx
-  ;; :mode
-  ;; (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
-  ;;  ("\\.tsx\\'" . jtsx-tsx-mode)
-  ;;  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
+  :mode
+  (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
+   ("\\.tsx\\'" . jtsx-tsx-mode)
+   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
   (defun rh-jtsx-jsx-mode-hook-handler ()
-    (company-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-jsx-mode-hook #'rh-jtsx-jsx-mode-hook-handler)
 
   (defun rh-jtsx-tsx-mode-hook-handler ()
-    (company-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-tsx-mode-hook #'rh-jtsx-tsx-mode-hook-handler)
 
   (defun rh-jtsx-typescript-mode-hook-handler ()
-    (company-mode 1)
     (rh-programming-minor-modes 1))
 
   (add-hook 'jtsx-typescript-mode-hook #'rh-jtsx-typescript-mode-hook-handler)
 
-  (bind-key
-   [remap backward-up-list]
-   #'jtsx-backward-up-list
-   jtsx-jsx-mode-map)
+  ;; (bind-key
+  ;;  [remap backward-up-list]
+  ;;  #'jtsx-backward-up-list
+  ;;  jtsx-jsx-mode-map)
 
-  (bind-key
-   [remap backward-up-list]
-   #'jtsx-backward-up-list
-   jtsx-tsx-mode-map)
+  ;; (bind-key
+  ;;  [remap backward-up-list]
+  ;;  #'jtsx-backward-up-list
+  ;;  jtsx-tsx-mode-map)
 
   :bind
   (:map
    jtsx-jsx-mode-map
    ("M-." . nil))
 
-  :straight
-  (jtsx
-   :type git
-   :host github
-   :repo "ramblehead/jtsx")
+  :straight t
+  ;; :straight
+  ;; (jtsx
+  ;;  :type git
+  ;;  :host github
+  ;;  :repo "ramblehead/jtsx")
 
   :ensure t
   :defer t)
