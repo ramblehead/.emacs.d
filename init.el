@@ -2894,6 +2894,14 @@ when only symbol face names are needed."
   (customize-set-value 'lsp-tailwindcss-class-attributes
                        ["class" "className" "UNSAFE_className" "ngClass"])
 
+  ;; Support for Class Variance Authority
+  ;; see https://cva.style/docs/getting-started/installation#intellisense
+  (customize-set-value
+   'lsp-tailwindcss-experimental-class-regex
+   [["cva\\(((?:[^()]|\\([^()]*\\))*)\\)" "[\"'`]([^\"'`]*).*?[\"'`]"]
+    ["cx\\(((?:[^()]|\\([^()]*\\))*)\\)" "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ["clsx\\(((?:[^()]|\\([^()]*\\))*)\\)" "(?:'|\"|`)([^']*)(?:'|\"|`)"]])
+
   :config
   (dolist (mode
            '(css-mode
