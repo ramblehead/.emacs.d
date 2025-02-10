@@ -2083,6 +2083,14 @@ when only symbol face names are needed."
 
 (add-to-list 'rm-blacklist " rh-prog")
 
+(defun rh-flycheck-visible-buffers ()
+  "Run `flycheck-buffer` on all buffers if the buffer is in a major mode that
+supports Flycheck and is visible."
+  (when (and (bound-and-true-p flycheck-mode)
+             (flycheck-may-enable-mode)
+             (get-buffer-window (current-buffer) 'visible))
+    (flycheck-buffer)))
+
 (use-package flycheck
   :config
   (customize-set-value 'flycheck-mode-line-prefix "Φ")
@@ -2100,6 +2108,8 @@ when only symbol face names are needed."
              jtsx-tsx-mode
              web-mode))
     (flycheck-add-mode 'javascript-eslint mode))
+
+  (run-with-idle-timer 10 t 'rh-flycheck-visible-buffers)
 
   :straight t
   :ensure t
