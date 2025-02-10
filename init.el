@@ -2773,6 +2773,12 @@ when only symbol face names are needed."
   (add-to-list 'lsp-language-id-configuration
                '(jtsx-tsx-mode . "typescriptreact") t)
 
+  (add-to-list 'lsp-language-id-configuration
+               '(css-mode . "tailwindcss") t)
+
+  (add-to-list 'lsp-language-id-configuration
+               '(css-ts-mode . "tailwindcss") t)
+
   ;; /b/}
 
   :bind
@@ -2906,15 +2912,15 @@ when only symbol face names are needed."
 
   :config
   (dolist (mode
-           '(css-mode
-             css-ts-mode
-             typescript-mode
+           '(typescript-mode
              typescript-ts-mode
              tsx-ts-mode
              js-ts-mode
              jtsx-jsx-mode
              jtsx-tsx-mode
-             jtsx-typescript-mode))
+             jtsx-typescript-mode
+             css-mode
+             css-ts-mode))
     (add-to-list 'lsp-tailwindcss-major-modes mode))
 
   :straight t
