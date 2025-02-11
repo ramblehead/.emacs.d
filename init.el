@@ -513,6 +513,7 @@ when only symbol face names are needed."
   (setq-default hscroll-margin 0)
 
   (customize-set-value 'standard-indent 2)
+  (customize-set-value 'visual-line-fringe-indicators '(nil t))
 
   (setq-default tab-width 8)
   (setq-default fill-column 80)
