@@ -2084,13 +2084,23 @@ when only symbol face names are needed."
 
 (add-to-list 'rm-blacklist " rh-prog")
 
+;; (defun rh-flycheck-visible-buffers ()
+;;   "Run `flycheck-buffer` on all buffers if the buffer is in a major mode that
+;; supports Flycheck and is visible."
+;;   (when (and (bound-and-true-p flycheck-mode)
+;;              (flycheck-may-enable-mode)
+;;              (get-buffer-window (current-buffer) 'visible))
+;;     (flycheck-buffer)))
+
 (defun rh-flycheck-visible-buffers ()
-  "Run `flycheck-buffer` on all buffers if the buffer is in a major mode that
-supports Flycheck and is visible."
-  (when (and (bound-and-true-p flycheck-mode)
-             (flycheck-may-enable-mode)
-             (get-buffer-window (current-buffer) 'visible))
-    (flycheck-buffer)))
+  "Run `flycheck-buffer` on all visible buffers if the buffer is in a major mode
+that supports Flycheck and is visible."
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (and (bound-and-true-p flycheck-mode)
+                 (flycheck-may-enable-mode)
+                 (get-buffer-window buffer 'visible))
+        (flycheck-buffer)))))
 
 (use-package flycheck
   :config
@@ -2669,6 +2679,7 @@ supports Flycheck and is visible."
     (treesit-fold-mode 1)
     ;; (code-groups-mode 1)
     ;; (origami-mode 1)
+    (visual-line-mode 1)
     (show-paren-local-mode 1)
     (display-fill-column-indicator-mode 1))
 
