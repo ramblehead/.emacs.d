@@ -1395,7 +1395,8 @@ when only symbol face names are needed."
   (when (display-graphic-p)
     (bind-key "M-[" #'xref-go-back))
 
-  :bind (("M-]" . xref-go-forward))
+  :bind (("M-[" . xref-go-back)
+         ("M-]" . xref-go-forward))
   :defer t)
 
 (use-package autorevert
@@ -1414,10 +1415,8 @@ when only symbol face names are needed."
   (global-undo-tree-mode 1)
   (customize-set-value 'undo-tree-auto-save-history nil)
 
-  (when (display-graphic-p)
-    (bind-key "C-S-z" #'undo-tree-redo))
-
   :bind (("C-z" . undo-tree-undo)
+         ("C-S-z" . undo-tree-redo)
          ("C-M-z" . undo-tree-redo))
 
   :straight t
