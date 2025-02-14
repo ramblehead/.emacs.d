@@ -2794,11 +2794,11 @@ that supports Flycheck and is visible."
   (add-to-list 'lsp-language-id-configuration
                '(jtsx-tsx-mode . "typescriptreact") t)
 
-  (add-to-list 'lsp-language-id-configuration
-               '(css-mode . "tailwindcss") t)
+  ;; (add-to-list 'lsp-language-id-configuration
+  ;;              '(css-mode . "tailwindcss") t)
 
-  (add-to-list 'lsp-language-id-configuration
-               '(css-ts-mode . "tailwindcss") t)
+  ;; (add-to-list 'lsp-language-id-configuration
+  ;;              '(css-ts-mode . "tailwindcss") t)
 
   ;; /b/}
 
