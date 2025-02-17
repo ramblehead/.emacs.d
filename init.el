@@ -1392,11 +1392,17 @@ when only symbol face names are needed."
 
 (use-package xref
   :config
-  (when (display-graphic-p)
-    (bind-key "M-[" #'xref-go-back))
+  (defun rh-xref-bind-keys-graphic (frame)
+    (when (display-graphic-p frame)
+      (bind-key "M-[" #'xref-go-back)))
 
-  :bind (("M-[" . xref-go-back)
-         ("M-]" . xref-go-forward))
+  (add-hook 'after-make-frame-functions #'rh-xref-bind-keys-graphic)
+  (rh-xref-bind-keys-graphic (selected-frame))
+
+  ;; (when (display-graphic-p)
+  ;;   (bind-key "M-[" #'xref-go-back))
+
+  :bind (("M-]" . xref-go-forward))
   :defer t)
 
 (use-package autorevert
@@ -1415,9 +1421,14 @@ when only symbol face names are needed."
   (global-undo-tree-mode 1)
   (customize-set-value 'undo-tree-auto-save-history nil)
 
-  :bind (("C-z" . undo-tree-undo)
-         ("C-S-z" . undo-tree-redo)
-         ("C-M-z" . undo-tree-redo))
+  (defun rh-undo-tree-bind-keys-graphic (frame)
+    (when (display-graphic-p)
+      (bind-key "C-S-z" #'undo-tree-redo)))
+
+  (add-hook 'after-make-frame-functions #'rh-undo-tree-bind-keys-graphic)
+  (rh-undo-tree-bind-keys-graphic (selected-frame))
+
+  :bind (("C-M-z" . undo-tree-redo))
 
   :straight t
   :demand t
