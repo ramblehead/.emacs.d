@@ -2167,6 +2167,7 @@ that supports Flycheck and is visible."
   :ensure t
   :defer t)
 
+;; TODO: replace with https://github.com/jdtsmith/indent-bars
 (use-package highlight-indent-guides
   :init
   (setq highlight-indent-guides-auto-enabled nil)
