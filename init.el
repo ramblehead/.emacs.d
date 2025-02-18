@@ -1423,12 +1423,13 @@ when only symbol face names are needed."
 
   (defun rh-undo-tree-bind-keys-graphic (frame)
     (when (display-graphic-p)
-      (bind-key "C-S-z" #'undo-tree-redo)))
+      (bind-key "C-z" #'undo-tree-undo)))
 
   (add-hook 'after-make-frame-functions #'rh-undo-tree-bind-keys-graphic)
   (rh-undo-tree-bind-keys-graphic (selected-frame))
 
-  :bind (("C-M-z" . undo-tree-redo))
+  :bind (("C-M-z" . undo-tree-undo)
+         ("C-S-z" . undo-tree-redo))
 
   :straight t
   :demand t
