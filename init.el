@@ -2851,6 +2851,17 @@ that supports Flycheck and is visible."
   :defer t)
 
 ;; TODO: add https://github.com/MatthewZMD/aidermacs
+;;       other options to consider:
+;;       https://github.com/cline/cline
+;;       https://github.com/continuedev/continue
+;;
+;;  also see:
+;;       https://openrouter.ai/
+;;       https://lmstudio.ai/
+;;       https://www.cursor.com/
+;;
+;;       https://www.jetson-ai-lab.com/tutorial_ollama.html
+;;       https://aider.chat/docs/leaderboards/
 
 ;; (use-package sideline
 ;;   :init
