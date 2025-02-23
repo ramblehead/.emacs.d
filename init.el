@@ -2239,7 +2239,8 @@ that supports Flycheck and is visible."
 
   :demand t)
 
-;; TODO: Remove this after Emacs 28- become irrelevant
+;; TODO: Remove this after Emacs 28- support becomes irrelevant
+;;       e.g. switch to json-ts-mode
 (use-package json
   :config
   (require 'config-json)
@@ -2483,7 +2484,6 @@ that supports Flycheck and is visible."
   :ensure t
   :defer t)
 
-;; TODO: Remove this after more treesit tests
 (use-package json-ts-mode
   :config
   (add-hook
@@ -2849,6 +2849,8 @@ that supports Flycheck and is visible."
   :straight t
   :ensure t
   :defer t)
+
+;; TODO: add https://github.com/MatthewZMD/aidermacs
 
 ;; (use-package sideline
 ;;   :init
