@@ -2860,8 +2860,11 @@ that supports Flycheck and is visible."
 ;;       https://lmstudio.ai/
 ;;       https://www.cursor.com/
 ;;
+;;       https://learnprompting.org/docs/tooling/IDEs/introduction
 ;;       https://www.jetson-ai-lab.com/tutorial_ollama.html
 ;;       https://aider.chat/docs/leaderboards/
+;;
+;;       https://www.scan.co.uk/products/nda-zotac-nvidia-geforce-rtx-5080-amp-extreme-infinity-16gb-gddr7-graphics-card
 
 ;; (use-package sideline
 ;;   :init
