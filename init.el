@@ -2868,13 +2868,20 @@ that supports Flycheck and is visible."
 
 (use-package aidermacs
   :config
-  (setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
   ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  (global-set-key (kbd "C-c d") 'aidermacs-transient-menu)
-  ; See the Configuration section below
   ;; (setq aidermacs-auto-commits t)
   (customize-set-value 'aidermacs-backend 'vterm)
   (customize-set-value 'aidermacs-use-architect-mode t)
+
+  (customize-set-value 'aidermacs-extra-args '("--watch-files"))
+
+  (customize-set-value
+   'aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+
+  ;; (setq aidermacs-architect-model "o1-mini") ; default
+  ;; (setq aidermacs-editor-model "deepseek/deepseek-chat") ;; defaults to aidermacs-default-model
+
+  :bind (("C-c d" . aidermacs-transient-menu))
 
   :straight
   (aidermacs
@@ -3025,7 +3032,7 @@ that supports Flycheck and is visible."
   :defer t
   :ensure t)
 
-(use-package envrc
+(use-package envrc ;; direnv
   :config
   (add-hook 'after-init-hook 'envrc-global-mode)
 
