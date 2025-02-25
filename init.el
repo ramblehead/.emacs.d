@@ -2866,6 +2866,26 @@ that supports Flycheck and is visible."
 ;;
 ;;       https://www.scan.co.uk/products/nda-zotac-nvidia-geforce-rtx-5080-amp-extreme-infinity-16gb-gddr7-graphics-card
 
+(use-package aidermacs
+  :config
+  (setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  (global-set-key (kbd "C-c d") 'aidermacs-transient-menu)
+  ; See the Configuration section below
+  ;; (setq aidermacs-auto-commits t)
+  (customize-set-value 'aidermacs-backend 'vterm)
+  (customize-set-value 'aidermacs-use-architect-mode t)
+
+  :straight
+  (aidermacs
+   :type git
+   :host github
+   :repo "MatthewZMD/aidermacs"
+   :files ("*.el"))
+
+  :ensure t
+  :defer t)
+
 ;; (use-package sideline
 ;;   :init
 ;;   (setq sideline-backends-right '(sideline-lsp sideline-flycheck))
