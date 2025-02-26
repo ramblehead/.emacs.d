@@ -2881,7 +2881,7 @@ that supports Flycheck and is visible."
   (customize-set-value
    'aidermacs-architect-model "deepseek/deepseek-reasoner")
 
-  (customize-set-value
+  (customize-set-value ;; defaults to aidermacs-default-model
    'aidermacs-editor-model "deepseek/deepseek-coder")
 
   :bind (("C-c d" . aidermacs-transient-menu))
