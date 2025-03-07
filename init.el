@@ -2868,12 +2868,13 @@ that supports Flycheck and is visible."
 
 (use-package aidermacs
   :config
+  ;; see https://github.com/Aider-AI/aider/issues/2600
+  (customize-set-value 'aidermacs-backend 'vterm)
+  (customize-set-value 'aidermacs-extra-args '("--watch-files"))
+
   ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   ;; (setq aidermacs-auto-commits t)
-  ;; (customize-set-value 'aidermacs-backend 'vterm)
   (customize-set-value 'aidermacs-use-architect-mode t)
-
-  (customize-set-value 'aidermacs-extra-args '("--watch-files"))
 
   (customize-set-value
    'aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
