@@ -2870,20 +2870,29 @@ that supports Flycheck and is visible."
   :config
   ;; see https://github.com/Aider-AI/aider/issues/2600
   (customize-set-value 'aidermacs-backend 'vterm)
-  (customize-set-value 'aidermacs-extra-args '("--watch-files"))
+
+  (customize-set-value
+   'aidermacs-extra-args
+   ;; see https://aider.chat/docs/usage/watch.html
+   '("--watch-files"
+     ;; see https://aider.chat/docs/usage/caching.html
+     "--cache-prompts" "--no-stream"))
 
   ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   ;; (setq aidermacs-auto-commits t)
-  (customize-set-value 'aidermacs-use-architect-mode t)
+  ;; (customize-set-value 'aidermacs-use-architect-mode t)
+
+  ;; (customize-set-value
+  ;;  'aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
 
   (customize-set-value
-   'aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+   'aidermacs-default-model "deepseek/deepseek-reasoner")
 
-  (customize-set-value
-   'aidermacs-architect-model "deepseek/deepseek-reasoner")
+  ;; (customize-set-value
+  ;;  'aidermacs-architect-model "deepseek/deepseek-reasoner")
 
-  (customize-set-value ;; defaults to aidermacs-default-model
-   'aidermacs-editor-model "deepseek/deepseek-coder")
+  ;; (customize-set-value ;; defaults to aidermacs-default-model
+  ;;  'aidermacs-editor-model "deepseek/deepseek-coder")
 
   :bind (("C-c d" . aidermacs-transient-menu))
 
