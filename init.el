@@ -2971,6 +2971,14 @@ that supports Flycheck and is visible."
   ;; Should be a part of lsp-mode
   :pin manual)
 
+(use-package lsp-css
+  :config
+  (customize-set-value 'lsp-css-lint-unknown-at-rules "ignore")
+
+  :after (lsp-mode)
+  :defer t
+  ;; Should be a part of lsp-mode
+  :pin manual)
 
 (use-package lsp-pyright
   :config
