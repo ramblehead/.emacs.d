@@ -2462,6 +2462,9 @@ that supports Flycheck and is visible."
    :filter-args #'rh-eldoc-minibuffer-message-rust-filter-args
    '((depth . -100)))
 
+  (setf (car rust-rustfmt-switches) "--edition"
+        (cadr rust-rustfmt-switches) "2024")
+
   ;; (defun rh-rust-mode-lsp-hook-handler ()
   ;;   (setq-local lsp-ui-sideline-show-hover t))
 
