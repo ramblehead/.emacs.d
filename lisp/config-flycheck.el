@@ -10,6 +10,7 @@ that supports Flycheck and is visible."
                  (get-buffer-window buffer 'visible))
         (flycheck-buffer)))))
 
+;; see https://eslint.org/docs/latest/use/configure/configuration-files
 (defun rh-flycheck-eslint--find-working-directory (_checker)
   (let* ((regex-config (concat "\\`\\(\\.eslintrc"
                                "\\(\\.\\(js\\|ya?ml\\|json\\)\\)?\\|"
