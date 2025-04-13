@@ -2113,6 +2113,21 @@ that supports Flycheck and is visible."
                  (get-buffer-window buffer 'visible))
         (flycheck-buffer)))))
 
+(defun rh-flycheck-eslint--find-working-directory (_checker)
+  (let* ((regex-config (concat "\\`\\(\\.eslintrc"
+                               "\\(\\.\\(js\\|ya?ml\\|json\\)\\)?\\|"
+                               "eslint\\.config\\.[mc]?js\\)\\'")))
+    (when buffer-file-name
+      (or (locate-dominating-file
+           (file-name-directory buffer-file-name)
+           (lambda (directory)
+             (> (length (directory-files directory nil regex-config t)) 0)))
+          (locate-dominating-file buffer-file-name ".eslintignore")
+          (locate-dominating-file buffer-file-name "node_modules")))))
+
+(advice-add 'flycheck-eslint--find-working-directory
+            :override #'rh-flycheck-eslint--find-working-directory)
+
 (use-package flycheck
   :config
   (customize-set-value 'flycheck-mode-line-prefix "Φ")
