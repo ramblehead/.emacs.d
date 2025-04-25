@@ -2376,6 +2376,14 @@ when only symbol face names are needed."
   :config
   (add-to-list 'rm-blacklist " Treesit-Fold")
 
+  (customize-set-value 'treesit-fold-line-count-show t)
+
+  (customize-set-value
+   'treesit-fold-line-count-format
+   (if (char-displayable-p ?•)
+       " [• %d •] "
+     " [* %d *] "))
+
   :straight
   (treesit-fold
    :type git
@@ -2665,29 +2673,45 @@ when only symbol face names are needed."
   :defer t)
 
 (use-package typescript-ts-mode
-  ;; :mode
-  ;; (("\\.js\\'\\|\\.cjs\\'\\|\\.mjs\\'" . typescript-ts-mode)
-  ;;  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
-  ;;  ("\\.jsx\\'\\|\\.tsx\\'" . tsx-ts-mode))
+  :mode
+  (("\\.js\\'\\|\\.cjs\\'\\|\\.mjs\\'" . typescript-ts-mode)
+   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . typescript-ts-mode)
+   ("\\.jsx\\'\\|\\.tsx\\'" . tsx-ts-mode))
 
   :delight
   (typescript-ts-mode "ts")
   (tsx-ts-mode "tsx")
 
   :config
+  (require 'config-typescript-ts-mode)
+  
+  ;; (add-to-list
+  ;;  'treesit-fold-range-alist
+  ;;  `(tsx-ts-mode . ,(rh-treesit-fold-parsers-tsx-ts)))
+
+  (setf (cdr (assoc 'tsx-ts-mode treesit-fold-range-alist))
+        (rh-treesit-fold-parsers-tsx-ts))
+
+  (setf (cdr (assoc 'typescript-ts-mode treesit-fold-range-alist))
+        (rh-treesit-fold-parsers-typescript-ts))
+
   (defun typescript-ts-mode-hook-handler ()
+    (rh-augment-typescript-ts-mode-indent-rules 'typescript)
     (treesit-fold-mode 1)
+    ;; (treesit-fold-indicators-mode 1)
+    (treesit-fold-line-comment-mode 1)
     ;; (code-groups-mode 1)
-    ;; (origami-mode 1)
     (show-paren-local-mode 1)
     (display-fill-column-indicator-mode 1))
 
   (add-hook 'typescript-ts-mode-hook 'typescript-ts-mode-hook-handler)
 
   (defun rh-tsx-ts-mode-hook-handler ()
+    (rh-augment-typescript-ts-mode-indent-rules 'tsx)
     (treesit-fold-mode 1)
+    ;; (treesit-fold-indicators-mode 1)
+    (treesit-fold-line-comment-mode 1)
     ;; (code-groups-mode 1)
-    ;; (origami-mode 1)
     (visual-line-mode 1)
     (show-paren-local-mode 1)
     (display-fill-column-indicator-mode 1))
@@ -2696,15 +2720,13 @@ when only symbol face names are needed."
 
   :bind (("C-S-j" . treesit-fold-toggle)
          ("C-M-j" . treesit-fold-toggle))
-  ;; :bind (("C-S-j" . origami-toggle-node)
-  ;;        ("C-M-j" . treesit-fold-toggle))
   :defer t)
 
 (use-package jtsx
-  :mode
-  (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
-   ("\\.tsx\\'" . jtsx-tsx-mode)
-   ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
+  ;; :mode
+  ;; (("\\.jsx?\\'\\|\\.cjs\\'\\|\\.mjs\\'" . jtsx-jsx-mode)
+  ;;  ("\\.tsx\\'" . jtsx-tsx-mode)
+  ;;  ("\\.ts\\'\\|\\.cts\\'\\|\\.mts\\'" . jtsx-typescript-mode))
 
   :config
   (defun rh-jtsx-jsx-mode-hook-handler ()
