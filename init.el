@@ -2400,7 +2400,9 @@ when only symbol face names are needed."
 
 (defun rh-clang-format-package-find ()
   "Finds clang-format.el package."
-  (or (locate-library "clang-format-17/clang-format.el")
+  (or (locate-library "clang-format-19/clang-format.el")
+      (locate-library "clang-format-18/clang-format.el")
+      (locate-library "clang-format-17/clang-format.el")
       (locate-library "clang-format-16/clang-format.el")
       (locate-library "clang-format-15/clang-format.el")
       (locate-library "clang-format-14/clang-format.el")
