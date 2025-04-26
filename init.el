@@ -2331,6 +2331,7 @@ when only symbol face names are needed."
      (css-in-js . ("https://github.com/orzechowskid/tree-sitter-css-in-js.git"))
      (python . ("https://github.com/tree-sitter/tree-sitter-python"))
      (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+     ;; (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
      (c . ("https://github.com/tree-sitter/tree-sitter-c.git"))
      (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
@@ -2338,23 +2339,27 @@ when only symbol face names are needed."
      (kdl . ("https://github.com/tree-sitter-grammars/tree-sitter-kdl.git"))
      (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
      (nix . ("git@github.com:nix-community/tree-sitter-nix.git"))
+     ;; (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git" "v0.23.2"))
      (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git"))
+     ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      (css . ("git@github.com:tree-sitter/tree-sitter-css.git"))
 
-     ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-     ;; (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-
      ))
 
   (dolist (grammar treesit-language-source-alist)
     (unless (treesit-ready-p (car grammar))
       (treesit-install-language-grammar (car grammar))))
 
+  ;; (treesit-install-language-grammar 'rust)
+  ;; (treesit-language-available-p 'rust)
+  ;; (treesit-library-abi-version)
+  ;; (treesit-language-abi-version 'rust)
+
   (dolist (mode
            '((typescript-mode . jtsx-typescript-mode)
-             ;; (js2-mode . js-ts-mode)
-             (js2-mode . jtsx-jsx-mode)
+             (js2-mode . typescript-ts-mode)
+             ;; (js2-mode . jtsx-jsx-mode)
              (css-mode . css-ts-mode)
              ;; (bash-mode . bash-ts-mode)
              (python-mode . python-ts-mode)
