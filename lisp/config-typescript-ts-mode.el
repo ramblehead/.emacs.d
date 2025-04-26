@@ -10,7 +10,8 @@
      (object_type . treesit-fold-range-seq)
      (interface_declaration . treesit-fold-range-seq)
      (object_pattern . treesit-fold-range-seq)
-     (parenthesized_expression . treesit-fold-range-seq))))
+     (parenthesized_expression . treesit-fold-range-seq)
+     (formal_parameters . treesit-fold-range-seq))))
 
 (defun rh-treesit-fold-parsers-tsx-ts ()
   "Rule set for TypeScript with JSX."
@@ -18,6 +19,7 @@
    (rh-treesit-fold-parsers-typescript-ts)
    '((jsx_expression . treesit-fold-range-seq)
      (jsx_element . treesit-fold-range-html)
+     ;; (jsx_opening_element . (treesit-fold-range-html 3 0))
      (jsx_opening_element . treesit-fold-range-html)
      (jsx_self_closing_element . treesit-fold-range-html))))
 
