@@ -2782,6 +2782,16 @@ when only symbol face names are needed."
   :ensure t
   :defer t)
 
+(use-package prettier-js
+  :delight (prettier-js-mode " PE")
+  :config
+  ;; Make sure that "node_modules/prettier/bin/prettier.cjs" is executable
+  (customize-set-value 'prettier-js-use-modules-bin t)
+
+  :straight t
+  :ensure t
+  :defer t)
+
 (use-package lsp-mode
   :init
   (defvar lsp-keymap-prefix "C-c l")
