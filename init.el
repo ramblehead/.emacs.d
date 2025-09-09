@@ -2457,6 +2457,18 @@ when only symbol face names are needed."
 
 ;;   :defer t)
 
+(defun rh-rust-mode-hook-handler ()
+  ;; (add-hook 'lsp-after-initialize-hook
+  ;;           #'rh-rust-mode-lsp-hook-handler nil t)
+  ;; (rh-rust-mode-lsp-hook-handler)
+
+  ;; (setq-local eldoc-message-function #'(lambda (&rest args) nil))
+
+  ;; Default max line width for rustfmt
+  (setq-local display-fill-column-indicator-column 100)
+  (company-mode 1)
+  (rh-programming-minor-modes 1))
+
 (use-package rust-mode
   ;; :init
   ;; (setq rust-mode-treesitter-derive t)
@@ -2469,23 +2481,8 @@ when only symbol face names are needed."
    :filter-args #'rh-eldoc-minibuffer-message-rust-filter-args
    '((depth . -100)))
 
-  (setf (car rust-rustfmt-switches) "--edition"
-        (cadr rust-rustfmt-switches) "2024")
-
   ;; (defun rh-rust-mode-lsp-hook-handler ()
   ;;   (setq-local lsp-ui-sideline-show-hover t))
-
-  (defun rh-rust-mode-hook-handler ()
-    ;; (add-hook 'lsp-after-initialize-hook
-    ;;           #'rh-rust-mode-lsp-hook-handler nil t)
-    ;; (rh-rust-mode-lsp-hook-handler)
-
-    ;; (setq-local eldoc-message-function #'(lambda (&rest args) nil))
-
-    ;; Default max line width for rustfmt
-    (setq-local display-fill-column-indicator-column 100)
-    (company-mode 1)
-    (rh-programming-minor-modes 1))
 
   (add-hook 'rust-ts-mode-hook #'rh-rust-mode-hook-handler)
   (add-hook 'rust-mode-hook #'rh-rust-mode-hook-handler)
