@@ -1114,6 +1114,11 @@ when only symbol face names are needed."
 ;;   :ensure t
 ;;   :demand t)
 
+(use-package swiper
+  :straight t
+  :defer t
+  :ensure t)
+
 (use-package consult
   :init
   ;; Optionally configure the register formatting. This improves the register
@@ -1134,6 +1139,8 @@ when only symbol face names are needed."
   (require 'consult)
   (require 'patch-consult)
   (require 'config-consult)
+  (require 'swiper)
+
 
   (add-to-list 'consult-buffer-sources 'rh-consult-source-recentf-dirs t)
 
@@ -1223,7 +1230,10 @@ when only symbol face names are needed."
    ("M-s r" . consult-ripgrep)
    ("C-c s" . consult-ripgrep)
    ("M-s l" . consult-line)
-   ("C-s"   . consult-line)                  ;; Use consult instead of isearch-forward
+   ;; consult-line with my mods may crash on huge files (e.g. 100 MB)
+   ;; ("C-s"   . consult-line)                  ;; Use consult instead of isearch-forward
+   ;; therefore using swiper instead - for now
+   ("C-s"   . swiper)
    ("M-s s" . isearch-forward)               ;; Re-map isearch-forward
    ("M-s L" . consult-line-multi)
    ("M-s k" . consult-keep-lines)
