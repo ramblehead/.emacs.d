@@ -1907,6 +1907,25 @@ when only symbol face names are needed."
           ("integration" "integration/*")
           (:exclude ".dir-locals.el" "*-tests.el"))))
 
+;; (use-package kkp
+;;   :config
+;;   (setq kkp-active-enhancements '(disambiguate-escape-codes))
+;;   (setq kkp-alt-modifier 'alt)
+;;   (global-kkp-mode 1)
+
+;;   :straight t
+;;   :ensure t
+;;   :demand t)
+
+;; (use-package term-keys
+;;   :straight
+;;   (treesit-fold
+;;    :type git
+;;    :host github
+;;    :repo "CyberShadow/term-keys")
+;;   :ensure t
+;;   :demand t)
+
 ;;; /b/}
 
 ;;; /b/; Human Languages
