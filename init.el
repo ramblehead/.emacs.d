@@ -1431,14 +1431,14 @@ when only symbol face names are needed."
   (global-undo-tree-mode 1)
   (customize-set-value 'undo-tree-auto-save-history nil)
 
-  (defun rh-undo-tree-bind-keys-graphic (frame)
-    (when (display-graphic-p)
-      (bind-key "C-z" #'undo-tree-undo)))
+  ;; (defun rh-undo-tree-bind-keys-graphic (frame)
+  ;;   (when (display-graphic-p)
+  ;;     (bind-key "C-z" #'undo-tree-undo)))
 
-  (add-hook 'after-make-frame-functions #'rh-undo-tree-bind-keys-graphic)
-  (rh-undo-tree-bind-keys-graphic (selected-frame))
+  ;; (add-hook 'after-make-frame-functions #'rh-undo-tree-bind-keys-graphic)
+  ;; (rh-undo-tree-bind-keys-graphic (selected-frame))
 
-  :bind (("C-M-z" . undo-tree-undo)
+  :bind (("C-z" . undo-tree-undo)
          ("C-S-z" . undo-tree-redo))
 
   :straight t
@@ -1907,15 +1907,15 @@ when only symbol face names are needed."
           ("integration" "integration/*")
           (:exclude ".dir-locals.el" "*-tests.el"))))
 
-;; (use-package kkp
-;;   :config
-;;   (setq kkp-active-enhancements '(disambiguate-escape-codes))
-;;   (setq kkp-alt-modifier 'alt)
-;;   (global-kkp-mode 1)
+(use-package kkp
+  :config
+  ;; (setq kkp-active-enhancements '(disambiguate-escape-codes))
+  ;; (setq kkp-alt-modifier 'alt)
+  (global-kkp-mode 1)
 
-;;   :straight t
-;;   :ensure t
-;;   :demand t)
+  :straight t
+  :ensure t
+  :demand t)
 
 ;; (use-package term-keys
 ;;   :straight
