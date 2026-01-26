@@ -1409,9 +1409,6 @@ when only symbol face names are needed."
   (add-hook 'after-make-frame-functions #'rh-xref-bind-keys-graphic)
   (rh-xref-bind-keys-graphic (selected-frame))
 
-  ;; (when (display-graphic-p)
-  ;;   (bind-key "M-[" #'xref-go-back))
-
   :bind (("M-]" . xref-go-forward))
   :defer t)
 
