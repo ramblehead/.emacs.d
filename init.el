@@ -2372,6 +2372,7 @@ when only symbol face names are needed."
      (rust . ("git@github.com:tree-sitter/tree-sitter-rust.git"))
      ;; (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
      (css . ("git@github.com:tree-sitter/tree-sitter-css.git"))
+     (lua . ("git@github.com:tree-sitter-grammars/tree-sitter-lua.git"))
 
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
      ))
@@ -2670,6 +2671,19 @@ when only symbol face names are needed."
 
   (add-hook 'css-mode-hook #'rh-css-mode-hook-handler)
   (add-hook 'css-ts-mode-hook #'rh-css-mode-hook-handler)
+
+  :defer t)
+
+(use-package lua-ts-mode
+  :mode "\\.lua\\'"
+  :config
+  (customize-set-value 'lua-ts-indent-offset 2)
+
+  (defun rh-lua-ts-mode-hook-handler ()
+    (company-mode 1)
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'lua-ts-mode-hook #'rh-lua-ts-mode-hook-handler)
 
   :defer t)
 
