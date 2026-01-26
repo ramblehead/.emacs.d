@@ -1439,7 +1439,8 @@ when only symbol face names are needed."
   ;; (rh-undo-tree-bind-keys-graphic (selected-frame))
 
   :bind (("C-z" . undo-tree-undo)
-         ("C-S-z" . undo-tree-redo))
+         ("C-S-z" . undo-tree-redo)
+         ("C-M-z" . undo-tree-redo))
 
   :straight t
   :demand t
