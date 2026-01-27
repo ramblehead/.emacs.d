@@ -1401,6 +1401,8 @@ when only symbol face names are needed."
 
 (use-package xref
   :config
+  ;; (define-key input-decode-map "^[[91;2u" [kkp-alt-bracket])
+
   (defun rh-xref-bind-keys-graphic (frame)
     (when (display-graphic-p frame)
       (bind-key "M-[" #'xref-go-back)))
@@ -1410,11 +1412,6 @@ when only symbol face names are needed."
 
   :bind (("M-]" . xref-go-forward))
   :defer t)
-
-;; (use-package xref
-;;   :bind (("M-]" . xref-go-forward)
-;;          ("M-[" . xref-go-back))
-;;   :defer t)
 
 (use-package autorevert
   :config
