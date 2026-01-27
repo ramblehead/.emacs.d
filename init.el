@@ -606,27 +606,6 @@ when only symbol face names are needed."
    (kbd "C-<kp-right>")
    (lookup-key (current-global-map) (kbd "C-<right>")))
 
-
-  (define-key
-   (current-global-map)
-   (kbd "C-x <kp-up>")
-   (lookup-key (current-global-map) (kbd "C-x <up>")))
-
-  (define-key
-   (current-global-map)
-   (kbd "C-x <kp-down>")
-   (lookup-key (current-global-map) (kbd "C-x <down>")))
-
-  (define-key
-   (current-global-map)
-   (kbd "C-x <kp-left>")
-   (lookup-key (current-global-map) (kbd "C-x <left>")))
-
-  (define-key
-   (current-global-map)
-   (kbd "C-x <kp-right>")
-   (lookup-key (current-global-map) (kbd "C-x <right>")))
-
   ;; (eval-after-load 'term/xterm
   ;;   '(bind-key "<xterm-paste>" #'yank))
 
@@ -687,14 +666,13 @@ when only symbol face names are needed."
 (use-package windmove
   :bind
   (("C-x <up>" . windmove-up)
-   ;; ("C-x <kp-up>" . windmove-up)
+   ("C-x <kp-up>" . windmove-up)
    ("C-x <down>" . windmove-down)
-   ;; ("C-x <kp-down>" . windmove-down)
+   ("C-x <kp-down>" . windmove-down)
    ("C-x <right>" . windmove-right)
-   ;; ("C-x <kp-right>" . windmove-right)
+   ("C-x <kp-right>" . windmove-right)
    ("C-x <left>" . windmove-left)
-   ;; ("C-x <kp-left>" . windmove-left)
-   )
+   ("C-x <kp-left>" . windmove-left))
 
   :demand t)
 
