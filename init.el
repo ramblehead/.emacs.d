@@ -606,6 +606,27 @@ when only symbol face names are needed."
    (kbd "C-<kp-right>")
    (lookup-key (current-global-map) (kbd "C-<right>")))
 
+
+  (define-key
+   (current-global-map)
+   (kbd "C-x <kp-up>")
+   (lookup-key (current-global-map) (kbd "C-x <up>")))
+
+  (define-key
+   (current-global-map)
+   (kbd "C-x <kp-down>")
+   (lookup-key (current-global-map) (kbd "C-x <down>")))
+
+  (define-key
+   (current-global-map)
+   (kbd "C-x <kp-left>")
+   (lookup-key (current-global-map) (kbd "C-x <left>")))
+
+  (define-key
+   (current-global-map)
+   (kbd "C-x <kp-right>")
+   (lookup-key (current-global-map) (kbd "C-x <right>")))
+
   ;; (eval-after-load 'term/xterm
   ;;   '(bind-key "<xterm-paste>" #'yank))
 
@@ -1411,6 +1432,11 @@ when only symbol face names are needed."
 
   :bind (("M-]" . xref-go-forward))
   :defer t)
+
+;; (use-package xref
+;;   :bind (("M-]" . xref-go-forward)
+;;          ("M-[" . xref-go-back))
+;;   :defer t)
 
 (use-package autorevert
   :config
