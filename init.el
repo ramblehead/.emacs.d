@@ -1375,7 +1375,7 @@ when only symbol face names are needed."
   (customize-set-value 'recentf-keep '(rh-keep-default-and-visible-recentf-p))
 
   (when (display-graphic-p)
-    (bind-key "<escape>" #'recentf-cancel-dialog))
+    (bind-key "<escape>" #'recentf-cancel-dialog recentf-dialog-mode-map))
 
   :bind
   (("<f4>" . recentf-open-files)
