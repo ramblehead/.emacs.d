@@ -1917,6 +1917,16 @@ when only symbol face names are needed."
   :ensure t
   :demand t)
 
+(use-package dash
+  :straight t
+  :demand t
+  :ensure t)
+
+(use-package s
+  :straight t
+  :demand t
+  :ensure t)
+
 ;; (use-package term-keys
 ;;   :straight
 ;;   (treesit-fold
@@ -2345,6 +2355,7 @@ when only symbol face names are needed."
    'special-mode-hook
    #'rh-eldoc-special-mode-hook-handler)
 
+  :after (dash s)
   :defer t)
 
 ;; see https://github.com/mickeynp/combobulate?tab=readme-ov-file#complete-example-with-tree-sitter-grammar-installation
