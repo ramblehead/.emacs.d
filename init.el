@@ -3139,7 +3139,7 @@ when only symbol face names are needed."
     (remove-hook 'before-save-hook #'clang-format-buffer t)))
 
 (use-package mermaid-ts-mode
-  :mode "\\.mermaid\\'"
+  ;; :mode "\\.mermaid\\'"
   :config
   (defun rh-mermaid-ts-mode-hook-handler ()
     (rh-programming-minor-modes 1))
