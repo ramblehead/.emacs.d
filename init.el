@@ -2385,6 +2385,7 @@ when only symbol face names are needed."
      (css . ("git@github.com:tree-sitter/tree-sitter-css.git"))
      (lua . ("git@github.com:tree-sitter-grammars/tree-sitter-lua.git"))
 
+     (mermaid . ("git@github.com:monaqa/tree-sitter-mermaid.git"))
      ;; (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
      ))
 
@@ -3067,6 +3068,7 @@ when only symbol face names are needed."
 
 (use-package lsp-pyright
   :config
+  (customize-set-value 'lsp-pyright-multi-root nil)
   (customize-set-value 'lsp-pyright-auto-search-paths nil)
   ;; (customize-set-value 'lsp-pyright-disable-language-services t)
   (customize-set-value 'lsp-file-watch-threshold 100000)
@@ -3075,6 +3077,15 @@ when only symbol face names are needed."
   :after (lsp-mode)
   :ensure t
   :defer t)
+
+(use-package lsp-ruff
+  :config
+  (customize-set-value 'lsp-ruff-multi-root nil)
+
+  :after (lsp-mode)
+  :defer t
+  ;; Should be a part of lsp-mode
+  :pin manual)
 
 (use-package lsp-tailwindcss
   :init
@@ -3126,6 +3137,18 @@ when only symbol face names are needed."
       (progn
         (add-hook 'before-save-hook #'clang-format-buffer nil t))
     (remove-hook 'before-save-hook #'clang-format-buffer t)))
+
+(use-package mermaid-ts-mode
+  :mode "\\.mermaid\\'"
+  :config
+  (defun rh-mermaid-ts-mode-hook-handler ()
+    (rh-programming-minor-modes 1))
+
+  (add-hook 'mermaid-ts-mode-hook #'rh-mermaid-ts-mode-hook-handler)
+
+  :straight t
+  :ensure t
+  :defer t)
 
 ;; TODO: need to try polymode for mdx files
 ;; see https://github.com/polymode/polymode
