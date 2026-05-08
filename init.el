@@ -3155,11 +3155,69 @@ when only symbol face names are needed."
 ;; also see:
 ;; https://nextjs.org/docs/app/building-your-application/configuring/mdx
 
-;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
-(use-package mmm-mode
+;; ;; see https://gist.github.com/rangeoshun/67cb17392c523579bc6cbd758b2315c1
+;; (use-package mmm-mode
+;;   :straight t
+;;   :defer t
+;;   :ensure t)
+
+(use-package polymode
+  :config
+  ;; Host mode: Rust
+  (define-hostmode poly-rust-hostmode
+    :mode 'rust-mode)
+
+  ;; Inner mode: SQL inside `sql! { r#" ... "# }`
+  (define-innermode poly-sql-r-string-innermode
+    :mode 'sql-mode
+    :head-matcher
+    (rx word-boundary
+        "sql!"
+        (* space)
+        "{"
+        (* space)
+        "r#\"")
+    :tail-matcher
+    (rx "\"#"
+        (* space)
+        "}")
+    :head-mode 'host
+    :tail-mode 'host
+    :indent-offset t)
+
+  ;; Combined polymode
+  (define-polymode poly-rust+sql-mode
+    :hostmode 'poly-rust-hostmode
+    :innermodes '(poly-sql-r-string-innermode))
+
+  ;; ;; Activate polymode for Rust files
+  ;; (add-to-list 'auto-mode-alist
+  ;;              '("\\.rs\\'" . poly-rust+sql-mode))
+
   :straight t
   :defer t
   :ensure t)
+
+;; (defun my/polymode-format-sql-with-prettier ()
+;;   "Format only SQL polymode spans using prettier-prettify."
+;;   (interactive)
+;;   (require 'polymode)
+
+;;   (pm-map-over-spans
+;;    (lambda (_span)
+;;      (when (and (derived-mode-p 'sql-mode)
+;;                 (fboundp 'prettier-prettify))
+;;        (prettier-prettify)))))
+
+;; (defun my/disable-lsp-in-polymode-inner (&rest _args)
+;;   "Disable LSP in polymode inner buffers."
+;;   (when (and polymode-mode
+;;              (not (eq (current-buffer) (pm-base-buffer)))
+;;              (bound-and-true-p lsp-mode))
+;;     (lsp-disconnect)))
+
+;; (add-hook 'polymode-after-switch-buffer-hook
+;;           #'my/disable-lsp-in-polymode-inner)
 
 (use-package envrc ;; direnv
   :config
