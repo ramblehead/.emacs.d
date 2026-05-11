@@ -2533,6 +2533,62 @@ when only symbol face names are needed."
   :ensure t
   :defer t)
 
+(use-package sql-mode
+  :config
+  (defun rh-sql-mode-hook-handler ()
+    (company-mode 1)
+    ;; (treesit-fold-mode 1)
+    (show-paren-local-mode 1)
+    (display-fill-column-indicator-mode 1))
+
+  (add-hook 'sql-mode-hook #'rh-sql-mode-hook-handler)
+
+  :defer t)
+
+;; (use-package sql-indent
+;;   :straight t
+;;   :ensure t
+;;   :defer t)
+
+(defun rh-mask-string-interpolations ()
+  "Replace Rust/JS interpolations like {foo} or ${foo} with sentinels.
+Returns an alist of (SENTINEL . ORIGINAL)."
+  (let ((i 0)
+        (replacements '()))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(\\${[^}]+}\\|{[^}]+}\\)" nil t)
+        (let* ((orig (match-string 1))
+               (sentinel (format "__LANG_INTERP_%d__" i)))
+          (setq i (1+ i))
+          (push (cons sentinel orig) replacements)
+          (replace-match sentinel t t))))
+    (nreverse replacements)))
+
+(defun rh-unmask-string-interpolations (replacements)
+  "Restore Rust/JS interpolations from REPLACEMENTS."
+  (save-excursion
+    (goto-char (point-min))
+    (dolist (pair replacements)
+      (let ((sentinel (car pair))
+            (orig (cdr pair)))
+        (while (search-forward sentinel nil t)
+          (replace-match orig t t))))))
+
+(defun prettier-prettify-sql ()
+  "Format SQL with Prettier, preserving Rust interpolations.
+
+Allows Prettier to choose the final cursor position, while ensuring
+unmasking does not disturb point."
+  (interactive)
+  (when (and (derived-mode-p 'sql-mode)
+             (fboundp 'prettier-prettify))
+    (let ((repls (rh-mask-string-interpolations)))
+      (unwind-protect
+          (prettier-prettify)
+        (save-excursion
+          (rh-unmask-string-interpolations repls))))))
+
 (use-package json-ts-mode
   :config
   (add-hook
@@ -3198,6 +3254,31 @@ when only symbol face names are needed."
   :defer t
   :ensure t)
 
+;; (defun rh-polymode-format-sql-with-prettier ()
+;;   "Format only SQL polymode spans using prettier-prettify."
+;;   (interactive)
+;;   (require 'polymode)
+
+;;   (save-excursion
+;;     (pm-map-over-spans
+;;      (lambda (span)
+;;        (with-current-buffer (pm-span-buffer span)
+;;          (when (and (derived-mode-p 'sql-mode)
+;;                     (fboundp 'prettier-prettify))
+;;            (prettier-prettify-sql)))))))
+
+(defun rh-polymode-format-sql-with-prettier ()
+  "Format only SQL polymode spans using prettier-prettify."
+  (interactive)
+  (require 'polymode)
+
+  (with-current-buffer (pm-span-buffer)
+    (prettier-prettify-sql)))
+
+;; (with-current-buffer (pm-span-buffer)
+;;   (point-min)
+;;   (thing-at-point 'line t))
+
 ;; (defun my/polymode-format-sql-with-prettier ()
 ;;   "Format only SQL polymode spans using prettier-prettify."
 ;;   (interactive)
@@ -3209,15 +3290,19 @@ when only symbol face names are needed."
 ;;                 (fboundp 'prettier-prettify))
 ;;        (prettier-prettify)))))
 
-;; (defun my/disable-lsp-in-polymode-inner (&rest _args)
-;;   "Disable LSP in polymode inner buffers."
-;;   (when (and polymode-mode
-;;              (not (eq (current-buffer) (pm-base-buffer)))
-;;              (bound-and-true-p lsp-mode))
-;;     (lsp-disconnect)))
+(defun my/disable-lsp-in-polymode-inner (&rest _args)
+  "Disable LSP in polymode inner buffers."
+  (when (and polymode-mode
+             (not (eq (current-buffer) (pm-base-buffer)))
+             (bound-and-true-p lsp-mode))
+    (let ((lsp-mode-enabled (bound-and-true-p lsp-mode)))
+      (unwind-protect
+          (when lsp-mode-enabled
+            (lsp-disconnect)
+            (flycheck-mode -1))))))
 
-;; (add-hook 'polymode-after-switch-buffer-hook
-;;           #'my/disable-lsp-in-polymode-inner)
+(add-hook 'polymode-after-switch-buffer-hook
+          #'my/disable-lsp-in-polymode-inner)
 
 (use-package envrc ;; direnv
   :config
