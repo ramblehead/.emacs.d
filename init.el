@@ -427,7 +427,7 @@ when only symbol face names are needed."
 
                             ;; :family "OpenDyslexicAltNerdFont"
 
-                            :height 90
+                            :height 100
                             ;; :width 'semi-condensed
                             :weight 'normal))
        (t
@@ -438,7 +438,7 @@ when only symbol face names are needed."
         ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
         (set-face-attribute 'default frame
                             :family "Hack"
-                            :height 90
+                            :height 100
                             :weight 'normal))))))
 
 ;; (if (daemonp)
