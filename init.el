@@ -438,7 +438,7 @@ when only symbol face names are needed."
         ;; (add-to-list 'default-frame-alist '(font . "Hack-10.5"))
         (set-face-attribute 'default frame
                             :family "Hack"
-                            :height 100
+                            :height 105
                             :weight 'normal))))))
 
 ;; (if (daemonp)
