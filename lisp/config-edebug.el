@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's edebug configuration
 
 (defvar rh-edebug-scroll-margin 5)

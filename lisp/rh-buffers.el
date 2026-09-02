@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; rh-buffers.el --- set of buffer grouping utilities
 ;;
 ;; Description: Buffer grouping helper utilities.

@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's rich-minority configuration
 
 (defun rh-rm-minor-modes ()

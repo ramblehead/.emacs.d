@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; rh-bs.el --- set of bs module extensions
 ;;
 ;; Description: Quickly switch between buffer configurations.

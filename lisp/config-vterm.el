@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's vterm configuration
 
 (customize-set-value 'vterm-kill-buffer-on-exit nil)

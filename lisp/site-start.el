@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;; Load files in `site-start.d' directory.
 
 (dolist (file

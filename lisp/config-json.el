@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's json configuration
 
 (defun rh-json-parse-buffer (orig &rest rest)

@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's eldoc configuration
 
 (require 's)

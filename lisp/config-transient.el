@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's transient library configuration
 
 (defun rh-transient--fit-window-to-buffer:around (orig-fun window &rest rest)

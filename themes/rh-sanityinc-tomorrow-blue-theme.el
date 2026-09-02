@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's rh-sanityinc-tomorrow-blue theme
 
 (require 'color-theme-sanityinc-tomorrow)

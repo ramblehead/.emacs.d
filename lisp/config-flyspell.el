@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's flyspell configuration
 
 (defun rh-markdown-flyspell-check-word-p (orig-fun &rest r)

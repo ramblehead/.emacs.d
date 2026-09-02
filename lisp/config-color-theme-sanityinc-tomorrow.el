@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's color-theme-sanityinc-tomorrow configuration
 
 (defun color-theme-sanityinc-tomorrow-blue:after ()

@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's company-mode configuration
 
 (defun rh-company-pseudo-tooltip-on-explicit-action (command)

@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; ramblehead's recentf configuration
 
 ;; (setq rh-ignore-recentf '(;; AUCTeX output files
