@@ -2900,6 +2900,12 @@ unmasking does not disturb point."
   :ensure t
   :defer t)
 
+(use-package apheleia
+  :delight (apheleia-mode " A")
+  :straight t
+  :ensure t
+  :defer t)
+
 (use-package lsp-mode
   :init
   (defvar lsp-keymap-prefix "C-c l")
